@@ -12,7 +12,7 @@ export default function StudentsPage() {
   useEffect(() => {
     fetchStudents().then(setStudents);
   }, []);
-kuy
+
   return (
     <div>
       <NavBar>
