@@ -16,7 +16,7 @@ export default function StudentsPage() {
     <div>
       <h1>Students</h1>
       <ul>
-        {students.map(s => (
+        {students.map(s => (  
           <li key={s.id}>{s.username}</li>
         ))}
       </ul>
