@@ -11,7 +11,7 @@ export default function StudentsPage() {
   useEffect(() => {
     fetchStudents().then(setStudents);
   }, []);
-'''
+''';;;
   return (
     <div>
       <h1>Students</h1>
