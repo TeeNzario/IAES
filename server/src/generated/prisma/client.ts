@@ -27,8 +27,8 @@ export * from "./enums.js"
  * @example
  * ```
  * const prisma = new PrismaClient()
- * // Fetch zero or more Posts
- * const posts = await prisma.post.findMany()
+ * // Fetch zero or more Attempt_answers
+ * const attempt_answers = await prisma.attempt_answers.findMany()
  * ```
  * 
  * Read more in our [docs](https://pris.ly/d/client).
@@ -38,12 +38,77 @@ export type PrismaClient<LogOpts extends Prisma.LogLevel = never, OmitOpts exten
 export { Prisma }
 
 /**
- * Model Post
+ * Model attempt_answers
  * 
  */
-export type Post = Prisma.PostModel
+export type attempt_answers = Prisma.attempt_answersModel
 /**
- * Model User
+ * Model attempt_items
  * 
  */
-export type User = Prisma.UserModel
+export type attempt_items = Prisma.attempt_itemsModel
+/**
+ * Model choices
+ * 
+ */
+export type choices = Prisma.choicesModel
+/**
+ * Model course_announcements
+ * 
+ */
+export type course_announcements = Prisma.course_announcementsModel
+/**
+ * Model course_enrollments
+ * 
+ */
+export type course_enrollments = Prisma.course_enrollmentsModel
+/**
+ * Model course_instructors
+ * 
+ */
+export type course_instructors = Prisma.course_instructorsModel
+/**
+ * Model course_offerings
+ * 
+ */
+export type course_offerings = Prisma.course_offeringsModel
+/**
+ * Model courses
+ * 
+ */
+export type courses = Prisma.coursesModel
+/**
+ * Model exam_attempts
+ * 
+ */
+export type exam_attempts = Prisma.exam_attemptsModel
+/**
+ * Model exams
+ * 
+ */
+export type exams = Prisma.examsModel
+/**
+ * Model knowledge_categories
+ * 
+ */
+export type knowledge_categories = Prisma.knowledge_categoriesModel
+/**
+ * Model questions
+ * 
+ */
+export type questions = Prisma.questionsModel
+/**
+ * Model staff_users
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type staff_users = Prisma.staff_usersModel
+/**
+ * Model student_directory
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type student_directory = Prisma.student_directoryModel
+/**
+ * Model students
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type students = Prisma.studentsModel
