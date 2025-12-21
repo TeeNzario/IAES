@@ -107,7 +107,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
         </nav>
 
         {/* Main Content */}
-        <div className="flex-1 p-8 overflow-auto">
+        <div className="flex-1 overflow-auto">
           <div className="w-full">
             {children}
           </div>
