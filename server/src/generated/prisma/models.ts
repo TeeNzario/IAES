@@ -8,6 +8,19 @@
  *
  * 🟢 You can import this file directly.
  */
-export type * from './models/Post.js'
-export type * from './models/User.js'
+export type * from './models/attempt_answers.js'
+export type * from './models/attempt_items.js'
+export type * from './models/choices.js'
+export type * from './models/course_announcements.js'
+export type * from './models/course_enrollments.js'
+export type * from './models/course_instructors.js'
+export type * from './models/course_offerings.js'
+export type * from './models/courses.js'
+export type * from './models/exam_attempts.js'
+export type * from './models/exams.js'
+export type * from './models/knowledge_categories.js'
+export type * from './models/questions.js'
+export type * from './models/staff_users.js'
+export type * from './models/student_directory.js'
+export type * from './models/students.js'
 export type * from './commonInputTypes.js'
