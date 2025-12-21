@@ -276,6 +276,7 @@ export const StudentsScalarFieldEnum = {
   students_id: 'students_id',
   student_code: 'student_code',
   email: 'email',
+  password_hash: 'password_hash',
   first_name: 'first_name',
   last_name: 'last_name',
   is_active: 'is_active',

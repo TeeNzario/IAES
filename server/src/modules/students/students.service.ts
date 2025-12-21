@@ -12,7 +12,7 @@ export class StudentsService {
   }
 
   findAll() {
-    return this.prisma.user.findMany();
+    return this.prisma.students.findMany();
   }
 
   findOne(id: number) {

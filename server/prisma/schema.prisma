@@ -208,6 +208,7 @@ model students {
   students_id        BigInt               @id @default(autoincrement())
   student_code       String               @unique @db.VarChar(50)
   email              String               @unique @db.VarChar(255)
+  password_hash      String
   first_name         String               @db.VarChar(100)
   last_name          String               @db.VarChar(100)
   is_active          Boolean              @default(true)
