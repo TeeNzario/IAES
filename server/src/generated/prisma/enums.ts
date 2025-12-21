@@ -9,7 +9,26 @@
 * 🟢 You can import this file directly.
 */
 
+export const exam_attempt_status = {
+  IN_PROGRESS: 'IN_PROGRESS',
+  SUBMITTED: 'SUBMITTED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type exam_attempt_status = (typeof exam_attempt_status)[keyof typeof exam_attempt_status]
 
 
-// This file is empty because there are no enums in the schema.
-export {}
+export const question_type = {
+  MCQ_SINGLE: 'MCQ_SINGLE',
+  MCQ_MULTI: 'MCQ_MULTI'
+} as const
+
+export type question_type = (typeof question_type)[keyof typeof question_type]
+
+
+export const user_role = {
+  INSTRUCTOR: 'INSTRUCTOR',
+  ADMIN: 'ADMIN'
+} as const
+
+export type user_role = (typeof user_role)[keyof typeof user_role]

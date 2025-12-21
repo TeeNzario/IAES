@@ -8,21 +8,227 @@ datasource db {
   provider = "postgresql"
 }
 
-model Post {
-  id         Int       @id @default(autoincrement())
-  title      String    @db.VarChar(255)
-  content    String
-  user_id    Int
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  User       User      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user")
+model attempt_answers {
+  attempt_answers_id BigInt        @id @default(autoincrement())
+  attempt_items_id   BigInt
+  selected_choice_id BigInt?
+  answer_text        String?
+  is_correct         Boolean?
+  saved_at           DateTime      @default(now()) @db.Timestamptz(6)
+  attempt_items      attempt_items @relation(fields: [attempt_items_id], references: [attempt_items_id], onDelete: Cascade, onUpdate: NoAction)
+  choices            choices?      @relation(fields: [selected_choice_id], references: [choices_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
-model User {
-  id              Int       @id @default(autoincrement())
-  username        String    @unique @db.VarChar(50)
-  hashed_password String
-  email           String    @unique @db.VarChar(255)
-  coins           Int?      @default(0)
-  created_at      DateTime? @default(now()) @db.Timestamp(6)
-  Post            Post[]
+model attempt_items {
+  attempt_items_id      BigInt            @id @default(autoincrement())
+  exam_attempts_id      BigInt
+  questions_id          BigInt
+  sequence_index        Int
+  shown_at              DateTime          @default(now()) @db.Timestamptz(6)
+  answered_at           DateTime?         @db.Timestamptz(6)
+  time_per_item         Int?
+  shuffled_choice_order Json?
+  choice_selection_log  Json?
+  attempt_answers       attempt_answers[]
+  exam_attempts         exam_attempts     @relation(fields: [exam_attempts_id], references: [exam_attempts_id], onDelete: Cascade, onUpdate: NoAction)
+  questions             questions         @relation(fields: [questions_id], references: [questions_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([exam_attempts_id, questions_id])
+}
+
+model choices {
+  choices_id      BigInt            @id @default(autoincrement())
+  questions_id    BigInt
+  choice_text     String
+  is_correct      Boolean           @default(false)
+  display_order   Int?
+  created_at      DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime          @default(now()) @db.Timestamptz(6)
+  attempt_answers attempt_answers[]
+  questions       questions         @relation(fields: [questions_id], references: [questions_id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model course_announcements {
+  course_announcements_id BigInt           @id @default(autoincrement())
+  course_offerings_id     BigInt
+  title                   String           @db.VarChar(255)
+  content                 String
+  created_by_staff_id     BigInt
+  created_at              DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime         @default(now()) @db.Timestamptz(6)
+  course_offerings        course_offerings @relation(fields: [course_offerings_id], references: [course_offerings_id], onDelete: Cascade, onUpdate: NoAction)
+  staff_users             staff_users      @relation(fields: [created_by_staff_id], references: [staff_users_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model course_enrollments {
+  course_enrollments_id BigInt           @id @default(autoincrement())
+  course_offerings_id   BigInt
+  students_id           BigInt
+  enrolled_at           DateTime         @default(now()) @db.Timestamptz(6)
+  course_offerings      course_offerings @relation(fields: [course_offerings_id], references: [course_offerings_id], onDelete: Cascade, onUpdate: NoAction)
+  students              students         @relation(fields: [students_id], references: [students_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([course_offerings_id, students_id])
+  @@index([course_offerings_id], map: "idx_course_enrollments_offering")
+}
+
+model course_instructors {
+  course_offerings_id BigInt
+  staff_users_id      BigInt
+  course_offerings    course_offerings @relation(fields: [course_offerings_id], references: [course_offerings_id], onDelete: Cascade, onUpdate: NoAction)
+  staff_users         staff_users      @relation(fields: [staff_users_id], references: [staff_users_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([course_offerings_id, staff_users_id])
+}
+
+model course_offerings {
+  course_offerings_id  BigInt                 @id @default(autoincrement())
+  courses_id           BigInt
+  academic_year        Int
+  semester             Int                    @db.SmallInt
+  is_active            Boolean                @default(true)
+  created_at           DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime               @default(now()) @db.Timestamptz(6)
+  course_announcements course_announcements[]
+  course_enrollments   course_enrollments[]
+  course_instructors   course_instructors[]
+  courses              courses                @relation(fields: [courses_id], references: [courses_id], onDelete: Cascade, onUpdate: NoAction)
+  exams                exams[]
+  knowledge_categories knowledge_categories[]
+
+  @@index([courses_id], map: "idx_course_offerings_course")
+}
+
+model courses {
+  courses_id       BigInt             @id @default(autoincrement())
+  course_code      String             @db.VarChar(50)
+  course_name      String             @db.VarChar(255)
+  description      String?
+  is_active        Boolean            @default(true)
+  created_at       DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime           @default(now()) @db.Timestamptz(6)
+  course_offerings course_offerings[]
+}
+
+model exam_attempts {
+  exam_attempts_id BigInt              @id @default(autoincrement())
+  exams_id         BigInt
+  students_id      BigInt
+  status           exam_attempt_status @default(IN_PROGRESS)
+  started_at       DateTime            @default(now()) @db.Timestamptz(6)
+  submitted_at     DateTime?           @db.Timestamptz(6)
+  total_score      Decimal?            @db.Decimal(7, 2)
+  passed           Boolean?
+  total_level      Float?
+  time_per_exam    Int?
+  created_at       DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime            @default(now()) @db.Timestamptz(6)
+  attempt_items    attempt_items[]
+  exams            exams               @relation(fields: [exams_id], references: [exams_id], onDelete: Cascade, onUpdate: NoAction)
+  students         students            @relation(fields: [students_id], references: [students_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([exams_id, students_id])
+  @@index([exams_id], map: "idx_exam_attempts_exam")
+  @@index([students_id], map: "idx_exam_attempts_student")
+}
+
+model exams {
+  exams_id                 BigInt           @id @default(autoincrement())
+  course_offerings_id      BigInt
+  title                    String           @db.VarChar(255)
+  description              String?
+  start_time               DateTime         @db.Timestamptz(6)
+  end_time                 DateTime         @db.Timestamptz(6)
+  show_results_immediately Boolean          @default(false)
+  created_at               DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime         @default(now()) @db.Timestamptz(6)
+  exam_attempts            exam_attempts[]
+  course_offerings         course_offerings @relation(fields: [course_offerings_id], references: [course_offerings_id], onDelete: Cascade, onUpdate: NoAction)
+  questions                questions[]
+}
+
+model knowledge_categories {
+  knowledge_categories_id BigInt           @id @default(autoincrement())
+  course_offerings_id     BigInt
+  knowledge_name          String           @db.VarChar(255)
+  knowledge_description   String?
+  created_at              DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime         @default(now()) @db.Timestamptz(6)
+  course_offerings        course_offerings @relation(fields: [course_offerings_id], references: [course_offerings_id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model questions {
+  questions_id         BigInt          @id @default(autoincrement())
+  exams_id             BigInt
+  question_text        String
+  question_type        question_type   @default(MCQ_SINGLE)
+  difficulty_param     Float?
+  discrimination_param Float?
+  guessing_param       Float?
+  max_score            Decimal         @default(1.0) @db.Decimal(5, 2)
+  display_order        Int?
+  created_at           DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime        @default(now()) @db.Timestamptz(6)
+  attempt_items        attempt_items[]
+  choices              choices[]
+  exams                exams           @relation(fields: [exams_id], references: [exams_id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model staff_users {
+  staff_users_id       BigInt                 @id @default(autoincrement())
+  email                String                 @unique @db.VarChar(255)
+  password_hash        String
+  role                 user_role
+  first_name           String                 @db.VarChar(100)
+  last_name            String                 @db.VarChar(100)
+  is_active            Boolean                @default(true)
+  created_at           DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime               @default(now()) @db.Timestamptz(6)
+  course_announcements course_announcements[]
+  course_instructors   course_instructors[]
+
+  @@index([role], map: "idx_staff_users_role")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model student_directory {
+  student_directory_id BigInt   @id @default(autoincrement())
+  student_code         String   @db.VarChar(50)
+  email                String   @unique @db.VarChar(255)
+  first_name           String?  @db.VarChar(100)
+  last_name            String?  @db.VarChar(100)
+  is_active            Boolean  @default(true)
+  created_at           DateTime @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime @default(now()) @db.Timestamptz(6)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model students {
+  students_id        BigInt               @id @default(autoincrement())
+  student_code       String               @unique @db.VarChar(50)
+  email              String               @unique @db.VarChar(255)
+  first_name         String               @db.VarChar(100)
+  last_name          String               @db.VarChar(100)
+  is_active          Boolean              @default(true)
+  created_at         DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime             @default(now()) @db.Timestamptz(6)
+  course_enrollments course_enrollments[]
+  exam_attempts      exam_attempts[]
+}
+
+enum exam_attempt_status {
+  IN_PROGRESS
+  SUBMITTED
+  CANCELLED
+}
+
+enum question_type {
+  MCQ_SINGLE
+  MCQ_MULTI
+}
+
+enum user_role {
+  INSTRUCTOR
+  ADMIN
 }
