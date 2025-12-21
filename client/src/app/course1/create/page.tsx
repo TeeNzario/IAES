@@ -67,7 +67,7 @@ const CreateCourse = () => {
               name="name"
               value={formData.name}
               onChange={handleInputChange}
-              className="w-full bg-white px-4 py-3 rounded-xl border-0 focus:outline-none focus:ring-2 focus:ring-purple-600"
+              className="w-full bg-white text-black px-4 py-3 rounded-xl border-0 focus:outline-none focus:ring-2 focus:ring-purple-600"
               placeholder=""
             />
           </div>
@@ -82,7 +82,7 @@ const CreateCourse = () => {
               value={formData.description}
               onChange={handleInputChange}
               rows={4}
-              className="w-full bg-white px-4 py-3 rounded-xl border-0 focus:outline-none focus:ring-2 focus:ring-purple-600 resize-none"
+              className="w-full bg-white text-black px-4 py-3 rounded-xl border-0 focus:outline-none focus:ring-2 focus:ring-purple-600 resize-none"
               placeholder=""
             />
           </div>
@@ -97,7 +97,7 @@ const CreateCourse = () => {
               name="password"
               value={formData.password}
               onChange={handleInputChange}
-              className="w-full bg-white px-4 py-3 rounded-xl border-0 focus:outline-none focus:ring-2 focus:ring-purple-600"
+              className="w-full bg-white text-black px-4 py-3 rounded-xl border-0 focus:outline-none focus:ring-2 focus:ring-purple-600"
               placeholder=""
             />
           </div>
@@ -112,7 +112,7 @@ const CreateCourse = () => {
               name="group"
               value={formData.group}
               onChange={handleInputChange}
-              className="w-full bg-white px-4 py-3 rounded-xl border-0 focus:outline-none focus:ring-2 focus:ring-purple-600"
+              className="w-full bg-white text-black px-4 py-3 rounded-xl border-0 focus:outline-none focus:ring-2 focus:ring-purple-600"
               placeholder=""
             />
           </div>
