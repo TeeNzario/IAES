@@ -29,7 +29,6 @@ export type AggregateExam_attempts = {
 export type Exam_attemptsAvgAggregateOutputType = {
   exam_attempts_id: number | null
   exams_id: number | null
-  students_id: number | null
   total_score: runtime.Decimal | null
   total_level: number | null
   time_per_exam: number | null
@@ -38,7 +37,6 @@ export type Exam_attemptsAvgAggregateOutputType = {
 export type Exam_attemptsSumAggregateOutputType = {
   exam_attempts_id: bigint | null
   exams_id: bigint | null
-  students_id: bigint | null
   total_score: runtime.Decimal | null
   total_level: number | null
   time_per_exam: number | null
@@ -47,7 +45,7 @@ export type Exam_attemptsSumAggregateOutputType = {
 export type Exam_attemptsMinAggregateOutputType = {
   exam_attempts_id: bigint | null
   exams_id: bigint | null
-  students_id: bigint | null
+  student_code: string | null
   status: $Enums.exam_attempt_status | null
   started_at: Date | null
   submitted_at: Date | null
@@ -62,7 +60,7 @@ export type Exam_attemptsMinAggregateOutputType = {
 export type Exam_attemptsMaxAggregateOutputType = {
   exam_attempts_id: bigint | null
   exams_id: bigint | null
-  students_id: bigint | null
+  student_code: string | null
   status: $Enums.exam_attempt_status | null
   started_at: Date | null
   submitted_at: Date | null
@@ -77,7 +75,7 @@ export type Exam_attemptsMaxAggregateOutputType = {
 export type Exam_attemptsCountAggregateOutputType = {
   exam_attempts_id: number
   exams_id: number
-  students_id: number
+  student_code: number
   status: number
   started_at: number
   submitted_at: number
@@ -94,7 +92,6 @@ export type Exam_attemptsCountAggregateOutputType = {
 export type Exam_attemptsAvgAggregateInputType = {
   exam_attempts_id?: true
   exams_id?: true
-  students_id?: true
   total_score?: true
   total_level?: true
   time_per_exam?: true
@@ -103,7 +100,6 @@ export type Exam_attemptsAvgAggregateInputType = {
 export type Exam_attemptsSumAggregateInputType = {
   exam_attempts_id?: true
   exams_id?: true
-  students_id?: true
   total_score?: true
   total_level?: true
   time_per_exam?: true
@@ -112,7 +108,7 @@ export type Exam_attemptsSumAggregateInputType = {
 export type Exam_attemptsMinAggregateInputType = {
   exam_attempts_id?: true
   exams_id?: true
-  students_id?: true
+  student_code?: true
   status?: true
   started_at?: true
   submitted_at?: true
@@ -127,7 +123,7 @@ export type Exam_attemptsMinAggregateInputType = {
 export type Exam_attemptsMaxAggregateInputType = {
   exam_attempts_id?: true
   exams_id?: true
-  students_id?: true
+  student_code?: true
   status?: true
   started_at?: true
   submitted_at?: true
@@ -142,7 +138,7 @@ export type Exam_attemptsMaxAggregateInputType = {
 export type Exam_attemptsCountAggregateInputType = {
   exam_attempts_id?: true
   exams_id?: true
-  students_id?: true
+  student_code?: true
   status?: true
   started_at?: true
   submitted_at?: true
@@ -244,7 +240,7 @@ export type exam_attemptsGroupByArgs<ExtArgs extends runtime.Types.Extensions.In
 export type Exam_attemptsGroupByOutputType = {
   exam_attempts_id: bigint
   exams_id: bigint
-  students_id: bigint
+  student_code: string
   status: $Enums.exam_attempt_status
   started_at: Date
   submitted_at: Date | null
@@ -282,7 +278,7 @@ export type exam_attemptsWhereInput = {
   NOT?: Prisma.exam_attemptsWhereInput | Prisma.exam_attemptsWhereInput[]
   exam_attempts_id?: Prisma.BigIntFilter<"exam_attempts"> | bigint | number
   exams_id?: Prisma.BigIntFilter<"exam_attempts"> | bigint | number
-  students_id?: Prisma.BigIntFilter<"exam_attempts"> | bigint | number
+  student_code?: Prisma.StringFilter<"exam_attempts"> | string
   status?: Prisma.Enumexam_attempt_statusFilter<"exam_attempts"> | $Enums.exam_attempt_status
   started_at?: Prisma.DateTimeFilter<"exam_attempts"> | Date | string
   submitted_at?: Prisma.DateTimeNullableFilter<"exam_attempts"> | Date | string | null
@@ -300,7 +296,7 @@ export type exam_attemptsWhereInput = {
 export type exam_attemptsOrderByWithRelationInput = {
   exam_attempts_id?: Prisma.SortOrder
   exams_id?: Prisma.SortOrder
-  students_id?: Prisma.SortOrder
+  student_code?: Prisma.SortOrder
   status?: Prisma.SortOrder
   started_at?: Prisma.SortOrder
   submitted_at?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -317,12 +313,12 @@ export type exam_attemptsOrderByWithRelationInput = {
 
 export type exam_attemptsWhereUniqueInput = Prisma.AtLeast<{
   exam_attempts_id?: bigint | number
-  exams_id_students_id?: Prisma.exam_attemptsExams_idStudents_idCompoundUniqueInput
+  exams_id_student_code?: Prisma.exam_attemptsExams_idStudent_codeCompoundUniqueInput
   AND?: Prisma.exam_attemptsWhereInput | Prisma.exam_attemptsWhereInput[]
   OR?: Prisma.exam_attemptsWhereInput[]
   NOT?: Prisma.exam_attemptsWhereInput | Prisma.exam_attemptsWhereInput[]
   exams_id?: Prisma.BigIntFilter<"exam_attempts"> | bigint | number
-  students_id?: Prisma.BigIntFilter<"exam_attempts"> | bigint | number
+  student_code?: Prisma.StringFilter<"exam_attempts"> | string
   status?: Prisma.Enumexam_attempt_statusFilter<"exam_attempts"> | $Enums.exam_attempt_status
   started_at?: Prisma.DateTimeFilter<"exam_attempts"> | Date | string
   submitted_at?: Prisma.DateTimeNullableFilter<"exam_attempts"> | Date | string | null
@@ -335,12 +331,12 @@ export type exam_attemptsWhereUniqueInput = Prisma.AtLeast<{
   attempt_items?: Prisma.Attempt_itemsListRelationFilter
   exams?: Prisma.XOR<Prisma.ExamsScalarRelationFilter, Prisma.examsWhereInput>
   students?: Prisma.XOR<Prisma.StudentsScalarRelationFilter, Prisma.studentsWhereInput>
-}, "exam_attempts_id" | "exams_id_students_id">
+}, "exam_attempts_id" | "exams_id_student_code">
 
 export type exam_attemptsOrderByWithAggregationInput = {
   exam_attempts_id?: Prisma.SortOrder
   exams_id?: Prisma.SortOrder
-  students_id?: Prisma.SortOrder
+  student_code?: Prisma.SortOrder
   status?: Prisma.SortOrder
   started_at?: Prisma.SortOrder
   submitted_at?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -363,7 +359,7 @@ export type exam_attemptsScalarWhereWithAggregatesInput = {
   NOT?: Prisma.exam_attemptsScalarWhereWithAggregatesInput | Prisma.exam_attemptsScalarWhereWithAggregatesInput[]
   exam_attempts_id?: Prisma.BigIntWithAggregatesFilter<"exam_attempts"> | bigint | number
   exams_id?: Prisma.BigIntWithAggregatesFilter<"exam_attempts"> | bigint | number
-  students_id?: Prisma.BigIntWithAggregatesFilter<"exam_attempts"> | bigint | number
+  student_code?: Prisma.StringWithAggregatesFilter<"exam_attempts"> | string
   status?: Prisma.Enumexam_attempt_statusWithAggregatesFilter<"exam_attempts"> | $Enums.exam_attempt_status
   started_at?: Prisma.DateTimeWithAggregatesFilter<"exam_attempts"> | Date | string
   submitted_at?: Prisma.DateTimeNullableWithAggregatesFilter<"exam_attempts"> | Date | string | null
@@ -394,7 +390,7 @@ export type exam_attemptsCreateInput = {
 export type exam_attemptsUncheckedCreateInput = {
   exam_attempts_id?: bigint | number
   exams_id: bigint | number
-  students_id: bigint | number
+  student_code: string
   status?: $Enums.exam_attempt_status
   started_at?: Date | string
   submitted_at?: Date | string | null
@@ -426,7 +422,7 @@ export type exam_attemptsUpdateInput = {
 export type exam_attemptsUncheckedUpdateInput = {
   exam_attempts_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   exams_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  students_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  student_code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.Enumexam_attempt_statusFieldUpdateOperationsInput | $Enums.exam_attempt_status
   started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -442,7 +438,7 @@ export type exam_attemptsUncheckedUpdateInput = {
 export type exam_attemptsCreateManyInput = {
   exam_attempts_id?: bigint | number
   exams_id: bigint | number
-  students_id: bigint | number
+  student_code: string
   status?: $Enums.exam_attempt_status
   started_at?: Date | string
   submitted_at?: Date | string | null
@@ -470,7 +466,7 @@ export type exam_attemptsUpdateManyMutationInput = {
 export type exam_attemptsUncheckedUpdateManyInput = {
   exam_attempts_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   exams_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  students_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  student_code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.Enumexam_attempt_statusFieldUpdateOperationsInput | $Enums.exam_attempt_status
   started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -487,15 +483,15 @@ export type Exam_attemptsScalarRelationFilter = {
   isNot?: Prisma.exam_attemptsWhereInput
 }
 
-export type exam_attemptsExams_idStudents_idCompoundUniqueInput = {
+export type exam_attemptsExams_idStudent_codeCompoundUniqueInput = {
   exams_id: bigint | number
-  students_id: bigint | number
+  student_code: string
 }
 
 export type exam_attemptsCountOrderByAggregateInput = {
   exam_attempts_id?: Prisma.SortOrder
   exams_id?: Prisma.SortOrder
-  students_id?: Prisma.SortOrder
+  student_code?: Prisma.SortOrder
   status?: Prisma.SortOrder
   started_at?: Prisma.SortOrder
   submitted_at?: Prisma.SortOrder
@@ -510,7 +506,6 @@ export type exam_attemptsCountOrderByAggregateInput = {
 export type exam_attemptsAvgOrderByAggregateInput = {
   exam_attempts_id?: Prisma.SortOrder
   exams_id?: Prisma.SortOrder
-  students_id?: Prisma.SortOrder
   total_score?: Prisma.SortOrder
   total_level?: Prisma.SortOrder
   time_per_exam?: Prisma.SortOrder
@@ -519,7 +514,7 @@ export type exam_attemptsAvgOrderByAggregateInput = {
 export type exam_attemptsMaxOrderByAggregateInput = {
   exam_attempts_id?: Prisma.SortOrder
   exams_id?: Prisma.SortOrder
-  students_id?: Prisma.SortOrder
+  student_code?: Prisma.SortOrder
   status?: Prisma.SortOrder
   started_at?: Prisma.SortOrder
   submitted_at?: Prisma.SortOrder
@@ -534,7 +529,7 @@ export type exam_attemptsMaxOrderByAggregateInput = {
 export type exam_attemptsMinOrderByAggregateInput = {
   exam_attempts_id?: Prisma.SortOrder
   exams_id?: Prisma.SortOrder
-  students_id?: Prisma.SortOrder
+  student_code?: Prisma.SortOrder
   status?: Prisma.SortOrder
   started_at?: Prisma.SortOrder
   submitted_at?: Prisma.SortOrder
@@ -549,7 +544,6 @@ export type exam_attemptsMinOrderByAggregateInput = {
 export type exam_attemptsSumOrderByAggregateInput = {
   exam_attempts_id?: Prisma.SortOrder
   exams_id?: Prisma.SortOrder
-  students_id?: Prisma.SortOrder
   total_score?: Prisma.SortOrder
   total_level?: Prisma.SortOrder
   time_per_exam?: Prisma.SortOrder
@@ -701,7 +695,7 @@ export type exam_attemptsCreateWithoutAttempt_itemsInput = {
 export type exam_attemptsUncheckedCreateWithoutAttempt_itemsInput = {
   exam_attempts_id?: bigint | number
   exams_id: bigint | number
-  students_id: bigint | number
+  student_code: string
   status?: $Enums.exam_attempt_status
   started_at?: Date | string
   submitted_at?: Date | string | null
@@ -747,7 +741,7 @@ export type exam_attemptsUpdateWithoutAttempt_itemsInput = {
 export type exam_attemptsUncheckedUpdateWithoutAttempt_itemsInput = {
   exam_attempts_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   exams_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  students_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  student_code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.Enumexam_attempt_statusFieldUpdateOperationsInput | $Enums.exam_attempt_status
   started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -776,7 +770,7 @@ export type exam_attemptsCreateWithoutExamsInput = {
 
 export type exam_attemptsUncheckedCreateWithoutExamsInput = {
   exam_attempts_id?: bigint | number
-  students_id: bigint | number
+  student_code: string
   status?: $Enums.exam_attempt_status
   started_at?: Date | string
   submitted_at?: Date | string | null
@@ -821,7 +815,7 @@ export type exam_attemptsScalarWhereInput = {
   NOT?: Prisma.exam_attemptsScalarWhereInput | Prisma.exam_attemptsScalarWhereInput[]
   exam_attempts_id?: Prisma.BigIntFilter<"exam_attempts"> | bigint | number
   exams_id?: Prisma.BigIntFilter<"exam_attempts"> | bigint | number
-  students_id?: Prisma.BigIntFilter<"exam_attempts"> | bigint | number
+  student_code?: Prisma.StringFilter<"exam_attempts"> | string
   status?: Prisma.Enumexam_attempt_statusFilter<"exam_attempts"> | $Enums.exam_attempt_status
   started_at?: Prisma.DateTimeFilter<"exam_attempts"> | Date | string
   submitted_at?: Prisma.DateTimeNullableFilter<"exam_attempts"> | Date | string | null
@@ -891,7 +885,7 @@ export type exam_attemptsUpdateManyWithWhereWithoutStudentsInput = {
 
 export type exam_attemptsCreateManyExamsInput = {
   exam_attempts_id?: bigint | number
-  students_id: bigint | number
+  student_code: string
   status?: $Enums.exam_attempt_status
   started_at?: Date | string
   submitted_at?: Date | string | null
@@ -920,7 +914,7 @@ export type exam_attemptsUpdateWithoutExamsInput = {
 
 export type exam_attemptsUncheckedUpdateWithoutExamsInput = {
   exam_attempts_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  students_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  student_code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.Enumexam_attempt_statusFieldUpdateOperationsInput | $Enums.exam_attempt_status
   started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -935,7 +929,7 @@ export type exam_attemptsUncheckedUpdateWithoutExamsInput = {
 
 export type exam_attemptsUncheckedUpdateManyWithoutExamsInput = {
   exam_attempts_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  students_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  student_code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.Enumexam_attempt_statusFieldUpdateOperationsInput | $Enums.exam_attempt_status
   started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1039,7 +1033,7 @@ export type Exam_attemptsCountOutputTypeCountAttempt_itemsArgs<ExtArgs extends r
 export type exam_attemptsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   exam_attempts_id?: boolean
   exams_id?: boolean
-  students_id?: boolean
+  student_code?: boolean
   status?: boolean
   started_at?: boolean
   submitted_at?: boolean
@@ -1058,7 +1052,7 @@ export type exam_attemptsSelect<ExtArgs extends runtime.Types.Extensions.Interna
 export type exam_attemptsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   exam_attempts_id?: boolean
   exams_id?: boolean
-  students_id?: boolean
+  student_code?: boolean
   status?: boolean
   started_at?: boolean
   submitted_at?: boolean
@@ -1075,7 +1069,7 @@ export type exam_attemptsSelectCreateManyAndReturn<ExtArgs extends runtime.Types
 export type exam_attemptsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   exam_attempts_id?: boolean
   exams_id?: boolean
-  students_id?: boolean
+  student_code?: boolean
   status?: boolean
   started_at?: boolean
   submitted_at?: boolean
@@ -1092,7 +1086,7 @@ export type exam_attemptsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
 export type exam_attemptsSelectScalar = {
   exam_attempts_id?: boolean
   exams_id?: boolean
-  students_id?: boolean
+  student_code?: boolean
   status?: boolean
   started_at?: boolean
   submitted_at?: boolean
@@ -1104,7 +1098,7 @@ export type exam_attemptsSelectScalar = {
   updated_at?: boolean
 }
 
-export type exam_attemptsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"exam_attempts_id" | "exams_id" | "students_id" | "status" | "started_at" | "submitted_at" | "total_score" | "passed" | "total_level" | "time_per_exam" | "created_at" | "updated_at", ExtArgs["result"]["exam_attempts"]>
+export type exam_attemptsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"exam_attempts_id" | "exams_id" | "student_code" | "status" | "started_at" | "submitted_at" | "total_score" | "passed" | "total_level" | "time_per_exam" | "created_at" | "updated_at", ExtArgs["result"]["exam_attempts"]>
 export type exam_attemptsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   attempt_items?: boolean | Prisma.exam_attempts$attempt_itemsArgs<ExtArgs>
   exams?: boolean | Prisma.examsDefaultArgs<ExtArgs>
@@ -1130,7 +1124,7 @@ export type $exam_attemptsPayload<ExtArgs extends runtime.Types.Extensions.Inter
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     exam_attempts_id: bigint
     exams_id: bigint
-    students_id: bigint
+    student_code: string
     status: $Enums.exam_attempt_status
     started_at: Date
     submitted_at: Date | null
@@ -1568,7 +1562,7 @@ export interface Prisma__exam_attemptsClient<T, Null = never, ExtArgs extends ru
 export interface exam_attemptsFieldRefs {
   readonly exam_attempts_id: Prisma.FieldRef<"exam_attempts", 'BigInt'>
   readonly exams_id: Prisma.FieldRef<"exam_attempts", 'BigInt'>
-  readonly students_id: Prisma.FieldRef<"exam_attempts", 'BigInt'>
+  readonly student_code: Prisma.FieldRef<"exam_attempts", 'String'>
   readonly status: Prisma.FieldRef<"exam_attempts", 'exam_attempt_status'>
   readonly started_at: Prisma.FieldRef<"exam_attempts", 'DateTime'>
   readonly submitted_at: Prisma.FieldRef<"exam_attempts", 'DateTime'>

@@ -63,12 +63,12 @@ model course_announcements {
 model course_enrollments {
   course_enrollments_id BigInt           @id @default(autoincrement())
   course_offerings_id   BigInt
-  students_id           BigInt
+  student_code          String
   enrolled_at           DateTime         @default(now()) @db.Timestamptz(6)
   course_offerings      course_offerings @relation(fields: [course_offerings_id], references: [course_offerings_id], onDelete: Cascade, onUpdate: NoAction)
-  students              students         @relation(fields: [students_id], references: [students_id], onDelete: Cascade, onUpdate: NoAction)
+  students              students         @relation(fields: [student_code], references: [student_code], onDelete: Cascade, onUpdate: NoAction)
 
-  @@unique([course_offerings_id, students_id])
+  @@unique([course_offerings_id, student_code])
   @@index([course_offerings_id], map: "idx_course_enrollments_offering")
 }
 
@@ -113,7 +113,7 @@ model courses {
 model exam_attempts {
   exam_attempts_id BigInt              @id @default(autoincrement())
   exams_id         BigInt
-  students_id      BigInt
+  student_code     String 
   status           exam_attempt_status @default(IN_PROGRESS)
   started_at       DateTime            @default(now()) @db.Timestamptz(6)
   submitted_at     DateTime?           @db.Timestamptz(6)
@@ -125,11 +125,11 @@ model exam_attempts {
   updated_at       DateTime            @default(now()) @db.Timestamptz(6)
   attempt_items    attempt_items[]
   exams            exams               @relation(fields: [exams_id], references: [exams_id], onDelete: Cascade, onUpdate: NoAction)
-  students         students            @relation(fields: [students_id], references: [students_id], onDelete: Cascade, onUpdate: NoAction)
+  students         students            @relation(fields: [student_code], references: [student_code], onDelete: Cascade, onUpdate: NoAction)
 
-  @@unique([exams_id, students_id])
+  @@unique([exams_id, student_code])
   @@index([exams_id], map: "idx_exam_attempts_exam")
-  @@index([students_id], map: "idx_exam_attempts_student")
+  @@index([student_code], map: "idx_exam_attempts_student")
 }
 
 model exams {
@@ -205,8 +205,7 @@ model student_directory {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model students {
-  students_id        BigInt               @id @default(autoincrement())
-  student_code       String               @unique @db.VarChar(50)
+  student_code       String               @id @db.VarChar(50)
   email              String               @unique @db.VarChar(255)
   password_hash      String
   first_name         String               @db.VarChar(100)
