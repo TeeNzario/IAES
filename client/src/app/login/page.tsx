@@ -1,15 +1,27 @@
 "use client"
 
+import { login } from '@/features/auth/auth.api';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-const LoginPage: React.FC = () => {
+
+
+const LoginPage = () => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [language, setLanguage] = useState<string>('ไทย');
 
-  const handleSubmit = () => {
-    console.log('Login attempt:', { username, password });
-    alert(`ล็อกอินด้วย: ${username}`);
+  const router = useRouter();
+
+  const handleSubmit = async () => {
+    try {
+      const res = await login({ student_code: username, password });
+     console.log(res.access_token);
+     router.push('/student');
+   }catch (error) {
+    console.error("Login failed : ", error);
+   }
+
   };
 
   return (
@@ -50,7 +62,7 @@ const LoginPage: React.FC = () => {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition"
+              className="w-full text-black px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition"
               placeholder="ชื่อผู้ใช้"
             />
           </div>
@@ -64,7 +76,7 @@ const LoginPage: React.FC = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition"
+              className="w-full text-black px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition"
               placeholder="รหัสผ่าน"
             />
           </div>
