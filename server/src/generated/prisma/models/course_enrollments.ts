@@ -29,33 +29,31 @@ export type AggregateCourse_enrollments = {
 export type Course_enrollmentsAvgAggregateOutputType = {
   course_enrollments_id: number | null
   course_offerings_id: number | null
-  students_id: number | null
 }
 
 export type Course_enrollmentsSumAggregateOutputType = {
   course_enrollments_id: bigint | null
   course_offerings_id: bigint | null
-  students_id: bigint | null
 }
 
 export type Course_enrollmentsMinAggregateOutputType = {
   course_enrollments_id: bigint | null
   course_offerings_id: bigint | null
-  students_id: bigint | null
+  student_code: string | null
   enrolled_at: Date | null
 }
 
 export type Course_enrollmentsMaxAggregateOutputType = {
   course_enrollments_id: bigint | null
   course_offerings_id: bigint | null
-  students_id: bigint | null
+  student_code: string | null
   enrolled_at: Date | null
 }
 
 export type Course_enrollmentsCountAggregateOutputType = {
   course_enrollments_id: number
   course_offerings_id: number
-  students_id: number
+  student_code: number
   enrolled_at: number
   _all: number
 }
@@ -64,33 +62,31 @@ export type Course_enrollmentsCountAggregateOutputType = {
 export type Course_enrollmentsAvgAggregateInputType = {
   course_enrollments_id?: true
   course_offerings_id?: true
-  students_id?: true
 }
 
 export type Course_enrollmentsSumAggregateInputType = {
   course_enrollments_id?: true
   course_offerings_id?: true
-  students_id?: true
 }
 
 export type Course_enrollmentsMinAggregateInputType = {
   course_enrollments_id?: true
   course_offerings_id?: true
-  students_id?: true
+  student_code?: true
   enrolled_at?: true
 }
 
 export type Course_enrollmentsMaxAggregateInputType = {
   course_enrollments_id?: true
   course_offerings_id?: true
-  students_id?: true
+  student_code?: true
   enrolled_at?: true
 }
 
 export type Course_enrollmentsCountAggregateInputType = {
   course_enrollments_id?: true
   course_offerings_id?: true
-  students_id?: true
+  student_code?: true
   enrolled_at?: true
   _all?: true
 }
@@ -184,7 +180,7 @@ export type course_enrollmentsGroupByArgs<ExtArgs extends runtime.Types.Extensio
 export type Course_enrollmentsGroupByOutputType = {
   course_enrollments_id: bigint
   course_offerings_id: bigint
-  students_id: bigint
+  student_code: string
   enrolled_at: Date
   _count: Course_enrollmentsCountAggregateOutputType | null
   _avg: Course_enrollmentsAvgAggregateOutputType | null
@@ -214,7 +210,7 @@ export type course_enrollmentsWhereInput = {
   NOT?: Prisma.course_enrollmentsWhereInput | Prisma.course_enrollmentsWhereInput[]
   course_enrollments_id?: Prisma.BigIntFilter<"course_enrollments"> | bigint | number
   course_offerings_id?: Prisma.BigIntFilter<"course_enrollments"> | bigint | number
-  students_id?: Prisma.BigIntFilter<"course_enrollments"> | bigint | number
+  student_code?: Prisma.StringFilter<"course_enrollments"> | string
   enrolled_at?: Prisma.DateTimeFilter<"course_enrollments"> | Date | string
   course_offerings?: Prisma.XOR<Prisma.Course_offeringsScalarRelationFilter, Prisma.course_offeringsWhereInput>
   students?: Prisma.XOR<Prisma.StudentsScalarRelationFilter, Prisma.studentsWhereInput>
@@ -223,7 +219,7 @@ export type course_enrollmentsWhereInput = {
 export type course_enrollmentsOrderByWithRelationInput = {
   course_enrollments_id?: Prisma.SortOrder
   course_offerings_id?: Prisma.SortOrder
-  students_id?: Prisma.SortOrder
+  student_code?: Prisma.SortOrder
   enrolled_at?: Prisma.SortOrder
   course_offerings?: Prisma.course_offeringsOrderByWithRelationInput
   students?: Prisma.studentsOrderByWithRelationInput
@@ -231,21 +227,21 @@ export type course_enrollmentsOrderByWithRelationInput = {
 
 export type course_enrollmentsWhereUniqueInput = Prisma.AtLeast<{
   course_enrollments_id?: bigint | number
-  course_offerings_id_students_id?: Prisma.course_enrollmentsCourse_offerings_idStudents_idCompoundUniqueInput
+  course_offerings_id_student_code?: Prisma.course_enrollmentsCourse_offerings_idStudent_codeCompoundUniqueInput
   AND?: Prisma.course_enrollmentsWhereInput | Prisma.course_enrollmentsWhereInput[]
   OR?: Prisma.course_enrollmentsWhereInput[]
   NOT?: Prisma.course_enrollmentsWhereInput | Prisma.course_enrollmentsWhereInput[]
   course_offerings_id?: Prisma.BigIntFilter<"course_enrollments"> | bigint | number
-  students_id?: Prisma.BigIntFilter<"course_enrollments"> | bigint | number
+  student_code?: Prisma.StringFilter<"course_enrollments"> | string
   enrolled_at?: Prisma.DateTimeFilter<"course_enrollments"> | Date | string
   course_offerings?: Prisma.XOR<Prisma.Course_offeringsScalarRelationFilter, Prisma.course_offeringsWhereInput>
   students?: Prisma.XOR<Prisma.StudentsScalarRelationFilter, Prisma.studentsWhereInput>
-}, "course_enrollments_id" | "course_offerings_id_students_id">
+}, "course_enrollments_id" | "course_offerings_id_student_code">
 
 export type course_enrollmentsOrderByWithAggregationInput = {
   course_enrollments_id?: Prisma.SortOrder
   course_offerings_id?: Prisma.SortOrder
-  students_id?: Prisma.SortOrder
+  student_code?: Prisma.SortOrder
   enrolled_at?: Prisma.SortOrder
   _count?: Prisma.course_enrollmentsCountOrderByAggregateInput
   _avg?: Prisma.course_enrollmentsAvgOrderByAggregateInput
@@ -260,7 +256,7 @@ export type course_enrollmentsScalarWhereWithAggregatesInput = {
   NOT?: Prisma.course_enrollmentsScalarWhereWithAggregatesInput | Prisma.course_enrollmentsScalarWhereWithAggregatesInput[]
   course_enrollments_id?: Prisma.BigIntWithAggregatesFilter<"course_enrollments"> | bigint | number
   course_offerings_id?: Prisma.BigIntWithAggregatesFilter<"course_enrollments"> | bigint | number
-  students_id?: Prisma.BigIntWithAggregatesFilter<"course_enrollments"> | bigint | number
+  student_code?: Prisma.StringWithAggregatesFilter<"course_enrollments"> | string
   enrolled_at?: Prisma.DateTimeWithAggregatesFilter<"course_enrollments"> | Date | string
 }
 
@@ -274,7 +270,7 @@ export type course_enrollmentsCreateInput = {
 export type course_enrollmentsUncheckedCreateInput = {
   course_enrollments_id?: bigint | number
   course_offerings_id: bigint | number
-  students_id: bigint | number
+  student_code: string
   enrolled_at?: Date | string
 }
 
@@ -288,14 +284,14 @@ export type course_enrollmentsUpdateInput = {
 export type course_enrollmentsUncheckedUpdateInput = {
   course_enrollments_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   course_offerings_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  students_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  student_code?: Prisma.StringFieldUpdateOperationsInput | string
   enrolled_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type course_enrollmentsCreateManyInput = {
   course_enrollments_id?: bigint | number
   course_offerings_id: bigint | number
-  students_id: bigint | number
+  student_code: string
   enrolled_at?: Date | string
 }
 
@@ -307,46 +303,44 @@ export type course_enrollmentsUpdateManyMutationInput = {
 export type course_enrollmentsUncheckedUpdateManyInput = {
   course_enrollments_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   course_offerings_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  students_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  student_code?: Prisma.StringFieldUpdateOperationsInput | string
   enrolled_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type course_enrollmentsCourse_offerings_idStudents_idCompoundUniqueInput = {
+export type course_enrollmentsCourse_offerings_idStudent_codeCompoundUniqueInput = {
   course_offerings_id: bigint | number
-  students_id: bigint | number
+  student_code: string
 }
 
 export type course_enrollmentsCountOrderByAggregateInput = {
   course_enrollments_id?: Prisma.SortOrder
   course_offerings_id?: Prisma.SortOrder
-  students_id?: Prisma.SortOrder
+  student_code?: Prisma.SortOrder
   enrolled_at?: Prisma.SortOrder
 }
 
 export type course_enrollmentsAvgOrderByAggregateInput = {
   course_enrollments_id?: Prisma.SortOrder
   course_offerings_id?: Prisma.SortOrder
-  students_id?: Prisma.SortOrder
 }
 
 export type course_enrollmentsMaxOrderByAggregateInput = {
   course_enrollments_id?: Prisma.SortOrder
   course_offerings_id?: Prisma.SortOrder
-  students_id?: Prisma.SortOrder
+  student_code?: Prisma.SortOrder
   enrolled_at?: Prisma.SortOrder
 }
 
 export type course_enrollmentsMinOrderByAggregateInput = {
   course_enrollments_id?: Prisma.SortOrder
   course_offerings_id?: Prisma.SortOrder
-  students_id?: Prisma.SortOrder
+  student_code?: Prisma.SortOrder
   enrolled_at?: Prisma.SortOrder
 }
 
 export type course_enrollmentsSumOrderByAggregateInput = {
   course_enrollments_id?: Prisma.SortOrder
   course_offerings_id?: Prisma.SortOrder
-  students_id?: Prisma.SortOrder
 }
 
 export type Course_enrollmentsListRelationFilter = {
@@ -451,7 +445,7 @@ export type course_enrollmentsCreateWithoutCourse_offeringsInput = {
 
 export type course_enrollmentsUncheckedCreateWithoutCourse_offeringsInput = {
   course_enrollments_id?: bigint | number
-  students_id: bigint | number
+  student_code: string
   enrolled_at?: Date | string
 }
 
@@ -487,7 +481,7 @@ export type course_enrollmentsScalarWhereInput = {
   NOT?: Prisma.course_enrollmentsScalarWhereInput | Prisma.course_enrollmentsScalarWhereInput[]
   course_enrollments_id?: Prisma.BigIntFilter<"course_enrollments"> | bigint | number
   course_offerings_id?: Prisma.BigIntFilter<"course_enrollments"> | bigint | number
-  students_id?: Prisma.BigIntFilter<"course_enrollments"> | bigint | number
+  student_code?: Prisma.StringFilter<"course_enrollments"> | string
   enrolled_at?: Prisma.DateTimeFilter<"course_enrollments"> | Date | string
 }
 
@@ -531,7 +525,7 @@ export type course_enrollmentsUpdateManyWithWhereWithoutStudentsInput = {
 
 export type course_enrollmentsCreateManyCourse_offeringsInput = {
   course_enrollments_id?: bigint | number
-  students_id: bigint | number
+  student_code: string
   enrolled_at?: Date | string
 }
 
@@ -543,13 +537,13 @@ export type course_enrollmentsUpdateWithoutCourse_offeringsInput = {
 
 export type course_enrollmentsUncheckedUpdateWithoutCourse_offeringsInput = {
   course_enrollments_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  students_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  student_code?: Prisma.StringFieldUpdateOperationsInput | string
   enrolled_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type course_enrollmentsUncheckedUpdateManyWithoutCourse_offeringsInput = {
   course_enrollments_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  students_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  student_code?: Prisma.StringFieldUpdateOperationsInput | string
   enrolled_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -582,7 +576,7 @@ export type course_enrollmentsUncheckedUpdateManyWithoutStudentsInput = {
 export type course_enrollmentsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   course_enrollments_id?: boolean
   course_offerings_id?: boolean
-  students_id?: boolean
+  student_code?: boolean
   enrolled_at?: boolean
   course_offerings?: boolean | Prisma.course_offeringsDefaultArgs<ExtArgs>
   students?: boolean | Prisma.studentsDefaultArgs<ExtArgs>
@@ -591,7 +585,7 @@ export type course_enrollmentsSelect<ExtArgs extends runtime.Types.Extensions.In
 export type course_enrollmentsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   course_enrollments_id?: boolean
   course_offerings_id?: boolean
-  students_id?: boolean
+  student_code?: boolean
   enrolled_at?: boolean
   course_offerings?: boolean | Prisma.course_offeringsDefaultArgs<ExtArgs>
   students?: boolean | Prisma.studentsDefaultArgs<ExtArgs>
@@ -600,7 +594,7 @@ export type course_enrollmentsSelectCreateManyAndReturn<ExtArgs extends runtime.
 export type course_enrollmentsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   course_enrollments_id?: boolean
   course_offerings_id?: boolean
-  students_id?: boolean
+  student_code?: boolean
   enrolled_at?: boolean
   course_offerings?: boolean | Prisma.course_offeringsDefaultArgs<ExtArgs>
   students?: boolean | Prisma.studentsDefaultArgs<ExtArgs>
@@ -609,11 +603,11 @@ export type course_enrollmentsSelectUpdateManyAndReturn<ExtArgs extends runtime.
 export type course_enrollmentsSelectScalar = {
   course_enrollments_id?: boolean
   course_offerings_id?: boolean
-  students_id?: boolean
+  student_code?: boolean
   enrolled_at?: boolean
 }
 
-export type course_enrollmentsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"course_enrollments_id" | "course_offerings_id" | "students_id" | "enrolled_at", ExtArgs["result"]["course_enrollments"]>
+export type course_enrollmentsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"course_enrollments_id" | "course_offerings_id" | "student_code" | "enrolled_at", ExtArgs["result"]["course_enrollments"]>
 export type course_enrollmentsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   course_offerings?: boolean | Prisma.course_offeringsDefaultArgs<ExtArgs>
   students?: boolean | Prisma.studentsDefaultArgs<ExtArgs>
@@ -636,7 +630,7 @@ export type $course_enrollmentsPayload<ExtArgs extends runtime.Types.Extensions.
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     course_enrollments_id: bigint
     course_offerings_id: bigint
-    students_id: bigint
+    student_code: string
     enrolled_at: Date
   }, ExtArgs["result"]["course_enrollments"]>
   composites: {}
@@ -1065,7 +1059,7 @@ export interface Prisma__course_enrollmentsClient<T, Null = never, ExtArgs exten
 export interface course_enrollmentsFieldRefs {
   readonly course_enrollments_id: Prisma.FieldRef<"course_enrollments", 'BigInt'>
   readonly course_offerings_id: Prisma.FieldRef<"course_enrollments", 'BigInt'>
-  readonly students_id: Prisma.FieldRef<"course_enrollments", 'BigInt'>
+  readonly student_code: Prisma.FieldRef<"course_enrollments", 'String'>
   readonly enrolled_at: Prisma.FieldRef<"course_enrollments", 'DateTime'>
 }
     

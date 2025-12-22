@@ -10,9 +10,9 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(email: string, password: string) {
+  async login(student_code: string, password: string) {
     const student = await this.prisma.students.findUnique({
-      where: { email },
+      where: { student_code },
     });
 
     if (!student) {
@@ -27,8 +27,7 @@ export class AuthService {
     }
 
     const payload = {
-      sub: student.students_id.toString(),
-      email: student.email,
+      sub: student.student_code,
     };
 
     return {
