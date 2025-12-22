@@ -4,7 +4,7 @@ async function main() {
   await prisma.students.createMany({
     data: [
       {
-        student_code: 'STU001',
+        student_code: '66131319',
         email: 'john.doe@example.com',
         password_hash: '1234',
         first_name: 'John',
@@ -12,7 +12,7 @@ async function main() {
         is_active: true,
       },
       {
-        student_code: 'STU002',
+        student_code: '66112233',
         email: 'jane.smith@example.com',
         password_hash: '1234',
         first_name: 'Jane',
@@ -20,7 +20,7 @@ async function main() {
         is_active: true,
       },
       {
-        student_code: 'STU003',
+        student_code: '66554433',
         email: 'alex.brown@example.com',
         password_hash: '1234',
         first_name: 'Alex',
@@ -28,7 +28,7 @@ async function main() {
         is_active: false,
       },
       {
-        student_code: 'STU004',
+        student_code: '66121212',
         email: 'emma.wilson@example.com',
         password_hash: '1234',
         first_name: 'Emma',
@@ -36,7 +36,7 @@ async function main() {
         is_active: true,
       },
       {
-        student_code: 'STU005',
+        student_code: '66131313',
         email: 'michael.lee@example.com',
         password_hash: '1234',
         first_name: 'Michael',

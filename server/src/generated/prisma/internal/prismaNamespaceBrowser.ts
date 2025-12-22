@@ -140,7 +140,7 @@ export type Course_announcementsScalarFieldEnum = (typeof Course_announcementsSc
 export const Course_enrollmentsScalarFieldEnum = {
   course_enrollments_id: 'course_enrollments_id',
   course_offerings_id: 'course_offerings_id',
-  students_id: 'students_id',
+  student_code: 'student_code',
   enrolled_at: 'enrolled_at'
 } as const
 
@@ -184,7 +184,7 @@ export type CoursesScalarFieldEnum = (typeof CoursesScalarFieldEnum)[keyof typeo
 export const Exam_attemptsScalarFieldEnum = {
   exam_attempts_id: 'exam_attempts_id',
   exams_id: 'exams_id',
-  students_id: 'students_id',
+  student_code: 'student_code',
   status: 'status',
   started_at: 'started_at',
   submitted_at: 'submitted_at',
@@ -273,7 +273,6 @@ export type Student_directoryScalarFieldEnum = (typeof Student_directoryScalarFi
 
 
 export const StudentsScalarFieldEnum = {
-  students_id: 'students_id',
   student_code: 'student_code',
   email: 'email',
   password_hash: 'password_hash',

@@ -20,22 +20,11 @@ export type studentsModel = runtime.Types.Result.DefaultSelection<Prisma.$studen
 
 export type AggregateStudents = {
   _count: StudentsCountAggregateOutputType | null
-  _avg: StudentsAvgAggregateOutputType | null
-  _sum: StudentsSumAggregateOutputType | null
   _min: StudentsMinAggregateOutputType | null
   _max: StudentsMaxAggregateOutputType | null
 }
 
-export type StudentsAvgAggregateOutputType = {
-  students_id: number | null
-}
-
-export type StudentsSumAggregateOutputType = {
-  students_id: bigint | null
-}
-
 export type StudentsMinAggregateOutputType = {
-  students_id: bigint | null
   student_code: string | null
   email: string | null
   password_hash: string | null
@@ -47,7 +36,6 @@ export type StudentsMinAggregateOutputType = {
 }
 
 export type StudentsMaxAggregateOutputType = {
-  students_id: bigint | null
   student_code: string | null
   email: string | null
   password_hash: string | null
@@ -59,7 +47,6 @@ export type StudentsMaxAggregateOutputType = {
 }
 
 export type StudentsCountAggregateOutputType = {
-  students_id: number
   student_code: number
   email: number
   password_hash: number
@@ -72,16 +59,7 @@ export type StudentsCountAggregateOutputType = {
 }
 
 
-export type StudentsAvgAggregateInputType = {
-  students_id?: true
-}
-
-export type StudentsSumAggregateInputType = {
-  students_id?: true
-}
-
 export type StudentsMinAggregateInputType = {
-  students_id?: true
   student_code?: true
   email?: true
   password_hash?: true
@@ -93,7 +71,6 @@ export type StudentsMinAggregateInputType = {
 }
 
 export type StudentsMaxAggregateInputType = {
-  students_id?: true
   student_code?: true
   email?: true
   password_hash?: true
@@ -105,7 +82,6 @@ export type StudentsMaxAggregateInputType = {
 }
 
 export type StudentsCountAggregateInputType = {
-  students_id?: true
   student_code?: true
   email?: true
   password_hash?: true
@@ -155,18 +131,6 @@ export type StudentsAggregateArgs<ExtArgs extends runtime.Types.Extensions.Inter
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
-   * Select which fields to average
-  **/
-  _avg?: StudentsAvgAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
-   * Select which fields to sum
-  **/
-  _sum?: StudentsSumAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
    * Select which fields to find the minimum value
   **/
   _min?: StudentsMinAggregateInputType
@@ -197,14 +161,11 @@ export type studentsGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   _count?: StudentsCountAggregateInputType | true
-  _avg?: StudentsAvgAggregateInputType
-  _sum?: StudentsSumAggregateInputType
   _min?: StudentsMinAggregateInputType
   _max?: StudentsMaxAggregateInputType
 }
 
 export type StudentsGroupByOutputType = {
-  students_id: bigint
   student_code: string
   email: string
   password_hash: string
@@ -214,8 +175,6 @@ export type StudentsGroupByOutputType = {
   created_at: Date
   updated_at: Date
   _count: StudentsCountAggregateOutputType | null
-  _avg: StudentsAvgAggregateOutputType | null
-  _sum: StudentsSumAggregateOutputType | null
   _min: StudentsMinAggregateOutputType | null
   _max: StudentsMaxAggregateOutputType | null
 }
@@ -239,7 +198,6 @@ export type studentsWhereInput = {
   AND?: Prisma.studentsWhereInput | Prisma.studentsWhereInput[]
   OR?: Prisma.studentsWhereInput[]
   NOT?: Prisma.studentsWhereInput | Prisma.studentsWhereInput[]
-  students_id?: Prisma.BigIntFilter<"students"> | bigint | number
   student_code?: Prisma.StringFilter<"students"> | string
   email?: Prisma.StringFilter<"students"> | string
   password_hash?: Prisma.StringFilter<"students"> | string
@@ -253,7 +211,6 @@ export type studentsWhereInput = {
 }
 
 export type studentsOrderByWithRelationInput = {
-  students_id?: Prisma.SortOrder
   student_code?: Prisma.SortOrder
   email?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
@@ -267,7 +224,6 @@ export type studentsOrderByWithRelationInput = {
 }
 
 export type studentsWhereUniqueInput = Prisma.AtLeast<{
-  students_id?: bigint | number
   student_code?: string
   email?: string
   AND?: Prisma.studentsWhereInput | Prisma.studentsWhereInput[]
@@ -281,10 +237,9 @@ export type studentsWhereUniqueInput = Prisma.AtLeast<{
   updated_at?: Prisma.DateTimeFilter<"students"> | Date | string
   course_enrollments?: Prisma.Course_enrollmentsListRelationFilter
   exam_attempts?: Prisma.Exam_attemptsListRelationFilter
-}, "students_id" | "student_code" | "email">
+}, "student_code" | "email">
 
 export type studentsOrderByWithAggregationInput = {
-  students_id?: Prisma.SortOrder
   student_code?: Prisma.SortOrder
   email?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
@@ -294,17 +249,14 @@ export type studentsOrderByWithAggregationInput = {
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.studentsCountOrderByAggregateInput
-  _avg?: Prisma.studentsAvgOrderByAggregateInput
   _max?: Prisma.studentsMaxOrderByAggregateInput
   _min?: Prisma.studentsMinOrderByAggregateInput
-  _sum?: Prisma.studentsSumOrderByAggregateInput
 }
 
 export type studentsScalarWhereWithAggregatesInput = {
   AND?: Prisma.studentsScalarWhereWithAggregatesInput | Prisma.studentsScalarWhereWithAggregatesInput[]
   OR?: Prisma.studentsScalarWhereWithAggregatesInput[]
   NOT?: Prisma.studentsScalarWhereWithAggregatesInput | Prisma.studentsScalarWhereWithAggregatesInput[]
-  students_id?: Prisma.BigIntWithAggregatesFilter<"students"> | bigint | number
   student_code?: Prisma.StringWithAggregatesFilter<"students"> | string
   email?: Prisma.StringWithAggregatesFilter<"students"> | string
   password_hash?: Prisma.StringWithAggregatesFilter<"students"> | string
@@ -316,7 +268,6 @@ export type studentsScalarWhereWithAggregatesInput = {
 }
 
 export type studentsCreateInput = {
-  students_id?: bigint | number
   student_code: string
   email: string
   password_hash: string
@@ -330,7 +281,6 @@ export type studentsCreateInput = {
 }
 
 export type studentsUncheckedCreateInput = {
-  students_id?: bigint | number
   student_code: string
   email: string
   password_hash: string
@@ -344,7 +294,6 @@ export type studentsUncheckedCreateInput = {
 }
 
 export type studentsUpdateInput = {
-  students_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   student_code?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -358,7 +307,6 @@ export type studentsUpdateInput = {
 }
 
 export type studentsUncheckedUpdateInput = {
-  students_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   student_code?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -372,7 +320,6 @@ export type studentsUncheckedUpdateInput = {
 }
 
 export type studentsCreateManyInput = {
-  students_id?: bigint | number
   student_code: string
   email: string
   password_hash: string
@@ -384,7 +331,6 @@ export type studentsCreateManyInput = {
 }
 
 export type studentsUpdateManyMutationInput = {
-  students_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   student_code?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -396,7 +342,6 @@ export type studentsUpdateManyMutationInput = {
 }
 
 export type studentsUncheckedUpdateManyInput = {
-  students_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   student_code?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -413,7 +358,6 @@ export type StudentsScalarRelationFilter = {
 }
 
 export type studentsCountOrderByAggregateInput = {
-  students_id?: Prisma.SortOrder
   student_code?: Prisma.SortOrder
   email?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
@@ -424,12 +368,7 @@ export type studentsCountOrderByAggregateInput = {
   updated_at?: Prisma.SortOrder
 }
 
-export type studentsAvgOrderByAggregateInput = {
-  students_id?: Prisma.SortOrder
-}
-
 export type studentsMaxOrderByAggregateInput = {
-  students_id?: Prisma.SortOrder
   student_code?: Prisma.SortOrder
   email?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
@@ -441,7 +380,6 @@ export type studentsMaxOrderByAggregateInput = {
 }
 
 export type studentsMinOrderByAggregateInput = {
-  students_id?: Prisma.SortOrder
   student_code?: Prisma.SortOrder
   email?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
@@ -450,10 +388,6 @@ export type studentsMinOrderByAggregateInput = {
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
-}
-
-export type studentsSumOrderByAggregateInput = {
-  students_id?: Prisma.SortOrder
 }
 
 export type studentsCreateNestedOneWithoutCourse_enrollmentsInput = {
@@ -485,7 +419,6 @@ export type studentsUpdateOneRequiredWithoutExam_attemptsNestedInput = {
 }
 
 export type studentsCreateWithoutCourse_enrollmentsInput = {
-  students_id?: bigint | number
   student_code: string
   email: string
   password_hash: string
@@ -498,7 +431,6 @@ export type studentsCreateWithoutCourse_enrollmentsInput = {
 }
 
 export type studentsUncheckedCreateWithoutCourse_enrollmentsInput = {
-  students_id?: bigint | number
   student_code: string
   email: string
   password_hash: string
@@ -527,7 +459,6 @@ export type studentsUpdateToOneWithWhereWithoutCourse_enrollmentsInput = {
 }
 
 export type studentsUpdateWithoutCourse_enrollmentsInput = {
-  students_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   student_code?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -540,7 +471,6 @@ export type studentsUpdateWithoutCourse_enrollmentsInput = {
 }
 
 export type studentsUncheckedUpdateWithoutCourse_enrollmentsInput = {
-  students_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   student_code?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -553,7 +483,6 @@ export type studentsUncheckedUpdateWithoutCourse_enrollmentsInput = {
 }
 
 export type studentsCreateWithoutExam_attemptsInput = {
-  students_id?: bigint | number
   student_code: string
   email: string
   password_hash: string
@@ -566,7 +495,6 @@ export type studentsCreateWithoutExam_attemptsInput = {
 }
 
 export type studentsUncheckedCreateWithoutExam_attemptsInput = {
-  students_id?: bigint | number
   student_code: string
   email: string
   password_hash: string
@@ -595,7 +523,6 @@ export type studentsUpdateToOneWithWhereWithoutExam_attemptsInput = {
 }
 
 export type studentsUpdateWithoutExam_attemptsInput = {
-  students_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   student_code?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -608,7 +535,6 @@ export type studentsUpdateWithoutExam_attemptsInput = {
 }
 
 export type studentsUncheckedUpdateWithoutExam_attemptsInput = {
-  students_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   student_code?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -661,7 +587,6 @@ export type StudentsCountOutputTypeCountExam_attemptsArgs<ExtArgs extends runtim
 
 
 export type studentsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  students_id?: boolean
   student_code?: boolean
   email?: boolean
   password_hash?: boolean
@@ -676,7 +601,6 @@ export type studentsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
 }, ExtArgs["result"]["students"]>
 
 export type studentsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  students_id?: boolean
   student_code?: boolean
   email?: boolean
   password_hash?: boolean
@@ -688,7 +612,6 @@ export type studentsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
 }, ExtArgs["result"]["students"]>
 
 export type studentsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  students_id?: boolean
   student_code?: boolean
   email?: boolean
   password_hash?: boolean
@@ -700,7 +623,6 @@ export type studentsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
 }, ExtArgs["result"]["students"]>
 
 export type studentsSelectScalar = {
-  students_id?: boolean
   student_code?: boolean
   email?: boolean
   password_hash?: boolean
@@ -711,7 +633,7 @@ export type studentsSelectScalar = {
   updated_at?: boolean
 }
 
-export type studentsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"students_id" | "student_code" | "email" | "password_hash" | "first_name" | "last_name" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["students"]>
+export type studentsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"student_code" | "email" | "password_hash" | "first_name" | "last_name" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["students"]>
 export type studentsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   course_enrollments?: boolean | Prisma.students$course_enrollmentsArgs<ExtArgs>
   exam_attempts?: boolean | Prisma.students$exam_attemptsArgs<ExtArgs>
@@ -727,7 +649,6 @@ export type $studentsPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     exam_attempts: Prisma.$exam_attemptsPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
-    students_id: bigint
     student_code: string
     email: string
     password_hash: string
@@ -819,8 +740,8 @@ export interface studentsDelegate<ExtArgs extends runtime.Types.Extensions.Inter
    * // Get first 10 Students
    * const students = await prisma.students.findMany({ take: 10 })
    * 
-   * // Only select the `students_id`
-   * const studentsWithStudents_idOnly = await prisma.students.findMany({ select: { students_id: true } })
+   * // Only select the `student_code`
+   * const studentsWithStudent_codeOnly = await prisma.students.findMany({ select: { student_code: true } })
    * 
    */
   findMany<T extends studentsFindManyArgs>(args?: Prisma.SelectSubset<T, studentsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$studentsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -864,9 +785,9 @@ export interface studentsDelegate<ExtArgs extends runtime.Types.Extensions.Inter
    *   ]
    * })
    * 
-   * // Create many Students and only return the `students_id`
-   * const studentsWithStudents_idOnly = await prisma.students.createManyAndReturn({
-   *   select: { students_id: true },
+   * // Create many Students and only return the `student_code`
+   * const studentsWithStudent_codeOnly = await prisma.students.createManyAndReturn({
+   *   select: { student_code: true },
    *   data: [
    *     // ... provide data here
    *   ]
@@ -955,9 +876,9 @@ export interface studentsDelegate<ExtArgs extends runtime.Types.Extensions.Inter
    *   ]
    * })
    * 
-   * // Update zero or more Students and only return the `students_id`
-   * const studentsWithStudents_idOnly = await prisma.students.updateManyAndReturn({
-   *   select: { students_id: true },
+   * // Update zero or more Students and only return the `student_code`
+   * const studentsWithStudent_codeOnly = await prisma.students.updateManyAndReturn({
+   *   select: { student_code: true },
    *   where: {
    *     // ... provide filter here
    *   },
@@ -1161,7 +1082,6 @@ export interface Prisma__studentsClient<T, Null = never, ExtArgs extends runtime
  * Fields of the students model
  */
 export interface studentsFieldRefs {
-  readonly students_id: Prisma.FieldRef<"students", 'BigInt'>
   readonly student_code: Prisma.FieldRef<"students", 'String'>
   readonly email: Prisma.FieldRef<"students", 'String'>
   readonly password_hash: Prisma.FieldRef<"students", 'String'>
