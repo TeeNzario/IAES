@@ -1,4 +1,4 @@
-export interface Student {
+export interface StudentDto {
   id: number;
   username: string;
   email: string;
