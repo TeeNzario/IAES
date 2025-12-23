@@ -23,7 +23,7 @@ This is a web application for examination adaptive system.
 
 1. Clone the repository
 ```bash
-    git clone https://github.com/your-username/IAES.git
+    git clone https://github.com/TeeNzario/IAES.git
     cd IAES
 ```
 2. Backend Setup
