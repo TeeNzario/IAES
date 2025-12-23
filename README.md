@@ -57,14 +57,14 @@ NEXT_PUBLIC_API_URL=http://localhost:3002
 
 Run database migration
 ```bash
-cd server
+    cd server
     npx prisma migrate dev --name init
     npx prisma generate
 ```
 
 Seed database
 ```bash
-cd server
+    cd server
     npm run seed
 ```
 
