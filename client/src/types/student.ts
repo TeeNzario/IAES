@@ -1,5 +1,5 @@
 export interface StudentDto {
   id: number;
-  username: string;
+  student_code: string;
   email: string;
 }
