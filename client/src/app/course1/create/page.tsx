@@ -9,7 +9,6 @@ const CreateCourse = () => {
     name: '',
     description: '',
     password: '',
-    group: '',
     image: null as File | null
   });
 
@@ -35,7 +34,6 @@ const CreateCourse = () => {
       name: '',
       description: '',
       password: '',
-      group: '',
       image: null
     });
   };
@@ -102,20 +100,6 @@ const CreateCourse = () => {
             />
           </div>
 
-          {/* เลขกลุ่ม */}
-          <div>
-            <label className="block text-white text-sm font-medium mb-2">
-              เลขกลุ่ม
-            </label>
-            <input
-              type="text"
-              name="group"
-              value={formData.group}
-              onChange={handleInputChange}
-              className="w-full bg-white text-black px-4 py-3 rounded-xl border-0 focus:outline-none focus:ring-2 focus:ring-purple-600"
-              placeholder=""
-            />
-          </div>
 
           {/* เพิ่มภาพพื้นหลัง */}
           <div>
