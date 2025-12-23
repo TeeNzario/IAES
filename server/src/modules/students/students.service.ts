@@ -1,3 +1,4 @@
+// ...existing code...
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -15,15 +16,20 @@ export class StudentsService {
     return this.prisma.students.findMany();
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return `This action returns a #${id} student`;
   }
 
-  update(id: number, updateStudentDto: UpdateStudentDto) {
-    return `This action updates a #${id} student`;
+  update(id: string, updateStudentDto: UpdateStudentDto) {
+    return this.prisma.students.update({
+      where: { student_code: id },
+      data: updateStudentDto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} student`;
-  }
+  remove(id: string) {
+  return this.prisma.students.delete({
+    where: { student_code: id },
+  });
+}
 }
