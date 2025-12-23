@@ -35,8 +35,10 @@ This is a web application for examination adaptive system.
 ```
 
 create .env file in server directory
+```bash
 PORT=3002
 DATABASE_URL=postgresql://user:password@localhost:5432/db_name
+```
    
 3. Frontend Setup
 
@@ -47,7 +49,9 @@ DATABASE_URL=postgresql://user:password@localhost:5432/db_name
 ```
 
 create .env.local file in client directory
+```bash
 NEXT_PUBLIC_API_URL=http://localhost:3002
+```
 
 4. Database Setup
 
