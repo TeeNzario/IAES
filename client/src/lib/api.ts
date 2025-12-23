@@ -18,13 +18,24 @@ export async function apiFetch<T>(
     headers?: Record<string, string>;
   }
 ): Promise<T> {
-  const res = await api.request<T>({
-    url: path,
-    method: options?.method ?? "GET",
-    data: options?.data,
-    params: options?.params,
-    headers: options?.headers,
-  });
-
-  return res.data;
+  try {
+    const res = await api.request<T>({
+      url: path,
+      method: options?.method ?? "GET",
+      data: options?.data,
+      // Add timeout
+      timeout: 10000,
+    });
+    return res.data;
+  } catch (error) {
+  if (error instanceof Error) {
+    console.error('API Error:', error.message);
+    // Add detailed logging
+    console.error('Error type:', error.constructor.name);
+    console.error('Full error:', error);
+  } else {
+    console.error('Unknown error:', error);
+  }
+  throw error;
+}
 }
