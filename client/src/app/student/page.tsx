@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { fetchStudents } from '@/features/student/student.api';
-import { Student } from '@/types/student';
+import { StudentDto } from '@/types/student';
 import NavBar from '@/components/layout/NavBar';
 
 export default function StudentsPage() {
-  const [students, setStudents] = useState<Student[]>([]);
+  const [students, setStudents] = useState<StudentDto[]>([]);
   console.log(students);
 
   useEffect(() => {
@@ -19,7 +19,7 @@ export default function StudentsPage() {
       <h1>Students</h1>
       <ul>
         {students.map(s => (  
-          <li key={s.id}>{s.username}</li>
+          <li key={s.student_code}>{s.email}</li>
         ))}
       </ul>
       </NavBar>
