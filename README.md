@@ -70,7 +70,8 @@ Seed database
     npm run seed
 ```
 
-5. Run Backend and Frontend
+5. Run Back-end and Front-end concurrently
+
 run at root directory
 ```bash
     npm install
