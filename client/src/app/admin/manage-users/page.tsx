@@ -1,3 +1,4 @@
+// ...existing code...
 "use client";
 
 import NavBar from "@/components/layout/NavBar";
@@ -7,13 +8,41 @@ import {
   getUsers,
   updateUser as apiUpdateUser,
   deleteUser as apiDeleteUser,
-} from "@/features/admin/manage-users/manage-users.api";
+} from "@/features/student/student.api";
+import {
+  getStaffs,
+  updateStaff as apiUpdateStaff,
+  deleteStaff as apiDeleteStaff,
+} from "@/features/staff/staff.api";
+
+type RoleFilter = "STUDENT" | "INSTRUCTOR" | "ADMINISTRATOR";
 
 interface User {
-  student_code: string;
+  id: string;
   first_name: string;
   last_name: string;
   is_active: boolean;
+  role: RoleFilter;
+}
+
+function mapStudentToUser(student: any): User {
+  return {
+    id: student.student_code,
+    first_name: student.first_name ?? "",
+    last_name: student.last_name ?? "",
+    is_active: !!student.is_active,
+    role: "STUDENT",
+  };
+}
+
+function mapStaffToUser(staff: any): User {
+  return {
+    id: String(staff.staff_users_id),
+    first_name: staff.first_name ?? "",
+    last_name: staff.last_name ?? "",
+    is_active: !!staff.is_active,
+    role: staff.role as RoleFilter,
+  };
 }
 
 export default function ManageUserPage() {
@@ -21,8 +50,10 @@ export default function ManageUserPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  // role filtering removed because `User` interface has no `role`
   const [statusFilter, setStatusFilter] = useState("all"); // active status filter
+  const [roleFilter, setRoleFilter] = useState<
+    "all" | "STUDENT" | "INSTRUCTOR" | "ADMINISTRATOR"
+  >("all");
   const itemsPerPage = 9;
 
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -33,50 +64,59 @@ export default function ManageUserPage() {
   useEffect(() => {
     async function fetchUsers() {
       try {
-        const response = await getUsers({});
-        // ensure we always store an array (support both `response` as array or `{ data: array }`)
-        console.log(response);
-        let data: any[] = [];
-        if (Array.isArray(response)) data = response;
-        else if (Array.isArray(response?.data)) data = response.data;
-        setUsers(data);
-      } catch (error) {
-        console.error("Error fetching users:", error);
+        if (roleFilter === "STUDENT") {
+          const res = await getUsers({ role: "" });
+          const data = Array.isArray(res) ? res : res?.data ?? [];
+          setUsers(data.map(mapStudentToUser));
+          return;
+        }
+
+        if (roleFilter === "INSTRUCTOR" || roleFilter === "ADMINISTRATOR") {
+          const res = await getStaffs({ role: roleFilter });
+          const data = res?.data ?? [];
+          setUsers(data.map(mapStaffToUser));
+          return;
+        }
+
+        // roleFilter === "all": fetch both and merge
+        const studentsRes = await getUsers({ role: "" });
+        const students = (Array.isArray(studentsRes) ? studentsRes : studentsRes?.data ?? []).map(mapStudentToUser);
+
+        const staffsRes = await getStaffs({ role: "" });
+        const staffs = (staffsRes?.data ?? []).map(mapStaffToUser);
+
+        setUsers([...students, ...staffs]);
+      } catch (err) {
+        console.error("fetch users error:", err);
       }
     }
+
     fetchUsers();
-  }, []);
+  }, [roleFilter]);
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       const fullName = `${user.first_name} ${user.last_name}`.trim();
       const matchesSearch =
         fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.student_code.includes(searchTerm);
+        user.id.includes(searchTerm);
 
       const matchesStatus =
         statusFilter === "all" ||
         (statusFilter === "active" && user.is_active) ||
         (statusFilter === "inactive" && !user.is_active);
 
-      return matchesSearch && matchesStatus;
-    });
-  }, [users, searchTerm, statusFilter]);
+      const matchesRole = roleFilter === "all" || user.role === roleFilter;
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredUsers.length / itemsPerPage)
-  );
-  const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+      return matchesSearch && matchesStatus && matchesRole;
+    });
+  }, [users, searchTerm, statusFilter, roleFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage));
+  const paginatedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   useEffect(() => {
-    // keep currentPage within bounds when filters/search change
-    setCurrentPage((cp) =>
-      Math.min(cp, Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage)))
-    );
+    setCurrentPage((cp) => Math.min(cp, Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage))));
   }, [filteredUsers.length]);
 
   function openEdit(user: User) {
@@ -88,59 +128,54 @@ export default function ManageUserPage() {
 
   async function saveEdit() {
     if (!editingUser) return;
-    const updatedLocal = (prev: User[] | null) =>
-      (prev ?? []).map((u) =>
-        u.student_code === editingUser.student_code
-          ? {
-              ...u,
-              first_name: editFirstName,
-              last_name: editLastName,
-              is_active: editActive === "ACTIVE",
-            }
-          : u
-      );
-    // update UI optimistically
-    setUsers((prev) => updatedLocal(prev));
 
-    // prepare payload for API (map to backend shape)
-    const payload: any = {
-      name: `${editFirstName} ${editLastName}`,
-      active: editActive === "ACTIVE" ? "ACTIVE" : "INACTIVE",
-    };
+    // optimistic update
+    setUsers((prev) =>
+      (prev ?? []).map((u) =>
+        u.id === editingUser.id
+          ? { ...u, first_name: editFirstName, last_name: editLastName, is_active: editActive === "ACTIVE" }
+          : u
+      )
+    );
 
     try {
-      // send fields that backend students PATCH expects
-      const apiPayload = {
-        first_name: editFirstName,
-        last_name: editLastName,
-        is_active: editActive === "ACTIVE",
-      };
-      await apiUpdateUser(editingUser.student_code, {
-        first_name: editFirstName,
-        last_name: editLastName,
-        is_active: editActive === "ACTIVE",
-      });
+      if (editingUser.role === "STUDENT") {
+        await apiUpdateUser(editingUser.id, {
+          first_name: editFirstName,
+          last_name: editLastName,
+          is_active: editActive === "ACTIVE",
+        });
+      } else {
+        await apiUpdateStaff(editingUser.id, {
+          first_name: editFirstName,
+          last_name: editLastName,
+          is_active: editActive === "ACTIVE",
+        });
+      }
     } catch (error) {
       console.error("Error updating user on server:", error);
+    } finally {
+      setEditingUser(null);
     }
-
-    setEditingUser(null);
   }
 
-  async function deleteUser(studentCode: string) {
+  async function deleteUser(id: string) {
     if (!confirm("ยืนยันการลบผู้ใช้นี้หรือไม่?")) return;
-    // optimistic UI update
-    setUsers((prev) => {
-      const newArr = (prev ?? []).filter((u) => u.student_code !== studentCode);
-      return newArr;
-    });
+
+    const userToDelete = users.find((u) => u.id === id);
+
+    // optimistic UI
+    setUsers((prev) => (prev ?? []).filter((u) => u.id !== id));
 
     try {
-      await apiDeleteUser(studentCode);
+      if (userToDelete?.role === "STUDENT") {
+        await apiDeleteUser(id);
+      } else {
+        await apiDeleteStaff(id);
+      }
     } catch (error) {
       console.error("Error deleting user on server:", error);
     }
-    // adjust page if needed (useEffect above handles)
   }
 
   return (
@@ -154,23 +189,24 @@ export default function ManageUserPage() {
         <div className="flex flex-col sm:flex-row sm:justify-between gap-4 sm:gap-0 items-start sm:items-center mb-6">
           <div className="flex flex-wrap gap-2 items-center">
             <button
-              onClick={() => {
-                setSearchTerm("");
-                setStatusFilter("all");
-                setCurrentPage(1);
-              }}
-              className={`px-4 py-2 rounded-full font-semibold transition-colors bg-[#B7A3E3] text-white`}
+              onClick={() => { setSearchTerm(""); setStatusFilter("all"); setRoleFilter("STUDENT"); setCurrentPage(1); }}
+              className={`px-4 py-2 rounded-full font-semibold transition-colors ${roleFilter === "STUDENT" ? 'bg-purple-600 text-white' : 'bg-[#B7A3E3] text-white'}`}
             >
-              ทั้งหมด
+              นักเรียน
             </button>
-            {/* role buttons removed (no role in User interface) */}
+
+            <button
+              onClick={() => { setSearchTerm(""); setStatusFilter("all"); setRoleFilter("INSTRUCTOR"); setCurrentPage(1); }}
+              className={`px-4 py-2 rounded-full font-semibold transition-colors ${roleFilter === "INSTRUCTOR" ? 'bg-purple-600 text-white' : 'bg-[#B7A3E3] text-white'}`}
+            >
+              อาจารย์
+            </button>
+
+            
 
             <select
               value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setCurrentPage(1);
-              }}
+              onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
               className="ml-0 sm:ml-2 px-3 py-2 rounded-full border border-purple-300 bg-white text-sm"
             >
               <option value="all">สถานะ: ทั้งหมด</option>
@@ -189,16 +225,10 @@ export default function ManageUserPage() {
                 type="text"
                 placeholder="SEARCH"
                 value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                }}
+                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                 className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-400"
               />
-              <Search
-                className="absolute right-3 top-2.5 text-gray-400"
-                size={18}
-              />
+              <Search className="absolute right-3 top-2.5 text-gray-400" size={18} />
             </div>
           </div>
         </div>
@@ -217,30 +247,13 @@ export default function ManageUserPage() {
               </thead>
               <tbody>
                 {paginatedUsers.map((user) => (
-                  <tr
-                    key={user.student_code}
-                    className="border-b hover:bg-gray-50"
-                  >
-                    <td className="px-6 py-4 text-gray-700">
-                      {user.student_code}
-                    </td>
+                  <tr key={user.id} className="border-b hover:bg-gray-50">
+                    <td className="px-6 py-4 text-gray-700">{user.id}</td>
                     <td className="px-6 py-4 text-gray-700">{`${user.first_name} ${user.last_name}`}</td>
-                    <td className="px-6 py-4 text-gray-700">
-                      {user.is_active ? "Active" : "Inactive"}
-                    </td>
+                    <td className="px-6 py-4 text-gray-700">{user.is_active ? "Active" : "Inactive"}</td>
                     <td className="px-6 py-4 text-gray-700 flex flex-wrap gap-2">
-                      <button
-                        onClick={() => openEdit(user)}
-                        className="px-3 py-1 bg-[#B7A3E3] text-white rounded-md hover:opacity-90"
-                      >
-                        แก้ไข
-                      </button>
-                      <button
-                        onClick={() => deleteUser(user.student_code)}
-                        className="px-3 py-1 bg-red-500 text-white rounded-md hover:opacity-90"
-                      >
-                        ลบ
-                      </button>
+                      <button onClick={() => openEdit(user)} className="px-3 py-1 bg-[#B7A3E3] text-white rounded-md hover:opacity-90">แก้ไข</button>
+                      <button onClick={() => deleteUser(user.id)} className="px-3 py-1 bg-red-500 text-white rounded-md hover:opacity-90">ลบ</button>
                     </td>
                   </tr>
                 ))}
@@ -250,32 +263,15 @@ export default function ManageUserPage() {
             {/* Mobile list */}
             <div className="sm:hidden">
               {paginatedUsers.map((user) => (
-                <div
-                  key={user.student_code}
-                  className="p-4 border-b flex justify-between items-start gap-4"
-                >
+                <div key={user.id} className="p-4 border-b flex justify-between items-start gap-4">
                   <div className="flex-1">
-                    <div className="text-sm text-gray-500">
-                      ID: {user.student_code}
-                    </div>
+                    <div className="text-sm text-gray-500">ID: {user.id}</div>
                     <div className="font-medium text-gray-800">{`${user.first_name} ${user.last_name}`}</div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {user.is_active ? "Active" : "Inactive"}
-                    </div>
+                    <div className="text-xs text-gray-500 mt-1">{user.is_active ? "Active" : "Inactive"}</div>
                   </div>
                   <div className="flex flex-col gap-2 items-end">
-                    <button
-                      onClick={() => openEdit(user)}
-                      className="px-3 py-1 bg-[#B7A3E3] text-white rounded-md text-sm"
-                    >
-                      แก้ไข
-                    </button>
-                    <button
-                      onClick={() => deleteUser(user.student_code)}
-                      className="px-3 py-1 bg-red-500 text-white rounded-md text-sm"
-                    >
-                      ลบ
-                    </button>
+                    <button onClick={() => openEdit(user)} className="px-3 py-1 bg-[#B7A3E3] text-white rounded-md text-sm">แก้ไข</button>
+                    <button onClick={() => deleteUser(user.id)} className="px-3 py-1 bg-red-500 text-white rounded-md text-sm">ลบ</button>
                   </div>
                 </div>
               ))}
@@ -285,38 +281,17 @@ export default function ManageUserPage() {
 
         {/* Pagination */}
         <div className="flex flex-wrap justify-center items-center gap-2 mt-6">
-          <button
-            className="p-2 hover:bg-gray-200 rounded-lg disabled:opacity-50"
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-          >
+          <button className="p-2 hover:bg-gray-200 rounded-lg disabled:opacity-50" disabled={currentPage === 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>
             <ChevronLeft size={18} />
           </button>
           {Array.from({ length: Math.min(5, totalPages) }, (_, i) => (
-            <button
-              key={i + 1}
-              onClick={() => setCurrentPage(i + 1)}
-              className={`w-8 h-8 rounded-lg font-semibold ${
-                currentPage === i + 1
-                  ? "bg-[#B7A3E3] text-white"
-                  : "border border-gray-300 text-gray-700 hover:bg-gray-100"
-              }`}
-            >
+            <button key={i + 1} onClick={() => setCurrentPage(i + 1)} className={`w-8 h-8 rounded-lg font-semibold ${currentPage === i + 1 ? "bg-[#B7A3E3] text-white" : "border border-gray-300 text-gray-700 hover:bg-gray-100"}`}>
               {i + 1}
             </button>
           ))}
           <span className="text-gray-500 hidden sm:inline">...</span>
-          <button
-            className="w-8 h-8 rounded-lg border border-gray-300 font-semibold hover:bg-gray-100"
-            onClick={() => setCurrentPage(totalPages)}
-          >
-            {totalPages}
-          </button>
-          <button
-            className="p-2 hover:bg-gray-200 rounded-lg disabled:opacity-50"
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-          >
+          <button className="w-8 h-8 rounded-lg border border-gray-300 font-semibold hover:bg-gray-100" onClick={() => setCurrentPage(totalPages)}>{totalPages}</button>
+          <button className="p-2 hover:bg-gray-200 rounded-lg disabled:opacity-50" disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}>
             <ChevronRight size={18} />
           </button>
         </div>
@@ -325,65 +300,27 @@ export default function ManageUserPage() {
         {editingUser && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <h3 className="text-lg font-semibold mb-4">
-                แก้ไขผู้ใช้ ({editingUser.student_code})
-              </h3>
+              <h3 className="text-lg font-semibold mb-4">แก้ไขผู้ใช้ ({editingUser.id})</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                 <div>
-                  <label className="block text-sm text-gray-600">
-                    First name
-                  </label>
-                  <input
-                    value={editFirstName}
-                    onChange={(e) => setEditFirstName(e.target.value)}
-                    className="w-full px-3 py-2 border rounded"
-                  />
+                  <label className="block text-sm text-gray-600">First name</label>
+                  <input value={editFirstName} onChange={(e) => setEditFirstName(e.target.value)} className="w-full px-3 py-2 border rounded" />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600">
-                    Last name
-                  </label>
-                  <input
-                    value={editLastName}
-                    onChange={(e) => setEditLastName(e.target.value)}
-                    className="w-full px-3 py-2 border rounded"
-                  />
+                  <label className="block text-sm text-gray-600">Last name</label>
+                  <input value={editLastName} onChange={(e) => setEditLastName(e.target.value)} className="w-full px-3 py-2 border rounded" />
                 </div>
               </div>
               <label className="block text-sm text-gray-600">Status</label>
-              <select
-                value={editActive}
-                onChange={(e) =>
-                  setEditActive(e.target.value as "ACTIVE" | "INACTIVE")
-                }
-                className="w-full px-3 py-2 border rounded mb-4"
-              >
+              <select value={editActive} onChange={(e) => setEditActive(e.target.value as "ACTIVE" | "INACTIVE")} className="w-full px-3 py-2 border rounded mb-4">
                 <option value="ACTIVE">ACTIVE</option>
                 <option value="INACTIVE">INACTIVE</option>
               </select>
               <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
-                <button
-                  onClick={() => {
-                    if (editingUser) deleteUser(editingUser.student_code);
-                    setEditingUser(null);
-                  }}
-                  className="px-3 py-2 bg-red-500 text-white rounded w-full sm:w-auto"
-                >
-                  ลบผู้ใช้
-                </button>
+                <button onClick={() => { if (editingUser) deleteUser(editingUser.id); setEditingUser(null); }} className="px-3 py-2 bg-red-500 text-white rounded w-full sm:w-auto">ลบผู้ใช้</button>
                 <div className="flex justify-end gap-2 w-full sm:w-auto">
-                  <button
-                    onClick={() => setEditingUser(null)}
-                    className="px-4 py-2 border rounded"
-                  >
-                    ยกเลิก
-                  </button>
-                  <button
-                    onClick={saveEdit}
-                    className="px-4 py-2 bg-[#7C3AED] text-white rounded"
-                  >
-                    บันทึก
-                  </button>
+                  <button onClick={() => setEditingUser(null)} className="px-4 py-2 border rounded">ยกเลิก</button>
+                  <button onClick={saveEdit} className="px-4 py-2 bg-[#7C3AED] text-white rounded">บันทึก</button>
                 </div>
               </div>
             </div>
@@ -393,3 +330,4 @@ export default function ManageUserPage() {
     </NavBar>
   );
 }
+// ...existing code...
