@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { fetchStudents } from '@/features/student/student.api';
+
 import { StudentDto } from '@/types/student';
 import NavBar from '@/components/layout/NavBar';
 
