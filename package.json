@@ -1,0 +1,13 @@
+{
+  "name": "iaes",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run start:dev --prefix server\" \"npm run dev --prefix client\"",
+    "teen": "tmux new-session -d -s iaes 'npm run start:dev --prefix server' \\; split-window -h 'npm run dev --prefix client' \\; attach",
+    "dev:client": "npm run dev --prefix client",
+    "dev:server": "npm run start:dev --prefix server"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
