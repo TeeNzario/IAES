@@ -12,6 +12,8 @@ This is a web application for examination adaptive system.
 - Frontend: NextJS
 - Backend: NestJS
 - Database: PostgreSQL
+- ORM : Prisma
+- Authentication: Passport
 
 ## Installation
 
@@ -68,5 +70,11 @@ Seed database
     npm run seed
 ```
 
+5. Run Backend and Frontend
+run at root directory
+```bash
+    npm install
+    npm run dev
+```
 
 
