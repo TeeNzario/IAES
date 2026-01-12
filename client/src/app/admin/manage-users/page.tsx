@@ -45,21 +45,50 @@ function mapStaffToUser(staff: any): User {
   };
 }
 
+// Mock data for academic years and courses
+const mockAcademicYears = [
+  { id: "2568/2", label: "2568/2" },
+  { id: "2568/1", label: "2568/1" },
+  { id: "2567/2", label: "2567/2" },
+  { id: "2567/1", label: "2567/1" },
+  { id: "2566/2", label: "2566/2" },
+  { id: "2566/1", label: "2566/1" },
+  { id: "2565/2", label: "2565/2" },
+  { id: "2565/1", label: "2565/1" },
+];
+
+const mockCourses: Record<string, string[]> = {
+  "2568/2": ["COE65-412", "COE65-512"],
+  "2568/1": ["COE65-122"],
+  "2567/2": ["COE65-123", "COE63-413"],
+  "2567/1": ["COE65-454", "COE63-567"],
+  "2566/2": [],
+  "2566/1": [],
+  "2565/2": [],
+  "2565/1": [],
+};
+
 export default function ManageUserPage() {
   const [users, setUsers] = useState<User[]>([]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState("all"); // active status filter
+  const [statusFilter, setStatusFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState<
     "all" | "STUDENT" | "INSTRUCTOR" | "ADMINISTRATOR"
   >("all");
   const itemsPerPage = 9;
 
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editId, setEditId] = useState("");
   const [editFirstName, setEditFirstName] = useState("");
   const [editLastName, setEditLastName] = useState("");
   const [editActive, setEditActive] = useState<"ACTIVE" | "INACTIVE">("ACTIVE");
+
+  // Filter popup states
+  const [showFilterPopup, setShowFilterPopup] = useState(false);
+  const [selectedYear, setSelectedYear] = useState<string | null>("2568/2");
+  const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchUsers() {
@@ -121,6 +150,7 @@ export default function ManageUserPage() {
 
   function openEdit(user: User) {
     setEditingUser(user);
+    setEditId(user.id);
     setEditFirstName(user.first_name);
     setEditLastName(user.last_name);
     setEditActive(user.is_active ? "ACTIVE" : "INACTIVE");
@@ -129,7 +159,6 @@ export default function ManageUserPage() {
   async function saveEdit() {
     if (!editingUser) return;
 
-    // optimistic update
     setUsers((prev) =>
       (prev ?? []).map((u) =>
         u.id === editingUser.id
@@ -163,8 +192,6 @@ export default function ManageUserPage() {
     if (!confirm("ยืนยันการลบผู้ใช้นี้หรือไม่?")) return;
 
     const userToDelete = users.find((u) => u.id === id);
-
-    // optimistic UI
     setUsers((prev) => (prev ?? []).filter((u) => u.id !== id));
 
     try {
@@ -178,6 +205,24 @@ export default function ManageUserPage() {
     }
   }
 
+  function toggleCourseSelection(course: string) {
+    setSelectedCourses((prev) =>
+      prev.includes(course)
+        ? prev.filter((c) => c !== course)
+        : [...prev, course]
+    );
+  }
+
+  function applyFilter() {
+    console.log("Applied filters:", { selectedYear, selectedCourses });
+    setShowFilterPopup(false);
+  }
+
+  function clearFilter() {
+    setSelectedYear("2568/2");
+    setSelectedCourses([]);
+  }
+
   return (
     <NavBar>
       <div className="p-4 sm:p-8 bg-gray-50 min-h-screen w-full">
@@ -186,35 +231,33 @@ export default function ManageUserPage() {
         </h1>
 
         {/* Filter and Search */}
-        <div className="flex flex-col sm:flex-row sm:justify-between gap-4 sm:gap-0 items-start sm:items-center mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between gap-4 items-start sm:items-center mb-6">
           <div className="flex flex-wrap gap-2 items-center">
             <button
               onClick={() => { setSearchTerm(""); setStatusFilter("all"); setRoleFilter("STUDENT"); setCurrentPage(1); }}
-              className={`px-4 py-2 rounded-full font-semibold transition-colors ${roleFilter === "STUDENT" ? 'bg-purple-600 text-white' : 'bg-[#B7A3E3] text-white'}`}
+              className="px-6 py-2 rounded-full font-medium transition-colors bg-white border-2 border-[#B7A3E3] text-[#B7A3E3] hover:bg-purple-50"
             >
               นักเรียน
             </button>
 
             <button
               onClick={() => { setSearchTerm(""); setStatusFilter("all"); setRoleFilter("INSTRUCTOR"); setCurrentPage(1); }}
-              className={`px-4 py-2 rounded-full font-semibold transition-colors ${roleFilter === "INSTRUCTOR" ? 'bg-purple-600 text-white' : 'bg-[#B7A3E3] text-white'}`}
+              className="px-6 py-2 rounded-full font-medium transition-colors bg-white border-2 border-[#B7A3E3] text-[#B7A3E3] hover:bg-purple-50"
             >
               อาจารย์
             </button>
 
-            
-
-            <select
-              value={statusFilter}
-              onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-              className="ml-0 sm:ml-2 px-3 py-2 rounded-full border border-purple-300 bg-white text-sm"
+            <button
+              onClick={() => { setSearchTerm(""); setStatusFilter("all"); setRoleFilter("ADMINISTRATOR"); setCurrentPage(1); }}
+              className="px-6 py-2 rounded-full font-medium transition-colors bg-white border-2 border-[#B7A3E3] text-[#B7A3E3] hover:bg-purple-50"
             >
-              <option value="all">สถานะ: ทั้งหมด</option>
-              <option value="active">สถานะ: Active</option>
-              <option value="inactive">สถานะ: Inactive</option>
-            </select>
+              ผู้ดูแลระบบ
+            </button>
 
-            <button className="px-3 py-2 border-2 border-purple-300 text-gray-700 rounded-full hover:bg-purple-50">
+            <button 
+              onClick={() => setShowFilterPopup(true)}
+              className="px-3 py-2 border-2 border-gray-300 text-gray-700 rounded-full hover:bg-gray-50"
+            >
               <Filter size={18} />
             </button>
           </div>
@@ -241,8 +284,7 @@ export default function ManageUserPage() {
                 <tr className="bg-[#B7A3E3] text-white">
                   <th className="px-6 py-4 text-left font-semibold">ID</th>
                   <th className="px-6 py-4 text-left font-semibold">NAME</th>
-                  <th className="px-6 py-4 text-left font-semibold">ACTIVE</th>
-                  <th className="px-6 py-4 text-left font-semibold">ACTIONS</th>
+                  <th className="px-6 py-4 text-left font-semibold">ACTION</th>
                 </tr>
               </thead>
               <tbody>
@@ -250,10 +292,13 @@ export default function ManageUserPage() {
                   <tr key={user.id} className="border-b hover:bg-gray-50">
                     <td className="px-6 py-4 text-gray-700">{user.id}</td>
                     <td className="px-6 py-4 text-gray-700">{`${user.first_name} ${user.last_name}`}</td>
-                    <td className="px-6 py-4 text-gray-700">{user.is_active ? "Active" : "Inactive"}</td>
-                    <td className="px-6 py-4 text-gray-700 flex flex-wrap gap-2">
-                      <button onClick={() => openEdit(user)} className="px-3 py-1 bg-[#B7A3E3] text-white rounded-md hover:opacity-90">แก้ไข</button>
-                      <button onClick={() => deleteUser(user.id)} className="px-3 py-1 bg-red-500 text-white rounded-md hover:opacity-90">ลบ</button>
+                    <td className="px-6 py-4 text-gray-700">
+                      <button onClick={() => openEdit(user)} className="p-2 text-purple-400 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                          <path d="m15 5 4 4"/>
+                        </svg>
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -267,11 +312,14 @@ export default function ManageUserPage() {
                   <div className="flex-1">
                     <div className="text-sm text-gray-500">ID: {user.id}</div>
                     <div className="font-medium text-gray-800">{`${user.first_name} ${user.last_name}`}</div>
-                    <div className="text-xs text-gray-500 mt-1">{user.is_active ? "Active" : "Inactive"}</div>
                   </div>
                   <div className="flex flex-col gap-2 items-end">
-                    <button onClick={() => openEdit(user)} className="px-3 py-1 bg-[#B7A3E3] text-white rounded-md text-sm">แก้ไข</button>
-                    <button onClick={() => deleteUser(user.id)} className="px-3 py-1 bg-red-500 text-white rounded-md text-sm">ลบ</button>
+                    <button onClick={() => openEdit(user)} className="p-2 text-purple-400 hover:text-purple-600 hover:bg-purple-50 rounded-md">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                        <path d="m15 5 4 4"/>
+                      </svg>
+                    </button>
                   </div>
                 </div>
               ))}
@@ -296,32 +344,160 @@ export default function ManageUserPage() {
           </button>
         </div>
 
-        {/* Edit Modal */}
-        {editingUser && (
+        {/* Filter Popup - Matching Design */}
+        {showFilterPopup && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <h3 className="text-lg font-semibold mb-4">แก้ไขผู้ใช้ ({editingUser.id})</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
-                <div>
-                  <label className="block text-sm text-gray-600">First name</label>
-                  <input value={editFirstName} onChange={(e) => setEditFirstName(e.target.value)} className="w-full px-3 py-2 border rounded" />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-600">Last name</label>
-                  <input value={editLastName} onChange={(e) => setEditLastName(e.target.value)} className="w-full px-3 py-2 border rounded" />
+            <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl">
+              {/* Header with Filter Icon */}
+              <div className="p-4 pb-3 border-b border-gray-100">
+                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mb-3">
+                  <Filter size={24} className="text-[#B7A3E3]" />
                 </div>
               </div>
-              <label className="block text-sm text-gray-600">Status</label>
-              <select value={editActive} onChange={(e) => setEditActive(e.target.value as "ACTIVE" | "INACTIVE")} className="w-full px-3 py-2 border rounded mb-4">
-                <option value="ACTIVE">ACTIVE</option>
-                <option value="INACTIVE">INACTIVE</option>
-              </select>
-              <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
-                <button onClick={() => { if (editingUser) deleteUser(editingUser.id); setEditingUser(null); }} className="px-3 py-2 bg-red-500 text-white rounded w-full sm:w-auto">ลบผู้ใช้</button>
-                <div className="flex justify-end gap-2 w-full sm:w-auto">
-                  <button onClick={() => setEditingUser(null)} className="px-4 py-2 border rounded">ยกเลิก</button>
-                  <button onClick={saveEdit} className="px-4 py-2 bg-[#7C3AED] text-white rounded">บันทึก</button>
+
+              {/* Content - Two Column Layout */}
+              <div className="p-4">
+                <h4 className="font-semibold mb-3 text-gray-800">ปีการศึกษา</h4>
+                
+                <div className="grid grid-cols-[100px_1fr] gap-4">
+                  {/* Left Column - Academic Years */}
+                  <div className="space-y-1 pr-3 border-r border-gray-300/70">
+                    {mockAcademicYears.map((year) => (
+                      <button
+                        key={year.id}
+                        onClick={() => {
+                          setSelectedYear(year.id);
+                          setSelectedCourses([]);
+                        }}
+                        className={`w-full text-center px-3 py-1.5 rounded-md text-sm transition-colors ${
+                          selectedYear === year.id
+                            ? "bg-[#B7A3E3] text-white font-medium"
+                            : "bg-white text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        {year.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Right Column - Courses */}
+                  <div>
+                    {selectedYear && mockCourses[selectedYear].length > 0 ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {mockCourses[selectedYear].map((course) => (
+                          <button
+                            key={course}
+                            onClick={() => toggleCourseSelection(course)}
+                            className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
+                              selectedCourses.includes(course)
+                                ? "bg-[#B7A3E3] text-white font-medium"
+                                : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                            }`}
+                          >
+                            {course}
+                          </button>
+                        ))}
+                      </div>
+                    ) : selectedYear ? (
+                      <div className="text-gray-400 text-sm text-center py-4">
+                        ไม่มีรายวิชา
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 pt-2 flex justify-end gap-2">
+                <button
+                  onClick={() => setShowFilterPopup(false)}
+                  className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors text-sm"
+                >
+                  ปิด
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Modal - New Design */}
+        {editingUser && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl">
+              {/* ID Field */}
+              <div className="mb-5">
+                <label className="block text-sm font-medium text-black mb-2">ID</label>
+                <input
+                  type="text"
+                  value={editId}
+                  disabled
+                  className="w-full px-4 py-3 border-2 border-[#9264F5] rounded-2xl bg-gray-50 text-black cursor-not-allowed"
+                />
+              </div>
+
+              {/* Name Field */}
+              <div className="mb-5">
+                <label className="block text-sm font-medium text-black mb-2">Name</label>
+                <input
+                  type="text"
+                  value={editFirstName}
+                  onChange={(e) => setEditFirstName(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-[#9264F5] rounded-2xl focus:outline-none focus:border-[#B7A3E3] transition-colors text-black"
+                />
+              </div>
+
+              {/* Surname Field */}
+              <div className="mb-5">
+                <label className="block text-sm font-medium text-black mb-2">Surname</label>
+                <input
+                  type="text"
+                  value={editLastName}
+                  onChange={(e) => setEditLastName(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-[#9264F5] rounded-2xl focus:outline-none focus:border-[#B7A3E3] transition-colors text-black"
+                />
+              </div>
+
+              {/* Status Toggle */}
+              <div className="mb-8">
+                <label className="block text-sm font-medium text-black mb-3">Status</label>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setEditActive("ACTIVE")}
+                    className={`flex-1 px-6 py-3 rounded-2xl font-medium transition-all ${
+                      editActive === "ACTIVE"
+                        ? "bg-[#B7A3E3] text-white shadow-md"
+                        : "bg-white text-black border-2 border-[#B7A3E3] hover:border-gray-300"
+                    }`}
+                  >
+                    Active
+                  </button>
+                  <button
+                    onClick={() => setEditActive("INACTIVE")}
+                    className={`flex-1 px-6 py-3 rounded-2xl font-medium transition-all ${
+                      editActive === "INACTIVE"
+                        ? "bg-[#B7A3E3] text-white shadow-md"
+                        : "bg-white text-black border-2 border-[#B7A3E3] hover:border-gray-300"
+                    }`}
+                  >
+                    Inactive
+                  </button>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setEditingUser(null)}
+                  className="flex-1 px-6 py-3 rounded-2xl font-medium border-2 border-gray-300 text-black hover:bg-gray-50 transition-colors"
+                >
+                  CANCEL
+                </button>
+                <button
+                  onClick={saveEdit}
+                  className="flex-1 px-6 py-3 rounded-2xl font-medium bg-[#7C3AED] text-white hover:bg-[#6D28D9] transition-colors shadow-lg"
+                >
+                  SAVE
+                </button>
               </div>
             </div>
           </div>
