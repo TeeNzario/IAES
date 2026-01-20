@@ -3,3 +3,4 @@ export interface StudentDto {
   student_code: string;
   email: string;
 }
+
