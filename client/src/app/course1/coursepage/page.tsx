@@ -147,6 +147,7 @@ export default function CoursePage() {
               </div>
             </div>
 
+
             {/* Course Cards */}
             {courses.map((course, index) => (
               <div

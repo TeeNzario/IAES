@@ -43,6 +43,7 @@ export default function SimpleShowUsers() {
     router.push('/course1/coursepage');
   };
 
+  
   return (
     <Navbar>
       <div className="min-h-screen bg-[#F4EFFF] p-4">
