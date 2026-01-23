@@ -2,9 +2,11 @@
 
 import React, { useState } from 'react';
 import Navbar from "@/components/layout/NavBar";
+import { useRouter } from 'next/navigation';
 import { FileText, Video } from 'lucide-react';
 
 export default function CoursePage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('learn');
   const [activeTopTab, setActiveTopTab] = useState('home');
 
@@ -25,6 +27,11 @@ export default function CoursePage() {
       type: 'video'
     }
   ];
+
+  // ฟังก์ชันสำหรับเปลี่ยนหน้า
+  const handleNavigateToStudents = () => {
+    router.push('/course1/coursepage/Showusers');
+  };
 
   return (
     <Navbar>
@@ -47,7 +54,10 @@ export default function CoursePage() {
               </button>
               <div className="h-4 w-px bg-gray-300"></div>
               <button 
-                onClick={() => setActiveTopTab('student')}
+                onClick={() => {
+                  setActiveTopTab('student');
+                  handleNavigateToStudents();
+                }}
                 className={`font-medium text-sm transition-colors ${
                   activeTopTab === 'student'
                     ? 'text-purple-600'
@@ -137,6 +147,7 @@ export default function CoursePage() {
               </div>
             </div>
 
+
             {/* Course Cards */}
             {courses.map((course, index) => (
               <div
@@ -146,7 +157,7 @@ export default function CoursePage() {
                 <div className="p-4 lg:p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 text-sm lg:text-base mb-2 lg:mb-3">
+                      <h3 className="font-medium text-[#575757] text-sm lg:text-base mb-2 lg:mb-3">
                         {course.title}
                       </h3>
                       <div className="inline-flex items-center bg-purple-100 text-purple-600 px-2.5 lg:px-3 py-1 rounded-full text-xs font-medium">
