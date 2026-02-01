@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCourseOfferingDto } from './dto/create-course-offerings.dto';
+import { AddStudentDto } from './dto/add-student.dto';
 
 const courseOfferingSelect = {
   course_offerings_id: true,
@@ -110,4 +111,75 @@ export class CourseOfferingsService {
 
     return serializeBigInt(offering);
   }
+
+  async addStudentToOffering(
+  offeringId: string,
+  dto: AddStudentDto,
+) {
+  const offeringBigInt = BigInt(offeringId);
+
+  return this.prisma.$transaction(async (tx) => {
+    // 1. Ensure student exists (or create)
+    const student = await tx.students.upsert({
+      where: { student_code: dto.student_code },
+      update: {
+        email: dto.email,
+        first_name: dto.first_name,
+        last_name: dto.last_name,
+      },
+      create: {
+        student_code: dto.student_code,
+        email: dto.email,
+        password_hash: '12345678', // 🔒 replace later with invite flow
+        first_name: dto.first_name,
+        last_name: dto.last_name,
+      },
+    });
+
+    // 2. Enroll student (unique constraint prevents duplicates)
+    await tx.course_enrollments.create({
+      data: {
+        course_offerings_id: offeringBigInt,
+        student_code: student.student_code,
+      },
+    });
+
+    return {
+      success: true,
+    };
+  });
+}
+
+async getStudentsByOffering(offeringId: string) {
+  const id = BigInt(offeringId);
+
+  const enrollments = await this.prisma.course_enrollments.findMany({
+    where: {
+      course_offerings_id: id,
+    },
+    select: {
+      student_code: true,
+      students: {
+        select: {
+          student_code: true,
+          first_name: true,
+          last_name: true,
+          email: true,
+        },
+      },
+    },
+    orderBy: {
+      enrolled_at: 'asc',
+    },
+  });
+
+  return enrollments.map((e) => ({
+    student_code: e.student_code,
+    first_name: e.students.first_name,
+    last_name: e.students.last_name,
+    email: e.students.email,
+  }));
+}
+
+
 }
