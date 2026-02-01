@@ -5,7 +5,6 @@ import NavBar from "@/components/layout/NavBar";
 import Image from "next/image";
 import { apiFetch } from "@/lib/api";
 import { useState, useEffect } from "react";
-import { Instructor } from "@/types/staff";
 import Link from "next/link";
 import { CourseOffering } from "@/types/course";
 
@@ -71,16 +70,10 @@ export default function CourseHomePage() {
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      <p className="text-sm font-medium text-gray-700 truncate">
-                        {courseOffering.courses.course_code}
-                      </p>
                     </div>
 
                     {/* Action Buttons */}
                     <div className="flex gap-2 flex-shrink-0">
-                      <button className="p-2 rounded-full hover:opacity-80 transition-colors" style={{ backgroundColor: "#b7a3e3" }}>
-                        <Plus size={18} className="text-white" />
-                      </button>
                       <button className="p-2 rounded-full hover:opacity-80 transition-colors" style={{ backgroundColor: "#b7a3e3" }}>
                         <Edit size={18} className="text-white" />
                       </button>
