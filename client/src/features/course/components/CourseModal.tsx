@@ -3,19 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { ChevronDown, Plus, X, Lock } from "lucide-react";
 import { apiFetch } from "@/lib/api";
-
-// Instructor type matching backend response
-interface Instructor {
-  staff_users_id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-}
-
-// Helper to format instructor name
-function formatName(instructor: Instructor): string {
-  return `${instructor.first_name} ${instructor.last_name}`;
-}
+import { formatName } from "@/utils/formatName";
+import { Instructor } from "@/types/staff";
 
 interface CourseModalProps {
   isOpen: boolean;
@@ -32,7 +21,6 @@ export default function CourseModal({
   courseName,
   onSuccess,
 }: CourseModalProps) {
-
   // Form state
   const [academicYear, setAcademicYear] = useState("2025");
   const [semester, setSemester] = useState("1");
@@ -337,7 +325,7 @@ export default function CourseModal({
 
           {/* Add instructor button */}
           {!isLoading && (
-            <button 
+            <button
               type="button"
               onClick={handleAddSlot}
               className="w-full mt-3 py-3 border-2 border-purple-400 rounded-2xl bg-white text-purple-500 hover:bg-purple-50 transition-colors flex items-center justify-center gap-1"
