@@ -1,6 +1,6 @@
 import { apiFetch } from "@/lib/api";
 import { LoginDto } from "@/types/login";
-import { AdminLoginDto } from "@/types/adminLogin";
+import { AdminLoginDto } from "@/types/auth";
 
 // Student login response
 export interface StudentLoginResponse {
