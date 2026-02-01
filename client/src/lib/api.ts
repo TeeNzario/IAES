@@ -9,6 +9,38 @@ export const api = axios.create({
   },
 });
 
+// Request interceptor - automatically attach Bearer token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
+
+// Response interceptor - handle 401 unauthorized errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear auth data and redirect to login
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("user");
+
+      // Redirect to login page (only in browser)
+      if (typeof window !== "undefined") {
+        window.location.href = "/admin/login";
+      }
+    }
+    return Promise.reject(error);
+  },
+);
+
 export async function apiFetch<T>(
   path: string,
   options?: {
@@ -16,7 +48,7 @@ export async function apiFetch<T>(
     data?: any;
     params?: any;
     headers?: Record<string, string>;
-  }
+  },
 ): Promise<T> {
   try {
     const res = await api.request<T>({
@@ -28,14 +60,14 @@ export async function apiFetch<T>(
     });
     return res.data;
   } catch (error) {
-  if (error instanceof Error) {
-    console.error('API Error:', error.message);
-    // Add detailed logging
-    console.error('Error type:', error.constructor.name);
-    console.error('Full error:', error);
-  } else {
-    console.error('Unknown error:', error);
+    if (error instanceof Error) {
+      console.error("API Error:", error.message);
+      // Add detailed logging
+      console.error("Error type:", error.constructor.name);
+      console.error("Full error:", error);
+    } else {
+      console.error("Unknown error:", error);
+    }
+    throw error;
   }
-  throw error;
-}
 }

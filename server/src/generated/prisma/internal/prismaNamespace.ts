@@ -387,7 +387,6 @@ export const ModelName = {
   attempt_answers: 'attempt_answers',
   attempt_items: 'attempt_items',
   choices: 'choices',
-  course_announcements: 'course_announcements',
   course_enrollments: 'course_enrollments',
   course_instructors: 'course_instructors',
   course_offerings: 'course_offerings',
@@ -414,7 +413,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "attempt_answers" | "attempt_items" | "choices" | "course_announcements" | "course_enrollments" | "course_instructors" | "course_offerings" | "courses" | "exam_attempts" | "exams" | "knowledge_categories" | "questions" | "staff_users" | "student_directory" | "students"
+    modelProps: "attempt_answers" | "attempt_items" | "choices" | "course_enrollments" | "course_instructors" | "course_offerings" | "courses" | "exam_attempts" | "exams" | "knowledge_categories" | "questions" | "staff_users" | "student_directory" | "students"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -637,80 +636,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.choicesCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ChoicesCountAggregateOutputType> | number
-        }
-      }
-    }
-    course_announcements: {
-      payload: Prisma.$course_announcementsPayload<ExtArgs>
-      fields: Prisma.course_announcementsFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.course_announcementsFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$course_announcementsPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.course_announcementsFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$course_announcementsPayload>
-        }
-        findFirst: {
-          args: Prisma.course_announcementsFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$course_announcementsPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.course_announcementsFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$course_announcementsPayload>
-        }
-        findMany: {
-          args: Prisma.course_announcementsFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$course_announcementsPayload>[]
-        }
-        create: {
-          args: Prisma.course_announcementsCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$course_announcementsPayload>
-        }
-        createMany: {
-          args: Prisma.course_announcementsCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.course_announcementsCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$course_announcementsPayload>[]
-        }
-        delete: {
-          args: Prisma.course_announcementsDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$course_announcementsPayload>
-        }
-        update: {
-          args: Prisma.course_announcementsUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$course_announcementsPayload>
-        }
-        deleteMany: {
-          args: Prisma.course_announcementsDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.course_announcementsUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.course_announcementsUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$course_announcementsPayload>[]
-        }
-        upsert: {
-          args: Prisma.course_announcementsUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$course_announcementsPayload>
-        }
-        aggregate: {
-          args: Prisma.Course_announcementsAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateCourse_announcements>
-        }
-        groupBy: {
-          args: Prisma.course_announcementsGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.Course_announcementsGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.course_announcementsCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.Course_announcementsCountAggregateOutputType> | number
         }
       }
     }
@@ -1607,19 +1532,6 @@ export const ChoicesScalarFieldEnum = {
 export type ChoicesScalarFieldEnum = (typeof ChoicesScalarFieldEnum)[keyof typeof ChoicesScalarFieldEnum]
 
 
-export const Course_announcementsScalarFieldEnum = {
-  course_announcements_id: 'course_announcements_id',
-  course_offerings_id: 'course_offerings_id',
-  title: 'title',
-  content: 'content',
-  created_by_staff_id: 'created_by_staff_id',
-  created_at: 'created_at',
-  updated_at: 'updated_at'
-} as const
-
-export type Course_announcementsScalarFieldEnum = (typeof Course_announcementsScalarFieldEnum)[keyof typeof Course_announcementsScalarFieldEnum]
-
-
 export const Course_enrollmentsScalarFieldEnum = {
   course_enrollments_id: 'course_enrollments_id',
   course_offerings_id: 'course_offerings_id',
@@ -1656,7 +1568,9 @@ export const CoursesScalarFieldEnum = {
   course_code: 'course_code',
   course_name: 'course_name',
   description: 'description',
+  course_image: 'course_image',
   is_active: 'is_active',
+  created_by_instructors_id: 'created_by_instructors_id',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -2060,7 +1974,6 @@ export type GlobalOmitConfig = {
   attempt_answers?: Prisma.attempt_answersOmit
   attempt_items?: Prisma.attempt_itemsOmit
   choices?: Prisma.choicesOmit
-  course_announcements?: Prisma.course_announcementsOmit
   course_enrollments?: Prisma.course_enrollmentsOmit
   course_instructors?: Prisma.course_instructorsOmit
   course_offerings?: Prisma.course_offeringsOmit

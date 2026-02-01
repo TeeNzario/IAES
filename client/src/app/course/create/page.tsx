@@ -3,12 +3,13 @@
 import React, { useState } from 'react';
 import { Upload } from 'lucide-react';
 import NavBar from '@/components/layout/NavBar';
+import { apiFetch } from "@/lib/api";
 
 const CreateCourse = () => {
   const [formData, setFormData] = useState({
-    name: '',
+    course_name: '',
     description: '',
-    password: '',
+    course_code: '',
     image: null as File | null
   });
 
@@ -31,16 +32,43 @@ const CreateCourse = () => {
 
   const handleCancel = () => {
     setFormData({
-      name: '',
+      course_name: '',
       description: '',
-      password: '',
+      course_code: '',
       image: null
     });
   };
 
-  const handleSubmit = () => {
-    console.log('Form submitted:', formData);
-    // Add your submit logic here
+  const handleSubmit = async () => {
+      try {
+          const data = new FormData();
+          data.append('course_name', formData.course_name);
+          data.append('description', formData.description);
+          data.append('course_code', formData.course_code);
+
+          if (formData.image) {
+              data.append('image', formData.image);
+          }
+
+          console.log(data);
+
+          const result = await apiFetch('/courses', {
+              method: 'POST',
+              data: data,
+          })
+
+          //test
+          console.log('Success', result);
+
+          alert('สร้างรายวิชาสำเร็จ');
+          handleCancel();
+
+      } catch (err: any) {
+          console.error(err);
+          alert("ERROR:", err?.message || err);
+
+
+      }
   };
 
   return (
@@ -62,8 +90,8 @@ const CreateCourse = () => {
             </label>
             <input
               type="text"
-              name="name"
-              value={formData.name}
+              name="course_name"
+              value={formData.course_name}
               onChange={handleInputChange}
               className="w-full bg-white text-black px-4 py-3 rounded-xl border-0 focus:outline-none focus:ring-2 focus:ring-purple-600"
               placeholder=""
@@ -92,8 +120,8 @@ const CreateCourse = () => {
             </label>
             <input
               type="text"
-              name="password"
-              value={formData.password}
+              name="course_code"
+              value={formData.course_code}
               onChange={handleInputChange}
               className="w-full bg-white text-black px-4 py-3 rounded-xl border-0 focus:outline-none focus:ring-2 focus:ring-purple-600"
               placeholder=""

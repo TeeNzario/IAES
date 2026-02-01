@@ -244,7 +244,6 @@ export type course_offeringsWhereInput = {
   is_active?: Prisma.BoolFilter<"course_offerings"> | boolean
   created_at?: Prisma.DateTimeFilter<"course_offerings"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"course_offerings"> | Date | string
-  course_announcements?: Prisma.Course_announcementsListRelationFilter
   course_enrollments?: Prisma.Course_enrollmentsListRelationFilter
   course_instructors?: Prisma.Course_instructorsListRelationFilter
   courses?: Prisma.XOR<Prisma.CoursesScalarRelationFilter, Prisma.coursesWhereInput>
@@ -260,7 +259,6 @@ export type course_offeringsOrderByWithRelationInput = {
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
-  course_announcements?: Prisma.course_announcementsOrderByRelationAggregateInput
   course_enrollments?: Prisma.course_enrollmentsOrderByRelationAggregateInput
   course_instructors?: Prisma.course_instructorsOrderByRelationAggregateInput
   courses?: Prisma.coursesOrderByWithRelationInput
@@ -279,7 +277,6 @@ export type course_offeringsWhereUniqueInput = Prisma.AtLeast<{
   is_active?: Prisma.BoolFilter<"course_offerings"> | boolean
   created_at?: Prisma.DateTimeFilter<"course_offerings"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"course_offerings"> | Date | string
-  course_announcements?: Prisma.Course_announcementsListRelationFilter
   course_enrollments?: Prisma.Course_enrollmentsListRelationFilter
   course_instructors?: Prisma.Course_instructorsListRelationFilter
   courses?: Prisma.XOR<Prisma.CoursesScalarRelationFilter, Prisma.coursesWhereInput>
@@ -322,7 +319,6 @@ export type course_offeringsCreateInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
-  course_announcements?: Prisma.course_announcementsCreateNestedManyWithoutCourse_offeringsInput
   course_enrollments?: Prisma.course_enrollmentsCreateNestedManyWithoutCourse_offeringsInput
   course_instructors?: Prisma.course_instructorsCreateNestedManyWithoutCourse_offeringsInput
   courses: Prisma.coursesCreateNestedOneWithoutCourse_offeringsInput
@@ -338,7 +334,6 @@ export type course_offeringsUncheckedCreateInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
-  course_announcements?: Prisma.course_announcementsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   course_enrollments?: Prisma.course_enrollmentsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   course_instructors?: Prisma.course_instructorsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   exams?: Prisma.examsUncheckedCreateNestedManyWithoutCourse_offeringsInput
@@ -352,7 +347,6 @@ export type course_offeringsUpdateInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_announcements?: Prisma.course_announcementsUpdateManyWithoutCourse_offeringsNestedInput
   course_enrollments?: Prisma.course_enrollmentsUpdateManyWithoutCourse_offeringsNestedInput
   course_instructors?: Prisma.course_instructorsUpdateManyWithoutCourse_offeringsNestedInput
   courses?: Prisma.coursesUpdateOneRequiredWithoutCourse_offeringsNestedInput
@@ -368,7 +362,6 @@ export type course_offeringsUncheckedUpdateInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_announcements?: Prisma.course_announcementsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   course_enrollments?: Prisma.course_enrollmentsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   course_instructors?: Prisma.course_instructorsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   exams?: Prisma.examsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
@@ -461,20 +454,6 @@ export type Course_offeringsListRelationFilter = {
 
 export type course_offeringsOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
-}
-
-export type course_offeringsCreateNestedOneWithoutCourse_announcementsInput = {
-  create?: Prisma.XOR<Prisma.course_offeringsCreateWithoutCourse_announcementsInput, Prisma.course_offeringsUncheckedCreateWithoutCourse_announcementsInput>
-  connectOrCreate?: Prisma.course_offeringsCreateOrConnectWithoutCourse_announcementsInput
-  connect?: Prisma.course_offeringsWhereUniqueInput
-}
-
-export type course_offeringsUpdateOneRequiredWithoutCourse_announcementsNestedInput = {
-  create?: Prisma.XOR<Prisma.course_offeringsCreateWithoutCourse_announcementsInput, Prisma.course_offeringsUncheckedCreateWithoutCourse_announcementsInput>
-  connectOrCreate?: Prisma.course_offeringsCreateOrConnectWithoutCourse_announcementsInput
-  upsert?: Prisma.course_offeringsUpsertWithoutCourse_announcementsInput
-  connect?: Prisma.course_offeringsWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.course_offeringsUpdateToOneWithWhereWithoutCourse_announcementsInput, Prisma.course_offeringsUpdateWithoutCourse_announcementsInput>, Prisma.course_offeringsUncheckedUpdateWithoutCourse_announcementsInput>
 }
 
 export type course_offeringsCreateNestedOneWithoutCourse_enrollmentsInput = {
@@ -575,78 +554,6 @@ export type course_offeringsUpdateOneRequiredWithoutKnowledge_categoriesNestedIn
   update?: Prisma.XOR<Prisma.XOR<Prisma.course_offeringsUpdateToOneWithWhereWithoutKnowledge_categoriesInput, Prisma.course_offeringsUpdateWithoutKnowledge_categoriesInput>, Prisma.course_offeringsUncheckedUpdateWithoutKnowledge_categoriesInput>
 }
 
-export type course_offeringsCreateWithoutCourse_announcementsInput = {
-  course_offerings_id?: bigint | number
-  academic_year: number
-  semester: number
-  is_active?: boolean
-  created_at?: Date | string
-  updated_at?: Date | string
-  course_enrollments?: Prisma.course_enrollmentsCreateNestedManyWithoutCourse_offeringsInput
-  course_instructors?: Prisma.course_instructorsCreateNestedManyWithoutCourse_offeringsInput
-  courses: Prisma.coursesCreateNestedOneWithoutCourse_offeringsInput
-  exams?: Prisma.examsCreateNestedManyWithoutCourse_offeringsInput
-  knowledge_categories?: Prisma.knowledge_categoriesCreateNestedManyWithoutCourse_offeringsInput
-}
-
-export type course_offeringsUncheckedCreateWithoutCourse_announcementsInput = {
-  course_offerings_id?: bigint | number
-  courses_id: bigint | number
-  academic_year: number
-  semester: number
-  is_active?: boolean
-  created_at?: Date | string
-  updated_at?: Date | string
-  course_enrollments?: Prisma.course_enrollmentsUncheckedCreateNestedManyWithoutCourse_offeringsInput
-  course_instructors?: Prisma.course_instructorsUncheckedCreateNestedManyWithoutCourse_offeringsInput
-  exams?: Prisma.examsUncheckedCreateNestedManyWithoutCourse_offeringsInput
-  knowledge_categories?: Prisma.knowledge_categoriesUncheckedCreateNestedManyWithoutCourse_offeringsInput
-}
-
-export type course_offeringsCreateOrConnectWithoutCourse_announcementsInput = {
-  where: Prisma.course_offeringsWhereUniqueInput
-  create: Prisma.XOR<Prisma.course_offeringsCreateWithoutCourse_announcementsInput, Prisma.course_offeringsUncheckedCreateWithoutCourse_announcementsInput>
-}
-
-export type course_offeringsUpsertWithoutCourse_announcementsInput = {
-  update: Prisma.XOR<Prisma.course_offeringsUpdateWithoutCourse_announcementsInput, Prisma.course_offeringsUncheckedUpdateWithoutCourse_announcementsInput>
-  create: Prisma.XOR<Prisma.course_offeringsCreateWithoutCourse_announcementsInput, Prisma.course_offeringsUncheckedCreateWithoutCourse_announcementsInput>
-  where?: Prisma.course_offeringsWhereInput
-}
-
-export type course_offeringsUpdateToOneWithWhereWithoutCourse_announcementsInput = {
-  where?: Prisma.course_offeringsWhereInput
-  data: Prisma.XOR<Prisma.course_offeringsUpdateWithoutCourse_announcementsInput, Prisma.course_offeringsUncheckedUpdateWithoutCourse_announcementsInput>
-}
-
-export type course_offeringsUpdateWithoutCourse_announcementsInput = {
-  course_offerings_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  academic_year?: Prisma.IntFieldUpdateOperationsInput | number
-  semester?: Prisma.IntFieldUpdateOperationsInput | number
-  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_enrollments?: Prisma.course_enrollmentsUpdateManyWithoutCourse_offeringsNestedInput
-  course_instructors?: Prisma.course_instructorsUpdateManyWithoutCourse_offeringsNestedInput
-  courses?: Prisma.coursesUpdateOneRequiredWithoutCourse_offeringsNestedInput
-  exams?: Prisma.examsUpdateManyWithoutCourse_offeringsNestedInput
-  knowledge_categories?: Prisma.knowledge_categoriesUpdateManyWithoutCourse_offeringsNestedInput
-}
-
-export type course_offeringsUncheckedUpdateWithoutCourse_announcementsInput = {
-  course_offerings_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  courses_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  academic_year?: Prisma.IntFieldUpdateOperationsInput | number
-  semester?: Prisma.IntFieldUpdateOperationsInput | number
-  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_enrollments?: Prisma.course_enrollmentsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
-  course_instructors?: Prisma.course_instructorsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
-  exams?: Prisma.examsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
-  knowledge_categories?: Prisma.knowledge_categoriesUncheckedUpdateManyWithoutCourse_offeringsNestedInput
-}
-
 export type course_offeringsCreateWithoutCourse_enrollmentsInput = {
   course_offerings_id?: bigint | number
   academic_year: number
@@ -654,7 +561,6 @@ export type course_offeringsCreateWithoutCourse_enrollmentsInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
-  course_announcements?: Prisma.course_announcementsCreateNestedManyWithoutCourse_offeringsInput
   course_instructors?: Prisma.course_instructorsCreateNestedManyWithoutCourse_offeringsInput
   courses: Prisma.coursesCreateNestedOneWithoutCourse_offeringsInput
   exams?: Prisma.examsCreateNestedManyWithoutCourse_offeringsInput
@@ -669,7 +575,6 @@ export type course_offeringsUncheckedCreateWithoutCourse_enrollmentsInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
-  course_announcements?: Prisma.course_announcementsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   course_instructors?: Prisma.course_instructorsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   exams?: Prisma.examsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   knowledge_categories?: Prisma.knowledge_categoriesUncheckedCreateNestedManyWithoutCourse_offeringsInput
@@ -698,7 +603,6 @@ export type course_offeringsUpdateWithoutCourse_enrollmentsInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_announcements?: Prisma.course_announcementsUpdateManyWithoutCourse_offeringsNestedInput
   course_instructors?: Prisma.course_instructorsUpdateManyWithoutCourse_offeringsNestedInput
   courses?: Prisma.coursesUpdateOneRequiredWithoutCourse_offeringsNestedInput
   exams?: Prisma.examsUpdateManyWithoutCourse_offeringsNestedInput
@@ -713,7 +617,6 @@ export type course_offeringsUncheckedUpdateWithoutCourse_enrollmentsInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_announcements?: Prisma.course_announcementsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   course_instructors?: Prisma.course_instructorsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   exams?: Prisma.examsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   knowledge_categories?: Prisma.knowledge_categoriesUncheckedUpdateManyWithoutCourse_offeringsNestedInput
@@ -726,7 +629,6 @@ export type course_offeringsCreateWithoutCourse_instructorsInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
-  course_announcements?: Prisma.course_announcementsCreateNestedManyWithoutCourse_offeringsInput
   course_enrollments?: Prisma.course_enrollmentsCreateNestedManyWithoutCourse_offeringsInput
   courses: Prisma.coursesCreateNestedOneWithoutCourse_offeringsInput
   exams?: Prisma.examsCreateNestedManyWithoutCourse_offeringsInput
@@ -741,7 +643,6 @@ export type course_offeringsUncheckedCreateWithoutCourse_instructorsInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
-  course_announcements?: Prisma.course_announcementsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   course_enrollments?: Prisma.course_enrollmentsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   exams?: Prisma.examsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   knowledge_categories?: Prisma.knowledge_categoriesUncheckedCreateNestedManyWithoutCourse_offeringsInput
@@ -770,7 +671,6 @@ export type course_offeringsUpdateWithoutCourse_instructorsInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_announcements?: Prisma.course_announcementsUpdateManyWithoutCourse_offeringsNestedInput
   course_enrollments?: Prisma.course_enrollmentsUpdateManyWithoutCourse_offeringsNestedInput
   courses?: Prisma.coursesUpdateOneRequiredWithoutCourse_offeringsNestedInput
   exams?: Prisma.examsUpdateManyWithoutCourse_offeringsNestedInput
@@ -785,7 +685,6 @@ export type course_offeringsUncheckedUpdateWithoutCourse_instructorsInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_announcements?: Prisma.course_announcementsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   course_enrollments?: Prisma.course_enrollmentsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   exams?: Prisma.examsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   knowledge_categories?: Prisma.knowledge_categoriesUncheckedUpdateManyWithoutCourse_offeringsNestedInput
@@ -798,7 +697,6 @@ export type course_offeringsCreateWithoutCoursesInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
-  course_announcements?: Prisma.course_announcementsCreateNestedManyWithoutCourse_offeringsInput
   course_enrollments?: Prisma.course_enrollmentsCreateNestedManyWithoutCourse_offeringsInput
   course_instructors?: Prisma.course_instructorsCreateNestedManyWithoutCourse_offeringsInput
   exams?: Prisma.examsCreateNestedManyWithoutCourse_offeringsInput
@@ -812,7 +710,6 @@ export type course_offeringsUncheckedCreateWithoutCoursesInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
-  course_announcements?: Prisma.course_announcementsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   course_enrollments?: Prisma.course_enrollmentsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   course_instructors?: Prisma.course_instructorsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   exams?: Prisma.examsUncheckedCreateNestedManyWithoutCourse_offeringsInput
@@ -865,7 +762,6 @@ export type course_offeringsCreateWithoutExamsInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
-  course_announcements?: Prisma.course_announcementsCreateNestedManyWithoutCourse_offeringsInput
   course_enrollments?: Prisma.course_enrollmentsCreateNestedManyWithoutCourse_offeringsInput
   course_instructors?: Prisma.course_instructorsCreateNestedManyWithoutCourse_offeringsInput
   courses: Prisma.coursesCreateNestedOneWithoutCourse_offeringsInput
@@ -880,7 +776,6 @@ export type course_offeringsUncheckedCreateWithoutExamsInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
-  course_announcements?: Prisma.course_announcementsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   course_enrollments?: Prisma.course_enrollmentsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   course_instructors?: Prisma.course_instructorsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   knowledge_categories?: Prisma.knowledge_categoriesUncheckedCreateNestedManyWithoutCourse_offeringsInput
@@ -909,7 +804,6 @@ export type course_offeringsUpdateWithoutExamsInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_announcements?: Prisma.course_announcementsUpdateManyWithoutCourse_offeringsNestedInput
   course_enrollments?: Prisma.course_enrollmentsUpdateManyWithoutCourse_offeringsNestedInput
   course_instructors?: Prisma.course_instructorsUpdateManyWithoutCourse_offeringsNestedInput
   courses?: Prisma.coursesUpdateOneRequiredWithoutCourse_offeringsNestedInput
@@ -924,7 +818,6 @@ export type course_offeringsUncheckedUpdateWithoutExamsInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_announcements?: Prisma.course_announcementsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   course_enrollments?: Prisma.course_enrollmentsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   course_instructors?: Prisma.course_instructorsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   knowledge_categories?: Prisma.knowledge_categoriesUncheckedUpdateManyWithoutCourse_offeringsNestedInput
@@ -937,7 +830,6 @@ export type course_offeringsCreateWithoutKnowledge_categoriesInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
-  course_announcements?: Prisma.course_announcementsCreateNestedManyWithoutCourse_offeringsInput
   course_enrollments?: Prisma.course_enrollmentsCreateNestedManyWithoutCourse_offeringsInput
   course_instructors?: Prisma.course_instructorsCreateNestedManyWithoutCourse_offeringsInput
   courses: Prisma.coursesCreateNestedOneWithoutCourse_offeringsInput
@@ -952,7 +844,6 @@ export type course_offeringsUncheckedCreateWithoutKnowledge_categoriesInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
-  course_announcements?: Prisma.course_announcementsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   course_enrollments?: Prisma.course_enrollmentsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   course_instructors?: Prisma.course_instructorsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   exams?: Prisma.examsUncheckedCreateNestedManyWithoutCourse_offeringsInput
@@ -981,7 +872,6 @@ export type course_offeringsUpdateWithoutKnowledge_categoriesInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_announcements?: Prisma.course_announcementsUpdateManyWithoutCourse_offeringsNestedInput
   course_enrollments?: Prisma.course_enrollmentsUpdateManyWithoutCourse_offeringsNestedInput
   course_instructors?: Prisma.course_instructorsUpdateManyWithoutCourse_offeringsNestedInput
   courses?: Prisma.coursesUpdateOneRequiredWithoutCourse_offeringsNestedInput
@@ -996,7 +886,6 @@ export type course_offeringsUncheckedUpdateWithoutKnowledge_categoriesInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_announcements?: Prisma.course_announcementsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   course_enrollments?: Prisma.course_enrollmentsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   course_instructors?: Prisma.course_instructorsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   exams?: Prisma.examsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
@@ -1018,7 +907,6 @@ export type course_offeringsUpdateWithoutCoursesInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_announcements?: Prisma.course_announcementsUpdateManyWithoutCourse_offeringsNestedInput
   course_enrollments?: Prisma.course_enrollmentsUpdateManyWithoutCourse_offeringsNestedInput
   course_instructors?: Prisma.course_instructorsUpdateManyWithoutCourse_offeringsNestedInput
   exams?: Prisma.examsUpdateManyWithoutCourse_offeringsNestedInput
@@ -1032,7 +920,6 @@ export type course_offeringsUncheckedUpdateWithoutCoursesInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_announcements?: Prisma.course_announcementsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   course_enrollments?: Prisma.course_enrollmentsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   course_instructors?: Prisma.course_instructorsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   exams?: Prisma.examsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
@@ -1054,7 +941,6 @@ export type course_offeringsUncheckedUpdateManyWithoutCoursesInput = {
  */
 
 export type Course_offeringsCountOutputType = {
-  course_announcements: number
   course_enrollments: number
   course_instructors: number
   exams: number
@@ -1062,7 +948,6 @@ export type Course_offeringsCountOutputType = {
 }
 
 export type Course_offeringsCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  course_announcements?: boolean | Course_offeringsCountOutputTypeCountCourse_announcementsArgs
   course_enrollments?: boolean | Course_offeringsCountOutputTypeCountCourse_enrollmentsArgs
   course_instructors?: boolean | Course_offeringsCountOutputTypeCountCourse_instructorsArgs
   exams?: boolean | Course_offeringsCountOutputTypeCountExamsArgs
@@ -1077,13 +962,6 @@ export type Course_offeringsCountOutputTypeDefaultArgs<ExtArgs extends runtime.T
    * Select specific fields to fetch from the Course_offeringsCountOutputType
    */
   select?: Prisma.Course_offeringsCountOutputTypeSelect<ExtArgs> | null
-}
-
-/**
- * Course_offeringsCountOutputType without action
- */
-export type Course_offeringsCountOutputTypeCountCourse_announcementsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.course_announcementsWhereInput
 }
 
 /**
@@ -1123,7 +1001,6 @@ export type course_offeringsSelect<ExtArgs extends runtime.Types.Extensions.Inte
   is_active?: boolean
   created_at?: boolean
   updated_at?: boolean
-  course_announcements?: boolean | Prisma.course_offerings$course_announcementsArgs<ExtArgs>
   course_enrollments?: boolean | Prisma.course_offerings$course_enrollmentsArgs<ExtArgs>
   course_instructors?: boolean | Prisma.course_offerings$course_instructorsArgs<ExtArgs>
   courses?: boolean | Prisma.coursesDefaultArgs<ExtArgs>
@@ -1166,7 +1043,6 @@ export type course_offeringsSelectScalar = {
 
 export type course_offeringsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"course_offerings_id" | "courses_id" | "academic_year" | "semester" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["course_offerings"]>
 export type course_offeringsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  course_announcements?: boolean | Prisma.course_offerings$course_announcementsArgs<ExtArgs>
   course_enrollments?: boolean | Prisma.course_offerings$course_enrollmentsArgs<ExtArgs>
   course_instructors?: boolean | Prisma.course_offerings$course_instructorsArgs<ExtArgs>
   courses?: boolean | Prisma.coursesDefaultArgs<ExtArgs>
@@ -1184,7 +1060,6 @@ export type course_offeringsIncludeUpdateManyAndReturn<ExtArgs extends runtime.T
 export type $course_offeringsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "course_offerings"
   objects: {
-    course_announcements: Prisma.$course_announcementsPayload<ExtArgs>[]
     course_enrollments: Prisma.$course_enrollmentsPayload<ExtArgs>[]
     course_instructors: Prisma.$course_instructorsPayload<ExtArgs>[]
     courses: Prisma.$coursesPayload<ExtArgs>
@@ -1593,7 +1468,6 @@ readonly fields: course_offeringsFieldRefs;
  */
 export interface Prisma__course_offeringsClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  course_announcements<T extends Prisma.course_offerings$course_announcementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.course_offerings$course_announcementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$course_announcementsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   course_enrollments<T extends Prisma.course_offerings$course_enrollmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.course_offerings$course_enrollmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$course_enrollmentsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   course_instructors<T extends Prisma.course_offerings$course_instructorsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.course_offerings$course_instructorsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$course_instructorsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   courses<T extends Prisma.coursesDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.coursesDefaultArgs<ExtArgs>>): Prisma.Prisma__coursesClient<runtime.Types.Result.GetResult<Prisma.$coursesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
@@ -2028,30 +1902,6 @@ export type course_offeringsDeleteManyArgs<ExtArgs extends runtime.Types.Extensi
    * Limit how many course_offerings to delete.
    */
   limit?: number
-}
-
-/**
- * course_offerings.course_announcements
- */
-export type course_offerings$course_announcementsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the course_announcements
-   */
-  select?: Prisma.course_announcementsSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the course_announcements
-   */
-  omit?: Prisma.course_announcementsOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.course_announcementsInclude<ExtArgs> | null
-  where?: Prisma.course_announcementsWhereInput
-  orderBy?: Prisma.course_announcementsOrderByWithRelationInput | Prisma.course_announcementsOrderByWithRelationInput[]
-  cursor?: Prisma.course_announcementsWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.Course_announcementsScalarFieldEnum | Prisma.Course_announcementsScalarFieldEnum[]
 }
 
 /**

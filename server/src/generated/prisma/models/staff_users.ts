@@ -248,7 +248,6 @@ export type staff_usersWhereInput = {
   is_active?: Prisma.BoolFilter<"staff_users"> | boolean
   created_at?: Prisma.DateTimeFilter<"staff_users"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"staff_users"> | Date | string
-  course_announcements?: Prisma.Course_announcementsListRelationFilter
   course_instructors?: Prisma.Course_instructorsListRelationFilter
 }
 
@@ -262,7 +261,6 @@ export type staff_usersOrderByWithRelationInput = {
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
-  course_announcements?: Prisma.course_announcementsOrderByRelationAggregateInput
   course_instructors?: Prisma.course_instructorsOrderByRelationAggregateInput
 }
 
@@ -279,7 +277,6 @@ export type staff_usersWhereUniqueInput = Prisma.AtLeast<{
   is_active?: Prisma.BoolFilter<"staff_users"> | boolean
   created_at?: Prisma.DateTimeFilter<"staff_users"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"staff_users"> | Date | string
-  course_announcements?: Prisma.Course_announcementsListRelationFilter
   course_instructors?: Prisma.Course_instructorsListRelationFilter
 }, "staff_users_id" | "email">
 
@@ -325,7 +322,6 @@ export type staff_usersCreateInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
-  course_announcements?: Prisma.course_announcementsCreateNestedManyWithoutStaff_usersInput
   course_instructors?: Prisma.course_instructorsCreateNestedManyWithoutStaff_usersInput
 }
 
@@ -339,7 +335,6 @@ export type staff_usersUncheckedCreateInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
-  course_announcements?: Prisma.course_announcementsUncheckedCreateNestedManyWithoutStaff_usersInput
   course_instructors?: Prisma.course_instructorsUncheckedCreateNestedManyWithoutStaff_usersInput
 }
 
@@ -353,7 +348,6 @@ export type staff_usersUpdateInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_announcements?: Prisma.course_announcementsUpdateManyWithoutStaff_usersNestedInput
   course_instructors?: Prisma.course_instructorsUpdateManyWithoutStaff_usersNestedInput
 }
 
@@ -367,7 +361,6 @@ export type staff_usersUncheckedUpdateInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_announcements?: Prisma.course_announcementsUncheckedUpdateManyWithoutStaff_usersNestedInput
   course_instructors?: Prisma.course_instructorsUncheckedUpdateManyWithoutStaff_usersNestedInput
 }
 
@@ -456,20 +449,6 @@ export type staff_usersSumOrderByAggregateInput = {
   staff_users_id?: Prisma.SortOrder
 }
 
-export type staff_usersCreateNestedOneWithoutCourse_announcementsInput = {
-  create?: Prisma.XOR<Prisma.staff_usersCreateWithoutCourse_announcementsInput, Prisma.staff_usersUncheckedCreateWithoutCourse_announcementsInput>
-  connectOrCreate?: Prisma.staff_usersCreateOrConnectWithoutCourse_announcementsInput
-  connect?: Prisma.staff_usersWhereUniqueInput
-}
-
-export type staff_usersUpdateOneRequiredWithoutCourse_announcementsNestedInput = {
-  create?: Prisma.XOR<Prisma.staff_usersCreateWithoutCourse_announcementsInput, Prisma.staff_usersUncheckedCreateWithoutCourse_announcementsInput>
-  connectOrCreate?: Prisma.staff_usersCreateOrConnectWithoutCourse_announcementsInput
-  upsert?: Prisma.staff_usersUpsertWithoutCourse_announcementsInput
-  connect?: Prisma.staff_usersWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.staff_usersUpdateToOneWithWhereWithoutCourse_announcementsInput, Prisma.staff_usersUpdateWithoutCourse_announcementsInput>, Prisma.staff_usersUncheckedUpdateWithoutCourse_announcementsInput>
-}
-
 export type staff_usersCreateNestedOneWithoutCourse_instructorsInput = {
   create?: Prisma.XOR<Prisma.staff_usersCreateWithoutCourse_instructorsInput, Prisma.staff_usersUncheckedCreateWithoutCourse_instructorsInput>
   connectOrCreate?: Prisma.staff_usersCreateOrConnectWithoutCourse_instructorsInput
@@ -488,74 +467,6 @@ export type Enumuser_roleFieldUpdateOperationsInput = {
   set?: $Enums.user_role
 }
 
-export type staff_usersCreateWithoutCourse_announcementsInput = {
-  staff_users_id?: bigint | number
-  email: string
-  password_hash: string
-  role: $Enums.user_role
-  first_name: string
-  last_name: string
-  is_active?: boolean
-  created_at?: Date | string
-  updated_at?: Date | string
-  course_instructors?: Prisma.course_instructorsCreateNestedManyWithoutStaff_usersInput
-}
-
-export type staff_usersUncheckedCreateWithoutCourse_announcementsInput = {
-  staff_users_id?: bigint | number
-  email: string
-  password_hash: string
-  role: $Enums.user_role
-  first_name: string
-  last_name: string
-  is_active?: boolean
-  created_at?: Date | string
-  updated_at?: Date | string
-  course_instructors?: Prisma.course_instructorsUncheckedCreateNestedManyWithoutStaff_usersInput
-}
-
-export type staff_usersCreateOrConnectWithoutCourse_announcementsInput = {
-  where: Prisma.staff_usersWhereUniqueInput
-  create: Prisma.XOR<Prisma.staff_usersCreateWithoutCourse_announcementsInput, Prisma.staff_usersUncheckedCreateWithoutCourse_announcementsInput>
-}
-
-export type staff_usersUpsertWithoutCourse_announcementsInput = {
-  update: Prisma.XOR<Prisma.staff_usersUpdateWithoutCourse_announcementsInput, Prisma.staff_usersUncheckedUpdateWithoutCourse_announcementsInput>
-  create: Prisma.XOR<Prisma.staff_usersCreateWithoutCourse_announcementsInput, Prisma.staff_usersUncheckedCreateWithoutCourse_announcementsInput>
-  where?: Prisma.staff_usersWhereInput
-}
-
-export type staff_usersUpdateToOneWithWhereWithoutCourse_announcementsInput = {
-  where?: Prisma.staff_usersWhereInput
-  data: Prisma.XOR<Prisma.staff_usersUpdateWithoutCourse_announcementsInput, Prisma.staff_usersUncheckedUpdateWithoutCourse_announcementsInput>
-}
-
-export type staff_usersUpdateWithoutCourse_announcementsInput = {
-  staff_users_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.Enumuser_roleFieldUpdateOperationsInput | $Enums.user_role
-  first_name?: Prisma.StringFieldUpdateOperationsInput | string
-  last_name?: Prisma.StringFieldUpdateOperationsInput | string
-  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_instructors?: Prisma.course_instructorsUpdateManyWithoutStaff_usersNestedInput
-}
-
-export type staff_usersUncheckedUpdateWithoutCourse_announcementsInput = {
-  staff_users_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.Enumuser_roleFieldUpdateOperationsInput | $Enums.user_role
-  first_name?: Prisma.StringFieldUpdateOperationsInput | string
-  last_name?: Prisma.StringFieldUpdateOperationsInput | string
-  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_instructors?: Prisma.course_instructorsUncheckedUpdateManyWithoutStaff_usersNestedInput
-}
-
 export type staff_usersCreateWithoutCourse_instructorsInput = {
   staff_users_id?: bigint | number
   email: string
@@ -566,7 +477,6 @@ export type staff_usersCreateWithoutCourse_instructorsInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
-  course_announcements?: Prisma.course_announcementsCreateNestedManyWithoutStaff_usersInput
 }
 
 export type staff_usersUncheckedCreateWithoutCourse_instructorsInput = {
@@ -579,7 +489,6 @@ export type staff_usersUncheckedCreateWithoutCourse_instructorsInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
-  course_announcements?: Prisma.course_announcementsUncheckedCreateNestedManyWithoutStaff_usersInput
 }
 
 export type staff_usersCreateOrConnectWithoutCourse_instructorsInput = {
@@ -608,7 +517,6 @@ export type staff_usersUpdateWithoutCourse_instructorsInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_announcements?: Prisma.course_announcementsUpdateManyWithoutStaff_usersNestedInput
 }
 
 export type staff_usersUncheckedUpdateWithoutCourse_instructorsInput = {
@@ -621,7 +529,6 @@ export type staff_usersUncheckedUpdateWithoutCourse_instructorsInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_announcements?: Prisma.course_announcementsUncheckedUpdateManyWithoutStaff_usersNestedInput
 }
 
 
@@ -630,12 +537,10 @@ export type staff_usersUncheckedUpdateWithoutCourse_instructorsInput = {
  */
 
 export type Staff_usersCountOutputType = {
-  course_announcements: number
   course_instructors: number
 }
 
 export type Staff_usersCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  course_announcements?: boolean | Staff_usersCountOutputTypeCountCourse_announcementsArgs
   course_instructors?: boolean | Staff_usersCountOutputTypeCountCourse_instructorsArgs
 }
 
@@ -647,13 +552,6 @@ export type Staff_usersCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.
    * Select specific fields to fetch from the Staff_usersCountOutputType
    */
   select?: Prisma.Staff_usersCountOutputTypeSelect<ExtArgs> | null
-}
-
-/**
- * Staff_usersCountOutputType without action
- */
-export type Staff_usersCountOutputTypeCountCourse_announcementsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.course_announcementsWhereInput
 }
 
 /**
@@ -674,7 +572,6 @@ export type staff_usersSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   is_active?: boolean
   created_at?: boolean
   updated_at?: boolean
-  course_announcements?: boolean | Prisma.staff_users$course_announcementsArgs<ExtArgs>
   course_instructors?: boolean | Prisma.staff_users$course_instructorsArgs<ExtArgs>
   _count?: boolean | Prisma.Staff_usersCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["staff_users"]>
@@ -717,7 +614,6 @@ export type staff_usersSelectScalar = {
 
 export type staff_usersOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"staff_users_id" | "email" | "password_hash" | "role" | "first_name" | "last_name" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["staff_users"]>
 export type staff_usersInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  course_announcements?: boolean | Prisma.staff_users$course_announcementsArgs<ExtArgs>
   course_instructors?: boolean | Prisma.staff_users$course_instructorsArgs<ExtArgs>
   _count?: boolean | Prisma.Staff_usersCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -727,7 +623,6 @@ export type staff_usersIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.
 export type $staff_usersPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "staff_users"
   objects: {
-    course_announcements: Prisma.$course_announcementsPayload<ExtArgs>[]
     course_instructors: Prisma.$course_instructorsPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1134,7 +1029,6 @@ readonly fields: staff_usersFieldRefs;
  */
 export interface Prisma__staff_usersClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  course_announcements<T extends Prisma.staff_users$course_announcementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.staff_users$course_announcementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$course_announcementsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   course_instructors<T extends Prisma.staff_users$course_instructorsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.staff_users$course_instructorsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$course_instructorsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1559,30 +1453,6 @@ export type staff_usersDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * Limit how many staff_users to delete.
    */
   limit?: number
-}
-
-/**
- * staff_users.course_announcements
- */
-export type staff_users$course_announcementsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the course_announcements
-   */
-  select?: Prisma.course_announcementsSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the course_announcements
-   */
-  omit?: Prisma.course_announcementsOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.course_announcementsInclude<ExtArgs> | null
-  where?: Prisma.course_announcementsWhereInput
-  orderBy?: Prisma.course_announcementsOrderByWithRelationInput | Prisma.course_announcementsOrderByWithRelationInput[]
-  cursor?: Prisma.course_announcementsWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.Course_announcementsScalarFieldEnum | Prisma.Course_announcementsScalarFieldEnum[]
 }
 
 /**

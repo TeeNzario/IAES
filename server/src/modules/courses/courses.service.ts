@@ -16,16 +16,32 @@ function serializeBigInt(data: any) {
 export class CoursesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(createCourseDto: CreateCourseDto) {
-    const course = this.prisma.courses.create({
-      data: createCourseDto,
+  async create(dto: CreateCourseDto, instructor_id: number, image?: Express.Multer.File) {
+    const course = await this.prisma.courses.create({
+      data: {
+        course_name: dto.course_name,
+        description: dto.description,
+        course_code: dto.course_code,
+        course_image: image?.filename,
+        created_by_instructors_id: BigInt(instructor_id),
+      }
     });
     return serializeBigInt(course);
   }
 
-  findAll() {
-    return `This action returns all courses`;
-  }
+ async findAllByCreator(instructorId: number) {
+  const courses = await this.prisma.courses.findMany({
+    where: {
+      created_by_instructors_id: BigInt(instructorId),
+    },
+    orderBy: {
+      created_at: 'desc',
+    },
+  });
+
+  return serializeBigInt(courses);
+}
+
 
   findOne(id: number) {
     return `This action returns a #${id} course`;

@@ -54,7 +54,6 @@ export const ModelName = {
   attempt_answers: 'attempt_answers',
   attempt_items: 'attempt_items',
   choices: 'choices',
-  course_announcements: 'course_announcements',
   course_enrollments: 'course_enrollments',
   course_instructors: 'course_instructors',
   course_offerings: 'course_offerings',
@@ -124,19 +123,6 @@ export const ChoicesScalarFieldEnum = {
 export type ChoicesScalarFieldEnum = (typeof ChoicesScalarFieldEnum)[keyof typeof ChoicesScalarFieldEnum]
 
 
-export const Course_announcementsScalarFieldEnum = {
-  course_announcements_id: 'course_announcements_id',
-  course_offerings_id: 'course_offerings_id',
-  title: 'title',
-  content: 'content',
-  created_by_staff_id: 'created_by_staff_id',
-  created_at: 'created_at',
-  updated_at: 'updated_at'
-} as const
-
-export type Course_announcementsScalarFieldEnum = (typeof Course_announcementsScalarFieldEnum)[keyof typeof Course_announcementsScalarFieldEnum]
-
-
 export const Course_enrollmentsScalarFieldEnum = {
   course_enrollments_id: 'course_enrollments_id',
   course_offerings_id: 'course_offerings_id',
@@ -173,7 +159,9 @@ export const CoursesScalarFieldEnum = {
   course_code: 'course_code',
   course_name: 'course_name',
   description: 'description',
+  course_image: 'course_image',
   is_active: 'is_active',
+  created_by_instructors_id: 'created_by_instructors_id',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const

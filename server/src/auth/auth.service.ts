@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-// import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
+import { JwtPayload, StaffRole } from './types/jwt-payload.type';
 
 @Injectable()
 export class AuthService {
@@ -10,7 +10,11 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(student_code: string, password: string) {
+  /**
+   * Student Login
+   * Uses student_code and password
+   */
+  async loginStudent(student_code: string, password: string) {
     const student = await this.prisma.students.findUnique({
       where: { student_code },
     });
@@ -19,19 +23,74 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isMatch = () => {
-        return password === student.password_hash;
-    }
-    if (!isMatch()) {
+    // TODO: Replace with bcrypt.compare() for production
+    const isMatch = password === student.password_hash;
+    if (!isMatch) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = {
+    if (!student.is_active) {
+      throw new UnauthorizedException('Account is inactive');
+    }
+
+    const payload: JwtPayload = {
       sub: student.student_code,
+      userType: 'STUDENT',
+      email: student.email,
     };
 
     return {
       access_token: this.jwtService.sign(payload),
+      user: {
+        student_code: student.student_code,
+        email: student.email,
+        first_name: student.first_name,
+        last_name: student.last_name,
+        userType: 'STUDENT',
+      },
+    };
+  }
+
+  /**
+   * Staff Login (INSTRUCTOR / ADMIN)
+   * Uses email and password
+   */
+  async loginStaff(email: string, password: string) {
+    const staff = await this.prisma.staff_users.findUnique({
+      where: { email },
+    });
+
+    if (!staff) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // TODO: Replace with bcrypt.compare() for production
+    const isMatch = password === staff.password_hash;
+    if (!isMatch) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (!staff.is_active) {
+      throw new UnauthorizedException('Account is inactive');
+    }
+
+    const payload: JwtPayload = {
+      sub: Number(staff.staff_users_id), // Convert BigInt to number
+      userType: 'STAFF',
+      email: staff.email,
+      role: staff.role as StaffRole,
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: {
+        staff_users_id: Number(staff.staff_users_id),
+        email: staff.email,
+        first_name: staff.first_name,
+        last_name: staff.last_name,
+        role: staff.role,
+        userType: 'STAFF',
+      },
     };
   }
 }

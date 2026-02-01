@@ -33,11 +33,6 @@ export type attempt_items = Prisma.attempt_itemsModel
  */
 export type choices = Prisma.choicesModel
 /**
- * Model course_announcements
- * 
- */
-export type course_announcements = Prisma.course_announcementsModel
-/**
  * Model course_enrollments
  * 
  */
