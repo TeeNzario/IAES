@@ -11,7 +11,6 @@
 export type * from './models/attempt_answers.js'
 export type * from './models/attempt_items.js'
 export type * from './models/choices.js'
-export type * from './models/course_announcements.js'
 export type * from './models/course_enrollments.js'
 export type * from './models/course_instructors.js'
 export type * from './models/course_offerings.js'

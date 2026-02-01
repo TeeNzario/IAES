@@ -1,7 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { StaffService } from './staff.service';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
+import { JwtAuthGuard } from 'src/auth/guards';
 
 @Controller('staff')
 export class StaffController {
@@ -10,6 +21,13 @@ export class StaffController {
   @Post()
   create(@Body() createStaffDto: CreateStaffDto) {
     return this.staffService.create(createStaffDto);
+  }
+
+  // Get current authenticated user info
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  getMe(@Req() req) {
+    return this.staffService.findById(req.user.id);
   }
 
   @Get()

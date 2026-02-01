@@ -3,6 +3,14 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
 
+function serializeBigInt(data: any) {
+  return JSON.parse(
+    JSON.stringify(data, (_, value) =>
+      typeof value === 'bigint' ? value.toString() : value,
+    ),
+  );
+}
+
 @Injectable()
 export class StaffService {
   constructor(private readonly prisma: PrismaService) {}
@@ -11,8 +19,29 @@ export class StaffService {
     return `This action adds a new staff`;
   }
 
-  findAll() {
-    return this.prisma.staff_users.findMany();
+  async findAll() {
+    const staff = await this.prisma.staff_users.findMany({
+      select: {
+        staff_users_id: true,
+        first_name: true,
+        last_name: true,
+        email: true,
+      },
+    });
+    return serializeBigInt(staff);
+  }
+
+  async findById(id: number) {
+    const staff = await this.prisma.staff_users.findUnique({
+      where: { staff_users_id: BigInt(id) },
+      select: {
+        staff_users_id: true,
+        first_name: true,
+        last_name: true,
+        email: true,
+      },
+    });
+    return serializeBigInt(staff);
   }
 
   findOne(id: bigint) {
