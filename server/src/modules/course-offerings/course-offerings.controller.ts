@@ -1,11 +1,22 @@
-import { Controller, Post, Body, UseGuards, Req, Get, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Req,
+  Get,
+  Param,
+} from '@nestjs/common';
 import { CourseOfferingsService } from './course-offerings.service';
 import { CreateCourseOfferingDto } from './dto/create-course-offerings.dto';
 import { JwtAuthGuard, RolesGuard, Roles } from 'src/auth/guards';
+import { AddStudentDto } from './dto/add-student.dto';
 
 @Controller('course-offerings')
 export class CourseOfferingsController {
-  constructor(private readonly courseOfferingsService: CourseOfferingsService) {}
+  constructor(
+    private readonly courseOfferingsService: CourseOfferingsService,
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -33,5 +44,18 @@ export class CourseOfferingsController {
   @Get(':offeringId')
   findOne(@Param('offeringId') offeringId: string) {
     return this.courseOfferingsService.findOneById(offeringId);
+  }
+
+  @Post(':offeringId/students')
+  addStudent(
+    @Param('offeringId') offeringId: string,
+    @Body() dto: AddStudentDto,
+  ) {
+    return this.courseOfferingsService.addStudentToOffering(offeringId, dto);
+  }
+
+  @Get(':offeringId/students')
+  getStudents(@Param('offeringId') offeringId: string) {
+    return this.courseOfferingsService.getStudentsByOffering(offeringId);
   }
 }

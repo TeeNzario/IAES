@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { CourseOffering } from "@/types/course";
 import { apiFetch } from "@/lib/api";
 import { useParams } from "next/navigation";
-import { formatName } from "@/utils/formatName";
+import { formatInstructorName } from "@/utils/formatName";
 
 export default function CoursePage() {
   const router = useRouter();
@@ -115,7 +115,7 @@ export default function CoursePage() {
                       key={ci.staff_users_id}
                       className="text-gray-700 px-2 py-1 rounded-full text-xs"
                     >
-                      {formatName(ci.staff_users)}
+                      {formatInstructorName(ci.staff_users)}
                     </span>
                   ))}
                 </div>
