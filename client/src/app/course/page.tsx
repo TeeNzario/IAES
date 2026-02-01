@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Search, ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import Navbar from "@/components/layout/NavBar";
-import CourseModal from "@/features/course/CourseModal";
+import CourseModal from "@/features/course/components/CourseModal";
 import { apiFetch } from "@/lib/api";
 
 // Interface matching backend response
