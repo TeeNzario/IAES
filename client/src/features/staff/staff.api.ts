@@ -1,5 +1,4 @@
-"use server";
-import axios from "axios";
+import { api } from "@/lib/api";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
@@ -33,7 +32,7 @@ export const getStaffs = async (
   params: GetStaffsParams = {},
 ): Promise<GetStaffsResponse> => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/staff`, {
+    const response = await api.get(`/staff`, {
       params: {
         page: params.page || 1,
         limit: params.limit || 9,
@@ -50,19 +49,28 @@ export const getStaffs = async (
 
 export const getStaffById = async (id: string): Promise<Staff> => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/staff/${id}`);
+    const response = await api.get(`/staff/${id}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching staff by id:", error);
     throw error;
   }
 };
+// Payload for creating a new staff user
+export interface CreateStaffPayload {
+  email: string;
+  password: string;
+  first_name: string;
+  last_name: string;
+  role: "INSTRUCTOR" | "ADMIN";
+  is_active?: boolean;
+}
 
 export const createStaff = async (
-  payload: Omit<Staff, "staff_users_id">,
+  payload: CreateStaffPayload,
 ): Promise<Staff> => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/staff`, payload);
+    const response = await api.post(`/staff`, payload);
     return response.data;
   } catch (error) {
     console.error("Error creating staff:", error);
@@ -75,7 +83,7 @@ export const updateStaff = async (
   payload: Partial<Omit<Staff, "staff_users_id">>,
 ): Promise<Staff> => {
   try {
-    const response = await axios.patch(`${API_BASE_URL}/staff/${id}`, payload);
+    const response = await api.patch(`/staff/${id}`, payload);
     return response.data;
   } catch (error) {
     console.error("Error updating staff:", error);
@@ -85,7 +93,7 @@ export const updateStaff = async (
 
 export const deleteStaff = async (id: string): Promise<void> => {
   try {
-    await axios.delete(`${API_BASE_URL}/staff/${id}`);
+    await api.delete(`/staff/${id}`);
   } catch (error) {
     console.error("Error deleting staff:", error);
     throw error;
@@ -97,7 +105,7 @@ export const toggleStaffStatus = async (
   active: boolean,
 ): Promise<Staff> => {
   try {
-    const response = await axios.patch(`${API_BASE_URL}/staff/${id}`, {
+    const response = await api.patch(`/staff/${id}`, {
       is_active: active,
     });
     return response.data;
@@ -119,7 +127,7 @@ export const checkEmailExists = async (
     const params: any = { email };
     if (excludeId) params.excludeId = excludeId;
 
-    const response = await axios.get(`${API_BASE_URL}/staff/check-email`, {
+    const response = await api.get(`/staff/check-email`, {
       params,
     });
     return response.data.exists;

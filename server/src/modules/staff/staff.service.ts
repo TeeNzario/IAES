@@ -114,6 +114,19 @@ export class StaffService {
   }
 
   async update(id: bigint, updateStaffDto: UpdateStaffDto) {
+    // ADMIN protection: Cannot change is_active status for ADMIN users
+    if (updateStaffDto.is_active !== undefined) {
+      const existingStaff = await this.prisma.staff_users.findUnique({
+        where: { staff_users_id: id },
+        select: { role: true },
+      });
+
+      if (existingStaff?.role === 'ADMIN') {
+        // Remove is_active from update data for ADMIN users
+        delete updateStaffDto.is_active;
+      }
+    }
+
     const updated = await this.prisma.staff_users.update({
       where: { staff_users_id: id },
       data: updateStaffDto,
