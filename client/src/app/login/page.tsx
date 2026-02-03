@@ -123,7 +123,7 @@ const LoginPage = () => {
           <button
             onClick={handleSubmit}
             disabled={isLoading}
-            className="w-full py-3 bg-gradient-to-r from-purple-400 to-purple-500 text-white font-medium rounded-xl hover:from-purple-500 hover:to-purple-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+            className="w-full py-3 bg-gradient-to-r from-purple-400 to-purple-500 text-white font-medium rounded-xl hover:from-purple-500 hover:to-purple-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 cursor-pointer"
           >
             {isLoading && (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

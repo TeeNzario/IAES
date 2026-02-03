@@ -31,9 +31,9 @@ export class StaffController {
     return this.staffService.findById(req.user.id);
   }
 
-  @Get()
-  findAll() {
-    return this.staffService.findAll();
+  @Get('instructors')
+  findAllInstructors() {
+    return this.staffService.findAllInstructors();
   }
   @Get(':id')
   findOne(@Param('id') id: bigint) {

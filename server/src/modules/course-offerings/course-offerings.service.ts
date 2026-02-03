@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCourseOfferingDto } from './dto/create-course-offerings.dto';
+import { UpdateCourseOfferingDto } from './dto/update-course-offering.dto';
 import { AddStudentDto } from './dto/add-student.dto';
 import {
   BulkEnrollStudentDto,
@@ -13,6 +14,7 @@ const courseOfferingSelect = {
   course_offerings_id: true,
   academic_year: true,
   semester: true,
+  is_active: true,
 
   courses: {
     select: {
@@ -130,6 +132,7 @@ export class CourseOfferingsService {
 
       const offerings = await this.prisma.course_offerings.findMany({
         where: {
+          is_active: true,
           courses: {
             is_active: true,
           },
@@ -387,6 +390,66 @@ export class CourseOfferingsService {
         enrollmentStatus: 'enrolled' as const,
         directoryAction,
       };
+    });
+  }
+
+  /**
+   * Update a course offering
+   * Handles academic_year, semester, is_active, and instructors
+   */
+  async update(
+    offeringId: string,
+    dto: UpdateCourseOfferingDto,
+    userId: number,
+  ) {
+    if (!offeringId || offeringId === 'undefined') {
+      throw new BadRequestException('Invalid course_offerings_id');
+    }
+
+    const id = BigInt(offeringId);
+
+    return this.prisma.$transaction(async (tx) => {
+      // Build update data object
+      const updateData: any = {};
+      if (dto.academic_year !== undefined)
+        updateData.academic_year = dto.academic_year;
+      if (dto.semester !== undefined) updateData.semester = dto.semester;
+      if (dto.is_active !== undefined) updateData.is_active = dto.is_active;
+
+      // Update offering basic fields
+      if (Object.keys(updateData).length > 0) {
+        await tx.course_offerings.update({
+          where: { course_offerings_id: id },
+          data: updateData,
+        });
+      }
+
+      // Update instructors if provided
+      if (dto.instructor_ids !== undefined) {
+        // Prepend the current user (owner) to instructor list
+        const allInstructorIds = [userId, ...dto.instructor_ids];
+
+        // Delete existing instructors
+        await tx.course_instructors.deleteMany({
+          where: { course_offerings_id: id },
+        });
+
+        // Create new instructor associations
+        await tx.course_instructors.createMany({
+          data: allInstructorIds.map((instructorId) => ({
+            staff_users_id: instructorId,
+            course_offerings_id: id,
+          })),
+        });
+      }
+
+      // Fetch and return the updated offering
+      const updated = await tx.course_offerings.findUnique({
+        where: { course_offerings_id: id },
+        select: courseOfferingSelect,
+      });
+
+      return serializeBigInt(updated);
     });
   }
 }
