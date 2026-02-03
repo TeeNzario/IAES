@@ -9,6 +9,7 @@ import {
   Patch,
   Delete,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { CourseOfferingsService } from './course-offerings.service';
 import { PreviewImportService } from './preview-import.service';
@@ -118,6 +119,38 @@ export class CourseOfferingsController {
   @Get(':offeringId/students')
   getStudents(@Param('offeringId') offeringId: string) {
     return this.courseOfferingsService.getStudentsByOffering(offeringId);
+  }
+
+  /**
+   * Check if a student code already exists in this offering
+   * Used for frontend validation before form submission
+   */
+  @Get(':offeringId/students/check-code')
+  async checkCodeExists(
+    @Param('offeringId') offeringId: string,
+    @Query('student_code') studentCode: string,
+  ) {
+    const exists = await this.courseOfferingsService.checkStudentCodeExists(
+      offeringId,
+      studentCode,
+    );
+    return { exists };
+  }
+
+  /**
+   * Check if an email already exists in this offering
+   * Used for frontend validation before form submission
+   */
+  @Get(':offeringId/students/check-email')
+  async checkEmailExists(
+    @Param('offeringId') offeringId: string,
+    @Query('email') email: string,
+  ) {
+    const exists = await this.courseOfferingsService.checkStudentEmailExists(
+      offeringId,
+      email,
+    );
+    return { exists };
   }
 
   @Post(':offeringId/bulk-enroll')
