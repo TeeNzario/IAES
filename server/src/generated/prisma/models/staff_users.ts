@@ -250,6 +250,7 @@ export type staff_usersWhereInput = {
   updated_at?: Prisma.DateTimeFilter<"staff_users"> | Date | string
   course_instructors?: Prisma.Course_instructorsListRelationFilter
   import_preview_sessions?: Prisma.Import_preview_sessionsListRelationFilter
+  questionBanks?: Prisma.Question_bankListRelationFilter
 }
 
 export type staff_usersOrderByWithRelationInput = {
@@ -264,6 +265,7 @@ export type staff_usersOrderByWithRelationInput = {
   updated_at?: Prisma.SortOrder
   course_instructors?: Prisma.course_instructorsOrderByRelationAggregateInput
   import_preview_sessions?: Prisma.import_preview_sessionsOrderByRelationAggregateInput
+  questionBanks?: Prisma.question_bankOrderByRelationAggregateInput
 }
 
 export type staff_usersWhereUniqueInput = Prisma.AtLeast<{
@@ -281,6 +283,7 @@ export type staff_usersWhereUniqueInput = Prisma.AtLeast<{
   updated_at?: Prisma.DateTimeFilter<"staff_users"> | Date | string
   course_instructors?: Prisma.Course_instructorsListRelationFilter
   import_preview_sessions?: Prisma.Import_preview_sessionsListRelationFilter
+  questionBanks?: Prisma.Question_bankListRelationFilter
 }, "staff_users_id" | "email">
 
 export type staff_usersOrderByWithAggregationInput = {
@@ -327,6 +330,7 @@ export type staff_usersCreateInput = {
   updated_at?: Date | string
   course_instructors?: Prisma.course_instructorsCreateNestedManyWithoutStaff_usersInput
   import_preview_sessions?: Prisma.import_preview_sessionsCreateNestedManyWithoutStaff_usersInput
+  questionBanks?: Prisma.question_bankCreateNestedManyWithoutStaff_usersInput
 }
 
 export type staff_usersUncheckedCreateInput = {
@@ -341,6 +345,7 @@ export type staff_usersUncheckedCreateInput = {
   updated_at?: Date | string
   course_instructors?: Prisma.course_instructorsUncheckedCreateNestedManyWithoutStaff_usersInput
   import_preview_sessions?: Prisma.import_preview_sessionsUncheckedCreateNestedManyWithoutStaff_usersInput
+  questionBanks?: Prisma.question_bankUncheckedCreateNestedManyWithoutStaff_usersInput
 }
 
 export type staff_usersUpdateInput = {
@@ -355,6 +360,7 @@ export type staff_usersUpdateInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   course_instructors?: Prisma.course_instructorsUpdateManyWithoutStaff_usersNestedInput
   import_preview_sessions?: Prisma.import_preview_sessionsUpdateManyWithoutStaff_usersNestedInput
+  questionBanks?: Prisma.question_bankUpdateManyWithoutStaff_usersNestedInput
 }
 
 export type staff_usersUncheckedUpdateInput = {
@@ -369,6 +375,7 @@ export type staff_usersUncheckedUpdateInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   course_instructors?: Prisma.course_instructorsUncheckedUpdateManyWithoutStaff_usersNestedInput
   import_preview_sessions?: Prisma.import_preview_sessionsUncheckedUpdateManyWithoutStaff_usersNestedInput
+  questionBanks?: Prisma.question_bankUncheckedUpdateManyWithoutStaff_usersNestedInput
 }
 
 export type staff_usersCreateManyInput = {
@@ -470,6 +477,20 @@ export type staff_usersUpdateOneRequiredWithoutCourse_instructorsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.staff_usersUpdateToOneWithWhereWithoutCourse_instructorsInput, Prisma.staff_usersUpdateWithoutCourse_instructorsInput>, Prisma.staff_usersUncheckedUpdateWithoutCourse_instructorsInput>
 }
 
+export type staff_usersCreateNestedOneWithoutQuestionBanksInput = {
+  create?: Prisma.XOR<Prisma.staff_usersCreateWithoutQuestionBanksInput, Prisma.staff_usersUncheckedCreateWithoutQuestionBanksInput>
+  connectOrCreate?: Prisma.staff_usersCreateOrConnectWithoutQuestionBanksInput
+  connect?: Prisma.staff_usersWhereUniqueInput
+}
+
+export type staff_usersUpdateOneRequiredWithoutQuestionBanksNestedInput = {
+  create?: Prisma.XOR<Prisma.staff_usersCreateWithoutQuestionBanksInput, Prisma.staff_usersUncheckedCreateWithoutQuestionBanksInput>
+  connectOrCreate?: Prisma.staff_usersCreateOrConnectWithoutQuestionBanksInput
+  upsert?: Prisma.staff_usersUpsertWithoutQuestionBanksInput
+  connect?: Prisma.staff_usersWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.staff_usersUpdateToOneWithWhereWithoutQuestionBanksInput, Prisma.staff_usersUpdateWithoutQuestionBanksInput>, Prisma.staff_usersUncheckedUpdateWithoutQuestionBanksInput>
+}
+
 export type Enumuser_roleFieldUpdateOperationsInput = {
   set?: $Enums.user_role
 }
@@ -499,6 +520,7 @@ export type staff_usersCreateWithoutCourse_instructorsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   import_preview_sessions?: Prisma.import_preview_sessionsCreateNestedManyWithoutStaff_usersInput
+  questionBanks?: Prisma.question_bankCreateNestedManyWithoutStaff_usersInput
 }
 
 export type staff_usersUncheckedCreateWithoutCourse_instructorsInput = {
@@ -512,6 +534,7 @@ export type staff_usersUncheckedCreateWithoutCourse_instructorsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   import_preview_sessions?: Prisma.import_preview_sessionsUncheckedCreateNestedManyWithoutStaff_usersInput
+  questionBanks?: Prisma.question_bankUncheckedCreateNestedManyWithoutStaff_usersInput
 }
 
 export type staff_usersCreateOrConnectWithoutCourse_instructorsInput = {
@@ -541,6 +564,7 @@ export type staff_usersUpdateWithoutCourse_instructorsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   import_preview_sessions?: Prisma.import_preview_sessionsUpdateManyWithoutStaff_usersNestedInput
+  questionBanks?: Prisma.question_bankUpdateManyWithoutStaff_usersNestedInput
 }
 
 export type staff_usersUncheckedUpdateWithoutCourse_instructorsInput = {
@@ -553,6 +577,79 @@ export type staff_usersUncheckedUpdateWithoutCourse_instructorsInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  import_preview_sessions?: Prisma.import_preview_sessionsUncheckedUpdateManyWithoutStaff_usersNestedInput
+  questionBanks?: Prisma.question_bankUncheckedUpdateManyWithoutStaff_usersNestedInput
+}
+
+export type staff_usersCreateWithoutQuestionBanksInput = {
+  staff_users_id?: bigint | number
+  email: string
+  password_hash: string
+  role: $Enums.user_role
+  first_name: string
+  last_name: string
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  course_instructors?: Prisma.course_instructorsCreateNestedManyWithoutStaff_usersInput
+  import_preview_sessions?: Prisma.import_preview_sessionsCreateNestedManyWithoutStaff_usersInput
+}
+
+export type staff_usersUncheckedCreateWithoutQuestionBanksInput = {
+  staff_users_id?: bigint | number
+  email: string
+  password_hash: string
+  role: $Enums.user_role
+  first_name: string
+  last_name: string
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  course_instructors?: Prisma.course_instructorsUncheckedCreateNestedManyWithoutStaff_usersInput
+  import_preview_sessions?: Prisma.import_preview_sessionsUncheckedCreateNestedManyWithoutStaff_usersInput
+}
+
+export type staff_usersCreateOrConnectWithoutQuestionBanksInput = {
+  where: Prisma.staff_usersWhereUniqueInput
+  create: Prisma.XOR<Prisma.staff_usersCreateWithoutQuestionBanksInput, Prisma.staff_usersUncheckedCreateWithoutQuestionBanksInput>
+}
+
+export type staff_usersUpsertWithoutQuestionBanksInput = {
+  update: Prisma.XOR<Prisma.staff_usersUpdateWithoutQuestionBanksInput, Prisma.staff_usersUncheckedUpdateWithoutQuestionBanksInput>
+  create: Prisma.XOR<Prisma.staff_usersCreateWithoutQuestionBanksInput, Prisma.staff_usersUncheckedCreateWithoutQuestionBanksInput>
+  where?: Prisma.staff_usersWhereInput
+}
+
+export type staff_usersUpdateToOneWithWhereWithoutQuestionBanksInput = {
+  where?: Prisma.staff_usersWhereInput
+  data: Prisma.XOR<Prisma.staff_usersUpdateWithoutQuestionBanksInput, Prisma.staff_usersUncheckedUpdateWithoutQuestionBanksInput>
+}
+
+export type staff_usersUpdateWithoutQuestionBanksInput = {
+  staff_users_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.Enumuser_roleFieldUpdateOperationsInput | $Enums.user_role
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  course_instructors?: Prisma.course_instructorsUpdateManyWithoutStaff_usersNestedInput
+  import_preview_sessions?: Prisma.import_preview_sessionsUpdateManyWithoutStaff_usersNestedInput
+}
+
+export type staff_usersUncheckedUpdateWithoutQuestionBanksInput = {
+  staff_users_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.Enumuser_roleFieldUpdateOperationsInput | $Enums.user_role
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  course_instructors?: Prisma.course_instructorsUncheckedUpdateManyWithoutStaff_usersNestedInput
   import_preview_sessions?: Prisma.import_preview_sessionsUncheckedUpdateManyWithoutStaff_usersNestedInput
 }
 
@@ -567,6 +664,7 @@ export type staff_usersCreateWithoutImport_preview_sessionsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   course_instructors?: Prisma.course_instructorsCreateNestedManyWithoutStaff_usersInput
+  questionBanks?: Prisma.question_bankCreateNestedManyWithoutStaff_usersInput
 }
 
 export type staff_usersUncheckedCreateWithoutImport_preview_sessionsInput = {
@@ -580,6 +678,7 @@ export type staff_usersUncheckedCreateWithoutImport_preview_sessionsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   course_instructors?: Prisma.course_instructorsUncheckedCreateNestedManyWithoutStaff_usersInput
+  questionBanks?: Prisma.question_bankUncheckedCreateNestedManyWithoutStaff_usersInput
 }
 
 export type staff_usersCreateOrConnectWithoutImport_preview_sessionsInput = {
@@ -609,6 +708,7 @@ export type staff_usersUpdateWithoutImport_preview_sessionsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   course_instructors?: Prisma.course_instructorsUpdateManyWithoutStaff_usersNestedInput
+  questionBanks?: Prisma.question_bankUpdateManyWithoutStaff_usersNestedInput
 }
 
 export type staff_usersUncheckedUpdateWithoutImport_preview_sessionsInput = {
@@ -622,6 +722,7 @@ export type staff_usersUncheckedUpdateWithoutImport_preview_sessionsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   course_instructors?: Prisma.course_instructorsUncheckedUpdateManyWithoutStaff_usersNestedInput
+  questionBanks?: Prisma.question_bankUncheckedUpdateManyWithoutStaff_usersNestedInput
 }
 
 
@@ -632,11 +733,13 @@ export type staff_usersUncheckedUpdateWithoutImport_preview_sessionsInput = {
 export type Staff_usersCountOutputType = {
   course_instructors: number
   import_preview_sessions: number
+  questionBanks: number
 }
 
 export type Staff_usersCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   course_instructors?: boolean | Staff_usersCountOutputTypeCountCourse_instructorsArgs
   import_preview_sessions?: boolean | Staff_usersCountOutputTypeCountImport_preview_sessionsArgs
+  questionBanks?: boolean | Staff_usersCountOutputTypeCountQuestionBanksArgs
 }
 
 /**
@@ -663,6 +766,13 @@ export type Staff_usersCountOutputTypeCountImport_preview_sessionsArgs<ExtArgs e
   where?: Prisma.import_preview_sessionsWhereInput
 }
 
+/**
+ * Staff_usersCountOutputType without action
+ */
+export type Staff_usersCountOutputTypeCountQuestionBanksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.question_bankWhereInput
+}
+
 
 export type staff_usersSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   staff_users_id?: boolean
@@ -676,6 +786,7 @@ export type staff_usersSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   updated_at?: boolean
   course_instructors?: boolean | Prisma.staff_users$course_instructorsArgs<ExtArgs>
   import_preview_sessions?: boolean | Prisma.staff_users$import_preview_sessionsArgs<ExtArgs>
+  questionBanks?: boolean | Prisma.staff_users$questionBanksArgs<ExtArgs>
   _count?: boolean | Prisma.Staff_usersCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["staff_users"]>
 
@@ -719,6 +830,7 @@ export type staff_usersOmit<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type staff_usersInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   course_instructors?: boolean | Prisma.staff_users$course_instructorsArgs<ExtArgs>
   import_preview_sessions?: boolean | Prisma.staff_users$import_preview_sessionsArgs<ExtArgs>
+  questionBanks?: boolean | Prisma.staff_users$questionBanksArgs<ExtArgs>
   _count?: boolean | Prisma.Staff_usersCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type staff_usersIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -729,6 +841,7 @@ export type $staff_usersPayload<ExtArgs extends runtime.Types.Extensions.Interna
   objects: {
     course_instructors: Prisma.$course_instructorsPayload<ExtArgs>[]
     import_preview_sessions: Prisma.$import_preview_sessionsPayload<ExtArgs>[]
+    questionBanks: Prisma.$question_bankPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     staff_users_id: bigint
@@ -1136,6 +1249,7 @@ export interface Prisma__staff_usersClient<T, Null = never, ExtArgs extends runt
   readonly [Symbol.toStringTag]: "PrismaPromise"
   course_instructors<T extends Prisma.staff_users$course_instructorsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.staff_users$course_instructorsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$course_instructorsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   import_preview_sessions<T extends Prisma.staff_users$import_preview_sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.staff_users$import_preview_sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$import_preview_sessionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  questionBanks<T extends Prisma.staff_users$questionBanksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.staff_users$questionBanksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$question_bankPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1607,6 +1721,30 @@ export type staff_users$import_preview_sessionsArgs<ExtArgs extends runtime.Type
   take?: number
   skip?: number
   distinct?: Prisma.Import_preview_sessionsScalarFieldEnum | Prisma.Import_preview_sessionsScalarFieldEnum[]
+}
+
+/**
+ * staff_users.questionBanks
+ */
+export type staff_users$questionBanksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the question_bank
+   */
+  select?: Prisma.question_bankSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the question_bank
+   */
+  omit?: Prisma.question_bankOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.question_bankInclude<ExtArgs> | null
+  where?: Prisma.question_bankWhereInput
+  orderBy?: Prisma.question_bankOrderByWithRelationInput | Prisma.question_bankOrderByWithRelationInput[]
+  cursor?: Prisma.question_bankWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Question_bankScalarFieldEnum | Prisma.Question_bankScalarFieldEnum[]
 }
 
 /**

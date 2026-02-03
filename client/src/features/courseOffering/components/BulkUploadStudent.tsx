@@ -113,11 +113,11 @@ export default function BulkUploadModal({
 
   const getStatusColor = (status: PreviewRow["status"]) => {
     const colorMap = {
-      NEW: "text-green-600 bg-green-50",
-      EXISTS_NOT_ENROLLED: "text-blue-600 bg-blue-50",
-      ALREADY_ENROLLED: "text-orange-600 bg-orange-50",
-      DUPLICATE_IDENTITY: "text-red-600 bg-red-50",
-      MISSING: "text-gray-600 bg-gray-100",
+      NEW: "text-[#484848]",
+      EXISTS_NOT_ENROLLED: "text-[#484848]",
+      ALREADY_ENROLLED: "text-[#484848]",
+      DUPLICATE_IDENTITY: "text-[#484848]",
+      MISSING: "text-[#484848]",
     };
     return colorMap[status];
   };
@@ -413,60 +413,60 @@ export default function BulkUploadModal({
               <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => setFilterStatus("all")}
-                  className={`px-3 py-1.5 rounded-lg border-2 text-sm transition-colors ${
+                  className={`px-3 py-1.5 rounded-lg border-2 text-sm transition-colors cursor-pointer ${
                     filterStatus === "all"
-                      ? "border-purple-500 bg-purple-50 text-purple-600"
-                      : "border-gray-300 text-gray-600 hover:border-purple-300"
+                      ? "border-[#B7A3E3] bg-white text-[#B7A3E3]"
+                      : "border-gray-300 text-gray-600 hover:border-[#B7A3E3]"
                   }`}
                 >
                   ทั้งหมด ({getStatusCount("all")})
                 </button>
                 <button
                   onClick={() => setFilterStatus("NEW")}
-                  className={`px-3 py-1.5 rounded-lg border-2 text-sm transition-colors ${
+                  className={`px-3 py-1.5 rounded-lg border-2 text-sm transition-colors cursor-pointer ${
                     filterStatus === "NEW"
-                      ? "border-green-500 bg-green-50 text-green-600"
-                      : "border-gray-300 text-gray-600 hover:border-green-300"
+                      ? "border-[#B7A3E3] text-[#B7A3E3]"
+                      : "border-gray-300 text-gray-600 hover:border-[#B7A3E3]"
                   }`}
                 >
                   ใหม่ ({getStatusCount("NEW")})
                 </button>
                 <button
                   onClick={() => setFilterStatus("EXISTS_NOT_ENROLLED")}
-                  className={`px-3 py-1.5 rounded-lg border-2 text-sm transition-colors ${
+                  className={`px-3 py-1.5 rounded-lg border-2 text-sm transition-colors cursor-pointer ${
                     filterStatus === "EXISTS_NOT_ENROLLED"
-                      ? "border-blue-500 bg-blue-50 text-blue-600"
-                      : "border-gray-300 text-gray-600 hover:border-blue-300"
+                      ? "border-[#B7A3E3] bg-white text-[#B7A3E3]"
+                      : "border-gray-300 text-gray-600 hover:border-[#B7A3E3]"
                   }`}
                 >
                   มีในระบบ ({getStatusCount("EXISTS_NOT_ENROLLED")})
                 </button>
                 <button
                   onClick={() => setFilterStatus("ALREADY_ENROLLED")}
-                  className={`px-3 py-1.5 rounded-lg border-2 text-sm transition-colors ${
+                  className={`px-3 py-1.5 rounded-lg border-2 text-sm transition-colors cursor-pointer ${
                     filterStatus === "ALREADY_ENROLLED"
-                      ? "border-orange-500 bg-orange-50 text-orange-600"
-                      : "border-gray-300 text-gray-600 hover:border-orange-300"
+                      ? "border-[#B7A3E3] bg-white text-[#B7A3E3]"
+                      : "border-gray-300 text-gray-600 hover:border-[#B7A3E3]"
                   }`}
                 >
                   ลงทะเบียนแล้ว ({getStatusCount("ALREADY_ENROLLED")})
                 </button>
                 <button
                   onClick={() => setFilterStatus("DUPLICATE_IDENTITY")}
-                  className={`px-3 py-1.5 rounded-lg border-2 text-sm transition-colors ${
+                  className={`px-3 py-1.5 rounded-lg border-2 text-sm transition-colors cursor-pointer ${
                     filterStatus === "DUPLICATE_IDENTITY"
-                      ? "border-red-500 bg-red-50 text-red-600"
-                      : "border-gray-300 text-gray-600 hover:border-red-300"
+                      ? "border-[#B7A3E3] bg-white text-[#B7A3E3]"
+                      : "border-gray-300 text-gray-600 hover:border-[#B7A3E3]"
                   }`}
                 >
                   ข้อมูลซ้ำ ({getStatusCount("DUPLICATE_IDENTITY")})
                 </button>
                 <button
                   onClick={() => setFilterStatus("MISSING")}
-                  className={`px-3 py-1.5 rounded-lg border-2 text-sm transition-colors ${
+                  className={`px-3 py-1.5 rounded-lg border-2 text-sm transition-colors cursor-pointer ${
                     filterStatus === "MISSING"
-                      ? "border-gray-500 bg-gray-100 text-gray-600"
-                      : "border-gray-300 text-gray-600 hover:border-gray-400"
+                      ? "border-[#B7A3E3] bg-white text-[#B7A3E3]"
+                      : "border-gray-300 text-gray-600 hover:border-[#B7A3E3]"
                   }`}
                 >
                   ไม่ครบ ({getStatusCount("MISSING")})
@@ -630,7 +630,7 @@ export default function BulkUploadModal({
             <div className="px-8 py-6 flex justify-end gap-4 flex-shrink-0">
               <button
                 onClick={handleClose}
-                className="px-23 py-3 border-1 border-[#9264F5] text-[#9264F5] rounded-xl hover:bg-purple-50 transition-colors font-medium"
+                className="px-23 py-3 border-1 border-[#9264F5] text-[#9264F5] rounded-xl hover:bg-purple-50 transition-colors font-medium cursor-pointer"
               >
                 ยกเลิก
               </button>
@@ -640,46 +640,45 @@ export default function BulkUploadModal({
                 className="px-23 py-3 bg-[#9264F5] text-white rounded-xl hover:bg-purple-600 transition-colors font-medium disabled:opacity-50 flex items-center gap-2 cursor-pointer"
               >
                 {isLoading && <Loader2 size={20} className="animate-spin" />}
-                ยืนยัน
-                {/* ยืนยัน ({enrollableCount} รายการ) */}
+                ยืนยัน ({enrollableCount} รายการ)
               </button>
             </div>
           </>
         ) : (
-          // Result step
+          // Result step ====================================================
           <>
             <div className="px-8 py-6 flex-1 overflow-y-auto">
               {confirmResults && (
                 <div className="space-y-4">
                   {/* Summary */}
                   <div className="grid grid-cols-4 gap-4">
-                    <div className="bg-green-50 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-green-600">
+                    <div className="border border-[#B7A3E3] rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-[#B7A3E3]">
                         {confirmResults.summary.enrolled}
                       </div>
-                      <div className="text-sm text-green-700">
+                      <div className="text-sm text-[#B7A3E3]">
                         ลงทะเบียนสำเร็จ
                       </div>
                     </div>
-                    <div className="bg-orange-50 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-orange-600">
+                    <div className="border border-gray-300 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-gray-600">
                         {confirmResults.summary.alreadyEnrolled}
                       </div>
-                      <div className="text-sm text-orange-700">
+                      <div className="text-sm text-gray-700">
                         ลงทะเบียนแล้ว
                       </div>
                     </div>
-                    <div className="bg-gray-100 rounded-lg p-4 text-center">
+                    <div className="border border-gray-300 rounded-lg p-4 text-center">
                       <div className="text-2xl font-bold text-gray-600">
                         {confirmResults.summary.skipped}
                       </div>
                       <div className="text-sm text-gray-700">ข้าม</div>
                     </div>
-                    <div className="bg-red-50 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-red-600">
+                    <div className="border border-gray-300 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-gray-600">
                         {confirmResults.summary.failed}
                       </div>
-                      <div className="text-sm text-red-700">ผิดพลาด</div>
+                      <div className="text-sm text-gray-700">ผิดพลาด</div>
                     </div>
                   </div>
 
@@ -711,12 +710,12 @@ export default function BulkUploadModal({
                             <span
                               className={`px-2 py-1 rounded text-xs ${
                                 result.status === "enrolled"
-                                  ? "text-green-600 bg-green-50"
+                                  ? "text-[#9264F5] bg-[#F1EFFF]"
                                   : result.status === "already_enrolled"
-                                    ? "text-orange-600 bg-orange-50"
+                                    ? "text-gray-500 bg-gray-50"
                                     : result.status === "skipped"
-                                      ? "text-gray-600 bg-gray-100"
-                                      : "text-red-600 bg-red-50"
+                                      ? "text-gray-500 bg-gray-50"
+                                      : "text-red-500 bg-red-50"
                               }`}
                             >
                               {result.status === "enrolled"
@@ -739,10 +738,10 @@ export default function BulkUploadModal({
               )}
             </div>
 
-            <div className="px-8 py-6 flex justify-center border-t flex-shrink-0">
+            <div className="px-8 py-6 flex justify-center flex-shrink-0">
               <button
                 onClick={handleClose}
-                className="px-12 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors font-medium"
+                className="px-12 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors font-medium cursor-pointer"
               >
                 ปิด
               </button>
