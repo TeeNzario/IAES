@@ -63,12 +63,12 @@ export default function CourseHomePage() {
 
                 {/* Instructor Section */}
                 <div className="px-6 py-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <div className="flex items-center justify-end gap-2">
+                    {/* <div className="flex items-center gap-2 min-w-0 flex-1">
                       <div className="w-12 h-12 rounded-full bg-gray-300 overflow-hidden flex-shrink-0 flex items-center justify-center">
                         <User size={24} className="text-gray-600" />
                       </div>
-                    </div>
+                    </div> */}
 
                     {/* Action Buttons */}
                     <div className="flex gap-2 flex-shrink-0">
