@@ -27,38 +27,35 @@ export type AggregateKnowledge_categories = {
 }
 
 export type Knowledge_categoriesAvgAggregateOutputType = {
-  knowledge_categories_id: number | null
-  course_offerings_id: number | null
+  knowledge_category_id: number | null
+  created_by_staff_id: number | null
 }
 
 export type Knowledge_categoriesSumAggregateOutputType = {
-  knowledge_categories_id: bigint | null
-  course_offerings_id: bigint | null
+  knowledge_category_id: bigint | null
+  created_by_staff_id: bigint | null
 }
 
 export type Knowledge_categoriesMinAggregateOutputType = {
-  knowledge_categories_id: bigint | null
-  course_offerings_id: bigint | null
-  knowledge_name: string | null
-  knowledge_description: string | null
+  knowledge_category_id: bigint | null
+  name: string | null
+  created_by_staff_id: bigint | null
   created_at: Date | null
   updated_at: Date | null
 }
 
 export type Knowledge_categoriesMaxAggregateOutputType = {
-  knowledge_categories_id: bigint | null
-  course_offerings_id: bigint | null
-  knowledge_name: string | null
-  knowledge_description: string | null
+  knowledge_category_id: bigint | null
+  name: string | null
+  created_by_staff_id: bigint | null
   created_at: Date | null
   updated_at: Date | null
 }
 
 export type Knowledge_categoriesCountAggregateOutputType = {
-  knowledge_categories_id: number
-  course_offerings_id: number
-  knowledge_name: number
-  knowledge_description: number
+  knowledge_category_id: number
+  name: number
+  created_by_staff_id: number
   created_at: number
   updated_at: number
   _all: number
@@ -66,38 +63,35 @@ export type Knowledge_categoriesCountAggregateOutputType = {
 
 
 export type Knowledge_categoriesAvgAggregateInputType = {
-  knowledge_categories_id?: true
-  course_offerings_id?: true
+  knowledge_category_id?: true
+  created_by_staff_id?: true
 }
 
 export type Knowledge_categoriesSumAggregateInputType = {
-  knowledge_categories_id?: true
-  course_offerings_id?: true
+  knowledge_category_id?: true
+  created_by_staff_id?: true
 }
 
 export type Knowledge_categoriesMinAggregateInputType = {
-  knowledge_categories_id?: true
-  course_offerings_id?: true
-  knowledge_name?: true
-  knowledge_description?: true
+  knowledge_category_id?: true
+  name?: true
+  created_by_staff_id?: true
   created_at?: true
   updated_at?: true
 }
 
 export type Knowledge_categoriesMaxAggregateInputType = {
-  knowledge_categories_id?: true
-  course_offerings_id?: true
-  knowledge_name?: true
-  knowledge_description?: true
+  knowledge_category_id?: true
+  name?: true
+  created_by_staff_id?: true
   created_at?: true
   updated_at?: true
 }
 
 export type Knowledge_categoriesCountAggregateInputType = {
-  knowledge_categories_id?: true
-  course_offerings_id?: true
-  knowledge_name?: true
-  knowledge_description?: true
+  knowledge_category_id?: true
+  name?: true
+  created_by_staff_id?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -190,10 +184,9 @@ export type knowledge_categoriesGroupByArgs<ExtArgs extends runtime.Types.Extens
 }
 
 export type Knowledge_categoriesGroupByOutputType = {
-  knowledge_categories_id: bigint
-  course_offerings_id: bigint
-  knowledge_name: string
-  knowledge_description: string | null
+  knowledge_category_id: bigint
+  name: string
+  created_by_staff_id: bigint | null
   created_at: Date
   updated_at: Date
   _count: Knowledge_categoriesCountAggregateOutputType | null
@@ -222,43 +215,42 @@ export type knowledge_categoriesWhereInput = {
   AND?: Prisma.knowledge_categoriesWhereInput | Prisma.knowledge_categoriesWhereInput[]
   OR?: Prisma.knowledge_categoriesWhereInput[]
   NOT?: Prisma.knowledge_categoriesWhereInput | Prisma.knowledge_categoriesWhereInput[]
-  knowledge_categories_id?: Prisma.BigIntFilter<"knowledge_categories"> | bigint | number
-  course_offerings_id?: Prisma.BigIntFilter<"knowledge_categories"> | bigint | number
-  knowledge_name?: Prisma.StringFilter<"knowledge_categories"> | string
-  knowledge_description?: Prisma.StringNullableFilter<"knowledge_categories"> | string | null
+  knowledge_category_id?: Prisma.BigIntFilter<"knowledge_categories"> | bigint | number
+  name?: Prisma.StringFilter<"knowledge_categories"> | string
+  created_by_staff_id?: Prisma.BigIntNullableFilter<"knowledge_categories"> | bigint | number | null
   created_at?: Prisma.DateTimeFilter<"knowledge_categories"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"knowledge_categories"> | Date | string
-  course_offerings?: Prisma.XOR<Prisma.Course_offeringsScalarRelationFilter, Prisma.course_offeringsWhereInput>
+  course_knowledge?: Prisma.Course_knowledgeListRelationFilter
+  question_knowledge?: Prisma.Question_knowledgeListRelationFilter
 }
 
 export type knowledge_categoriesOrderByWithRelationInput = {
-  knowledge_categories_id?: Prisma.SortOrder
-  course_offerings_id?: Prisma.SortOrder
-  knowledge_name?: Prisma.SortOrder
-  knowledge_description?: Prisma.SortOrderInput | Prisma.SortOrder
+  knowledge_category_id?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  created_by_staff_id?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
-  course_offerings?: Prisma.course_offeringsOrderByWithRelationInput
+  course_knowledge?: Prisma.course_knowledgeOrderByRelationAggregateInput
+  question_knowledge?: Prisma.question_knowledgeOrderByRelationAggregateInput
 }
 
 export type knowledge_categoriesWhereUniqueInput = Prisma.AtLeast<{
-  knowledge_categories_id?: bigint | number
+  knowledge_category_id?: bigint | number
   AND?: Prisma.knowledge_categoriesWhereInput | Prisma.knowledge_categoriesWhereInput[]
   OR?: Prisma.knowledge_categoriesWhereInput[]
   NOT?: Prisma.knowledge_categoriesWhereInput | Prisma.knowledge_categoriesWhereInput[]
-  course_offerings_id?: Prisma.BigIntFilter<"knowledge_categories"> | bigint | number
-  knowledge_name?: Prisma.StringFilter<"knowledge_categories"> | string
-  knowledge_description?: Prisma.StringNullableFilter<"knowledge_categories"> | string | null
+  name?: Prisma.StringFilter<"knowledge_categories"> | string
+  created_by_staff_id?: Prisma.BigIntNullableFilter<"knowledge_categories"> | bigint | number | null
   created_at?: Prisma.DateTimeFilter<"knowledge_categories"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"knowledge_categories"> | Date | string
-  course_offerings?: Prisma.XOR<Prisma.Course_offeringsScalarRelationFilter, Prisma.course_offeringsWhereInput>
-}, "knowledge_categories_id">
+  course_knowledge?: Prisma.Course_knowledgeListRelationFilter
+  question_knowledge?: Prisma.Question_knowledgeListRelationFilter
+}, "knowledge_category_id">
 
 export type knowledge_categoriesOrderByWithAggregationInput = {
-  knowledge_categories_id?: Prisma.SortOrder
-  course_offerings_id?: Prisma.SortOrder
-  knowledge_name?: Prisma.SortOrder
-  knowledge_description?: Prisma.SortOrderInput | Prisma.SortOrder
+  knowledge_category_id?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  created_by_staff_id?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.knowledge_categoriesCountOrderByAggregateInput
@@ -272,313 +264,342 @@ export type knowledge_categoriesScalarWhereWithAggregatesInput = {
   AND?: Prisma.knowledge_categoriesScalarWhereWithAggregatesInput | Prisma.knowledge_categoriesScalarWhereWithAggregatesInput[]
   OR?: Prisma.knowledge_categoriesScalarWhereWithAggregatesInput[]
   NOT?: Prisma.knowledge_categoriesScalarWhereWithAggregatesInput | Prisma.knowledge_categoriesScalarWhereWithAggregatesInput[]
-  knowledge_categories_id?: Prisma.BigIntWithAggregatesFilter<"knowledge_categories"> | bigint | number
-  course_offerings_id?: Prisma.BigIntWithAggregatesFilter<"knowledge_categories"> | bigint | number
-  knowledge_name?: Prisma.StringWithAggregatesFilter<"knowledge_categories"> | string
-  knowledge_description?: Prisma.StringNullableWithAggregatesFilter<"knowledge_categories"> | string | null
+  knowledge_category_id?: Prisma.BigIntWithAggregatesFilter<"knowledge_categories"> | bigint | number
+  name?: Prisma.StringWithAggregatesFilter<"knowledge_categories"> | string
+  created_by_staff_id?: Prisma.BigIntNullableWithAggregatesFilter<"knowledge_categories"> | bigint | number | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"knowledge_categories"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"knowledge_categories"> | Date | string
 }
 
 export type knowledge_categoriesCreateInput = {
-  knowledge_categories_id?: bigint | number
-  knowledge_name: string
-  knowledge_description?: string | null
+  knowledge_category_id?: bigint | number
+  name: string
+  created_by_staff_id?: bigint | number | null
   created_at?: Date | string
   updated_at?: Date | string
-  course_offerings: Prisma.course_offeringsCreateNestedOneWithoutKnowledge_categoriesInput
+  course_knowledge?: Prisma.course_knowledgeCreateNestedManyWithoutKnowledge_categoriesInput
+  question_knowledge?: Prisma.question_knowledgeCreateNestedManyWithoutKnowledge_categoriesInput
 }
 
 export type knowledge_categoriesUncheckedCreateInput = {
-  knowledge_categories_id?: bigint | number
-  course_offerings_id: bigint | number
-  knowledge_name: string
-  knowledge_description?: string | null
+  knowledge_category_id?: bigint | number
+  name: string
+  created_by_staff_id?: bigint | number | null
   created_at?: Date | string
   updated_at?: Date | string
+  course_knowledge?: Prisma.course_knowledgeUncheckedCreateNestedManyWithoutKnowledge_categoriesInput
+  question_knowledge?: Prisma.question_knowledgeUncheckedCreateNestedManyWithoutKnowledge_categoriesInput
 }
 
 export type knowledge_categoriesUpdateInput = {
-  knowledge_categories_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  knowledge_name?: Prisma.StringFieldUpdateOperationsInput | string
-  knowledge_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  knowledge_category_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  created_by_staff_id?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course_offerings?: Prisma.course_offeringsUpdateOneRequiredWithoutKnowledge_categoriesNestedInput
+  course_knowledge?: Prisma.course_knowledgeUpdateManyWithoutKnowledge_categoriesNestedInput
+  question_knowledge?: Prisma.question_knowledgeUpdateManyWithoutKnowledge_categoriesNestedInput
 }
 
 export type knowledge_categoriesUncheckedUpdateInput = {
-  knowledge_categories_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  course_offerings_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  knowledge_name?: Prisma.StringFieldUpdateOperationsInput | string
-  knowledge_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  knowledge_category_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  created_by_staff_id?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  course_knowledge?: Prisma.course_knowledgeUncheckedUpdateManyWithoutKnowledge_categoriesNestedInput
+  question_knowledge?: Prisma.question_knowledgeUncheckedUpdateManyWithoutKnowledge_categoriesNestedInput
 }
 
 export type knowledge_categoriesCreateManyInput = {
-  knowledge_categories_id?: bigint | number
-  course_offerings_id: bigint | number
-  knowledge_name: string
-  knowledge_description?: string | null
+  knowledge_category_id?: bigint | number
+  name: string
+  created_by_staff_id?: bigint | number | null
   created_at?: Date | string
   updated_at?: Date | string
 }
 
 export type knowledge_categoriesUpdateManyMutationInput = {
-  knowledge_categories_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  knowledge_name?: Prisma.StringFieldUpdateOperationsInput | string
-  knowledge_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  knowledge_category_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  created_by_staff_id?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type knowledge_categoriesUncheckedUpdateManyInput = {
-  knowledge_categories_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  course_offerings_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  knowledge_name?: Prisma.StringFieldUpdateOperationsInput | string
-  knowledge_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  knowledge_category_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  created_by_staff_id?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type Knowledge_categoriesListRelationFilter = {
-  every?: Prisma.knowledge_categoriesWhereInput
-  some?: Prisma.knowledge_categoriesWhereInput
-  none?: Prisma.knowledge_categoriesWhereInput
-}
-
-export type knowledge_categoriesOrderByRelationAggregateInput = {
-  _count?: Prisma.SortOrder
-}
-
 export type knowledge_categoriesCountOrderByAggregateInput = {
-  knowledge_categories_id?: Prisma.SortOrder
-  course_offerings_id?: Prisma.SortOrder
-  knowledge_name?: Prisma.SortOrder
-  knowledge_description?: Prisma.SortOrder
+  knowledge_category_id?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  created_by_staff_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
 
 export type knowledge_categoriesAvgOrderByAggregateInput = {
-  knowledge_categories_id?: Prisma.SortOrder
-  course_offerings_id?: Prisma.SortOrder
+  knowledge_category_id?: Prisma.SortOrder
+  created_by_staff_id?: Prisma.SortOrder
 }
 
 export type knowledge_categoriesMaxOrderByAggregateInput = {
-  knowledge_categories_id?: Prisma.SortOrder
-  course_offerings_id?: Prisma.SortOrder
-  knowledge_name?: Prisma.SortOrder
-  knowledge_description?: Prisma.SortOrder
+  knowledge_category_id?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  created_by_staff_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
 
 export type knowledge_categoriesMinOrderByAggregateInput = {
-  knowledge_categories_id?: Prisma.SortOrder
-  course_offerings_id?: Prisma.SortOrder
-  knowledge_name?: Prisma.SortOrder
-  knowledge_description?: Prisma.SortOrder
+  knowledge_category_id?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  created_by_staff_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
 
 export type knowledge_categoriesSumOrderByAggregateInput = {
-  knowledge_categories_id?: Prisma.SortOrder
-  course_offerings_id?: Prisma.SortOrder
+  knowledge_category_id?: Prisma.SortOrder
+  created_by_staff_id?: Prisma.SortOrder
 }
 
-export type knowledge_categoriesCreateNestedManyWithoutCourse_offeringsInput = {
-  create?: Prisma.XOR<Prisma.knowledge_categoriesCreateWithoutCourse_offeringsInput, Prisma.knowledge_categoriesUncheckedCreateWithoutCourse_offeringsInput> | Prisma.knowledge_categoriesCreateWithoutCourse_offeringsInput[] | Prisma.knowledge_categoriesUncheckedCreateWithoutCourse_offeringsInput[]
-  connectOrCreate?: Prisma.knowledge_categoriesCreateOrConnectWithoutCourse_offeringsInput | Prisma.knowledge_categoriesCreateOrConnectWithoutCourse_offeringsInput[]
-  createMany?: Prisma.knowledge_categoriesCreateManyCourse_offeringsInputEnvelope
-  connect?: Prisma.knowledge_categoriesWhereUniqueInput | Prisma.knowledge_categoriesWhereUniqueInput[]
+export type Knowledge_categoriesScalarRelationFilter = {
+  is?: Prisma.knowledge_categoriesWhereInput
+  isNot?: Prisma.knowledge_categoriesWhereInput
 }
 
-export type knowledge_categoriesUncheckedCreateNestedManyWithoutCourse_offeringsInput = {
-  create?: Prisma.XOR<Prisma.knowledge_categoriesCreateWithoutCourse_offeringsInput, Prisma.knowledge_categoriesUncheckedCreateWithoutCourse_offeringsInput> | Prisma.knowledge_categoriesCreateWithoutCourse_offeringsInput[] | Prisma.knowledge_categoriesUncheckedCreateWithoutCourse_offeringsInput[]
-  connectOrCreate?: Prisma.knowledge_categoriesCreateOrConnectWithoutCourse_offeringsInput | Prisma.knowledge_categoriesCreateOrConnectWithoutCourse_offeringsInput[]
-  createMany?: Prisma.knowledge_categoriesCreateManyCourse_offeringsInputEnvelope
-  connect?: Prisma.knowledge_categoriesWhereUniqueInput | Prisma.knowledge_categoriesWhereUniqueInput[]
+export type knowledge_categoriesCreateNestedOneWithoutCourse_knowledgeInput = {
+  create?: Prisma.XOR<Prisma.knowledge_categoriesCreateWithoutCourse_knowledgeInput, Prisma.knowledge_categoriesUncheckedCreateWithoutCourse_knowledgeInput>
+  connectOrCreate?: Prisma.knowledge_categoriesCreateOrConnectWithoutCourse_knowledgeInput
+  connect?: Prisma.knowledge_categoriesWhereUniqueInput
 }
 
-export type knowledge_categoriesUpdateManyWithoutCourse_offeringsNestedInput = {
-  create?: Prisma.XOR<Prisma.knowledge_categoriesCreateWithoutCourse_offeringsInput, Prisma.knowledge_categoriesUncheckedCreateWithoutCourse_offeringsInput> | Prisma.knowledge_categoriesCreateWithoutCourse_offeringsInput[] | Prisma.knowledge_categoriesUncheckedCreateWithoutCourse_offeringsInput[]
-  connectOrCreate?: Prisma.knowledge_categoriesCreateOrConnectWithoutCourse_offeringsInput | Prisma.knowledge_categoriesCreateOrConnectWithoutCourse_offeringsInput[]
-  upsert?: Prisma.knowledge_categoriesUpsertWithWhereUniqueWithoutCourse_offeringsInput | Prisma.knowledge_categoriesUpsertWithWhereUniqueWithoutCourse_offeringsInput[]
-  createMany?: Prisma.knowledge_categoriesCreateManyCourse_offeringsInputEnvelope
-  set?: Prisma.knowledge_categoriesWhereUniqueInput | Prisma.knowledge_categoriesWhereUniqueInput[]
-  disconnect?: Prisma.knowledge_categoriesWhereUniqueInput | Prisma.knowledge_categoriesWhereUniqueInput[]
-  delete?: Prisma.knowledge_categoriesWhereUniqueInput | Prisma.knowledge_categoriesWhereUniqueInput[]
-  connect?: Prisma.knowledge_categoriesWhereUniqueInput | Prisma.knowledge_categoriesWhereUniqueInput[]
-  update?: Prisma.knowledge_categoriesUpdateWithWhereUniqueWithoutCourse_offeringsInput | Prisma.knowledge_categoriesUpdateWithWhereUniqueWithoutCourse_offeringsInput[]
-  updateMany?: Prisma.knowledge_categoriesUpdateManyWithWhereWithoutCourse_offeringsInput | Prisma.knowledge_categoriesUpdateManyWithWhereWithoutCourse_offeringsInput[]
-  deleteMany?: Prisma.knowledge_categoriesScalarWhereInput | Prisma.knowledge_categoriesScalarWhereInput[]
+export type knowledge_categoriesUpdateOneRequiredWithoutCourse_knowledgeNestedInput = {
+  create?: Prisma.XOR<Prisma.knowledge_categoriesCreateWithoutCourse_knowledgeInput, Prisma.knowledge_categoriesUncheckedCreateWithoutCourse_knowledgeInput>
+  connectOrCreate?: Prisma.knowledge_categoriesCreateOrConnectWithoutCourse_knowledgeInput
+  upsert?: Prisma.knowledge_categoriesUpsertWithoutCourse_knowledgeInput
+  connect?: Prisma.knowledge_categoriesWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.knowledge_categoriesUpdateToOneWithWhereWithoutCourse_knowledgeInput, Prisma.knowledge_categoriesUpdateWithoutCourse_knowledgeInput>, Prisma.knowledge_categoriesUncheckedUpdateWithoutCourse_knowledgeInput>
 }
 
-export type knowledge_categoriesUncheckedUpdateManyWithoutCourse_offeringsNestedInput = {
-  create?: Prisma.XOR<Prisma.knowledge_categoriesCreateWithoutCourse_offeringsInput, Prisma.knowledge_categoriesUncheckedCreateWithoutCourse_offeringsInput> | Prisma.knowledge_categoriesCreateWithoutCourse_offeringsInput[] | Prisma.knowledge_categoriesUncheckedCreateWithoutCourse_offeringsInput[]
-  connectOrCreate?: Prisma.knowledge_categoriesCreateOrConnectWithoutCourse_offeringsInput | Prisma.knowledge_categoriesCreateOrConnectWithoutCourse_offeringsInput[]
-  upsert?: Prisma.knowledge_categoriesUpsertWithWhereUniqueWithoutCourse_offeringsInput | Prisma.knowledge_categoriesUpsertWithWhereUniqueWithoutCourse_offeringsInput[]
-  createMany?: Prisma.knowledge_categoriesCreateManyCourse_offeringsInputEnvelope
-  set?: Prisma.knowledge_categoriesWhereUniqueInput | Prisma.knowledge_categoriesWhereUniqueInput[]
-  disconnect?: Prisma.knowledge_categoriesWhereUniqueInput | Prisma.knowledge_categoriesWhereUniqueInput[]
-  delete?: Prisma.knowledge_categoriesWhereUniqueInput | Prisma.knowledge_categoriesWhereUniqueInput[]
-  connect?: Prisma.knowledge_categoriesWhereUniqueInput | Prisma.knowledge_categoriesWhereUniqueInput[]
-  update?: Prisma.knowledge_categoriesUpdateWithWhereUniqueWithoutCourse_offeringsInput | Prisma.knowledge_categoriesUpdateWithWhereUniqueWithoutCourse_offeringsInput[]
-  updateMany?: Prisma.knowledge_categoriesUpdateManyWithWhereWithoutCourse_offeringsInput | Prisma.knowledge_categoriesUpdateManyWithWhereWithoutCourse_offeringsInput[]
-  deleteMany?: Prisma.knowledge_categoriesScalarWhereInput | Prisma.knowledge_categoriesScalarWhereInput[]
+export type knowledge_categoriesCreateNestedOneWithoutQuestion_knowledgeInput = {
+  create?: Prisma.XOR<Prisma.knowledge_categoriesCreateWithoutQuestion_knowledgeInput, Prisma.knowledge_categoriesUncheckedCreateWithoutQuestion_knowledgeInput>
+  connectOrCreate?: Prisma.knowledge_categoriesCreateOrConnectWithoutQuestion_knowledgeInput
+  connect?: Prisma.knowledge_categoriesWhereUniqueInput
 }
 
-export type knowledge_categoriesCreateWithoutCourse_offeringsInput = {
-  knowledge_categories_id?: bigint | number
-  knowledge_name: string
-  knowledge_description?: string | null
+export type knowledge_categoriesUpdateOneRequiredWithoutQuestion_knowledgeNestedInput = {
+  create?: Prisma.XOR<Prisma.knowledge_categoriesCreateWithoutQuestion_knowledgeInput, Prisma.knowledge_categoriesUncheckedCreateWithoutQuestion_knowledgeInput>
+  connectOrCreate?: Prisma.knowledge_categoriesCreateOrConnectWithoutQuestion_knowledgeInput
+  upsert?: Prisma.knowledge_categoriesUpsertWithoutQuestion_knowledgeInput
+  connect?: Prisma.knowledge_categoriesWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.knowledge_categoriesUpdateToOneWithWhereWithoutQuestion_knowledgeInput, Prisma.knowledge_categoriesUpdateWithoutQuestion_knowledgeInput>, Prisma.knowledge_categoriesUncheckedUpdateWithoutQuestion_knowledgeInput>
+}
+
+export type knowledge_categoriesCreateWithoutCourse_knowledgeInput = {
+  knowledge_category_id?: bigint | number
+  name: string
+  created_by_staff_id?: bigint | number | null
   created_at?: Date | string
   updated_at?: Date | string
+  question_knowledge?: Prisma.question_knowledgeCreateNestedManyWithoutKnowledge_categoriesInput
 }
 
-export type knowledge_categoriesUncheckedCreateWithoutCourse_offeringsInput = {
-  knowledge_categories_id?: bigint | number
-  knowledge_name: string
-  knowledge_description?: string | null
+export type knowledge_categoriesUncheckedCreateWithoutCourse_knowledgeInput = {
+  knowledge_category_id?: bigint | number
+  name: string
+  created_by_staff_id?: bigint | number | null
   created_at?: Date | string
   updated_at?: Date | string
+  question_knowledge?: Prisma.question_knowledgeUncheckedCreateNestedManyWithoutKnowledge_categoriesInput
 }
 
-export type knowledge_categoriesCreateOrConnectWithoutCourse_offeringsInput = {
+export type knowledge_categoriesCreateOrConnectWithoutCourse_knowledgeInput = {
   where: Prisma.knowledge_categoriesWhereUniqueInput
-  create: Prisma.XOR<Prisma.knowledge_categoriesCreateWithoutCourse_offeringsInput, Prisma.knowledge_categoriesUncheckedCreateWithoutCourse_offeringsInput>
+  create: Prisma.XOR<Prisma.knowledge_categoriesCreateWithoutCourse_knowledgeInput, Prisma.knowledge_categoriesUncheckedCreateWithoutCourse_knowledgeInput>
 }
 
-export type knowledge_categoriesCreateManyCourse_offeringsInputEnvelope = {
-  data: Prisma.knowledge_categoriesCreateManyCourse_offeringsInput | Prisma.knowledge_categoriesCreateManyCourse_offeringsInput[]
-  skipDuplicates?: boolean
+export type knowledge_categoriesUpsertWithoutCourse_knowledgeInput = {
+  update: Prisma.XOR<Prisma.knowledge_categoriesUpdateWithoutCourse_knowledgeInput, Prisma.knowledge_categoriesUncheckedUpdateWithoutCourse_knowledgeInput>
+  create: Prisma.XOR<Prisma.knowledge_categoriesCreateWithoutCourse_knowledgeInput, Prisma.knowledge_categoriesUncheckedCreateWithoutCourse_knowledgeInput>
+  where?: Prisma.knowledge_categoriesWhereInput
 }
 
-export type knowledge_categoriesUpsertWithWhereUniqueWithoutCourse_offeringsInput = {
-  where: Prisma.knowledge_categoriesWhereUniqueInput
-  update: Prisma.XOR<Prisma.knowledge_categoriesUpdateWithoutCourse_offeringsInput, Prisma.knowledge_categoriesUncheckedUpdateWithoutCourse_offeringsInput>
-  create: Prisma.XOR<Prisma.knowledge_categoriesCreateWithoutCourse_offeringsInput, Prisma.knowledge_categoriesUncheckedCreateWithoutCourse_offeringsInput>
+export type knowledge_categoriesUpdateToOneWithWhereWithoutCourse_knowledgeInput = {
+  where?: Prisma.knowledge_categoriesWhereInput
+  data: Prisma.XOR<Prisma.knowledge_categoriesUpdateWithoutCourse_knowledgeInput, Prisma.knowledge_categoriesUncheckedUpdateWithoutCourse_knowledgeInput>
 }
 
-export type knowledge_categoriesUpdateWithWhereUniqueWithoutCourse_offeringsInput = {
-  where: Prisma.knowledge_categoriesWhereUniqueInput
-  data: Prisma.XOR<Prisma.knowledge_categoriesUpdateWithoutCourse_offeringsInput, Prisma.knowledge_categoriesUncheckedUpdateWithoutCourse_offeringsInput>
+export type knowledge_categoriesUpdateWithoutCourse_knowledgeInput = {
+  knowledge_category_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  created_by_staff_id?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  question_knowledge?: Prisma.question_knowledgeUpdateManyWithoutKnowledge_categoriesNestedInput
 }
 
-export type knowledge_categoriesUpdateManyWithWhereWithoutCourse_offeringsInput = {
-  where: Prisma.knowledge_categoriesScalarWhereInput
-  data: Prisma.XOR<Prisma.knowledge_categoriesUpdateManyMutationInput, Prisma.knowledge_categoriesUncheckedUpdateManyWithoutCourse_offeringsInput>
+export type knowledge_categoriesUncheckedUpdateWithoutCourse_knowledgeInput = {
+  knowledge_category_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  created_by_staff_id?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  question_knowledge?: Prisma.question_knowledgeUncheckedUpdateManyWithoutKnowledge_categoriesNestedInput
 }
 
-export type knowledge_categoriesScalarWhereInput = {
-  AND?: Prisma.knowledge_categoriesScalarWhereInput | Prisma.knowledge_categoriesScalarWhereInput[]
-  OR?: Prisma.knowledge_categoriesScalarWhereInput[]
-  NOT?: Prisma.knowledge_categoriesScalarWhereInput | Prisma.knowledge_categoriesScalarWhereInput[]
-  knowledge_categories_id?: Prisma.BigIntFilter<"knowledge_categories"> | bigint | number
-  course_offerings_id?: Prisma.BigIntFilter<"knowledge_categories"> | bigint | number
-  knowledge_name?: Prisma.StringFilter<"knowledge_categories"> | string
-  knowledge_description?: Prisma.StringNullableFilter<"knowledge_categories"> | string | null
-  created_at?: Prisma.DateTimeFilter<"knowledge_categories"> | Date | string
-  updated_at?: Prisma.DateTimeFilter<"knowledge_categories"> | Date | string
-}
-
-export type knowledge_categoriesCreateManyCourse_offeringsInput = {
-  knowledge_categories_id?: bigint | number
-  knowledge_name: string
-  knowledge_description?: string | null
+export type knowledge_categoriesCreateWithoutQuestion_knowledgeInput = {
+  knowledge_category_id?: bigint | number
+  name: string
+  created_by_staff_id?: bigint | number | null
   created_at?: Date | string
   updated_at?: Date | string
+  course_knowledge?: Prisma.course_knowledgeCreateNestedManyWithoutKnowledge_categoriesInput
 }
 
-export type knowledge_categoriesUpdateWithoutCourse_offeringsInput = {
-  knowledge_categories_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  knowledge_name?: Prisma.StringFieldUpdateOperationsInput | string
-  knowledge_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+export type knowledge_categoriesUncheckedCreateWithoutQuestion_knowledgeInput = {
+  knowledge_category_id?: bigint | number
+  name: string
+  created_by_staff_id?: bigint | number | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  course_knowledge?: Prisma.course_knowledgeUncheckedCreateNestedManyWithoutKnowledge_categoriesInput
+}
+
+export type knowledge_categoriesCreateOrConnectWithoutQuestion_knowledgeInput = {
+  where: Prisma.knowledge_categoriesWhereUniqueInput
+  create: Prisma.XOR<Prisma.knowledge_categoriesCreateWithoutQuestion_knowledgeInput, Prisma.knowledge_categoriesUncheckedCreateWithoutQuestion_knowledgeInput>
+}
+
+export type knowledge_categoriesUpsertWithoutQuestion_knowledgeInput = {
+  update: Prisma.XOR<Prisma.knowledge_categoriesUpdateWithoutQuestion_knowledgeInput, Prisma.knowledge_categoriesUncheckedUpdateWithoutQuestion_knowledgeInput>
+  create: Prisma.XOR<Prisma.knowledge_categoriesCreateWithoutQuestion_knowledgeInput, Prisma.knowledge_categoriesUncheckedCreateWithoutQuestion_knowledgeInput>
+  where?: Prisma.knowledge_categoriesWhereInput
+}
+
+export type knowledge_categoriesUpdateToOneWithWhereWithoutQuestion_knowledgeInput = {
+  where?: Prisma.knowledge_categoriesWhereInput
+  data: Prisma.XOR<Prisma.knowledge_categoriesUpdateWithoutQuestion_knowledgeInput, Prisma.knowledge_categoriesUncheckedUpdateWithoutQuestion_knowledgeInput>
+}
+
+export type knowledge_categoriesUpdateWithoutQuestion_knowledgeInput = {
+  knowledge_category_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  created_by_staff_id?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  course_knowledge?: Prisma.course_knowledgeUpdateManyWithoutKnowledge_categoriesNestedInput
 }
 
-export type knowledge_categoriesUncheckedUpdateWithoutCourse_offeringsInput = {
-  knowledge_categories_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  knowledge_name?: Prisma.StringFieldUpdateOperationsInput | string
-  knowledge_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+export type knowledge_categoriesUncheckedUpdateWithoutQuestion_knowledgeInput = {
+  knowledge_category_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  created_by_staff_id?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  course_knowledge?: Prisma.course_knowledgeUncheckedUpdateManyWithoutKnowledge_categoriesNestedInput
 }
 
-export type knowledge_categoriesUncheckedUpdateManyWithoutCourse_offeringsInput = {
-  knowledge_categories_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  knowledge_name?: Prisma.StringFieldUpdateOperationsInput | string
-  knowledge_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+
+/**
+ * Count Type Knowledge_categoriesCountOutputType
+ */
+
+export type Knowledge_categoriesCountOutputType = {
+  course_knowledge: number
+  question_knowledge: number
 }
 
+export type Knowledge_categoriesCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  course_knowledge?: boolean | Knowledge_categoriesCountOutputTypeCountCourse_knowledgeArgs
+  question_knowledge?: boolean | Knowledge_categoriesCountOutputTypeCountQuestion_knowledgeArgs
+}
+
+/**
+ * Knowledge_categoriesCountOutputType without action
+ */
+export type Knowledge_categoriesCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Knowledge_categoriesCountOutputType
+   */
+  select?: Prisma.Knowledge_categoriesCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * Knowledge_categoriesCountOutputType without action
+ */
+export type Knowledge_categoriesCountOutputTypeCountCourse_knowledgeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.course_knowledgeWhereInput
+}
+
+/**
+ * Knowledge_categoriesCountOutputType without action
+ */
+export type Knowledge_categoriesCountOutputTypeCountQuestion_knowledgeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.question_knowledgeWhereInput
+}
 
 
 export type knowledge_categoriesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  knowledge_categories_id?: boolean
-  course_offerings_id?: boolean
-  knowledge_name?: boolean
-  knowledge_description?: boolean
+  knowledge_category_id?: boolean
+  name?: boolean
+  created_by_staff_id?: boolean
   created_at?: boolean
   updated_at?: boolean
-  course_offerings?: boolean | Prisma.course_offeringsDefaultArgs<ExtArgs>
+  course_knowledge?: boolean | Prisma.knowledge_categories$course_knowledgeArgs<ExtArgs>
+  question_knowledge?: boolean | Prisma.knowledge_categories$question_knowledgeArgs<ExtArgs>
+  _count?: boolean | Prisma.Knowledge_categoriesCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["knowledge_categories"]>
 
 export type knowledge_categoriesSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  knowledge_categories_id?: boolean
-  course_offerings_id?: boolean
-  knowledge_name?: boolean
-  knowledge_description?: boolean
+  knowledge_category_id?: boolean
+  name?: boolean
+  created_by_staff_id?: boolean
   created_at?: boolean
   updated_at?: boolean
-  course_offerings?: boolean | Prisma.course_offeringsDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["knowledge_categories"]>
 
 export type knowledge_categoriesSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  knowledge_categories_id?: boolean
-  course_offerings_id?: boolean
-  knowledge_name?: boolean
-  knowledge_description?: boolean
+  knowledge_category_id?: boolean
+  name?: boolean
+  created_by_staff_id?: boolean
   created_at?: boolean
   updated_at?: boolean
-  course_offerings?: boolean | Prisma.course_offeringsDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["knowledge_categories"]>
 
 export type knowledge_categoriesSelectScalar = {
-  knowledge_categories_id?: boolean
-  course_offerings_id?: boolean
-  knowledge_name?: boolean
-  knowledge_description?: boolean
+  knowledge_category_id?: boolean
+  name?: boolean
+  created_by_staff_id?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type knowledge_categoriesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"knowledge_categories_id" | "course_offerings_id" | "knowledge_name" | "knowledge_description" | "created_at" | "updated_at", ExtArgs["result"]["knowledge_categories"]>
+export type knowledge_categoriesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"knowledge_category_id" | "name" | "created_by_staff_id" | "created_at" | "updated_at", ExtArgs["result"]["knowledge_categories"]>
 export type knowledge_categoriesInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  course_offerings?: boolean | Prisma.course_offeringsDefaultArgs<ExtArgs>
+  course_knowledge?: boolean | Prisma.knowledge_categories$course_knowledgeArgs<ExtArgs>
+  question_knowledge?: boolean | Prisma.knowledge_categories$question_knowledgeArgs<ExtArgs>
+  _count?: boolean | Prisma.Knowledge_categoriesCountOutputTypeDefaultArgs<ExtArgs>
 }
-export type knowledge_categoriesIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  course_offerings?: boolean | Prisma.course_offeringsDefaultArgs<ExtArgs>
-}
-export type knowledge_categoriesIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  course_offerings?: boolean | Prisma.course_offeringsDefaultArgs<ExtArgs>
-}
+export type knowledge_categoriesIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type knowledge_categoriesIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 
 export type $knowledge_categoriesPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "knowledge_categories"
   objects: {
-    course_offerings: Prisma.$course_offeringsPayload<ExtArgs>
+    course_knowledge: Prisma.$course_knowledgePayload<ExtArgs>[]
+    question_knowledge: Prisma.$question_knowledgePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
-    knowledge_categories_id: bigint
-    course_offerings_id: bigint
-    knowledge_name: string
-    knowledge_description: string | null
+    knowledge_category_id: bigint
+    name: string
+    created_by_staff_id: bigint | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["knowledge_categories"]>
@@ -664,8 +685,8 @@ export interface knowledge_categoriesDelegate<ExtArgs extends runtime.Types.Exte
    * // Get first 10 Knowledge_categories
    * const knowledge_categories = await prisma.knowledge_categories.findMany({ take: 10 })
    * 
-   * // Only select the `knowledge_categories_id`
-   * const knowledge_categoriesWithKnowledge_categories_idOnly = await prisma.knowledge_categories.findMany({ select: { knowledge_categories_id: true } })
+   * // Only select the `knowledge_category_id`
+   * const knowledge_categoriesWithKnowledge_category_idOnly = await prisma.knowledge_categories.findMany({ select: { knowledge_category_id: true } })
    * 
    */
   findMany<T extends knowledge_categoriesFindManyArgs>(args?: Prisma.SelectSubset<T, knowledge_categoriesFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$knowledge_categoriesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -709,9 +730,9 @@ export interface knowledge_categoriesDelegate<ExtArgs extends runtime.Types.Exte
    *   ]
    * })
    * 
-   * // Create many Knowledge_categories and only return the `knowledge_categories_id`
-   * const knowledge_categoriesWithKnowledge_categories_idOnly = await prisma.knowledge_categories.createManyAndReturn({
-   *   select: { knowledge_categories_id: true },
+   * // Create many Knowledge_categories and only return the `knowledge_category_id`
+   * const knowledge_categoriesWithKnowledge_category_idOnly = await prisma.knowledge_categories.createManyAndReturn({
+   *   select: { knowledge_category_id: true },
    *   data: [
    *     // ... provide data here
    *   ]
@@ -800,9 +821,9 @@ export interface knowledge_categoriesDelegate<ExtArgs extends runtime.Types.Exte
    *   ]
    * })
    * 
-   * // Update zero or more Knowledge_categories and only return the `knowledge_categories_id`
-   * const knowledge_categoriesWithKnowledge_categories_idOnly = await prisma.knowledge_categories.updateManyAndReturn({
-   *   select: { knowledge_categories_id: true },
+   * // Update zero or more Knowledge_categories and only return the `knowledge_category_id`
+   * const knowledge_categoriesWithKnowledge_category_idOnly = await prisma.knowledge_categories.updateManyAndReturn({
+   *   select: { knowledge_category_id: true },
    *   where: {
    *     // ... provide filter here
    *   },
@@ -975,7 +996,8 @@ readonly fields: knowledge_categoriesFieldRefs;
  */
 export interface Prisma__knowledge_categoriesClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  course_offerings<T extends Prisma.course_offeringsDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.course_offeringsDefaultArgs<ExtArgs>>): Prisma.Prisma__course_offeringsClient<runtime.Types.Result.GetResult<Prisma.$course_offeringsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  course_knowledge<T extends Prisma.knowledge_categories$course_knowledgeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.knowledge_categories$course_knowledgeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$course_knowledgePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  question_knowledge<T extends Prisma.knowledge_categories$question_knowledgeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.knowledge_categories$question_knowledgeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$question_knowledgePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1005,10 +1027,9 @@ export interface Prisma__knowledge_categoriesClient<T, Null = never, ExtArgs ext
  * Fields of the knowledge_categories model
  */
 export interface knowledge_categoriesFieldRefs {
-  readonly knowledge_categories_id: Prisma.FieldRef<"knowledge_categories", 'BigInt'>
-  readonly course_offerings_id: Prisma.FieldRef<"knowledge_categories", 'BigInt'>
-  readonly knowledge_name: Prisma.FieldRef<"knowledge_categories", 'String'>
-  readonly knowledge_description: Prisma.FieldRef<"knowledge_categories", 'String'>
+  readonly knowledge_category_id: Prisma.FieldRef<"knowledge_categories", 'BigInt'>
+  readonly name: Prisma.FieldRef<"knowledge_categories", 'String'>
+  readonly created_by_staff_id: Prisma.FieldRef<"knowledge_categories", 'BigInt'>
   readonly created_at: Prisma.FieldRef<"knowledge_categories", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"knowledge_categories", 'DateTime'>
 }
@@ -1260,10 +1281,6 @@ export type knowledge_categoriesCreateManyAndReturnArgs<ExtArgs extends runtime.
    */
   data: Prisma.knowledge_categoriesCreateManyInput | Prisma.knowledge_categoriesCreateManyInput[]
   skipDuplicates?: boolean
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.knowledge_categoriesIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1334,10 +1351,6 @@ export type knowledge_categoriesUpdateManyAndReturnArgs<ExtArgs extends runtime.
    * Limit how many knowledge_categories to update.
    */
   limit?: number
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.knowledge_categoriesIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1404,6 +1417,54 @@ export type knowledge_categoriesDeleteManyArgs<ExtArgs extends runtime.Types.Ext
    * Limit how many knowledge_categories to delete.
    */
   limit?: number
+}
+
+/**
+ * knowledge_categories.course_knowledge
+ */
+export type knowledge_categories$course_knowledgeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the course_knowledge
+   */
+  select?: Prisma.course_knowledgeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the course_knowledge
+   */
+  omit?: Prisma.course_knowledgeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.course_knowledgeInclude<ExtArgs> | null
+  where?: Prisma.course_knowledgeWhereInput
+  orderBy?: Prisma.course_knowledgeOrderByWithRelationInput | Prisma.course_knowledgeOrderByWithRelationInput[]
+  cursor?: Prisma.course_knowledgeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Course_knowledgeScalarFieldEnum | Prisma.Course_knowledgeScalarFieldEnum[]
+}
+
+/**
+ * knowledge_categories.question_knowledge
+ */
+export type knowledge_categories$question_knowledgeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the question_knowledge
+   */
+  select?: Prisma.question_knowledgeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the question_knowledge
+   */
+  omit?: Prisma.question_knowledgeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.question_knowledgeInclude<ExtArgs> | null
+  where?: Prisma.question_knowledgeWhereInput
+  orderBy?: Prisma.question_knowledgeOrderByWithRelationInput | Prisma.question_knowledgeOrderByWithRelationInput[]
+  cursor?: Prisma.question_knowledgeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Question_knowledgeScalarFieldEnum | Prisma.Question_knowledgeScalarFieldEnum[]
 }
 
 /**

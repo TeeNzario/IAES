@@ -203,7 +203,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
             className={`w-full flex items-center gap-3 ${isSidebarOpen ? "px-4" : "justify-center"} py-3 text-[#575757] hover:bg-gray-100 rounded-lg transition-colors cursor-pointer`}
           >
             <BookOpen size={20} />
-            {isSidebarOpen && <span>ผลสรุปการสอน</span>}
+            {isSidebarOpen && <span>ผลสรุปการสอบ</span>}
           </button>
 
           {/* Instructor-only menus */}
@@ -216,7 +216,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
                 className={`w-full flex items-center gap-3 ${isSidebarOpen ? "px-4" : "justify-center"} py-3 text-[#575757] hover:bg-gray-100 rounded-lg transition-colors cursor-pointer`}
               >
                 <Settings size={20} />
-                {isSidebarOpen && <span>จัดการคอร์ส</span>}
+                {isSidebarOpen && <span>จัดการรายวิชา</span>}
               </button>
 
               <button

@@ -4,6 +4,7 @@ import { adminLogin } from "@/features/auth/auth.api";
 import { setAuth } from "@/lib/auth";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const LoginPage = () => {
   const [email, setEmail] = useState<string>("");
@@ -57,6 +58,7 @@ const LoginPage = () => {
                 </div>
                 <span className="text-blue-600 font-bold text-xl">IACS</span>
             </div> */}
+            <Image src="/IAES_logo.png" alt="Logo" width={100} height={100} />
           </div>
 
           {/* Title */}
@@ -64,9 +66,9 @@ const LoginPage = () => {
             ลงชื่อเข้าใช้
           </h1>
           <p className="text-center text-gray-500 text-sm mb-6">
-            มีบัญชีในการลงชื่อเข้าใช้ในรถ
+            มีปัญหาในการลงชื่อเข้าใช้
             <br />
-            ติดต่อผู้ดูแลระบบ
+            โปรดติดต่อผู้ดูแลระบบ
           </p>
         </div>
 

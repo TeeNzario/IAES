@@ -253,6 +253,8 @@ export type coursesWhereInput = {
   created_at?: Prisma.DateTimeFilter<"courses"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"courses"> | Date | string
   course_offerings?: Prisma.Course_offeringsListRelationFilter
+  course_knowledge?: Prisma.Course_knowledgeListRelationFilter
+  question_knowledge?: Prisma.Question_knowledgeListRelationFilter
 }
 
 export type coursesOrderByWithRelationInput = {
@@ -266,6 +268,8 @@ export type coursesOrderByWithRelationInput = {
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   course_offerings?: Prisma.course_offeringsOrderByRelationAggregateInput
+  course_knowledge?: Prisma.course_knowledgeOrderByRelationAggregateInput
+  question_knowledge?: Prisma.question_knowledgeOrderByRelationAggregateInput
 }
 
 export type coursesWhereUniqueInput = Prisma.AtLeast<{
@@ -282,6 +286,8 @@ export type coursesWhereUniqueInput = Prisma.AtLeast<{
   created_at?: Prisma.DateTimeFilter<"courses"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"courses"> | Date | string
   course_offerings?: Prisma.Course_offeringsListRelationFilter
+  course_knowledge?: Prisma.Course_knowledgeListRelationFilter
+  question_knowledge?: Prisma.Question_knowledgeListRelationFilter
 }, "courses_id">
 
 export type coursesOrderByWithAggregationInput = {
@@ -327,6 +333,8 @@ export type coursesCreateInput = {
   created_at?: Date | string
   updated_at?: Date | string
   course_offerings?: Prisma.course_offeringsCreateNestedManyWithoutCoursesInput
+  course_knowledge?: Prisma.course_knowledgeCreateNestedManyWithoutCoursesInput
+  question_knowledge?: Prisma.question_knowledgeCreateNestedManyWithoutCoursesInput
 }
 
 export type coursesUncheckedCreateInput = {
@@ -340,6 +348,8 @@ export type coursesUncheckedCreateInput = {
   created_at?: Date | string
   updated_at?: Date | string
   course_offerings?: Prisma.course_offeringsUncheckedCreateNestedManyWithoutCoursesInput
+  course_knowledge?: Prisma.course_knowledgeUncheckedCreateNestedManyWithoutCoursesInput
+  question_knowledge?: Prisma.question_knowledgeUncheckedCreateNestedManyWithoutCoursesInput
 }
 
 export type coursesUpdateInput = {
@@ -353,6 +363,8 @@ export type coursesUpdateInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   course_offerings?: Prisma.course_offeringsUpdateManyWithoutCoursesNestedInput
+  course_knowledge?: Prisma.course_knowledgeUpdateManyWithoutCoursesNestedInput
+  question_knowledge?: Prisma.question_knowledgeUpdateManyWithoutCoursesNestedInput
 }
 
 export type coursesUncheckedUpdateInput = {
@@ -366,6 +378,8 @@ export type coursesUncheckedUpdateInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   course_offerings?: Prisma.course_offeringsUncheckedUpdateManyWithoutCoursesNestedInput
+  course_knowledge?: Prisma.course_knowledgeUncheckedUpdateManyWithoutCoursesNestedInput
+  question_knowledge?: Prisma.question_knowledgeUncheckedUpdateManyWithoutCoursesNestedInput
 }
 
 export type coursesCreateManyInput = {
@@ -469,6 +483,34 @@ export type coursesUpdateOneRequiredWithoutCourse_offeringsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.coursesUpdateToOneWithWhereWithoutCourse_offeringsInput, Prisma.coursesUpdateWithoutCourse_offeringsInput>, Prisma.coursesUncheckedUpdateWithoutCourse_offeringsInput>
 }
 
+export type coursesCreateNestedOneWithoutCourse_knowledgeInput = {
+  create?: Prisma.XOR<Prisma.coursesCreateWithoutCourse_knowledgeInput, Prisma.coursesUncheckedCreateWithoutCourse_knowledgeInput>
+  connectOrCreate?: Prisma.coursesCreateOrConnectWithoutCourse_knowledgeInput
+  connect?: Prisma.coursesWhereUniqueInput
+}
+
+export type coursesUpdateOneRequiredWithoutCourse_knowledgeNestedInput = {
+  create?: Prisma.XOR<Prisma.coursesCreateWithoutCourse_knowledgeInput, Prisma.coursesUncheckedCreateWithoutCourse_knowledgeInput>
+  connectOrCreate?: Prisma.coursesCreateOrConnectWithoutCourse_knowledgeInput
+  upsert?: Prisma.coursesUpsertWithoutCourse_knowledgeInput
+  connect?: Prisma.coursesWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.coursesUpdateToOneWithWhereWithoutCourse_knowledgeInput, Prisma.coursesUpdateWithoutCourse_knowledgeInput>, Prisma.coursesUncheckedUpdateWithoutCourse_knowledgeInput>
+}
+
+export type coursesCreateNestedOneWithoutQuestion_knowledgeInput = {
+  create?: Prisma.XOR<Prisma.coursesCreateWithoutQuestion_knowledgeInput, Prisma.coursesUncheckedCreateWithoutQuestion_knowledgeInput>
+  connectOrCreate?: Prisma.coursesCreateOrConnectWithoutQuestion_knowledgeInput
+  connect?: Prisma.coursesWhereUniqueInput
+}
+
+export type coursesUpdateOneRequiredWithoutQuestion_knowledgeNestedInput = {
+  create?: Prisma.XOR<Prisma.coursesCreateWithoutQuestion_knowledgeInput, Prisma.coursesUncheckedCreateWithoutQuestion_knowledgeInput>
+  connectOrCreate?: Prisma.coursesCreateOrConnectWithoutQuestion_knowledgeInput
+  upsert?: Prisma.coursesUpsertWithoutQuestion_knowledgeInput
+  connect?: Prisma.coursesWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.coursesUpdateToOneWithWhereWithoutQuestion_knowledgeInput, Prisma.coursesUpdateWithoutQuestion_knowledgeInput>, Prisma.coursesUncheckedUpdateWithoutQuestion_knowledgeInput>
+}
+
 export type coursesCreateWithoutCourse_offeringsInput = {
   courses_id?: bigint | number
   course_code: string
@@ -479,6 +521,8 @@ export type coursesCreateWithoutCourse_offeringsInput = {
   created_by_instructors_id: bigint | number
   created_at?: Date | string
   updated_at?: Date | string
+  course_knowledge?: Prisma.course_knowledgeCreateNestedManyWithoutCoursesInput
+  question_knowledge?: Prisma.question_knowledgeCreateNestedManyWithoutCoursesInput
 }
 
 export type coursesUncheckedCreateWithoutCourse_offeringsInput = {
@@ -491,6 +535,8 @@ export type coursesUncheckedCreateWithoutCourse_offeringsInput = {
   created_by_instructors_id: bigint | number
   created_at?: Date | string
   updated_at?: Date | string
+  course_knowledge?: Prisma.course_knowledgeUncheckedCreateNestedManyWithoutCoursesInput
+  question_knowledge?: Prisma.question_knowledgeUncheckedCreateNestedManyWithoutCoursesInput
 }
 
 export type coursesCreateOrConnectWithoutCourse_offeringsInput = {
@@ -519,6 +565,8 @@ export type coursesUpdateWithoutCourse_offeringsInput = {
   created_by_instructors_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  course_knowledge?: Prisma.course_knowledgeUpdateManyWithoutCoursesNestedInput
+  question_knowledge?: Prisma.question_knowledgeUpdateManyWithoutCoursesNestedInput
 }
 
 export type coursesUncheckedUpdateWithoutCourse_offeringsInput = {
@@ -531,6 +579,152 @@ export type coursesUncheckedUpdateWithoutCourse_offeringsInput = {
   created_by_instructors_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  course_knowledge?: Prisma.course_knowledgeUncheckedUpdateManyWithoutCoursesNestedInput
+  question_knowledge?: Prisma.question_knowledgeUncheckedUpdateManyWithoutCoursesNestedInput
+}
+
+export type coursesCreateWithoutCourse_knowledgeInput = {
+  courses_id?: bigint | number
+  course_code: string
+  course_name: string
+  description?: string | null
+  course_image?: string | null
+  is_active?: boolean
+  created_by_instructors_id: bigint | number
+  created_at?: Date | string
+  updated_at?: Date | string
+  course_offerings?: Prisma.course_offeringsCreateNestedManyWithoutCoursesInput
+  question_knowledge?: Prisma.question_knowledgeCreateNestedManyWithoutCoursesInput
+}
+
+export type coursesUncheckedCreateWithoutCourse_knowledgeInput = {
+  courses_id?: bigint | number
+  course_code: string
+  course_name: string
+  description?: string | null
+  course_image?: string | null
+  is_active?: boolean
+  created_by_instructors_id: bigint | number
+  created_at?: Date | string
+  updated_at?: Date | string
+  course_offerings?: Prisma.course_offeringsUncheckedCreateNestedManyWithoutCoursesInput
+  question_knowledge?: Prisma.question_knowledgeUncheckedCreateNestedManyWithoutCoursesInput
+}
+
+export type coursesCreateOrConnectWithoutCourse_knowledgeInput = {
+  where: Prisma.coursesWhereUniqueInput
+  create: Prisma.XOR<Prisma.coursesCreateWithoutCourse_knowledgeInput, Prisma.coursesUncheckedCreateWithoutCourse_knowledgeInput>
+}
+
+export type coursesUpsertWithoutCourse_knowledgeInput = {
+  update: Prisma.XOR<Prisma.coursesUpdateWithoutCourse_knowledgeInput, Prisma.coursesUncheckedUpdateWithoutCourse_knowledgeInput>
+  create: Prisma.XOR<Prisma.coursesCreateWithoutCourse_knowledgeInput, Prisma.coursesUncheckedCreateWithoutCourse_knowledgeInput>
+  where?: Prisma.coursesWhereInput
+}
+
+export type coursesUpdateToOneWithWhereWithoutCourse_knowledgeInput = {
+  where?: Prisma.coursesWhereInput
+  data: Prisma.XOR<Prisma.coursesUpdateWithoutCourse_knowledgeInput, Prisma.coursesUncheckedUpdateWithoutCourse_knowledgeInput>
+}
+
+export type coursesUpdateWithoutCourse_knowledgeInput = {
+  courses_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  course_code?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  course_image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_by_instructors_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  course_offerings?: Prisma.course_offeringsUpdateManyWithoutCoursesNestedInput
+  question_knowledge?: Prisma.question_knowledgeUpdateManyWithoutCoursesNestedInput
+}
+
+export type coursesUncheckedUpdateWithoutCourse_knowledgeInput = {
+  courses_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  course_code?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  course_image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_by_instructors_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  course_offerings?: Prisma.course_offeringsUncheckedUpdateManyWithoutCoursesNestedInput
+  question_knowledge?: Prisma.question_knowledgeUncheckedUpdateManyWithoutCoursesNestedInput
+}
+
+export type coursesCreateWithoutQuestion_knowledgeInput = {
+  courses_id?: bigint | number
+  course_code: string
+  course_name: string
+  description?: string | null
+  course_image?: string | null
+  is_active?: boolean
+  created_by_instructors_id: bigint | number
+  created_at?: Date | string
+  updated_at?: Date | string
+  course_offerings?: Prisma.course_offeringsCreateNestedManyWithoutCoursesInput
+  course_knowledge?: Prisma.course_knowledgeCreateNestedManyWithoutCoursesInput
+}
+
+export type coursesUncheckedCreateWithoutQuestion_knowledgeInput = {
+  courses_id?: bigint | number
+  course_code: string
+  course_name: string
+  description?: string | null
+  course_image?: string | null
+  is_active?: boolean
+  created_by_instructors_id: bigint | number
+  created_at?: Date | string
+  updated_at?: Date | string
+  course_offerings?: Prisma.course_offeringsUncheckedCreateNestedManyWithoutCoursesInput
+  course_knowledge?: Prisma.course_knowledgeUncheckedCreateNestedManyWithoutCoursesInput
+}
+
+export type coursesCreateOrConnectWithoutQuestion_knowledgeInput = {
+  where: Prisma.coursesWhereUniqueInput
+  create: Prisma.XOR<Prisma.coursesCreateWithoutQuestion_knowledgeInput, Prisma.coursesUncheckedCreateWithoutQuestion_knowledgeInput>
+}
+
+export type coursesUpsertWithoutQuestion_knowledgeInput = {
+  update: Prisma.XOR<Prisma.coursesUpdateWithoutQuestion_knowledgeInput, Prisma.coursesUncheckedUpdateWithoutQuestion_knowledgeInput>
+  create: Prisma.XOR<Prisma.coursesCreateWithoutQuestion_knowledgeInput, Prisma.coursesUncheckedCreateWithoutQuestion_knowledgeInput>
+  where?: Prisma.coursesWhereInput
+}
+
+export type coursesUpdateToOneWithWhereWithoutQuestion_knowledgeInput = {
+  where?: Prisma.coursesWhereInput
+  data: Prisma.XOR<Prisma.coursesUpdateWithoutQuestion_knowledgeInput, Prisma.coursesUncheckedUpdateWithoutQuestion_knowledgeInput>
+}
+
+export type coursesUpdateWithoutQuestion_knowledgeInput = {
+  courses_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  course_code?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  course_image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_by_instructors_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  course_offerings?: Prisma.course_offeringsUpdateManyWithoutCoursesNestedInput
+  course_knowledge?: Prisma.course_knowledgeUpdateManyWithoutCoursesNestedInput
+}
+
+export type coursesUncheckedUpdateWithoutQuestion_knowledgeInput = {
+  courses_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  course_code?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  course_image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_by_instructors_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  course_offerings?: Prisma.course_offeringsUncheckedUpdateManyWithoutCoursesNestedInput
+  course_knowledge?: Prisma.course_knowledgeUncheckedUpdateManyWithoutCoursesNestedInput
 }
 
 
@@ -540,10 +734,14 @@ export type coursesUncheckedUpdateWithoutCourse_offeringsInput = {
 
 export type CoursesCountOutputType = {
   course_offerings: number
+  course_knowledge: number
+  question_knowledge: number
 }
 
 export type CoursesCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   course_offerings?: boolean | CoursesCountOutputTypeCountCourse_offeringsArgs
+  course_knowledge?: boolean | CoursesCountOutputTypeCountCourse_knowledgeArgs
+  question_knowledge?: boolean | CoursesCountOutputTypeCountQuestion_knowledgeArgs
 }
 
 /**
@@ -563,6 +761,20 @@ export type CoursesCountOutputTypeCountCourse_offeringsArgs<ExtArgs extends runt
   where?: Prisma.course_offeringsWhereInput
 }
 
+/**
+ * CoursesCountOutputType without action
+ */
+export type CoursesCountOutputTypeCountCourse_knowledgeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.course_knowledgeWhereInput
+}
+
+/**
+ * CoursesCountOutputType without action
+ */
+export type CoursesCountOutputTypeCountQuestion_knowledgeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.question_knowledgeWhereInput
+}
+
 
 export type coursesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   courses_id?: boolean
@@ -575,6 +787,8 @@ export type coursesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   created_at?: boolean
   updated_at?: boolean
   course_offerings?: boolean | Prisma.courses$course_offeringsArgs<ExtArgs>
+  course_knowledge?: boolean | Prisma.courses$course_knowledgeArgs<ExtArgs>
+  question_knowledge?: boolean | Prisma.courses$question_knowledgeArgs<ExtArgs>
   _count?: boolean | Prisma.CoursesCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["courses"]>
 
@@ -617,6 +831,8 @@ export type coursesSelectScalar = {
 export type coursesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"courses_id" | "course_code" | "course_name" | "description" | "course_image" | "is_active" | "created_by_instructors_id" | "created_at" | "updated_at", ExtArgs["result"]["courses"]>
 export type coursesInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   course_offerings?: boolean | Prisma.courses$course_offeringsArgs<ExtArgs>
+  course_knowledge?: boolean | Prisma.courses$course_knowledgeArgs<ExtArgs>
+  question_knowledge?: boolean | Prisma.courses$question_knowledgeArgs<ExtArgs>
   _count?: boolean | Prisma.CoursesCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type coursesIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -626,6 +842,8 @@ export type $coursesPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   name: "courses"
   objects: {
     course_offerings: Prisma.$course_offeringsPayload<ExtArgs>[]
+    course_knowledge: Prisma.$course_knowledgePayload<ExtArgs>[]
+    question_knowledge: Prisma.$question_knowledgePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     courses_id: bigint
@@ -1032,6 +1250,8 @@ readonly fields: coursesFieldRefs;
 export interface Prisma__coursesClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   course_offerings<T extends Prisma.courses$course_offeringsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.courses$course_offeringsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$course_offeringsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  course_knowledge<T extends Prisma.courses$course_knowledgeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.courses$course_knowledgeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$course_knowledgePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  question_knowledge<T extends Prisma.courses$question_knowledgeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.courses$question_knowledgeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$question_knowledgePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1479,6 +1699,54 @@ export type courses$course_offeringsArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.Course_offeringsScalarFieldEnum | Prisma.Course_offeringsScalarFieldEnum[]
+}
+
+/**
+ * courses.course_knowledge
+ */
+export type courses$course_knowledgeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the course_knowledge
+   */
+  select?: Prisma.course_knowledgeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the course_knowledge
+   */
+  omit?: Prisma.course_knowledgeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.course_knowledgeInclude<ExtArgs> | null
+  where?: Prisma.course_knowledgeWhereInput
+  orderBy?: Prisma.course_knowledgeOrderByWithRelationInput | Prisma.course_knowledgeOrderByWithRelationInput[]
+  cursor?: Prisma.course_knowledgeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Course_knowledgeScalarFieldEnum | Prisma.Course_knowledgeScalarFieldEnum[]
+}
+
+/**
+ * courses.question_knowledge
+ */
+export type courses$question_knowledgeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the question_knowledge
+   */
+  select?: Prisma.question_knowledgeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the question_knowledge
+   */
+  omit?: Prisma.question_knowledgeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.question_knowledgeInclude<ExtArgs> | null
+  where?: Prisma.question_knowledgeWhereInput
+  orderBy?: Prisma.question_knowledgeOrderByWithRelationInput | Prisma.question_knowledgeOrderByWithRelationInput[]
+  cursor?: Prisma.question_knowledgeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Question_knowledgeScalarFieldEnum | Prisma.Question_knowledgeScalarFieldEnum[]
 }
 
 /**

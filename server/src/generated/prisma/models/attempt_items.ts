@@ -29,7 +29,7 @@ export type AggregateAttempt_items = {
 export type Attempt_itemsAvgAggregateOutputType = {
   attempt_items_id: number | null
   exam_attempts_id: number | null
-  questions_id: number | null
+  question_id: number | null
   sequence_index: number | null
   time_per_item: number | null
 }
@@ -37,7 +37,7 @@ export type Attempt_itemsAvgAggregateOutputType = {
 export type Attempt_itemsSumAggregateOutputType = {
   attempt_items_id: bigint | null
   exam_attempts_id: bigint | null
-  questions_id: bigint | null
+  question_id: bigint | null
   sequence_index: number | null
   time_per_item: number | null
 }
@@ -45,7 +45,7 @@ export type Attempt_itemsSumAggregateOutputType = {
 export type Attempt_itemsMinAggregateOutputType = {
   attempt_items_id: bigint | null
   exam_attempts_id: bigint | null
-  questions_id: bigint | null
+  question_id: bigint | null
   sequence_index: number | null
   shown_at: Date | null
   answered_at: Date | null
@@ -55,7 +55,7 @@ export type Attempt_itemsMinAggregateOutputType = {
 export type Attempt_itemsMaxAggregateOutputType = {
   attempt_items_id: bigint | null
   exam_attempts_id: bigint | null
-  questions_id: bigint | null
+  question_id: bigint | null
   sequence_index: number | null
   shown_at: Date | null
   answered_at: Date | null
@@ -65,12 +65,11 @@ export type Attempt_itemsMaxAggregateOutputType = {
 export type Attempt_itemsCountAggregateOutputType = {
   attempt_items_id: number
   exam_attempts_id: number
-  questions_id: number
+  question_id: number
   sequence_index: number
   shown_at: number
   answered_at: number
   time_per_item: number
-  shuffled_choice_order: number
   choice_selection_log: number
   _all: number
 }
@@ -79,7 +78,7 @@ export type Attempt_itemsCountAggregateOutputType = {
 export type Attempt_itemsAvgAggregateInputType = {
   attempt_items_id?: true
   exam_attempts_id?: true
-  questions_id?: true
+  question_id?: true
   sequence_index?: true
   time_per_item?: true
 }
@@ -87,7 +86,7 @@ export type Attempt_itemsAvgAggregateInputType = {
 export type Attempt_itemsSumAggregateInputType = {
   attempt_items_id?: true
   exam_attempts_id?: true
-  questions_id?: true
+  question_id?: true
   sequence_index?: true
   time_per_item?: true
 }
@@ -95,7 +94,7 @@ export type Attempt_itemsSumAggregateInputType = {
 export type Attempt_itemsMinAggregateInputType = {
   attempt_items_id?: true
   exam_attempts_id?: true
-  questions_id?: true
+  question_id?: true
   sequence_index?: true
   shown_at?: true
   answered_at?: true
@@ -105,7 +104,7 @@ export type Attempt_itemsMinAggregateInputType = {
 export type Attempt_itemsMaxAggregateInputType = {
   attempt_items_id?: true
   exam_attempts_id?: true
-  questions_id?: true
+  question_id?: true
   sequence_index?: true
   shown_at?: true
   answered_at?: true
@@ -115,12 +114,11 @@ export type Attempt_itemsMaxAggregateInputType = {
 export type Attempt_itemsCountAggregateInputType = {
   attempt_items_id?: true
   exam_attempts_id?: true
-  questions_id?: true
+  question_id?: true
   sequence_index?: true
   shown_at?: true
   answered_at?: true
   time_per_item?: true
-  shuffled_choice_order?: true
   choice_selection_log?: true
   _all?: true
 }
@@ -214,12 +212,11 @@ export type attempt_itemsGroupByArgs<ExtArgs extends runtime.Types.Extensions.In
 export type Attempt_itemsGroupByOutputType = {
   attempt_items_id: bigint
   exam_attempts_id: bigint
-  questions_id: bigint
+  question_id: bigint
   sequence_index: number
   shown_at: Date
   answered_at: Date | null
   time_per_item: number | null
-  shuffled_choice_order: runtime.JsonValue | null
   choice_selection_log: runtime.JsonValue | null
   _count: Attempt_itemsCountAggregateOutputType | null
   _avg: Attempt_itemsAvgAggregateOutputType | null
@@ -249,61 +246,57 @@ export type attempt_itemsWhereInput = {
   NOT?: Prisma.attempt_itemsWhereInput | Prisma.attempt_itemsWhereInput[]
   attempt_items_id?: Prisma.BigIntFilter<"attempt_items"> | bigint | number
   exam_attempts_id?: Prisma.BigIntFilter<"attempt_items"> | bigint | number
-  questions_id?: Prisma.BigIntFilter<"attempt_items"> | bigint | number
+  question_id?: Prisma.BigIntFilter<"attempt_items"> | bigint | number
   sequence_index?: Prisma.IntFilter<"attempt_items"> | number
   shown_at?: Prisma.DateTimeFilter<"attempt_items"> | Date | string
   answered_at?: Prisma.DateTimeNullableFilter<"attempt_items"> | Date | string | null
   time_per_item?: Prisma.IntNullableFilter<"attempt_items"> | number | null
-  shuffled_choice_order?: Prisma.JsonNullableFilter<"attempt_items">
   choice_selection_log?: Prisma.JsonNullableFilter<"attempt_items">
   attempt_answers?: Prisma.Attempt_answersListRelationFilter
   exam_attempts?: Prisma.XOR<Prisma.Exam_attemptsScalarRelationFilter, Prisma.exam_attemptsWhereInput>
-  questions?: Prisma.XOR<Prisma.QuestionsScalarRelationFilter, Prisma.questionsWhereInput>
+  question_bank?: Prisma.XOR<Prisma.Question_bankScalarRelationFilter, Prisma.question_bankWhereInput>
 }
 
 export type attempt_itemsOrderByWithRelationInput = {
   attempt_items_id?: Prisma.SortOrder
   exam_attempts_id?: Prisma.SortOrder
-  questions_id?: Prisma.SortOrder
+  question_id?: Prisma.SortOrder
   sequence_index?: Prisma.SortOrder
   shown_at?: Prisma.SortOrder
   answered_at?: Prisma.SortOrderInput | Prisma.SortOrder
   time_per_item?: Prisma.SortOrderInput | Prisma.SortOrder
-  shuffled_choice_order?: Prisma.SortOrderInput | Prisma.SortOrder
   choice_selection_log?: Prisma.SortOrderInput | Prisma.SortOrder
   attempt_answers?: Prisma.attempt_answersOrderByRelationAggregateInput
   exam_attempts?: Prisma.exam_attemptsOrderByWithRelationInput
-  questions?: Prisma.questionsOrderByWithRelationInput
+  question_bank?: Prisma.question_bankOrderByWithRelationInput
 }
 
 export type attempt_itemsWhereUniqueInput = Prisma.AtLeast<{
   attempt_items_id?: bigint | number
-  exam_attempts_id_questions_id?: Prisma.attempt_itemsExam_attempts_idQuestions_idCompoundUniqueInput
+  exam_attempts_id_question_id?: Prisma.attempt_itemsExam_attempts_idQuestion_idCompoundUniqueInput
   AND?: Prisma.attempt_itemsWhereInput | Prisma.attempt_itemsWhereInput[]
   OR?: Prisma.attempt_itemsWhereInput[]
   NOT?: Prisma.attempt_itemsWhereInput | Prisma.attempt_itemsWhereInput[]
   exam_attempts_id?: Prisma.BigIntFilter<"attempt_items"> | bigint | number
-  questions_id?: Prisma.BigIntFilter<"attempt_items"> | bigint | number
+  question_id?: Prisma.BigIntFilter<"attempt_items"> | bigint | number
   sequence_index?: Prisma.IntFilter<"attempt_items"> | number
   shown_at?: Prisma.DateTimeFilter<"attempt_items"> | Date | string
   answered_at?: Prisma.DateTimeNullableFilter<"attempt_items"> | Date | string | null
   time_per_item?: Prisma.IntNullableFilter<"attempt_items"> | number | null
-  shuffled_choice_order?: Prisma.JsonNullableFilter<"attempt_items">
   choice_selection_log?: Prisma.JsonNullableFilter<"attempt_items">
   attempt_answers?: Prisma.Attempt_answersListRelationFilter
   exam_attempts?: Prisma.XOR<Prisma.Exam_attemptsScalarRelationFilter, Prisma.exam_attemptsWhereInput>
-  questions?: Prisma.XOR<Prisma.QuestionsScalarRelationFilter, Prisma.questionsWhereInput>
-}, "attempt_items_id" | "exam_attempts_id_questions_id">
+  question_bank?: Prisma.XOR<Prisma.Question_bankScalarRelationFilter, Prisma.question_bankWhereInput>
+}, "attempt_items_id" | "exam_attempts_id_question_id">
 
 export type attempt_itemsOrderByWithAggregationInput = {
   attempt_items_id?: Prisma.SortOrder
   exam_attempts_id?: Prisma.SortOrder
-  questions_id?: Prisma.SortOrder
+  question_id?: Prisma.SortOrder
   sequence_index?: Prisma.SortOrder
   shown_at?: Prisma.SortOrder
   answered_at?: Prisma.SortOrderInput | Prisma.SortOrder
   time_per_item?: Prisma.SortOrderInput | Prisma.SortOrder
-  shuffled_choice_order?: Prisma.SortOrderInput | Prisma.SortOrder
   choice_selection_log?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.attempt_itemsCountOrderByAggregateInput
   _avg?: Prisma.attempt_itemsAvgOrderByAggregateInput
@@ -318,12 +311,11 @@ export type attempt_itemsScalarWhereWithAggregatesInput = {
   NOT?: Prisma.attempt_itemsScalarWhereWithAggregatesInput | Prisma.attempt_itemsScalarWhereWithAggregatesInput[]
   attempt_items_id?: Prisma.BigIntWithAggregatesFilter<"attempt_items"> | bigint | number
   exam_attempts_id?: Prisma.BigIntWithAggregatesFilter<"attempt_items"> | bigint | number
-  questions_id?: Prisma.BigIntWithAggregatesFilter<"attempt_items"> | bigint | number
+  question_id?: Prisma.BigIntWithAggregatesFilter<"attempt_items"> | bigint | number
   sequence_index?: Prisma.IntWithAggregatesFilter<"attempt_items"> | number
   shown_at?: Prisma.DateTimeWithAggregatesFilter<"attempt_items"> | Date | string
   answered_at?: Prisma.DateTimeNullableWithAggregatesFilter<"attempt_items"> | Date | string | null
   time_per_item?: Prisma.IntNullableWithAggregatesFilter<"attempt_items"> | number | null
-  shuffled_choice_order?: Prisma.JsonNullableWithAggregatesFilter<"attempt_items">
   choice_selection_log?: Prisma.JsonNullableWithAggregatesFilter<"attempt_items">
 }
 
@@ -333,22 +325,20 @@ export type attempt_itemsCreateInput = {
   shown_at?: Date | string
   answered_at?: Date | string | null
   time_per_item?: number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   attempt_answers?: Prisma.attempt_answersCreateNestedManyWithoutAttempt_itemsInput
   exam_attempts: Prisma.exam_attemptsCreateNestedOneWithoutAttempt_itemsInput
-  questions: Prisma.questionsCreateNestedOneWithoutAttempt_itemsInput
+  question_bank: Prisma.question_bankCreateNestedOneWithoutAttemptItemsInput
 }
 
 export type attempt_itemsUncheckedCreateInput = {
   attempt_items_id?: bigint | number
   exam_attempts_id: bigint | number
-  questions_id: bigint | number
+  question_id: bigint | number
   sequence_index: number
   shown_at?: Date | string
   answered_at?: Date | string | null
   time_per_item?: number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   attempt_answers?: Prisma.attempt_answersUncheckedCreateNestedManyWithoutAttempt_itemsInput
 }
@@ -359,22 +349,20 @@ export type attempt_itemsUpdateInput = {
   shown_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   answered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   time_per_item?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   attempt_answers?: Prisma.attempt_answersUpdateManyWithoutAttempt_itemsNestedInput
   exam_attempts?: Prisma.exam_attemptsUpdateOneRequiredWithoutAttempt_itemsNestedInput
-  questions?: Prisma.questionsUpdateOneRequiredWithoutAttempt_itemsNestedInput
+  question_bank?: Prisma.question_bankUpdateOneRequiredWithoutAttemptItemsNestedInput
 }
 
 export type attempt_itemsUncheckedUpdateInput = {
   attempt_items_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   exam_attempts_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  questions_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  question_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sequence_index?: Prisma.IntFieldUpdateOperationsInput | number
   shown_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   answered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   time_per_item?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   attempt_answers?: Prisma.attempt_answersUncheckedUpdateManyWithoutAttempt_itemsNestedInput
 }
@@ -382,12 +370,11 @@ export type attempt_itemsUncheckedUpdateInput = {
 export type attempt_itemsCreateManyInput = {
   attempt_items_id?: bigint | number
   exam_attempts_id: bigint | number
-  questions_id: bigint | number
+  question_id: bigint | number
   sequence_index: number
   shown_at?: Date | string
   answered_at?: Date | string | null
   time_per_item?: number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
@@ -397,19 +384,17 @@ export type attempt_itemsUpdateManyMutationInput = {
   shown_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   answered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   time_per_item?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type attempt_itemsUncheckedUpdateManyInput = {
   attempt_items_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   exam_attempts_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  questions_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  question_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sequence_index?: Prisma.IntFieldUpdateOperationsInput | number
   shown_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   answered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   time_per_item?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
@@ -418,27 +403,26 @@ export type Attempt_itemsScalarRelationFilter = {
   isNot?: Prisma.attempt_itemsWhereInput
 }
 
-export type attempt_itemsExam_attempts_idQuestions_idCompoundUniqueInput = {
+export type attempt_itemsExam_attempts_idQuestion_idCompoundUniqueInput = {
   exam_attempts_id: bigint | number
-  questions_id: bigint | number
+  question_id: bigint | number
 }
 
 export type attempt_itemsCountOrderByAggregateInput = {
   attempt_items_id?: Prisma.SortOrder
   exam_attempts_id?: Prisma.SortOrder
-  questions_id?: Prisma.SortOrder
+  question_id?: Prisma.SortOrder
   sequence_index?: Prisma.SortOrder
   shown_at?: Prisma.SortOrder
   answered_at?: Prisma.SortOrder
   time_per_item?: Prisma.SortOrder
-  shuffled_choice_order?: Prisma.SortOrder
   choice_selection_log?: Prisma.SortOrder
 }
 
 export type attempt_itemsAvgOrderByAggregateInput = {
   attempt_items_id?: Prisma.SortOrder
   exam_attempts_id?: Prisma.SortOrder
-  questions_id?: Prisma.SortOrder
+  question_id?: Prisma.SortOrder
   sequence_index?: Prisma.SortOrder
   time_per_item?: Prisma.SortOrder
 }
@@ -446,7 +430,7 @@ export type attempt_itemsAvgOrderByAggregateInput = {
 export type attempt_itemsMaxOrderByAggregateInput = {
   attempt_items_id?: Prisma.SortOrder
   exam_attempts_id?: Prisma.SortOrder
-  questions_id?: Prisma.SortOrder
+  question_id?: Prisma.SortOrder
   sequence_index?: Prisma.SortOrder
   shown_at?: Prisma.SortOrder
   answered_at?: Prisma.SortOrder
@@ -456,7 +440,7 @@ export type attempt_itemsMaxOrderByAggregateInput = {
 export type attempt_itemsMinOrderByAggregateInput = {
   attempt_items_id?: Prisma.SortOrder
   exam_attempts_id?: Prisma.SortOrder
-  questions_id?: Prisma.SortOrder
+  question_id?: Prisma.SortOrder
   sequence_index?: Prisma.SortOrder
   shown_at?: Prisma.SortOrder
   answered_at?: Prisma.SortOrder
@@ -466,7 +450,7 @@ export type attempt_itemsMinOrderByAggregateInput = {
 export type attempt_itemsSumOrderByAggregateInput = {
   attempt_items_id?: Prisma.SortOrder
   exam_attempts_id?: Prisma.SortOrder
-  questions_id?: Prisma.SortOrder
+  question_id?: Prisma.SortOrder
   sequence_index?: Prisma.SortOrder
   time_per_item?: Prisma.SortOrder
 }
@@ -557,45 +541,45 @@ export type attempt_itemsUncheckedUpdateManyWithoutExam_attemptsNestedInput = {
   deleteMany?: Prisma.attempt_itemsScalarWhereInput | Prisma.attempt_itemsScalarWhereInput[]
 }
 
-export type attempt_itemsCreateNestedManyWithoutQuestionsInput = {
-  create?: Prisma.XOR<Prisma.attempt_itemsCreateWithoutQuestionsInput, Prisma.attempt_itemsUncheckedCreateWithoutQuestionsInput> | Prisma.attempt_itemsCreateWithoutQuestionsInput[] | Prisma.attempt_itemsUncheckedCreateWithoutQuestionsInput[]
-  connectOrCreate?: Prisma.attempt_itemsCreateOrConnectWithoutQuestionsInput | Prisma.attempt_itemsCreateOrConnectWithoutQuestionsInput[]
-  createMany?: Prisma.attempt_itemsCreateManyQuestionsInputEnvelope
+export type attempt_itemsCreateNestedManyWithoutQuestion_bankInput = {
+  create?: Prisma.XOR<Prisma.attempt_itemsCreateWithoutQuestion_bankInput, Prisma.attempt_itemsUncheckedCreateWithoutQuestion_bankInput> | Prisma.attempt_itemsCreateWithoutQuestion_bankInput[] | Prisma.attempt_itemsUncheckedCreateWithoutQuestion_bankInput[]
+  connectOrCreate?: Prisma.attempt_itemsCreateOrConnectWithoutQuestion_bankInput | Prisma.attempt_itemsCreateOrConnectWithoutQuestion_bankInput[]
+  createMany?: Prisma.attempt_itemsCreateManyQuestion_bankInputEnvelope
   connect?: Prisma.attempt_itemsWhereUniqueInput | Prisma.attempt_itemsWhereUniqueInput[]
 }
 
-export type attempt_itemsUncheckedCreateNestedManyWithoutQuestionsInput = {
-  create?: Prisma.XOR<Prisma.attempt_itemsCreateWithoutQuestionsInput, Prisma.attempt_itemsUncheckedCreateWithoutQuestionsInput> | Prisma.attempt_itemsCreateWithoutQuestionsInput[] | Prisma.attempt_itemsUncheckedCreateWithoutQuestionsInput[]
-  connectOrCreate?: Prisma.attempt_itemsCreateOrConnectWithoutQuestionsInput | Prisma.attempt_itemsCreateOrConnectWithoutQuestionsInput[]
-  createMany?: Prisma.attempt_itemsCreateManyQuestionsInputEnvelope
+export type attempt_itemsUncheckedCreateNestedManyWithoutQuestion_bankInput = {
+  create?: Prisma.XOR<Prisma.attempt_itemsCreateWithoutQuestion_bankInput, Prisma.attempt_itemsUncheckedCreateWithoutQuestion_bankInput> | Prisma.attempt_itemsCreateWithoutQuestion_bankInput[] | Prisma.attempt_itemsUncheckedCreateWithoutQuestion_bankInput[]
+  connectOrCreate?: Prisma.attempt_itemsCreateOrConnectWithoutQuestion_bankInput | Prisma.attempt_itemsCreateOrConnectWithoutQuestion_bankInput[]
+  createMany?: Prisma.attempt_itemsCreateManyQuestion_bankInputEnvelope
   connect?: Prisma.attempt_itemsWhereUniqueInput | Prisma.attempt_itemsWhereUniqueInput[]
 }
 
-export type attempt_itemsUpdateManyWithoutQuestionsNestedInput = {
-  create?: Prisma.XOR<Prisma.attempt_itemsCreateWithoutQuestionsInput, Prisma.attempt_itemsUncheckedCreateWithoutQuestionsInput> | Prisma.attempt_itemsCreateWithoutQuestionsInput[] | Prisma.attempt_itemsUncheckedCreateWithoutQuestionsInput[]
-  connectOrCreate?: Prisma.attempt_itemsCreateOrConnectWithoutQuestionsInput | Prisma.attempt_itemsCreateOrConnectWithoutQuestionsInput[]
-  upsert?: Prisma.attempt_itemsUpsertWithWhereUniqueWithoutQuestionsInput | Prisma.attempt_itemsUpsertWithWhereUniqueWithoutQuestionsInput[]
-  createMany?: Prisma.attempt_itemsCreateManyQuestionsInputEnvelope
+export type attempt_itemsUpdateManyWithoutQuestion_bankNestedInput = {
+  create?: Prisma.XOR<Prisma.attempt_itemsCreateWithoutQuestion_bankInput, Prisma.attempt_itemsUncheckedCreateWithoutQuestion_bankInput> | Prisma.attempt_itemsCreateWithoutQuestion_bankInput[] | Prisma.attempt_itemsUncheckedCreateWithoutQuestion_bankInput[]
+  connectOrCreate?: Prisma.attempt_itemsCreateOrConnectWithoutQuestion_bankInput | Prisma.attempt_itemsCreateOrConnectWithoutQuestion_bankInput[]
+  upsert?: Prisma.attempt_itemsUpsertWithWhereUniqueWithoutQuestion_bankInput | Prisma.attempt_itemsUpsertWithWhereUniqueWithoutQuestion_bankInput[]
+  createMany?: Prisma.attempt_itemsCreateManyQuestion_bankInputEnvelope
   set?: Prisma.attempt_itemsWhereUniqueInput | Prisma.attempt_itemsWhereUniqueInput[]
   disconnect?: Prisma.attempt_itemsWhereUniqueInput | Prisma.attempt_itemsWhereUniqueInput[]
   delete?: Prisma.attempt_itemsWhereUniqueInput | Prisma.attempt_itemsWhereUniqueInput[]
   connect?: Prisma.attempt_itemsWhereUniqueInput | Prisma.attempt_itemsWhereUniqueInput[]
-  update?: Prisma.attempt_itemsUpdateWithWhereUniqueWithoutQuestionsInput | Prisma.attempt_itemsUpdateWithWhereUniqueWithoutQuestionsInput[]
-  updateMany?: Prisma.attempt_itemsUpdateManyWithWhereWithoutQuestionsInput | Prisma.attempt_itemsUpdateManyWithWhereWithoutQuestionsInput[]
+  update?: Prisma.attempt_itemsUpdateWithWhereUniqueWithoutQuestion_bankInput | Prisma.attempt_itemsUpdateWithWhereUniqueWithoutQuestion_bankInput[]
+  updateMany?: Prisma.attempt_itemsUpdateManyWithWhereWithoutQuestion_bankInput | Prisma.attempt_itemsUpdateManyWithWhereWithoutQuestion_bankInput[]
   deleteMany?: Prisma.attempt_itemsScalarWhereInput | Prisma.attempt_itemsScalarWhereInput[]
 }
 
-export type attempt_itemsUncheckedUpdateManyWithoutQuestionsNestedInput = {
-  create?: Prisma.XOR<Prisma.attempt_itemsCreateWithoutQuestionsInput, Prisma.attempt_itemsUncheckedCreateWithoutQuestionsInput> | Prisma.attempt_itemsCreateWithoutQuestionsInput[] | Prisma.attempt_itemsUncheckedCreateWithoutQuestionsInput[]
-  connectOrCreate?: Prisma.attempt_itemsCreateOrConnectWithoutQuestionsInput | Prisma.attempt_itemsCreateOrConnectWithoutQuestionsInput[]
-  upsert?: Prisma.attempt_itemsUpsertWithWhereUniqueWithoutQuestionsInput | Prisma.attempt_itemsUpsertWithWhereUniqueWithoutQuestionsInput[]
-  createMany?: Prisma.attempt_itemsCreateManyQuestionsInputEnvelope
+export type attempt_itemsUncheckedUpdateManyWithoutQuestion_bankNestedInput = {
+  create?: Prisma.XOR<Prisma.attempt_itemsCreateWithoutQuestion_bankInput, Prisma.attempt_itemsUncheckedCreateWithoutQuestion_bankInput> | Prisma.attempt_itemsCreateWithoutQuestion_bankInput[] | Prisma.attempt_itemsUncheckedCreateWithoutQuestion_bankInput[]
+  connectOrCreate?: Prisma.attempt_itemsCreateOrConnectWithoutQuestion_bankInput | Prisma.attempt_itemsCreateOrConnectWithoutQuestion_bankInput[]
+  upsert?: Prisma.attempt_itemsUpsertWithWhereUniqueWithoutQuestion_bankInput | Prisma.attempt_itemsUpsertWithWhereUniqueWithoutQuestion_bankInput[]
+  createMany?: Prisma.attempt_itemsCreateManyQuestion_bankInputEnvelope
   set?: Prisma.attempt_itemsWhereUniqueInput | Prisma.attempt_itemsWhereUniqueInput[]
   disconnect?: Prisma.attempt_itemsWhereUniqueInput | Prisma.attempt_itemsWhereUniqueInput[]
   delete?: Prisma.attempt_itemsWhereUniqueInput | Prisma.attempt_itemsWhereUniqueInput[]
   connect?: Prisma.attempt_itemsWhereUniqueInput | Prisma.attempt_itemsWhereUniqueInput[]
-  update?: Prisma.attempt_itemsUpdateWithWhereUniqueWithoutQuestionsInput | Prisma.attempt_itemsUpdateWithWhereUniqueWithoutQuestionsInput[]
-  updateMany?: Prisma.attempt_itemsUpdateManyWithWhereWithoutQuestionsInput | Prisma.attempt_itemsUpdateManyWithWhereWithoutQuestionsInput[]
+  update?: Prisma.attempt_itemsUpdateWithWhereUniqueWithoutQuestion_bankInput | Prisma.attempt_itemsUpdateWithWhereUniqueWithoutQuestion_bankInput[]
+  updateMany?: Prisma.attempt_itemsUpdateManyWithWhereWithoutQuestion_bankInput | Prisma.attempt_itemsUpdateManyWithWhereWithoutQuestion_bankInput[]
   deleteMany?: Prisma.attempt_itemsScalarWhereInput | Prisma.attempt_itemsScalarWhereInput[]
 }
 
@@ -605,21 +589,19 @@ export type attempt_itemsCreateWithoutAttempt_answersInput = {
   shown_at?: Date | string
   answered_at?: Date | string | null
   time_per_item?: number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   exam_attempts: Prisma.exam_attemptsCreateNestedOneWithoutAttempt_itemsInput
-  questions: Prisma.questionsCreateNestedOneWithoutAttempt_itemsInput
+  question_bank: Prisma.question_bankCreateNestedOneWithoutAttemptItemsInput
 }
 
 export type attempt_itemsUncheckedCreateWithoutAttempt_answersInput = {
   attempt_items_id?: bigint | number
   exam_attempts_id: bigint | number
-  questions_id: bigint | number
+  question_id: bigint | number
   sequence_index: number
   shown_at?: Date | string
   answered_at?: Date | string | null
   time_per_item?: number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
@@ -645,21 +627,19 @@ export type attempt_itemsUpdateWithoutAttempt_answersInput = {
   shown_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   answered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   time_per_item?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   exam_attempts?: Prisma.exam_attemptsUpdateOneRequiredWithoutAttempt_itemsNestedInput
-  questions?: Prisma.questionsUpdateOneRequiredWithoutAttempt_itemsNestedInput
+  question_bank?: Prisma.question_bankUpdateOneRequiredWithoutAttemptItemsNestedInput
 }
 
 export type attempt_itemsUncheckedUpdateWithoutAttempt_answersInput = {
   attempt_items_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   exam_attempts_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  questions_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  question_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sequence_index?: Prisma.IntFieldUpdateOperationsInput | number
   shown_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   answered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   time_per_item?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
@@ -669,20 +649,18 @@ export type attempt_itemsCreateWithoutExam_attemptsInput = {
   shown_at?: Date | string
   answered_at?: Date | string | null
   time_per_item?: number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   attempt_answers?: Prisma.attempt_answersCreateNestedManyWithoutAttempt_itemsInput
-  questions: Prisma.questionsCreateNestedOneWithoutAttempt_itemsInput
+  question_bank: Prisma.question_bankCreateNestedOneWithoutAttemptItemsInput
 }
 
 export type attempt_itemsUncheckedCreateWithoutExam_attemptsInput = {
   attempt_items_id?: bigint | number
-  questions_id: bigint | number
+  question_id: bigint | number
   sequence_index: number
   shown_at?: Date | string
   answered_at?: Date | string | null
   time_per_item?: number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   attempt_answers?: Prisma.attempt_answersUncheckedCreateNestedManyWithoutAttempt_itemsInput
 }
@@ -719,73 +697,69 @@ export type attempt_itemsScalarWhereInput = {
   NOT?: Prisma.attempt_itemsScalarWhereInput | Prisma.attempt_itemsScalarWhereInput[]
   attempt_items_id?: Prisma.BigIntFilter<"attempt_items"> | bigint | number
   exam_attempts_id?: Prisma.BigIntFilter<"attempt_items"> | bigint | number
-  questions_id?: Prisma.BigIntFilter<"attempt_items"> | bigint | number
+  question_id?: Prisma.BigIntFilter<"attempt_items"> | bigint | number
   sequence_index?: Prisma.IntFilter<"attempt_items"> | number
   shown_at?: Prisma.DateTimeFilter<"attempt_items"> | Date | string
   answered_at?: Prisma.DateTimeNullableFilter<"attempt_items"> | Date | string | null
   time_per_item?: Prisma.IntNullableFilter<"attempt_items"> | number | null
-  shuffled_choice_order?: Prisma.JsonNullableFilter<"attempt_items">
   choice_selection_log?: Prisma.JsonNullableFilter<"attempt_items">
 }
 
-export type attempt_itemsCreateWithoutQuestionsInput = {
+export type attempt_itemsCreateWithoutQuestion_bankInput = {
   attempt_items_id?: bigint | number
   sequence_index: number
   shown_at?: Date | string
   answered_at?: Date | string | null
   time_per_item?: number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   attempt_answers?: Prisma.attempt_answersCreateNestedManyWithoutAttempt_itemsInput
   exam_attempts: Prisma.exam_attemptsCreateNestedOneWithoutAttempt_itemsInput
 }
 
-export type attempt_itemsUncheckedCreateWithoutQuestionsInput = {
+export type attempt_itemsUncheckedCreateWithoutQuestion_bankInput = {
   attempt_items_id?: bigint | number
   exam_attempts_id: bigint | number
   sequence_index: number
   shown_at?: Date | string
   answered_at?: Date | string | null
   time_per_item?: number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   attempt_answers?: Prisma.attempt_answersUncheckedCreateNestedManyWithoutAttempt_itemsInput
 }
 
-export type attempt_itemsCreateOrConnectWithoutQuestionsInput = {
+export type attempt_itemsCreateOrConnectWithoutQuestion_bankInput = {
   where: Prisma.attempt_itemsWhereUniqueInput
-  create: Prisma.XOR<Prisma.attempt_itemsCreateWithoutQuestionsInput, Prisma.attempt_itemsUncheckedCreateWithoutQuestionsInput>
+  create: Prisma.XOR<Prisma.attempt_itemsCreateWithoutQuestion_bankInput, Prisma.attempt_itemsUncheckedCreateWithoutQuestion_bankInput>
 }
 
-export type attempt_itemsCreateManyQuestionsInputEnvelope = {
-  data: Prisma.attempt_itemsCreateManyQuestionsInput | Prisma.attempt_itemsCreateManyQuestionsInput[]
+export type attempt_itemsCreateManyQuestion_bankInputEnvelope = {
+  data: Prisma.attempt_itemsCreateManyQuestion_bankInput | Prisma.attempt_itemsCreateManyQuestion_bankInput[]
   skipDuplicates?: boolean
 }
 
-export type attempt_itemsUpsertWithWhereUniqueWithoutQuestionsInput = {
+export type attempt_itemsUpsertWithWhereUniqueWithoutQuestion_bankInput = {
   where: Prisma.attempt_itemsWhereUniqueInput
-  update: Prisma.XOR<Prisma.attempt_itemsUpdateWithoutQuestionsInput, Prisma.attempt_itemsUncheckedUpdateWithoutQuestionsInput>
-  create: Prisma.XOR<Prisma.attempt_itemsCreateWithoutQuestionsInput, Prisma.attempt_itemsUncheckedCreateWithoutQuestionsInput>
+  update: Prisma.XOR<Prisma.attempt_itemsUpdateWithoutQuestion_bankInput, Prisma.attempt_itemsUncheckedUpdateWithoutQuestion_bankInput>
+  create: Prisma.XOR<Prisma.attempt_itemsCreateWithoutQuestion_bankInput, Prisma.attempt_itemsUncheckedCreateWithoutQuestion_bankInput>
 }
 
-export type attempt_itemsUpdateWithWhereUniqueWithoutQuestionsInput = {
+export type attempt_itemsUpdateWithWhereUniqueWithoutQuestion_bankInput = {
   where: Prisma.attempt_itemsWhereUniqueInput
-  data: Prisma.XOR<Prisma.attempt_itemsUpdateWithoutQuestionsInput, Prisma.attempt_itemsUncheckedUpdateWithoutQuestionsInput>
+  data: Prisma.XOR<Prisma.attempt_itemsUpdateWithoutQuestion_bankInput, Prisma.attempt_itemsUncheckedUpdateWithoutQuestion_bankInput>
 }
 
-export type attempt_itemsUpdateManyWithWhereWithoutQuestionsInput = {
+export type attempt_itemsUpdateManyWithWhereWithoutQuestion_bankInput = {
   where: Prisma.attempt_itemsScalarWhereInput
-  data: Prisma.XOR<Prisma.attempt_itemsUpdateManyMutationInput, Prisma.attempt_itemsUncheckedUpdateManyWithoutQuestionsInput>
+  data: Prisma.XOR<Prisma.attempt_itemsUpdateManyMutationInput, Prisma.attempt_itemsUncheckedUpdateManyWithoutQuestion_bankInput>
 }
 
 export type attempt_itemsCreateManyExam_attemptsInput = {
   attempt_items_id?: bigint | number
-  questions_id: bigint | number
+  question_id: bigint | number
   sequence_index: number
   shown_at?: Date | string
   answered_at?: Date | string | null
   time_per_item?: number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
@@ -795,78 +769,71 @@ export type attempt_itemsUpdateWithoutExam_attemptsInput = {
   shown_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   answered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   time_per_item?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   attempt_answers?: Prisma.attempt_answersUpdateManyWithoutAttempt_itemsNestedInput
-  questions?: Prisma.questionsUpdateOneRequiredWithoutAttempt_itemsNestedInput
+  question_bank?: Prisma.question_bankUpdateOneRequiredWithoutAttemptItemsNestedInput
 }
 
 export type attempt_itemsUncheckedUpdateWithoutExam_attemptsInput = {
   attempt_items_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  questions_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  question_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sequence_index?: Prisma.IntFieldUpdateOperationsInput | number
   shown_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   answered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   time_per_item?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   attempt_answers?: Prisma.attempt_answersUncheckedUpdateManyWithoutAttempt_itemsNestedInput
 }
 
 export type attempt_itemsUncheckedUpdateManyWithoutExam_attemptsInput = {
   attempt_items_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  questions_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  question_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sequence_index?: Prisma.IntFieldUpdateOperationsInput | number
   shown_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   answered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   time_per_item?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
-export type attempt_itemsCreateManyQuestionsInput = {
+export type attempt_itemsCreateManyQuestion_bankInput = {
   attempt_items_id?: bigint | number
   exam_attempts_id: bigint | number
   sequence_index: number
   shown_at?: Date | string
   answered_at?: Date | string | null
   time_per_item?: number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
-export type attempt_itemsUpdateWithoutQuestionsInput = {
+export type attempt_itemsUpdateWithoutQuestion_bankInput = {
   attempt_items_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sequence_index?: Prisma.IntFieldUpdateOperationsInput | number
   shown_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   answered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   time_per_item?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   attempt_answers?: Prisma.attempt_answersUpdateManyWithoutAttempt_itemsNestedInput
   exam_attempts?: Prisma.exam_attemptsUpdateOneRequiredWithoutAttempt_itemsNestedInput
 }
 
-export type attempt_itemsUncheckedUpdateWithoutQuestionsInput = {
+export type attempt_itemsUncheckedUpdateWithoutQuestion_bankInput = {
   attempt_items_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   exam_attempts_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sequence_index?: Prisma.IntFieldUpdateOperationsInput | number
   shown_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   answered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   time_per_item?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   attempt_answers?: Prisma.attempt_answersUncheckedUpdateManyWithoutAttempt_itemsNestedInput
 }
 
-export type attempt_itemsUncheckedUpdateManyWithoutQuestionsInput = {
+export type attempt_itemsUncheckedUpdateManyWithoutQuestion_bankInput = {
   attempt_items_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   exam_attempts_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sequence_index?: Prisma.IntFieldUpdateOperationsInput | number
   shown_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   answered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   time_per_item?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  shuffled_choice_order?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   choice_selection_log?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
@@ -904,73 +871,69 @@ export type Attempt_itemsCountOutputTypeCountAttempt_answersArgs<ExtArgs extends
 export type attempt_itemsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   attempt_items_id?: boolean
   exam_attempts_id?: boolean
-  questions_id?: boolean
+  question_id?: boolean
   sequence_index?: boolean
   shown_at?: boolean
   answered_at?: boolean
   time_per_item?: boolean
-  shuffled_choice_order?: boolean
   choice_selection_log?: boolean
   attempt_answers?: boolean | Prisma.attempt_items$attempt_answersArgs<ExtArgs>
   exam_attempts?: boolean | Prisma.exam_attemptsDefaultArgs<ExtArgs>
-  questions?: boolean | Prisma.questionsDefaultArgs<ExtArgs>
+  question_bank?: boolean | Prisma.question_bankDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.Attempt_itemsCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["attempt_items"]>
 
 export type attempt_itemsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   attempt_items_id?: boolean
   exam_attempts_id?: boolean
-  questions_id?: boolean
+  question_id?: boolean
   sequence_index?: boolean
   shown_at?: boolean
   answered_at?: boolean
   time_per_item?: boolean
-  shuffled_choice_order?: boolean
   choice_selection_log?: boolean
   exam_attempts?: boolean | Prisma.exam_attemptsDefaultArgs<ExtArgs>
-  questions?: boolean | Prisma.questionsDefaultArgs<ExtArgs>
+  question_bank?: boolean | Prisma.question_bankDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["attempt_items"]>
 
 export type attempt_itemsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   attempt_items_id?: boolean
   exam_attempts_id?: boolean
-  questions_id?: boolean
+  question_id?: boolean
   sequence_index?: boolean
   shown_at?: boolean
   answered_at?: boolean
   time_per_item?: boolean
-  shuffled_choice_order?: boolean
   choice_selection_log?: boolean
   exam_attempts?: boolean | Prisma.exam_attemptsDefaultArgs<ExtArgs>
-  questions?: boolean | Prisma.questionsDefaultArgs<ExtArgs>
+  question_bank?: boolean | Prisma.question_bankDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["attempt_items"]>
 
 export type attempt_itemsSelectScalar = {
   attempt_items_id?: boolean
   exam_attempts_id?: boolean
-  questions_id?: boolean
+  question_id?: boolean
   sequence_index?: boolean
   shown_at?: boolean
   answered_at?: boolean
   time_per_item?: boolean
-  shuffled_choice_order?: boolean
   choice_selection_log?: boolean
 }
 
-export type attempt_itemsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"attempt_items_id" | "exam_attempts_id" | "questions_id" | "sequence_index" | "shown_at" | "answered_at" | "time_per_item" | "shuffled_choice_order" | "choice_selection_log", ExtArgs["result"]["attempt_items"]>
+export type attempt_itemsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"attempt_items_id" | "exam_attempts_id" | "question_id" | "sequence_index" | "shown_at" | "answered_at" | "time_per_item" | "choice_selection_log", ExtArgs["result"]["attempt_items"]>
 export type attempt_itemsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   attempt_answers?: boolean | Prisma.attempt_items$attempt_answersArgs<ExtArgs>
   exam_attempts?: boolean | Prisma.exam_attemptsDefaultArgs<ExtArgs>
-  questions?: boolean | Prisma.questionsDefaultArgs<ExtArgs>
+  question_bank?: boolean | Prisma.question_bankDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.Attempt_itemsCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type attempt_itemsIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   exam_attempts?: boolean | Prisma.exam_attemptsDefaultArgs<ExtArgs>
-  questions?: boolean | Prisma.questionsDefaultArgs<ExtArgs>
+  question_bank?: boolean | Prisma.question_bankDefaultArgs<ExtArgs>
 }
 export type attempt_itemsIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   exam_attempts?: boolean | Prisma.exam_attemptsDefaultArgs<ExtArgs>
-  questions?: boolean | Prisma.questionsDefaultArgs<ExtArgs>
+  question_bank?: boolean | Prisma.question_bankDefaultArgs<ExtArgs>
 }
 
 export type $attempt_itemsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -978,17 +941,16 @@ export type $attempt_itemsPayload<ExtArgs extends runtime.Types.Extensions.Inter
   objects: {
     attempt_answers: Prisma.$attempt_answersPayload<ExtArgs>[]
     exam_attempts: Prisma.$exam_attemptsPayload<ExtArgs>
-    questions: Prisma.$questionsPayload<ExtArgs>
+    question_bank: Prisma.$question_bankPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     attempt_items_id: bigint
     exam_attempts_id: bigint
-    questions_id: bigint
+    question_id: bigint
     sequence_index: number
     shown_at: Date
     answered_at: Date | null
     time_per_item: number | null
-    shuffled_choice_order: runtime.JsonValue | null
     choice_selection_log: runtime.JsonValue | null
   }, ExtArgs["result"]["attempt_items"]>
   composites: {}
@@ -1386,7 +1348,7 @@ export interface Prisma__attempt_itemsClient<T, Null = never, ExtArgs extends ru
   readonly [Symbol.toStringTag]: "PrismaPromise"
   attempt_answers<T extends Prisma.attempt_items$attempt_answersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.attempt_items$attempt_answersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$attempt_answersPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   exam_attempts<T extends Prisma.exam_attemptsDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.exam_attemptsDefaultArgs<ExtArgs>>): Prisma.Prisma__exam_attemptsClient<runtime.Types.Result.GetResult<Prisma.$exam_attemptsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  questions<T extends Prisma.questionsDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.questionsDefaultArgs<ExtArgs>>): Prisma.Prisma__questionsClient<runtime.Types.Result.GetResult<Prisma.$questionsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  question_bank<T extends Prisma.question_bankDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.question_bankDefaultArgs<ExtArgs>>): Prisma.Prisma__question_bankClient<runtime.Types.Result.GetResult<Prisma.$question_bankPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1418,12 +1380,11 @@ export interface Prisma__attempt_itemsClient<T, Null = never, ExtArgs extends ru
 export interface attempt_itemsFieldRefs {
   readonly attempt_items_id: Prisma.FieldRef<"attempt_items", 'BigInt'>
   readonly exam_attempts_id: Prisma.FieldRef<"attempt_items", 'BigInt'>
-  readonly questions_id: Prisma.FieldRef<"attempt_items", 'BigInt'>
+  readonly question_id: Prisma.FieldRef<"attempt_items", 'BigInt'>
   readonly sequence_index: Prisma.FieldRef<"attempt_items", 'Int'>
   readonly shown_at: Prisma.FieldRef<"attempt_items", 'DateTime'>
   readonly answered_at: Prisma.FieldRef<"attempt_items", 'DateTime'>
   readonly time_per_item: Prisma.FieldRef<"attempt_items", 'Int'>
-  readonly shuffled_choice_order: Prisma.FieldRef<"attempt_items", 'Json'>
   readonly choice_selection_log: Prisma.FieldRef<"attempt_items", 'Json'>
 }
     
