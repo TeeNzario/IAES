@@ -249,6 +249,7 @@ export type staff_usersWhereInput = {
   created_at?: Prisma.DateTimeFilter<"staff_users"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"staff_users"> | Date | string
   course_instructors?: Prisma.Course_instructorsListRelationFilter
+  import_preview_sessions?: Prisma.Import_preview_sessionsListRelationFilter
 }
 
 export type staff_usersOrderByWithRelationInput = {
@@ -262,6 +263,7 @@ export type staff_usersOrderByWithRelationInput = {
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   course_instructors?: Prisma.course_instructorsOrderByRelationAggregateInput
+  import_preview_sessions?: Prisma.import_preview_sessionsOrderByRelationAggregateInput
 }
 
 export type staff_usersWhereUniqueInput = Prisma.AtLeast<{
@@ -278,6 +280,7 @@ export type staff_usersWhereUniqueInput = Prisma.AtLeast<{
   created_at?: Prisma.DateTimeFilter<"staff_users"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"staff_users"> | Date | string
   course_instructors?: Prisma.Course_instructorsListRelationFilter
+  import_preview_sessions?: Prisma.Import_preview_sessionsListRelationFilter
 }, "staff_users_id" | "email">
 
 export type staff_usersOrderByWithAggregationInput = {
@@ -323,6 +326,7 @@ export type staff_usersCreateInput = {
   created_at?: Date | string
   updated_at?: Date | string
   course_instructors?: Prisma.course_instructorsCreateNestedManyWithoutStaff_usersInput
+  import_preview_sessions?: Prisma.import_preview_sessionsCreateNestedManyWithoutStaff_usersInput
 }
 
 export type staff_usersUncheckedCreateInput = {
@@ -336,6 +340,7 @@ export type staff_usersUncheckedCreateInput = {
   created_at?: Date | string
   updated_at?: Date | string
   course_instructors?: Prisma.course_instructorsUncheckedCreateNestedManyWithoutStaff_usersInput
+  import_preview_sessions?: Prisma.import_preview_sessionsUncheckedCreateNestedManyWithoutStaff_usersInput
 }
 
 export type staff_usersUpdateInput = {
@@ -349,6 +354,7 @@ export type staff_usersUpdateInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   course_instructors?: Prisma.course_instructorsUpdateManyWithoutStaff_usersNestedInput
+  import_preview_sessions?: Prisma.import_preview_sessionsUpdateManyWithoutStaff_usersNestedInput
 }
 
 export type staff_usersUncheckedUpdateInput = {
@@ -362,6 +368,7 @@ export type staff_usersUncheckedUpdateInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   course_instructors?: Prisma.course_instructorsUncheckedUpdateManyWithoutStaff_usersNestedInput
+  import_preview_sessions?: Prisma.import_preview_sessionsUncheckedUpdateManyWithoutStaff_usersNestedInput
 }
 
 export type staff_usersCreateManyInput = {
@@ -467,6 +474,20 @@ export type Enumuser_roleFieldUpdateOperationsInput = {
   set?: $Enums.user_role
 }
 
+export type staff_usersCreateNestedOneWithoutImport_preview_sessionsInput = {
+  create?: Prisma.XOR<Prisma.staff_usersCreateWithoutImport_preview_sessionsInput, Prisma.staff_usersUncheckedCreateWithoutImport_preview_sessionsInput>
+  connectOrCreate?: Prisma.staff_usersCreateOrConnectWithoutImport_preview_sessionsInput
+  connect?: Prisma.staff_usersWhereUniqueInput
+}
+
+export type staff_usersUpdateOneRequiredWithoutImport_preview_sessionsNestedInput = {
+  create?: Prisma.XOR<Prisma.staff_usersCreateWithoutImport_preview_sessionsInput, Prisma.staff_usersUncheckedCreateWithoutImport_preview_sessionsInput>
+  connectOrCreate?: Prisma.staff_usersCreateOrConnectWithoutImport_preview_sessionsInput
+  upsert?: Prisma.staff_usersUpsertWithoutImport_preview_sessionsInput
+  connect?: Prisma.staff_usersWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.staff_usersUpdateToOneWithWhereWithoutImport_preview_sessionsInput, Prisma.staff_usersUpdateWithoutImport_preview_sessionsInput>, Prisma.staff_usersUncheckedUpdateWithoutImport_preview_sessionsInput>
+}
+
 export type staff_usersCreateWithoutCourse_instructorsInput = {
   staff_users_id?: bigint | number
   email: string
@@ -477,6 +498,7 @@ export type staff_usersCreateWithoutCourse_instructorsInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
+  import_preview_sessions?: Prisma.import_preview_sessionsCreateNestedManyWithoutStaff_usersInput
 }
 
 export type staff_usersUncheckedCreateWithoutCourse_instructorsInput = {
@@ -489,6 +511,7 @@ export type staff_usersUncheckedCreateWithoutCourse_instructorsInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
+  import_preview_sessions?: Prisma.import_preview_sessionsUncheckedCreateNestedManyWithoutStaff_usersInput
 }
 
 export type staff_usersCreateOrConnectWithoutCourse_instructorsInput = {
@@ -517,6 +540,7 @@ export type staff_usersUpdateWithoutCourse_instructorsInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  import_preview_sessions?: Prisma.import_preview_sessionsUpdateManyWithoutStaff_usersNestedInput
 }
 
 export type staff_usersUncheckedUpdateWithoutCourse_instructorsInput = {
@@ -529,6 +553,75 @@ export type staff_usersUncheckedUpdateWithoutCourse_instructorsInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  import_preview_sessions?: Prisma.import_preview_sessionsUncheckedUpdateManyWithoutStaff_usersNestedInput
+}
+
+export type staff_usersCreateWithoutImport_preview_sessionsInput = {
+  staff_users_id?: bigint | number
+  email: string
+  password_hash: string
+  role: $Enums.user_role
+  first_name: string
+  last_name: string
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  course_instructors?: Prisma.course_instructorsCreateNestedManyWithoutStaff_usersInput
+}
+
+export type staff_usersUncheckedCreateWithoutImport_preview_sessionsInput = {
+  staff_users_id?: bigint | number
+  email: string
+  password_hash: string
+  role: $Enums.user_role
+  first_name: string
+  last_name: string
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  course_instructors?: Prisma.course_instructorsUncheckedCreateNestedManyWithoutStaff_usersInput
+}
+
+export type staff_usersCreateOrConnectWithoutImport_preview_sessionsInput = {
+  where: Prisma.staff_usersWhereUniqueInput
+  create: Prisma.XOR<Prisma.staff_usersCreateWithoutImport_preview_sessionsInput, Prisma.staff_usersUncheckedCreateWithoutImport_preview_sessionsInput>
+}
+
+export type staff_usersUpsertWithoutImport_preview_sessionsInput = {
+  update: Prisma.XOR<Prisma.staff_usersUpdateWithoutImport_preview_sessionsInput, Prisma.staff_usersUncheckedUpdateWithoutImport_preview_sessionsInput>
+  create: Prisma.XOR<Prisma.staff_usersCreateWithoutImport_preview_sessionsInput, Prisma.staff_usersUncheckedCreateWithoutImport_preview_sessionsInput>
+  where?: Prisma.staff_usersWhereInput
+}
+
+export type staff_usersUpdateToOneWithWhereWithoutImport_preview_sessionsInput = {
+  where?: Prisma.staff_usersWhereInput
+  data: Prisma.XOR<Prisma.staff_usersUpdateWithoutImport_preview_sessionsInput, Prisma.staff_usersUncheckedUpdateWithoutImport_preview_sessionsInput>
+}
+
+export type staff_usersUpdateWithoutImport_preview_sessionsInput = {
+  staff_users_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.Enumuser_roleFieldUpdateOperationsInput | $Enums.user_role
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  course_instructors?: Prisma.course_instructorsUpdateManyWithoutStaff_usersNestedInput
+}
+
+export type staff_usersUncheckedUpdateWithoutImport_preview_sessionsInput = {
+  staff_users_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.Enumuser_roleFieldUpdateOperationsInput | $Enums.user_role
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  course_instructors?: Prisma.course_instructorsUncheckedUpdateManyWithoutStaff_usersNestedInput
 }
 
 
@@ -538,10 +631,12 @@ export type staff_usersUncheckedUpdateWithoutCourse_instructorsInput = {
 
 export type Staff_usersCountOutputType = {
   course_instructors: number
+  import_preview_sessions: number
 }
 
 export type Staff_usersCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   course_instructors?: boolean | Staff_usersCountOutputTypeCountCourse_instructorsArgs
+  import_preview_sessions?: boolean | Staff_usersCountOutputTypeCountImport_preview_sessionsArgs
 }
 
 /**
@@ -561,6 +656,13 @@ export type Staff_usersCountOutputTypeCountCourse_instructorsArgs<ExtArgs extend
   where?: Prisma.course_instructorsWhereInput
 }
 
+/**
+ * Staff_usersCountOutputType without action
+ */
+export type Staff_usersCountOutputTypeCountImport_preview_sessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.import_preview_sessionsWhereInput
+}
+
 
 export type staff_usersSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   staff_users_id?: boolean
@@ -573,6 +675,7 @@ export type staff_usersSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   created_at?: boolean
   updated_at?: boolean
   course_instructors?: boolean | Prisma.staff_users$course_instructorsArgs<ExtArgs>
+  import_preview_sessions?: boolean | Prisma.staff_users$import_preview_sessionsArgs<ExtArgs>
   _count?: boolean | Prisma.Staff_usersCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["staff_users"]>
 
@@ -615,6 +718,7 @@ export type staff_usersSelectScalar = {
 export type staff_usersOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"staff_users_id" | "email" | "password_hash" | "role" | "first_name" | "last_name" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["staff_users"]>
 export type staff_usersInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   course_instructors?: boolean | Prisma.staff_users$course_instructorsArgs<ExtArgs>
+  import_preview_sessions?: boolean | Prisma.staff_users$import_preview_sessionsArgs<ExtArgs>
   _count?: boolean | Prisma.Staff_usersCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type staff_usersIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -624,6 +728,7 @@ export type $staff_usersPayload<ExtArgs extends runtime.Types.Extensions.Interna
   name: "staff_users"
   objects: {
     course_instructors: Prisma.$course_instructorsPayload<ExtArgs>[]
+    import_preview_sessions: Prisma.$import_preview_sessionsPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     staff_users_id: bigint
@@ -1030,6 +1135,7 @@ readonly fields: staff_usersFieldRefs;
 export interface Prisma__staff_usersClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   course_instructors<T extends Prisma.staff_users$course_instructorsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.staff_users$course_instructorsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$course_instructorsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  import_preview_sessions<T extends Prisma.staff_users$import_preview_sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.staff_users$import_preview_sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$import_preview_sessionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1477,6 +1583,30 @@ export type staff_users$course_instructorsArgs<ExtArgs extends runtime.Types.Ext
   take?: number
   skip?: number
   distinct?: Prisma.Course_instructorsScalarFieldEnum | Prisma.Course_instructorsScalarFieldEnum[]
+}
+
+/**
+ * staff_users.import_preview_sessions
+ */
+export type staff_users$import_preview_sessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the import_preview_sessions
+   */
+  select?: Prisma.import_preview_sessionsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the import_preview_sessions
+   */
+  omit?: Prisma.import_preview_sessionsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.import_preview_sessionsInclude<ExtArgs> | null
+  where?: Prisma.import_preview_sessionsWhereInput
+  orderBy?: Prisma.import_preview_sessionsOrderByWithRelationInput | Prisma.import_preview_sessionsOrderByWithRelationInput[]
+  cursor?: Prisma.import_preview_sessionsWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Import_preview_sessionsScalarFieldEnum | Prisma.Import_preview_sessionsScalarFieldEnum[]
 }
 
 /**

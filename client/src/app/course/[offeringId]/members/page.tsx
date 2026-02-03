@@ -9,11 +9,16 @@ import { useParams } from "next/navigation";
 import { Student } from "@/types/student";
 import { CourseOffering } from "@/types/course";
 import { formatInstructorName } from "@/utils/formatName";
+import BulkUploadModal from "@/features/courseOffering/components/BulkUploadStudent";
+
+// StudentConfirm moved to BulkUploadStudent.tsx
 
 export default function SimpleShowUsers() {
   const [activeTab, setActiveTab] = useState("learn");
   const [activeTopTab, setActiveTopTab] = useState("student");
   const [showAddModal, setShowAddModal] = useState(false);
+
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   const [studentId, setStudentId] = useState("");
   const [email, setEmail] = useState("");
@@ -82,15 +87,6 @@ export default function SimpleShowUsers() {
     fetchOffering();
   }, [offeringId]);
 
-  // ฟังก์ชันอัพโหลด CSV
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      console.log("Uploaded file:", file.name);
-      // Add your CSV processing logic here
-    }
-  };
-
   return (
     <Navbar>
       <div className="min-h-screen bg-[#F4EFFF] p-4">
@@ -102,10 +98,10 @@ export default function SimpleShowUsers() {
                   setActiveTopTab("home");
                   handleBackToCourse();
                 }}
-                className={`font-medium text-sm transition-colors ${
+                className={`font-light text-sm transition-colors cursor-pointer ${
                   activeTopTab === "home"
-                    ? "text-purple-600"
-                    : "text-gray-500 hover:text-purple-600"
+                    ? "text-[##B7A3E3]"
+                    : "text-gray-500 hover:text-[#B7A3E3]"
                 }`}
               >
                 หน้าหลัก
@@ -115,10 +111,10 @@ export default function SimpleShowUsers() {
                 onClick={() => {
                   setActiveTopTab("student");
                 }}
-                className={`font-medium text-sm transition-colors ${
+                className={`font-light text-sm transition-colors cursor-pointer ${
                   activeTopTab === "student"
-                    ? "text-purple-600"
-                    : "text-gray-500 hover:text-purple-600"
+                    ? "text-[#B7A3E3]"
+                    : "text-gray-500 hover:text-[#B7A3E3]"
                 }`}
               >
                 นักเรียน
@@ -129,22 +125,22 @@ export default function SimpleShowUsers() {
           {/* Main Flex Container */}
           <div className="flex gap-4 mt-4">
             {/* Left Section - Lists */}
-            <div className="flex-1">
+            <div className="flex-1 bg-white rounded-3xl p-10">
               {/* Header Card */}
-              <div className="bg-white rounded-lg mb-4">
-                <div className="px-5 py-4 border-b flex items-center justify-between">
-                  <h3 className="text-xl text-[#575757] font-medium">
+              <div className=" rounded-lg mb-4">
+                <div className="px-5 py-4 border-b border-[#D9D9D9] flex items-center justify-between">
+                  <h3 className="text-sm text-[#575757] font-light">
                     อาจารย์
                   </h3>
                 </div>
                 <div className="p-5">
-                  <div className="flex items-center gap-3">
+                  <div className="flex gap-3">
                     {offering && (
                       <div className="flex flex-col gap-2">
                         {offering.course_instructors.map((ci) => (
                           <div
                             key={ci.staff_users_id}
-                            className="text-sm text-[#575757]"
+                            className="text-base text-[#575757]"
                           >
                             {formatInstructorName(ci.staff_users)}
                           </div>
@@ -155,15 +151,15 @@ export default function SimpleShowUsers() {
                 </div>
               </div>
               {/* Users List */}
-              <div className="bg-white rounded-lg">
+              <div className=" rounded-lg">
                 {/* Title */}
-                <div className="px-5 py-4 border-b flex items-center justify-between">
+                <div className="px-5 py-4 border-b border-[#D9D9D9] flex items-center justify-between">
                   <div className="flex items-center gap-4 w-full justify-between">
-                    <h3 className="text-xl text-[#575757] font-medium">
+                    <h3 className="text-sm text-[#575757] font-light">
                       นักศึกษา
                     </h3>
                     <span className="text-sm text-[#575757]">
-                      นักศึกษา {students.length} คน
+                      {students.length} คน
                     </span>
                   </div>
                 </div>
@@ -204,39 +200,39 @@ export default function SimpleShowUsers() {
             </div>
 
             {/* Right Section - Action Buttons */}
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 ">
               {/* Add Student Button */}
+              <div className="bg-red-500 flex flex-col bg-white rounded-2xl py-1">
               <button
                 onClick={() => setShowAddModal(true)}
-                className="w-12 h-12 bg-white rounded-lg shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors"
+                className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer"
                 title="เพิ่มนักศึกษา"
               >
-                <UserPlus className="w-6 h-6 text-[#575757]" />
+                <UserPlus className="w-5 h-5 text-[#1E1E1E]" />
               </button>
 
               {/* CSV Upload Button */}
-              <label className="cursor-pointer" title="อัพโหลด CSV">
-                <input
-                  type="file"
-                  accept=".csv"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                />
-                <div className="w-12 h-12 bg-white rounded-lg shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors">
-                  <Upload className="w-6 h-6 text-[#575757]" />
+              <button
+                onClick={() => setShowUploadModal(true)}
+                className="cursor-pointer"
+                title="อัพโหลด CSV"
+              >
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer">
+                  <Upload className="w-5 h-5 text-[#1E1E1E]" />
                 </div>
-              </label>
+              </button>
             </div>
+          </div>
           </div>
         </div>
 
         {/* Add Student Modal */}
         {showAddModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg px-6">
               {/* Modal Header */}
               <div className="text-center pt-8 pb-6 px-8">
-                <h3 className="text-2xl font-semibold text-gray-900">
+                <h3 className="text-2xl font-light text-gray-900">
                   เพิ่มนักศึกษา
                 </h3>
               </div>
@@ -251,7 +247,7 @@ export default function SimpleShowUsers() {
                     type="text"
                     value={studentId}
                     onChange={(e) => setStudentId(e.target.value)}
-                    className="w-full px-4 py-3.5 border-2 border-purple-300 rounded-xl focus:outline-none focus:border-purple-500 transition-colors text-base"
+                    className="w-full px-4 py-3.5 border-1 border-[#B7A3E3] rounded-xl focus:outline-none focus:border-purple-500 transition-colors text-base"
                   />
                 </div>
 
@@ -263,7 +259,7 @@ export default function SimpleShowUsers() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3.5 border-2 border-purple-300 rounded-xl focus:outline-none focus:border-purple-500 transition-colors text-base"
+                    className="w-full px-4 py-3.5 border-1 border-[#B7A3E3] rounded-xl focus:outline-none focus:border-purple-500 transition-colors text-base"
                   />
                 </div>
 
@@ -275,7 +271,7 @@ export default function SimpleShowUsers() {
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full px-4 py-3.5 border-2 border-purple-300 rounded-xl focus:outline-none focus:border-purple-500 transition-colors text-base"
+                    className="w-full px-4 py-3.5 border-1 border-[#B7A3E3] rounded-xl focus:outline-none focus:border-purple-500 transition-colors text-base"
                   />
                 </div>
 
@@ -287,7 +283,7 @@ export default function SimpleShowUsers() {
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full px-4 py-3.5 border-2 border-purple-300 rounded-xl focus:outline-none focus:border-purple-500 transition-colors text-base"
+                    className="w-full px-4 py-3.5 border-1 border-[#B7A3E3] rounded-xl focus:outline-none focus:border-purple-500 transition-colors text-base"
                   />
                 </div>
               </div>
@@ -296,13 +292,13 @@ export default function SimpleShowUsers() {
               <div className="px-8 pb-8 space-y-3">
                 <button
                   onClick={handleAddStudent}
-                  className="w-full py-4 text-lg font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-xl transition-colors"
+                  className="w-full py-4 text-xl font-medium text-white bg-[#9264F5] hover:bg-purple-700 rounded-3xl transition-colors cursor-pointer"
                 >
                   บันทึก
                 </button>
                 <button
                   onClick={() => setShowAddModal(false)}
-                  className="w-full py-4 text-lg font-medium text-purple-600 bg-white border-2 border-purple-300 hover:bg-purple-50 rounded-xl transition-colors"
+                  className="w-full py-4 text-xl font-medium text-[#B7A3E3] bg-white border-2 border-[#B7A3E3] hover:bg-purple-50 rounded-3xl transition-colors cursor-pointer"
                 >
                   ยกเลิก
                 </button>
@@ -310,6 +306,13 @@ export default function SimpleShowUsers() {
             </div>
           </div>
         )}
+
+        <BulkUploadModal
+          isOpen={showUploadModal}
+          onClose={() => setShowUploadModal(false)}
+          offeringId={offeringId}
+          onSuccess={() => fetchStudents()}
+        />
       </div>
     </Navbar>
   );

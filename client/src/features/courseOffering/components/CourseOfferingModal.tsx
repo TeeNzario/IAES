@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { ChevronDown, Plus, X, Lock } from "lucide-react";
 import { apiFetch } from "@/lib/api";
-import { formatName } from "@/utils/formatName";
+import { formatInstructorName } from "@/utils/formatName";
 import { Instructor } from "@/types/staff";
 
 interface CourseModalProps {
@@ -259,7 +259,7 @@ export default function CourseModal({
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-2xl bg-gray-100 text-gray-600 appearance-none cursor-not-allowed"
                   >
                     <option value={creatorInstructor?.staff_users_id || ""}>
-                      {creatorInstructor ? formatName(creatorInstructor) : ""}{" "}
+                      {creatorInstructor ? formatInstructorName(creatorInstructor) : ""}{" "}
                       (คุณ)
                     </option>
                   </select>
@@ -288,7 +288,7 @@ export default function CourseModal({
                           key={instructor.staff_users_id}
                           value={instructor.staff_users_id}
                         >
-                          {formatName(instructor)}
+                          {formatInstructorName(instructor)}
                         </option>
                       ))}
                       {/* Keep current selection visible even if it would be filtered */}
@@ -297,7 +297,7 @@ export default function CourseModal({
                           (i) => i.staff_users_id === slotValue,
                         ) && (
                           <option value={slotValue}>
-                            {formatName(
+                            {formatInstructorName(
                               allInstructors.find(
                                 (i) => i.staff_users_id === slotValue,
                               )!,

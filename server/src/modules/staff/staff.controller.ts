@@ -27,6 +27,7 @@ export class StaffController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   getMe(@Req() req) {
+    console.log("req.user in staff controller: ", req.user.id);
     return this.staffService.findById(req.user.id);
   }
 
@@ -34,7 +35,6 @@ export class StaffController {
   findAll() {
     return this.staffService.findAll();
   }
-
   @Get(':id')
   findOne(@Param('id') id: bigint) {
     return this.staffService.findOne(id);

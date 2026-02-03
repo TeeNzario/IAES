@@ -1,9 +1,17 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Search, ChevronLeft, ChevronRight, Filter } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  Trash2,
+  Edit2,
+} from "lucide-react";
 import Navbar from "@/components/layout/NavBar";
-import CourseModal from "@/features/course/components/CourseModal";
+import CourseModal from "@/features/courseOffering/components/CourseOfferingModal";
+import CreateCourseModal from "@/components/course/CreateCourseModal";
 import { apiFetch } from "@/lib/api";
 
 // Interface matching backend response
@@ -36,23 +44,28 @@ export default function CourseManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
+  const [courseStatus, setCourseStatus] = useState("ACTIVE");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // Fetch courses function (extracted for reuse)
+  const fetchCourses = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await apiFetch<Course[]>("/courses");
+      setCourses(data);
+    } catch (err) {
+      console.error("Failed to fetch courses:", err);
+      setError("ไม่สามารถโหลดข้อมูลคอร์สได้");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   // Fetch courses on mount
   useEffect(() => {
-    async function fetchCourses() {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const data = await apiFetch<Course[]>("/courses");
-        setCourses(data);
-      } catch (err) {
-        console.error("Failed to fetch courses:", err);
-        setError("ไม่สามารถโหลดข้อมูลคอร์สได้");
-      } finally {
-        setIsLoading(false);
-      }
-    }
     fetchCourses();
-  }, []);
+  }, [fetchCourses]);
 
   // Filter courses by search term
   const filteredCourses = courses.filter(
@@ -63,36 +76,42 @@ export default function CourseManagement() {
 
   return (
     <Navbar>
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-[#FAF8FF] p-15">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <h1 className="text-2xl font-bold text-gray-800 mb-6">
+          <h1 className="text-3xl font-bold text-[#484848] mb-12">
             จัดการคอร์สเรียน
           </h1>
 
           <div className="flex flex-row justify-between items-center gap-4">
             {/* Controls */}
             <div className="flex gap-3 mb-4">
-              <button className="px-4 py-2 bg-[#B7A3E3] text-white rounded-lg hover:bg-purple-500 transition-colors">
-                ทั้งหมด
-              </button>
-              <button className="px-4 py-2 border border-gray-300 bg-white rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
-                <Filter size={18} />
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="px-12 py-2 bg-[#B7A3E3] border-1 border-[#B7A3E3] text-white text-lg font-bold rounded-xl hover:bg-gray-50 hover:text-[#B7A3E3] hover:border-[#B7A3E3] hover:border-1 transition-colors cursor-pointer"
+              >
+                สร้างคอร์ส
               </button>
             </div>
 
             {/* Search Bar */}
-            <div className="mb-4">
+            <div className="flex gap-3 mb-4">
+              <button className="px-15 py-1 bg-white border border-[#B7A3E3] text-[#B7A3E3] text-lg font-bold rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
+                ทั้งหมด
+              </button>
+              <button className="px-4 py-2 border border-[#B7A3E3] text-[#B7A3E3] bg-white rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2 cursor-pointer">
+                <Filter size={18} />
+              </button>
               <div className="relative">
                 <input
                   type="text"
                   placeholder="ค้นหา..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  className="w-full bg-white px-3 py-2 pr-40 text-[#DEDEDE] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
                 />
                 <Search
-                  className="absolute right-3 top-2.5 text-gray-400"
+                  className="absolute right-3 top-2.5 text-[#525252]"
                   size={20}
                 />
               </div>
@@ -102,18 +121,22 @@ export default function CourseManagement() {
           {/* Table */}
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <table className="w-full">
+              <colgroup>
+                <col className="w-1/6" />
+                <col className="w-3/6" />
+                <col className="w-2/6" />
+              </colgroup>
               <thead className="bg-[#B7A3E3] text-white">
                 <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold">
-                    ID
+                  <th className="px-6 py-3 text-left text-md font-light">
+                    รหัสวิชา
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold">
-                    NAME
+                  <th className="px-6 py-3 text-left text-md font-light">
+                    ชื่อวิชา
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold">
-                    ACTIVE
+                  <th className="px-6 py-3 text-left text-md font-light">
+                    ACTION
                   </th>
-                  <th className="px-6 py-3 text-center text-sm font-semibold"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -164,36 +187,38 @@ export default function CourseManagement() {
                       <td className="px-6 py-4 text-sm text-gray-700">
                         {course.course_name}
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm font-medium text-gray-700">
-                          {course.status}
-                        </span>
-                      </td>
                       <td className="px-6 py-4 text-center">
-                        <div className="flex justify-center gap-2">
+                        <div className="flex justify-end items-center gap-5">
+                          {/* Edit Button */}
+                          <button className="w-10 h-10 flex items-center justify-center text-[#B492FF] border border-[#B492FF] hover:bg-purple-50 rounded-lg transition-colors cursor-pointer">
+                            <Edit2 size={18} />
+                          </button>
+
+                          {/* ACTIVE Dropdown */}
+                          <select
+                            value={courseStatus}
+                            onChange={(e) => setCourseStatus(e.target.value)}
+                            className="px-1 py-2 text-sm font-medium  bg-white text-[#484848] hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#B7A3E3]"
+                          >
+                            <option value="ACTIVE" className="text-[#484848]">
+                              ACTIVE
+                            </option>
+                            <option value="INACTIVE" className="text-[#484848]">
+                              INACTIVE
+                            </option>
+                          </select>
+
                           <button
                             onClick={() => {
                               setSelectedCourse(course);
                               setIsModalOpen(true);
                             }}
-                            className="px-4 py-1 text-sm text-purple-400 border border-purple-400 rounded hover:bg-purple-50 transition-colors"
+                            className="px-5 py-2 text-sm text-[#B7A3E3] border border-[#B7A3E3] rounded-xl hover:bg-purple-50 transition-colors cursor-pointer"
                           >
-                            OPEN
+                            เปิดรายวิชา
                           </button>
-                          <button className="w-8 h-8 flex items-center justify-center text-purple-400 hover:bg-purple-50 rounded transition-colors">
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 16 16"
-                              fill="none"
-                            >
-                              <path
-                                d="M2 8h12M8 2v12"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                              />
-                            </svg>
+                          <button className="w-8 h-8 flex items-center justify-center text-[#B7A3E3] hover:bg-purple-50 rounded transition-colors cursor-pointer">
+                            <Trash2 size={16} />
                           </button>
                         </div>
                       </td>
@@ -204,24 +229,24 @@ export default function CourseManagement() {
           </div>
 
           {/* Pagination */}
-          <div className="mt-4 flex justify-center items-center gap-2">
-            <button className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-50">
+          <div className="mt-4 flex justify-end items-center gap-2">
+            <button className="w-8 h-8 flex text-[#D2D2D2] items-center justify-center border border-gray-300 rounded hover:bg-gray-50">
               <ChevronLeft size={16} />
             </button>
             <button className="w-8 h-8 flex items-center justify-center bg-[#B7A3E3] text-white rounded">
               1
             </button>
-            <button className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-50">
+            <button className="w-8 h-8 flex text-[#D2D2D2] items-center justify-center border border-gray-300 rounded hover:bg-gray-50">
               2
             </button>
-            <button className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-50">
+            <button className="w-8 h-8 flex text-[#D2D2D2] items-center justify-center border border-gray-300 rounded hover:bg-gray-50">
               3
             </button>
             <span className="px-2">...</span>
-            <button className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-50">
+            <button className="w-8 h-8 flex text-[#D2D2D2] items-center justify-center border border-gray-300 rounded hover:bg-gray-50">
               10
             </button>
-            <button className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-50">
+            <button className="w-8 h-8 flex text-[#D2D2D2] items-center justify-center border border-gray-300 rounded hover:bg-gray-50">
               <ChevronRight size={16} />
             </button>
           </div>
@@ -240,6 +265,13 @@ export default function CourseManagement() {
           }}
         />
       )}
+
+      {/* Create Course Modal */}
+      <CreateCourseModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={fetchCourses}
+      />
     </Navbar>
   );
 }
