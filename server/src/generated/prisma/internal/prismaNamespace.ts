@@ -396,6 +396,8 @@ export const ModelName = {
   knowledge_categories: 'knowledge_categories',
   questions: 'questions',
   staff_users: 'staff_users',
+  import_preview_sessions: 'import_preview_sessions',
+  import_preview_rows: 'import_preview_rows',
   student_directory: 'student_directory',
   students: 'students'
 } as const
@@ -413,7 +415,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "attempt_answers" | "attempt_items" | "choices" | "course_enrollments" | "course_instructors" | "course_offerings" | "courses" | "exam_attempts" | "exams" | "knowledge_categories" | "questions" | "staff_users" | "student_directory" | "students"
+    modelProps: "attempt_answers" | "attempt_items" | "choices" | "course_enrollments" | "course_instructors" | "course_offerings" | "courses" | "exam_attempts" | "exams" | "knowledge_categories" | "questions" | "staff_users" | "import_preview_sessions" | "import_preview_rows" | "student_directory" | "students"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1305,6 +1307,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    import_preview_sessions: {
+      payload: Prisma.$import_preview_sessionsPayload<ExtArgs>
+      fields: Prisma.import_preview_sessionsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.import_preview_sessionsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_sessionsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.import_preview_sessionsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_sessionsPayload>
+        }
+        findFirst: {
+          args: Prisma.import_preview_sessionsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_sessionsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.import_preview_sessionsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_sessionsPayload>
+        }
+        findMany: {
+          args: Prisma.import_preview_sessionsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_sessionsPayload>[]
+        }
+        create: {
+          args: Prisma.import_preview_sessionsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_sessionsPayload>
+        }
+        createMany: {
+          args: Prisma.import_preview_sessionsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.import_preview_sessionsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_sessionsPayload>[]
+        }
+        delete: {
+          args: Prisma.import_preview_sessionsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_sessionsPayload>
+        }
+        update: {
+          args: Prisma.import_preview_sessionsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_sessionsPayload>
+        }
+        deleteMany: {
+          args: Prisma.import_preview_sessionsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.import_preview_sessionsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.import_preview_sessionsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_sessionsPayload>[]
+        }
+        upsert: {
+          args: Prisma.import_preview_sessionsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_sessionsPayload>
+        }
+        aggregate: {
+          args: Prisma.Import_preview_sessionsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateImport_preview_sessions>
+        }
+        groupBy: {
+          args: Prisma.import_preview_sessionsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Import_preview_sessionsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.import_preview_sessionsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Import_preview_sessionsCountAggregateOutputType> | number
+        }
+      }
+    }
+    import_preview_rows: {
+      payload: Prisma.$import_preview_rowsPayload<ExtArgs>
+      fields: Prisma.import_preview_rowsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.import_preview_rowsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_rowsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.import_preview_rowsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_rowsPayload>
+        }
+        findFirst: {
+          args: Prisma.import_preview_rowsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_rowsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.import_preview_rowsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_rowsPayload>
+        }
+        findMany: {
+          args: Prisma.import_preview_rowsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_rowsPayload>[]
+        }
+        create: {
+          args: Prisma.import_preview_rowsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_rowsPayload>
+        }
+        createMany: {
+          args: Prisma.import_preview_rowsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.import_preview_rowsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_rowsPayload>[]
+        }
+        delete: {
+          args: Prisma.import_preview_rowsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_rowsPayload>
+        }
+        update: {
+          args: Prisma.import_preview_rowsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_rowsPayload>
+        }
+        deleteMany: {
+          args: Prisma.import_preview_rowsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.import_preview_rowsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.import_preview_rowsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_rowsPayload>[]
+        }
+        upsert: {
+          args: Prisma.import_preview_rowsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$import_preview_rowsPayload>
+        }
+        aggregate: {
+          args: Prisma.Import_preview_rowsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateImport_preview_rows>
+        }
+        groupBy: {
+          args: Prisma.import_preview_rowsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Import_preview_rowsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.import_preview_rowsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Import_preview_rowsCountAggregateOutputType> | number
+        }
+      }
+    }
     student_directory: {
       payload: Prisma.$student_directoryPayload<ExtArgs>
       fields: Prisma.student_directoryFieldRefs
@@ -1655,6 +1805,35 @@ export const Staff_usersScalarFieldEnum = {
 export type Staff_usersScalarFieldEnum = (typeof Staff_usersScalarFieldEnum)[keyof typeof Staff_usersScalarFieldEnum]
 
 
+export const Import_preview_sessionsScalarFieldEnum = {
+  id: 'id',
+  course_offerings_id: 'course_offerings_id',
+  created_by: 'created_by',
+  expires_at: 'expires_at',
+  created_at: 'created_at'
+} as const
+
+export type Import_preview_sessionsScalarFieldEnum = (typeof Import_preview_sessionsScalarFieldEnum)[keyof typeof Import_preview_sessionsScalarFieldEnum]
+
+
+export const Import_preview_rowsScalarFieldEnum = {
+  id: 'id',
+  session_id: 'session_id',
+  row_index: 'row_index',
+  student_code: 'student_code',
+  email: 'email',
+  first_name: 'first_name',
+  last_name: 'last_name',
+  status: 'status',
+  note: 'note',
+  is_deleted: 'is_deleted',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Import_preview_rowsScalarFieldEnum = (typeof Import_preview_rowsScalarFieldEnum)[keyof typeof Import_preview_rowsScalarFieldEnum]
+
+
 export const Student_directoryScalarFieldEnum = {
   student_directory_id: 'student_directory_id',
   student_code: 'student_code',
@@ -1983,6 +2162,8 @@ export type GlobalOmitConfig = {
   knowledge_categories?: Prisma.knowledge_categoriesOmit
   questions?: Prisma.questionsOmit
   staff_users?: Prisma.staff_usersOmit
+  import_preview_sessions?: Prisma.import_preview_sessionsOmit
+  import_preview_rows?: Prisma.import_preview_rowsOmit
   student_directory?: Prisma.student_directoryOmit
   students?: Prisma.studentsOmit
 }

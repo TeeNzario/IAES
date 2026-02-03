@@ -63,6 +63,8 @@ export const ModelName = {
   knowledge_categories: 'knowledge_categories',
   questions: 'questions',
   staff_users: 'staff_users',
+  import_preview_sessions: 'import_preview_sessions',
+  import_preview_rows: 'import_preview_rows',
   student_directory: 'student_directory',
   students: 'students'
 } as const
@@ -244,6 +246,35 @@ export const Staff_usersScalarFieldEnum = {
 } as const
 
 export type Staff_usersScalarFieldEnum = (typeof Staff_usersScalarFieldEnum)[keyof typeof Staff_usersScalarFieldEnum]
+
+
+export const Import_preview_sessionsScalarFieldEnum = {
+  id: 'id',
+  course_offerings_id: 'course_offerings_id',
+  created_by: 'created_by',
+  expires_at: 'expires_at',
+  created_at: 'created_at'
+} as const
+
+export type Import_preview_sessionsScalarFieldEnum = (typeof Import_preview_sessionsScalarFieldEnum)[keyof typeof Import_preview_sessionsScalarFieldEnum]
+
+
+export const Import_preview_rowsScalarFieldEnum = {
+  id: 'id',
+  session_id: 'session_id',
+  row_index: 'row_index',
+  student_code: 'student_code',
+  email: 'email',
+  first_name: 'first_name',
+  last_name: 'last_name',
+  status: 'status',
+  note: 'note',
+  is_deleted: 'is_deleted',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Import_preview_rowsScalarFieldEnum = (typeof Import_preview_rowsScalarFieldEnum)[keyof typeof Import_preview_rowsScalarFieldEnum]
 
 
 export const Student_directoryScalarFieldEnum = {

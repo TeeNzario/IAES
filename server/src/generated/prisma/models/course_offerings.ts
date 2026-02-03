@@ -249,6 +249,7 @@ export type course_offeringsWhereInput = {
   courses?: Prisma.XOR<Prisma.CoursesScalarRelationFilter, Prisma.coursesWhereInput>
   exams?: Prisma.ExamsListRelationFilter
   knowledge_categories?: Prisma.Knowledge_categoriesListRelationFilter
+  importPreviewSessions?: Prisma.Import_preview_sessionsListRelationFilter
 }
 
 export type course_offeringsOrderByWithRelationInput = {
@@ -264,6 +265,7 @@ export type course_offeringsOrderByWithRelationInput = {
   courses?: Prisma.coursesOrderByWithRelationInput
   exams?: Prisma.examsOrderByRelationAggregateInput
   knowledge_categories?: Prisma.knowledge_categoriesOrderByRelationAggregateInput
+  importPreviewSessions?: Prisma.import_preview_sessionsOrderByRelationAggregateInput
 }
 
 export type course_offeringsWhereUniqueInput = Prisma.AtLeast<{
@@ -282,6 +284,7 @@ export type course_offeringsWhereUniqueInput = Prisma.AtLeast<{
   courses?: Prisma.XOR<Prisma.CoursesScalarRelationFilter, Prisma.coursesWhereInput>
   exams?: Prisma.ExamsListRelationFilter
   knowledge_categories?: Prisma.Knowledge_categoriesListRelationFilter
+  importPreviewSessions?: Prisma.Import_preview_sessionsListRelationFilter
 }, "course_offerings_id">
 
 export type course_offeringsOrderByWithAggregationInput = {
@@ -324,6 +327,7 @@ export type course_offeringsCreateInput = {
   courses: Prisma.coursesCreateNestedOneWithoutCourse_offeringsInput
   exams?: Prisma.examsCreateNestedManyWithoutCourse_offeringsInput
   knowledge_categories?: Prisma.knowledge_categoriesCreateNestedManyWithoutCourse_offeringsInput
+  importPreviewSessions?: Prisma.import_preview_sessionsCreateNestedManyWithoutCourse_offeringsInput
 }
 
 export type course_offeringsUncheckedCreateInput = {
@@ -338,6 +342,7 @@ export type course_offeringsUncheckedCreateInput = {
   course_instructors?: Prisma.course_instructorsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   exams?: Prisma.examsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   knowledge_categories?: Prisma.knowledge_categoriesUncheckedCreateNestedManyWithoutCourse_offeringsInput
+  importPreviewSessions?: Prisma.import_preview_sessionsUncheckedCreateNestedManyWithoutCourse_offeringsInput
 }
 
 export type course_offeringsUpdateInput = {
@@ -352,6 +357,7 @@ export type course_offeringsUpdateInput = {
   courses?: Prisma.coursesUpdateOneRequiredWithoutCourse_offeringsNestedInput
   exams?: Prisma.examsUpdateManyWithoutCourse_offeringsNestedInput
   knowledge_categories?: Prisma.knowledge_categoriesUpdateManyWithoutCourse_offeringsNestedInput
+  importPreviewSessions?: Prisma.import_preview_sessionsUpdateManyWithoutCourse_offeringsNestedInput
 }
 
 export type course_offeringsUncheckedUpdateInput = {
@@ -366,6 +372,7 @@ export type course_offeringsUncheckedUpdateInput = {
   course_instructors?: Prisma.course_instructorsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   exams?: Prisma.examsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   knowledge_categories?: Prisma.knowledge_categoriesUncheckedUpdateManyWithoutCourse_offeringsNestedInput
+  importPreviewSessions?: Prisma.import_preview_sessionsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
 }
 
 export type course_offeringsCreateManyInput = {
@@ -554,6 +561,20 @@ export type course_offeringsUpdateOneRequiredWithoutKnowledge_categoriesNestedIn
   update?: Prisma.XOR<Prisma.XOR<Prisma.course_offeringsUpdateToOneWithWhereWithoutKnowledge_categoriesInput, Prisma.course_offeringsUpdateWithoutKnowledge_categoriesInput>, Prisma.course_offeringsUncheckedUpdateWithoutKnowledge_categoriesInput>
 }
 
+export type course_offeringsCreateNestedOneWithoutImportPreviewSessionsInput = {
+  create?: Prisma.XOR<Prisma.course_offeringsCreateWithoutImportPreviewSessionsInput, Prisma.course_offeringsUncheckedCreateWithoutImportPreviewSessionsInput>
+  connectOrCreate?: Prisma.course_offeringsCreateOrConnectWithoutImportPreviewSessionsInput
+  connect?: Prisma.course_offeringsWhereUniqueInput
+}
+
+export type course_offeringsUpdateOneRequiredWithoutImportPreviewSessionsNestedInput = {
+  create?: Prisma.XOR<Prisma.course_offeringsCreateWithoutImportPreviewSessionsInput, Prisma.course_offeringsUncheckedCreateWithoutImportPreviewSessionsInput>
+  connectOrCreate?: Prisma.course_offeringsCreateOrConnectWithoutImportPreviewSessionsInput
+  upsert?: Prisma.course_offeringsUpsertWithoutImportPreviewSessionsInput
+  connect?: Prisma.course_offeringsWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.course_offeringsUpdateToOneWithWhereWithoutImportPreviewSessionsInput, Prisma.course_offeringsUpdateWithoutImportPreviewSessionsInput>, Prisma.course_offeringsUncheckedUpdateWithoutImportPreviewSessionsInput>
+}
+
 export type course_offeringsCreateWithoutCourse_enrollmentsInput = {
   course_offerings_id?: bigint | number
   academic_year: number
@@ -565,6 +586,7 @@ export type course_offeringsCreateWithoutCourse_enrollmentsInput = {
   courses: Prisma.coursesCreateNestedOneWithoutCourse_offeringsInput
   exams?: Prisma.examsCreateNestedManyWithoutCourse_offeringsInput
   knowledge_categories?: Prisma.knowledge_categoriesCreateNestedManyWithoutCourse_offeringsInput
+  importPreviewSessions?: Prisma.import_preview_sessionsCreateNestedManyWithoutCourse_offeringsInput
 }
 
 export type course_offeringsUncheckedCreateWithoutCourse_enrollmentsInput = {
@@ -578,6 +600,7 @@ export type course_offeringsUncheckedCreateWithoutCourse_enrollmentsInput = {
   course_instructors?: Prisma.course_instructorsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   exams?: Prisma.examsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   knowledge_categories?: Prisma.knowledge_categoriesUncheckedCreateNestedManyWithoutCourse_offeringsInput
+  importPreviewSessions?: Prisma.import_preview_sessionsUncheckedCreateNestedManyWithoutCourse_offeringsInput
 }
 
 export type course_offeringsCreateOrConnectWithoutCourse_enrollmentsInput = {
@@ -607,6 +630,7 @@ export type course_offeringsUpdateWithoutCourse_enrollmentsInput = {
   courses?: Prisma.coursesUpdateOneRequiredWithoutCourse_offeringsNestedInput
   exams?: Prisma.examsUpdateManyWithoutCourse_offeringsNestedInput
   knowledge_categories?: Prisma.knowledge_categoriesUpdateManyWithoutCourse_offeringsNestedInput
+  importPreviewSessions?: Prisma.import_preview_sessionsUpdateManyWithoutCourse_offeringsNestedInput
 }
 
 export type course_offeringsUncheckedUpdateWithoutCourse_enrollmentsInput = {
@@ -620,6 +644,7 @@ export type course_offeringsUncheckedUpdateWithoutCourse_enrollmentsInput = {
   course_instructors?: Prisma.course_instructorsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   exams?: Prisma.examsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   knowledge_categories?: Prisma.knowledge_categoriesUncheckedUpdateManyWithoutCourse_offeringsNestedInput
+  importPreviewSessions?: Prisma.import_preview_sessionsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
 }
 
 export type course_offeringsCreateWithoutCourse_instructorsInput = {
@@ -633,6 +658,7 @@ export type course_offeringsCreateWithoutCourse_instructorsInput = {
   courses: Prisma.coursesCreateNestedOneWithoutCourse_offeringsInput
   exams?: Prisma.examsCreateNestedManyWithoutCourse_offeringsInput
   knowledge_categories?: Prisma.knowledge_categoriesCreateNestedManyWithoutCourse_offeringsInput
+  importPreviewSessions?: Prisma.import_preview_sessionsCreateNestedManyWithoutCourse_offeringsInput
 }
 
 export type course_offeringsUncheckedCreateWithoutCourse_instructorsInput = {
@@ -646,6 +672,7 @@ export type course_offeringsUncheckedCreateWithoutCourse_instructorsInput = {
   course_enrollments?: Prisma.course_enrollmentsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   exams?: Prisma.examsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   knowledge_categories?: Prisma.knowledge_categoriesUncheckedCreateNestedManyWithoutCourse_offeringsInput
+  importPreviewSessions?: Prisma.import_preview_sessionsUncheckedCreateNestedManyWithoutCourse_offeringsInput
 }
 
 export type course_offeringsCreateOrConnectWithoutCourse_instructorsInput = {
@@ -675,6 +702,7 @@ export type course_offeringsUpdateWithoutCourse_instructorsInput = {
   courses?: Prisma.coursesUpdateOneRequiredWithoutCourse_offeringsNestedInput
   exams?: Prisma.examsUpdateManyWithoutCourse_offeringsNestedInput
   knowledge_categories?: Prisma.knowledge_categoriesUpdateManyWithoutCourse_offeringsNestedInput
+  importPreviewSessions?: Prisma.import_preview_sessionsUpdateManyWithoutCourse_offeringsNestedInput
 }
 
 export type course_offeringsUncheckedUpdateWithoutCourse_instructorsInput = {
@@ -688,6 +716,7 @@ export type course_offeringsUncheckedUpdateWithoutCourse_instructorsInput = {
   course_enrollments?: Prisma.course_enrollmentsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   exams?: Prisma.examsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   knowledge_categories?: Prisma.knowledge_categoriesUncheckedUpdateManyWithoutCourse_offeringsNestedInput
+  importPreviewSessions?: Prisma.import_preview_sessionsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
 }
 
 export type course_offeringsCreateWithoutCoursesInput = {
@@ -701,6 +730,7 @@ export type course_offeringsCreateWithoutCoursesInput = {
   course_instructors?: Prisma.course_instructorsCreateNestedManyWithoutCourse_offeringsInput
   exams?: Prisma.examsCreateNestedManyWithoutCourse_offeringsInput
   knowledge_categories?: Prisma.knowledge_categoriesCreateNestedManyWithoutCourse_offeringsInput
+  importPreviewSessions?: Prisma.import_preview_sessionsCreateNestedManyWithoutCourse_offeringsInput
 }
 
 export type course_offeringsUncheckedCreateWithoutCoursesInput = {
@@ -714,6 +744,7 @@ export type course_offeringsUncheckedCreateWithoutCoursesInput = {
   course_instructors?: Prisma.course_instructorsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   exams?: Prisma.examsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   knowledge_categories?: Prisma.knowledge_categoriesUncheckedCreateNestedManyWithoutCourse_offeringsInput
+  importPreviewSessions?: Prisma.import_preview_sessionsUncheckedCreateNestedManyWithoutCourse_offeringsInput
 }
 
 export type course_offeringsCreateOrConnectWithoutCoursesInput = {
@@ -766,6 +797,7 @@ export type course_offeringsCreateWithoutExamsInput = {
   course_instructors?: Prisma.course_instructorsCreateNestedManyWithoutCourse_offeringsInput
   courses: Prisma.coursesCreateNestedOneWithoutCourse_offeringsInput
   knowledge_categories?: Prisma.knowledge_categoriesCreateNestedManyWithoutCourse_offeringsInput
+  importPreviewSessions?: Prisma.import_preview_sessionsCreateNestedManyWithoutCourse_offeringsInput
 }
 
 export type course_offeringsUncheckedCreateWithoutExamsInput = {
@@ -779,6 +811,7 @@ export type course_offeringsUncheckedCreateWithoutExamsInput = {
   course_enrollments?: Prisma.course_enrollmentsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   course_instructors?: Prisma.course_instructorsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   knowledge_categories?: Prisma.knowledge_categoriesUncheckedCreateNestedManyWithoutCourse_offeringsInput
+  importPreviewSessions?: Prisma.import_preview_sessionsUncheckedCreateNestedManyWithoutCourse_offeringsInput
 }
 
 export type course_offeringsCreateOrConnectWithoutExamsInput = {
@@ -808,6 +841,7 @@ export type course_offeringsUpdateWithoutExamsInput = {
   course_instructors?: Prisma.course_instructorsUpdateManyWithoutCourse_offeringsNestedInput
   courses?: Prisma.coursesUpdateOneRequiredWithoutCourse_offeringsNestedInput
   knowledge_categories?: Prisma.knowledge_categoriesUpdateManyWithoutCourse_offeringsNestedInput
+  importPreviewSessions?: Prisma.import_preview_sessionsUpdateManyWithoutCourse_offeringsNestedInput
 }
 
 export type course_offeringsUncheckedUpdateWithoutExamsInput = {
@@ -821,6 +855,7 @@ export type course_offeringsUncheckedUpdateWithoutExamsInput = {
   course_enrollments?: Prisma.course_enrollmentsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   course_instructors?: Prisma.course_instructorsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   knowledge_categories?: Prisma.knowledge_categoriesUncheckedUpdateManyWithoutCourse_offeringsNestedInput
+  importPreviewSessions?: Prisma.import_preview_sessionsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
 }
 
 export type course_offeringsCreateWithoutKnowledge_categoriesInput = {
@@ -834,6 +869,7 @@ export type course_offeringsCreateWithoutKnowledge_categoriesInput = {
   course_instructors?: Prisma.course_instructorsCreateNestedManyWithoutCourse_offeringsInput
   courses: Prisma.coursesCreateNestedOneWithoutCourse_offeringsInput
   exams?: Prisma.examsCreateNestedManyWithoutCourse_offeringsInput
+  importPreviewSessions?: Prisma.import_preview_sessionsCreateNestedManyWithoutCourse_offeringsInput
 }
 
 export type course_offeringsUncheckedCreateWithoutKnowledge_categoriesInput = {
@@ -847,6 +883,7 @@ export type course_offeringsUncheckedCreateWithoutKnowledge_categoriesInput = {
   course_enrollments?: Prisma.course_enrollmentsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   course_instructors?: Prisma.course_instructorsUncheckedCreateNestedManyWithoutCourse_offeringsInput
   exams?: Prisma.examsUncheckedCreateNestedManyWithoutCourse_offeringsInput
+  importPreviewSessions?: Prisma.import_preview_sessionsUncheckedCreateNestedManyWithoutCourse_offeringsInput
 }
 
 export type course_offeringsCreateOrConnectWithoutKnowledge_categoriesInput = {
@@ -876,6 +913,7 @@ export type course_offeringsUpdateWithoutKnowledge_categoriesInput = {
   course_instructors?: Prisma.course_instructorsUpdateManyWithoutCourse_offeringsNestedInput
   courses?: Prisma.coursesUpdateOneRequiredWithoutCourse_offeringsNestedInput
   exams?: Prisma.examsUpdateManyWithoutCourse_offeringsNestedInput
+  importPreviewSessions?: Prisma.import_preview_sessionsUpdateManyWithoutCourse_offeringsNestedInput
 }
 
 export type course_offeringsUncheckedUpdateWithoutKnowledge_categoriesInput = {
@@ -889,6 +927,79 @@ export type course_offeringsUncheckedUpdateWithoutKnowledge_categoriesInput = {
   course_enrollments?: Prisma.course_enrollmentsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   course_instructors?: Prisma.course_instructorsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   exams?: Prisma.examsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
+  importPreviewSessions?: Prisma.import_preview_sessionsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
+}
+
+export type course_offeringsCreateWithoutImportPreviewSessionsInput = {
+  course_offerings_id?: bigint | number
+  academic_year: number
+  semester: number
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  course_enrollments?: Prisma.course_enrollmentsCreateNestedManyWithoutCourse_offeringsInput
+  course_instructors?: Prisma.course_instructorsCreateNestedManyWithoutCourse_offeringsInput
+  courses: Prisma.coursesCreateNestedOneWithoutCourse_offeringsInput
+  exams?: Prisma.examsCreateNestedManyWithoutCourse_offeringsInput
+  knowledge_categories?: Prisma.knowledge_categoriesCreateNestedManyWithoutCourse_offeringsInput
+}
+
+export type course_offeringsUncheckedCreateWithoutImportPreviewSessionsInput = {
+  course_offerings_id?: bigint | number
+  courses_id: bigint | number
+  academic_year: number
+  semester: number
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  course_enrollments?: Prisma.course_enrollmentsUncheckedCreateNestedManyWithoutCourse_offeringsInput
+  course_instructors?: Prisma.course_instructorsUncheckedCreateNestedManyWithoutCourse_offeringsInput
+  exams?: Prisma.examsUncheckedCreateNestedManyWithoutCourse_offeringsInput
+  knowledge_categories?: Prisma.knowledge_categoriesUncheckedCreateNestedManyWithoutCourse_offeringsInput
+}
+
+export type course_offeringsCreateOrConnectWithoutImportPreviewSessionsInput = {
+  where: Prisma.course_offeringsWhereUniqueInput
+  create: Prisma.XOR<Prisma.course_offeringsCreateWithoutImportPreviewSessionsInput, Prisma.course_offeringsUncheckedCreateWithoutImportPreviewSessionsInput>
+}
+
+export type course_offeringsUpsertWithoutImportPreviewSessionsInput = {
+  update: Prisma.XOR<Prisma.course_offeringsUpdateWithoutImportPreviewSessionsInput, Prisma.course_offeringsUncheckedUpdateWithoutImportPreviewSessionsInput>
+  create: Prisma.XOR<Prisma.course_offeringsCreateWithoutImportPreviewSessionsInput, Prisma.course_offeringsUncheckedCreateWithoutImportPreviewSessionsInput>
+  where?: Prisma.course_offeringsWhereInput
+}
+
+export type course_offeringsUpdateToOneWithWhereWithoutImportPreviewSessionsInput = {
+  where?: Prisma.course_offeringsWhereInput
+  data: Prisma.XOR<Prisma.course_offeringsUpdateWithoutImportPreviewSessionsInput, Prisma.course_offeringsUncheckedUpdateWithoutImportPreviewSessionsInput>
+}
+
+export type course_offeringsUpdateWithoutImportPreviewSessionsInput = {
+  course_offerings_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  academic_year?: Prisma.IntFieldUpdateOperationsInput | number
+  semester?: Prisma.IntFieldUpdateOperationsInput | number
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  course_enrollments?: Prisma.course_enrollmentsUpdateManyWithoutCourse_offeringsNestedInput
+  course_instructors?: Prisma.course_instructorsUpdateManyWithoutCourse_offeringsNestedInput
+  courses?: Prisma.coursesUpdateOneRequiredWithoutCourse_offeringsNestedInput
+  exams?: Prisma.examsUpdateManyWithoutCourse_offeringsNestedInput
+  knowledge_categories?: Prisma.knowledge_categoriesUpdateManyWithoutCourse_offeringsNestedInput
+}
+
+export type course_offeringsUncheckedUpdateWithoutImportPreviewSessionsInput = {
+  course_offerings_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  courses_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  academic_year?: Prisma.IntFieldUpdateOperationsInput | number
+  semester?: Prisma.IntFieldUpdateOperationsInput | number
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  course_enrollments?: Prisma.course_enrollmentsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
+  course_instructors?: Prisma.course_instructorsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
+  exams?: Prisma.examsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
+  knowledge_categories?: Prisma.knowledge_categoriesUncheckedUpdateManyWithoutCourse_offeringsNestedInput
 }
 
 export type course_offeringsCreateManyCoursesInput = {
@@ -911,6 +1022,7 @@ export type course_offeringsUpdateWithoutCoursesInput = {
   course_instructors?: Prisma.course_instructorsUpdateManyWithoutCourse_offeringsNestedInput
   exams?: Prisma.examsUpdateManyWithoutCourse_offeringsNestedInput
   knowledge_categories?: Prisma.knowledge_categoriesUpdateManyWithoutCourse_offeringsNestedInput
+  importPreviewSessions?: Prisma.import_preview_sessionsUpdateManyWithoutCourse_offeringsNestedInput
 }
 
 export type course_offeringsUncheckedUpdateWithoutCoursesInput = {
@@ -924,6 +1036,7 @@ export type course_offeringsUncheckedUpdateWithoutCoursesInput = {
   course_instructors?: Prisma.course_instructorsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   exams?: Prisma.examsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
   knowledge_categories?: Prisma.knowledge_categoriesUncheckedUpdateManyWithoutCourse_offeringsNestedInput
+  importPreviewSessions?: Prisma.import_preview_sessionsUncheckedUpdateManyWithoutCourse_offeringsNestedInput
 }
 
 export type course_offeringsUncheckedUpdateManyWithoutCoursesInput = {
@@ -945,6 +1058,7 @@ export type Course_offeringsCountOutputType = {
   course_instructors: number
   exams: number
   knowledge_categories: number
+  importPreviewSessions: number
 }
 
 export type Course_offeringsCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -952,6 +1066,7 @@ export type Course_offeringsCountOutputTypeSelect<ExtArgs extends runtime.Types.
   course_instructors?: boolean | Course_offeringsCountOutputTypeCountCourse_instructorsArgs
   exams?: boolean | Course_offeringsCountOutputTypeCountExamsArgs
   knowledge_categories?: boolean | Course_offeringsCountOutputTypeCountKnowledge_categoriesArgs
+  importPreviewSessions?: boolean | Course_offeringsCountOutputTypeCountImportPreviewSessionsArgs
 }
 
 /**
@@ -992,6 +1107,13 @@ export type Course_offeringsCountOutputTypeCountKnowledge_categoriesArgs<ExtArgs
   where?: Prisma.knowledge_categoriesWhereInput
 }
 
+/**
+ * Course_offeringsCountOutputType without action
+ */
+export type Course_offeringsCountOutputTypeCountImportPreviewSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.import_preview_sessionsWhereInput
+}
+
 
 export type course_offeringsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   course_offerings_id?: boolean
@@ -1006,6 +1128,7 @@ export type course_offeringsSelect<ExtArgs extends runtime.Types.Extensions.Inte
   courses?: boolean | Prisma.coursesDefaultArgs<ExtArgs>
   exams?: boolean | Prisma.course_offerings$examsArgs<ExtArgs>
   knowledge_categories?: boolean | Prisma.course_offerings$knowledge_categoriesArgs<ExtArgs>
+  importPreviewSessions?: boolean | Prisma.course_offerings$importPreviewSessionsArgs<ExtArgs>
   _count?: boolean | Prisma.Course_offeringsCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["course_offerings"]>
 
@@ -1048,6 +1171,7 @@ export type course_offeringsInclude<ExtArgs extends runtime.Types.Extensions.Int
   courses?: boolean | Prisma.coursesDefaultArgs<ExtArgs>
   exams?: boolean | Prisma.course_offerings$examsArgs<ExtArgs>
   knowledge_categories?: boolean | Prisma.course_offerings$knowledge_categoriesArgs<ExtArgs>
+  importPreviewSessions?: boolean | Prisma.course_offerings$importPreviewSessionsArgs<ExtArgs>
   _count?: boolean | Prisma.Course_offeringsCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type course_offeringsIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1065,6 +1189,7 @@ export type $course_offeringsPayload<ExtArgs extends runtime.Types.Extensions.In
     courses: Prisma.$coursesPayload<ExtArgs>
     exams: Prisma.$examsPayload<ExtArgs>[]
     knowledge_categories: Prisma.$knowledge_categoriesPayload<ExtArgs>[]
+    importPreviewSessions: Prisma.$import_preview_sessionsPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     course_offerings_id: bigint
@@ -1473,6 +1598,7 @@ export interface Prisma__course_offeringsClient<T, Null = never, ExtArgs extends
   courses<T extends Prisma.coursesDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.coursesDefaultArgs<ExtArgs>>): Prisma.Prisma__coursesClient<runtime.Types.Result.GetResult<Prisma.$coursesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   exams<T extends Prisma.course_offerings$examsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.course_offerings$examsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$examsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   knowledge_categories<T extends Prisma.course_offerings$knowledge_categoriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.course_offerings$knowledge_categoriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$knowledge_categoriesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  importPreviewSessions<T extends Prisma.course_offerings$importPreviewSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.course_offerings$importPreviewSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$import_preview_sessionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1998,6 +2124,30 @@ export type course_offerings$knowledge_categoriesArgs<ExtArgs extends runtime.Ty
   take?: number
   skip?: number
   distinct?: Prisma.Knowledge_categoriesScalarFieldEnum | Prisma.Knowledge_categoriesScalarFieldEnum[]
+}
+
+/**
+ * course_offerings.importPreviewSessions
+ */
+export type course_offerings$importPreviewSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the import_preview_sessions
+   */
+  select?: Prisma.import_preview_sessionsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the import_preview_sessions
+   */
+  omit?: Prisma.import_preview_sessionsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.import_preview_sessionsInclude<ExtArgs> | null
+  where?: Prisma.import_preview_sessionsWhereInput
+  orderBy?: Prisma.import_preview_sessionsOrderByWithRelationInput | Prisma.import_preview_sessionsOrderByWithRelationInput[]
+  cursor?: Prisma.import_preview_sessionsWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Import_preview_sessionsScalarFieldEnum | Prisma.Import_preview_sessionsScalarFieldEnum[]
 }
 
 /**

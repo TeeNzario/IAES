@@ -39,6 +39,7 @@ export class StaffService {
         first_name: true,
         last_name: true,
         email: true,
+        role: true,
       },
     });
     return serializeBigInt(staff);

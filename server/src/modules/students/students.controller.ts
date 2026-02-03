@@ -27,6 +27,9 @@ export class StudentsController {
     return this.studentsService.findAll();
   }
 
+
+
+
   // @Get(':id')
   // findOne(@Param('id') id: string) {
   //   return this.studentsService.findOne(id);
@@ -35,13 +38,22 @@ export class StudentsController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   getMe(@Req() req) {
-    return this.studentsService.findById(req.user.student_code);
+    // For students, req.user.id is the student_code (from JWT sub)
+    return this.studentsService.findById(String(req.user.id));
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch('me')
   updateMe(@Req() req, @Body() dto: UpdateStudentDto) {
-    return this.studentsService.updateByStudentCode(req.user.student_code, dto);
+    return this.studentsService.updateByStudentCode(String(req.user.id), dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me/enrollments')
+  getMyEnrollments(@Req() req) {
+    console.log('req.user : ', req.user);
+    // For students, req.user.id is the student_code (from JWT sub)
+    return this.studentsService.findEnrollments(String(req.user.id));
   }
 
   @UseGuards(JwtAuthGuard)
@@ -52,7 +64,7 @@ export class StudentsController {
     @Req() req,
   ) {
     // Allow student to update their own profile or admin to update any student
-    if (req.user.student_code !== id) {
+    if (String(req.user.id) !== id) {
       // Could add admin check here if needed
     }
     return this.studentsService.update(id, updateStudentDto);

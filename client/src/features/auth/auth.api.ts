@@ -26,7 +26,7 @@ export interface StaffLoginResponse {
 }
 
 export function login(data: LoginDto): Promise<StudentLoginResponse> {
-  return apiFetch<StudentLoginResponse>("/auth/login", {
+  return apiFetch<StudentLoginResponse>("/auth/student/login", {
     method: "POST",
     data,
   });

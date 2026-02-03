@@ -61,18 +61,17 @@ export default function CoursePage() {
   return (
     <Navbar>
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8 bg-[#F4EFFF]">
-        {/* Course Header with Top Nav */}
-        <div className="bg-gradient-to-r from-white/90 to-purple-50/90 backdrop-blur-sm rounded-2xl lg:rounded-3xl  mb-6 lg:mb-8 relative overflow-hidden">
-          {/* Top Navigation Menu */}
-          <div className="border-b border-gray-200/50 px-6 lg:px-8 pt-4">
-            <div className="flex items-center gap-6 pb-3">
-              <button
-                onClick={() => setActiveTopTab("home")}
-                className={`font-medium text-sm transition-colors ${
-                  activeTopTab === "home"
-                    ? "text-purple-600"
-                    : "text-gray-500 hover:text-purple-600"
+      <div className="min-h-screen w-full bg-[#F4EFFF]">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8">
+        {/* Top Navigation Menu */}
+       <div className="border-b border-gray-200/50 px-6 lg:px-8 pt-4">
+          <div className="flex items-center gap-6 pb-3">
+            <button
+              onClick={() => setActiveTopTab("home")}
+              className={`font-light text-sm transition-colors cursor-pointer ${
+                activeTopTab === "home"
+                    ? "text-[#B7A3E3]"
+                    : "text-gray-500 hover:text-[#B7A3E3]"
                 }`}
               >
                 หน้าหลัก
@@ -83,30 +82,31 @@ export default function CoursePage() {
                   setActiveTopTab("student");
                   handleNavigateToStudents();
                 }}
-                className={`font-medium text-sm transition-colors ${
+                className={`font-light text-sm transition-colors cursor-pointer ${
                   activeTopTab === "student"
-                    ? "text-purple-600"
-                    : "text-gray-500 hover:text-purple-600"
+                    ? "text-[#B7A3E3]"
+                    : "text-gray-500 hover:text-[#B7A3E3]"
                 }`}
               >
                 นักเรียน
               </button>
             </div>
           </div>
+       <div className="bg-gradient-to-r from-white/90 to-purple-50/90 backdrop-blur-sm rounded-2xl lg:rounded-3xl  mb-6 lg:mb-8 relative overflow-hidden">
 
           {/* Decorative Elements */}
           <div className="absolute top-0 right-0 w-32 h-32 lg:w-64 lg:h-64 bg-gradient-to-br from-blue-400 to-blue-600 rounded-bl-full opacity-20"></div>
           <div className="absolute top-5 right-5 lg:top-10 lg:right-10 w-16 h-16 lg:w-32 lg:h-32 bg-blue-500 rounded-3xl transform rotate-12 opacity-30"></div>
 
           {/* Course Info */}
-          <div className="relative z-10 p-6 lg:p-8">
+          <div className="relative z-10 p-6 lg:p-7 lg:px-10">
             {loading && <p>Loading...</p>}
             {course && (
               <>
-                <div className="inline-block bg-purple-100 text-purple-700 px-3 lg:px-4 py-1 rounded-full text-xs lg:text-sm font-medium mb-3 lg:mb-4">
-                  {course.courses.course_code}
+                <div className="inline-block text-[#B7A3E3] py-1 text-lg lg:text-xl font-medium mb-2 lg:mb-3">
+                  {course.semester}/{course.academic_year} {course.courses.course_code}
                 </div>
-                <h2 className="text-2xl lg:text-4xl font-bold text-gray-900 mb-3 lg:mb-4">
+                <h2 className="text-2xl lg:text-4xl font-light text-[#575757] mb-3 lg:mb-4">
                   {course.courses.course_name}
                 </h2>
                 <div className="flex flex-wrap flex-col mt-1">
@@ -130,35 +130,35 @@ export default function CoursePage() {
           <div className="flex flex-col gap-4 w-full lg:w-48 flex-shrink-0">
             <button
               onClick={() => setActiveTab("learn")}
-              className={`px-4 lg:px-6 py-3 lg:py-4 rounded-2xl font-medium transition-all duration-200 text-center text-sm lg:text-base ${
+              className={`px-4 lg:px-6 py-3 lg:py-6 rounded-2xl font-light transition-all duration-200 text-center text-sm lg:text-base cursor-pointer ${
                 activeTab === "learn"
-                  ? "bg-gradient-to-r from-purple-400 to-purple-500 text-white "
+                  ? "bg-[#B7A3E3] text-white "
                   : "bg-white text-gray-500 hover:bg-gray-50 border border-purple-200"
               }`}
             >
-              เพิ่มการสอน
+              เพิ่มการสอบ
             </button>
             <button
               onClick={() => setActiveTab("assignments")}
-              className={`px-4 lg:px-6 py-3 lg:py-4 rounded-2xl font-medium transition-all duration-200 text-center text-sm lg:text-base ${
+              className={`px-4 lg:px-6 py-3 lg:py-6 rounded-2xl font-light transition-all duration-200 text-center text-sm cursor-pointer lg:text-base ${
                 activeTab === "assignments"
                   ? "bg-gradient-to-r from-purple-400 to-purple-500 text-white"
-                  : "bg-white text-gray-500 hover:bg-gray-50 border border-purple-200"
+                  : "bg-white text-[#B7A3E3] hover:bg-gray-50 border border-purple-200"
               }`}
             >
-              ดูการมีเครื่องหมาย
+              ดูการวิเคราะห์
             </button>
 
             {/* Test Section - Hidden on mobile, shown on desktop */}
-            <div className="hidden lg:block bg-white backdrop-blur-sm rounded-2xl  p-6 mt-4">
-              <h3 className="font-semibold text-gray-900 mb-4 flex items-center text-sm">
-                ข้อสอบที่ได้เปิด
+            <div className="hidden lg:block bg-white backdrop-blur-sm rounded-2xl  p-6">
+              <h3 className="font-semibold text-[#575757] mb-4 flex items-center justify-center text-sm">
+                ข้อสอบที่ใกล้เปิด
               </h3>
               <div className="space-y-3">
-                <div className="text-xs text-gray-600 p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer">
+                <div className="text-xs text-gray-600 p-3 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer">
                   Database Focus Atten...
                 </div>
-                <div className="text-xs text-gray-600 p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer">
+                <div className="text-xs text-gray-600 p-3 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer">
                   MySQL for Beginner
                 </div>
               </div>
@@ -167,32 +167,6 @@ export default function CoursePage() {
 
           {/* Main Content Area */}
           <div className="flex-1 space-y-6">
-            {/* Announcement Card */}
-            <div className="bg-white rounded-xl lg:rounded-2xl p-4 lg:p-6 border border-gray-100">
-              <div className="flex items-start space-x-3">
-                <div className="bg-blue-100 rounded-lg p-1.5 lg:p-2 flex-shrink-0">
-                  <svg
-                    className="w-4 h-4 lg:w-5 lg:h-5 text-blue-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs lg:text-sm text-gray-600">
-                    ประกาศการสอบเสริมหมุนมีปัญหุกดิขอะคุกต่อเกิดในรีบ
-                  </p>
-                </div>
-              </div>
-            </div>
-
             {/* Course Cards */}
             {exam.map((course, index) => (
               <div
@@ -216,6 +190,7 @@ export default function CoursePage() {
           </div>
         </div>
       </main>
+      </div>
     </Navbar>
   );
 }

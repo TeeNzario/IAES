@@ -20,7 +20,7 @@ export class StudentsService {
   //   return `This action returns a #${id} student`;
   // }
 
-    // users/users.service.ts
+  // users/users.service.ts
   async findById(student_code: string) {
     return this.prisma.students.findUnique({
       where: { student_code },
@@ -33,17 +33,12 @@ export class StudentsService {
     });
   }
 
-  async updateByStudentCode(
-  student_code: string,
-  dto: UpdateStudentDto,
-) {
-  return this.prisma.students.update({
-    where: { student_code },
-    data: dto,
-  });
-}
-
-
+  async updateByStudentCode(student_code: string, dto: UpdateStudentDto) {
+    return this.prisma.students.update({
+      where: { student_code },
+      data: dto,
+    });
+  }
 
   update(id: string, updateStudentDto: UpdateStudentDto) {
     return this.prisma.students.update({
@@ -65,8 +60,37 @@ export class StudentsService {
   }
 
   remove(id: string) {
-  return this.prisma.students.delete({
-    where: { student_code: id },
-  });
-}
+    return this.prisma.students.delete({
+      where: { student_code: id },
+    });
+  }
+
+  /**
+   * Get course offerings that a student is enrolled in
+   */
+  async findEnrollments(studentCode: string) {
+    const enrollments = await this.prisma.course_enrollments.findMany({
+      where: { student_code: studentCode },
+      include: {
+        course_offerings: {
+          include: {
+            courses: {
+              select: {
+                course_code: true,
+                course_name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Serialize BigInt and return course offerings
+    return enrollments.map((e) => ({
+      course_offerings_id: e.course_offerings.course_offerings_id.toString(),
+      academic_year: e.course_offerings.academic_year,
+      semester: e.course_offerings.semester,
+      courses: e.course_offerings.courses,
+    }));
+  }
 }

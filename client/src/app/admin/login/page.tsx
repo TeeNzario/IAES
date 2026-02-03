@@ -28,7 +28,7 @@ const LoginPage = () => {
       });
 
       console.log("Login successful:", res.staff);
-      router.push("/course/create");
+      router.push("/");
     } catch (error) {
       console.error("Login failed:", error);
       setError("เข้าสู่ระบบไม่สำเร็จ กรุณาตรวจสอบข้อมูล");
