@@ -9,43 +9,30 @@ datasource db {
 }
 
 model attempt_answers {
-  attempt_answers_id BigInt        @id @default(autoincrement())
+  attempt_answers_id BigInt            @id @default(autoincrement())
   attempt_items_id   BigInt
   selected_choice_id BigInt?
   answer_text        String?
   is_correct         Boolean?
-  saved_at           DateTime      @default(now()) @db.Timestamptz(6)
-  attempt_items      attempt_items @relation(fields: [attempt_items_id], references: [attempt_items_id], onDelete: Cascade, onUpdate: NoAction)
-  choices            choices?      @relation(fields: [selected_choice_id], references: [choices_id], onDelete: NoAction, onUpdate: NoAction)
+  saved_at           DateTime          @default(now()) @db.Timestamptz(6)
+  attempt_items      attempt_items     @relation(fields: [attempt_items_id], references: [attempt_items_id], onDelete: Cascade)
+  question_choices   question_choices? @relation(fields: [selected_choice_id], references: [choice_id])
 }
 
 model attempt_items {
   attempt_items_id      BigInt            @id @default(autoincrement())
   exam_attempts_id      BigInt
-  questions_id          BigInt
+  question_id           BigInt
   sequence_index        Int
   shown_at              DateTime          @default(now()) @db.Timestamptz(6)
   answered_at           DateTime?         @db.Timestamptz(6)
   time_per_item         Int?
-  shuffled_choice_order Json?
   choice_selection_log  Json?
   attempt_answers       attempt_answers[]
-  exam_attempts         exam_attempts     @relation(fields: [exam_attempts_id], references: [exam_attempts_id], onDelete: Cascade, onUpdate: NoAction)
-  questions             questions         @relation(fields: [questions_id], references: [questions_id], onDelete: Cascade, onUpdate: NoAction)
+  exam_attempts         exam_attempts     @relation(fields: [exam_attempts_id], references: [exam_attempts_id], onDelete: Cascade)
+  question_bank         question_bank     @relation(fields: [question_id], references: [question_id], onDelete: Cascade)
 
-  @@unique([exam_attempts_id, questions_id])
-}
-
-model choices {
-  choices_id      BigInt            @id @default(autoincrement())
-  questions_id    BigInt
-  choice_text     String
-  is_correct      Boolean           @default(false)
-  display_order   Int?
-  created_at      DateTime          @default(now()) @db.Timestamptz(6)
-  updated_at      DateTime          @default(now()) @db.Timestamptz(6)
-  attempt_answers attempt_answers[]
-  questions       questions         @relation(fields: [questions_id], references: [questions_id], onDelete: Cascade, onUpdate: NoAction)
+  @@unique([exam_attempts_id, question_id])
 }
 
 model course_enrollments {
@@ -80,29 +67,30 @@ model course_offerings {
   course_enrollments    course_enrollments[]
   course_instructors    course_instructors[]
   courses               courses                   @relation(fields: [courses_id], references: [courses_id], onDelete: Cascade, onUpdate: NoAction)
-  exams                 exams[]
-  knowledge_categories  knowledge_categories[]
+  course_exams          course_exams[]
   importPreviewSessions import_preview_sessions[]
 
   @@index([courses_id], map: "idx_course_offerings_course")
 }
 
 model courses {
-  courses_id                BigInt             @id @default(autoincrement())
-  course_code               String             @db.VarChar(50)
-  course_name               String             @db.VarChar(255)
+  courses_id                BigInt                    @id @default(autoincrement())
+  course_code               String                    @db.VarChar(50)
+  course_name               String                    @db.VarChar(255)
   description               String?
   course_image              String?
-  is_active                 Boolean            @default(true)
+  is_active                 Boolean                   @default(true)
   created_by_instructors_id BigInt
-  created_at                DateTime           @default(now()) @db.Timestamptz(6)
-  updated_at                DateTime           @default(now()) @db.Timestamptz(6)
+  created_at                DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime                  @default(now()) @db.Timestamptz(6)
   course_offerings          course_offerings[]
+  course_knowledge     course_knowledge[]
+  question_knowledge   question_knowledge[]
 }
 
 model exam_attempts {
   exam_attempts_id BigInt              @id @default(autoincrement())
-  exams_id         BigInt
+  course_exams_id         BigInt
   student_code     String
   status           exam_attempt_status @default(IN_PROGRESS)
   started_at       DateTime            @default(now()) @db.Timestamptz(6)
@@ -114,54 +102,104 @@ model exam_attempts {
   created_at       DateTime            @default(now()) @db.Timestamptz(6)
   updated_at       DateTime            @default(now()) @db.Timestamptz(6)
   attempt_items    attempt_items[]
-  exams            exams               @relation(fields: [exams_id], references: [exams_id], onDelete: Cascade, onUpdate: NoAction)
-  students         students            @relation(fields: [student_code], references: [student_code], onDelete: Cascade, onUpdate: NoAction)
+  course_exams     course_exams        @relation(fields: [course_exams_id], references: [course_exams_id], onDelete: Cascade)
+  students         students            @relation(fields: [student_code], references: [student_code], onDelete: Cascade)
 
-  @@unique([exams_id, student_code])
-  @@index([exams_id], map: "idx_exam_attempts_exam")
+  @@unique([course_exams_id, student_code])
+  @@index([course_exams_id], map: "idx_exam_attempts_exam")
   @@index([student_code], map: "idx_exam_attempts_student")
 }
 
-model exams {
-  exams_id                 BigInt           @id @default(autoincrement())
+model course_exams {
+  course_exams_id          BigInt   @id @default(autoincrement())
   course_offerings_id      BigInt
-  title                    String           @db.VarChar(255)
+  title                    String
   description              String?
-  start_time               DateTime         @db.Timestamptz(6)
-  end_time                 DateTime         @db.Timestamptz(6)
-  show_results_immediately Boolean          @default(false)
-  created_at               DateTime         @default(now()) @db.Timestamptz(6)
-  updated_at               DateTime         @default(now()) @db.Timestamptz(6)
-  exam_attempts            exam_attempts[]
-  course_offerings         course_offerings @relation(fields: [course_offerings_id], references: [course_offerings_id], onDelete: Cascade, onUpdate: NoAction)
-  questions                questions[]
+  start_time               DateTime @db.Timestamptz(6)
+  end_time                 DateTime @db.Timestamptz(6)
+  show_results_immediately Boolean  @default(false)
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+
+  exam_attempts  exam_attempts[]
+  exam_questions exam_questions[] // ✅
+
+  course_offerings course_offerings @relation(fields: [course_offerings_id], references: [course_offerings_id], onDelete: Cascade)
 }
 
 model knowledge_categories {
-  knowledge_categories_id BigInt           @id @default(autoincrement())
-  course_offerings_id     BigInt
-  knowledge_name          String           @db.VarChar(255)
-  knowledge_description   String?
-  created_at              DateTime         @default(now()) @db.Timestamptz(6)
-  updated_at              DateTime         @default(now()) @db.Timestamptz(6)
-  course_offerings        course_offerings @relation(fields: [course_offerings_id], references: [course_offerings_id], onDelete: Cascade, onUpdate: NoAction)
+  knowledge_category_id BigInt   @id @default(autoincrement())
+  name                  String   @db.VarChar(255)
+  created_by_staff_id   BigInt?
+  created_at            DateTime @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime @default(now()) @db.Timestamptz(6)
+
+  course_knowledge   course_knowledge[]
+  question_knowledge question_knowledge[]
 }
 
-model questions {
-  questions_id         BigInt          @id @default(autoincrement())
-  exams_id             BigInt
-  question_text        String
-  question_type        question_type   @default(MCQ_SINGLE)
+model course_knowledge {
+  courses_id            BigInt
+  knowledge_category_id BigInt
+
+  courses courses @relation(fields: [courses_id], references: [courses_id], onDelete: Cascade)
+
+  knowledge_categories knowledge_categories @relation(fields: [knowledge_category_id], references: [knowledge_category_id], onDelete: Cascade)
+
+  @@id([courses_id, knowledge_category_id])
+}
+
+model question_knowledge {
+  question_id           BigInt
+  knowledge_category_id BigInt
+  courses_id            BigInt
+
+  question_bank question_bank @relation(fields: [question_id], references: [question_id], onDelete: Cascade)
+
+  knowledge_categories knowledge_categories @relation(fields: [knowledge_category_id], references: [knowledge_category_id], onDelete: Cascade)
+
+  courses courses @relation(fields: [courses_id], references: [courses_id], onDelete: Cascade)
+
+  @@id([question_id, knowledge_category_id, courses_id])
+}
+
+model question_choices {
+  choice_id     BigInt  @id @default(autoincrement())
+  question_id   BigInt
+  choice_text   String
+  is_correct    Boolean @default(false)
+  display_order Int?
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+
+  question_bank question_bank @relation(fields: [question_id], references: [question_id], onDelete: Cascade)
+
+  attempt_answers attempt_answers[]
+}
+
+model question_bank {
+  question_id   BigInt        @id @default(autoincrement())
+  question_text String
+  question_type question_type @default(MCQ_SINGLE)
+
   difficulty_param     Float?
   discrimination_param Float?
   guessing_param       Float?
-  max_score            Decimal         @default(1.0) @db.Decimal(5, 2)
-  display_order        Int?
-  created_at           DateTime        @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime        @default(now()) @db.Timestamptz(6)
-  attempt_items        attempt_items[]
-  choices              choices[]
-  exams                exams           @relation(fields: [exams_id], references: [exams_id], onDelete: Cascade, onUpdate: NoAction)
+
+  created_by_staff_id BigInt
+  is_active           Boolean @default(true)
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+
+  choices                 question_choices[]
+  question_knowledge question_knowledge[]
+  exam_questions          exam_questions[]
+
+  staff_users  staff_users     @relation(fields: [created_by_staff_id], references: [staff_users_id])
+  attemptItems attempt_items[]
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -177,6 +215,7 @@ model staff_users {
   updated_at              DateTime                  @default(now()) @db.Timestamptz(6)
   course_instructors      course_instructors[]
   import_preview_sessions import_preview_sessions[]
+  questionBanks           question_bank[]
 
   @@index([role], map: "idx_staff_users_role")
 }
@@ -242,6 +281,19 @@ model students {
   updated_at         DateTime             @default(now()) @db.Timestamptz(6)
   course_enrollments course_enrollments[]
   exam_attempts      exam_attempts[]
+}
+
+model exam_questions {
+  course_exams_id    BigInt
+  question_id BigInt
+
+  sequence_index Int
+
+  course_exams course_exams @relation(fields: [course_exams_id], references: [course_exams_id], onDelete: Cascade)
+
+  question_bank question_bank @relation(fields: [question_id], references: [question_id], onDelete: Cascade)
+
+  @@id([course_exams_id, question_id])
 }
 
 enum exam_attempt_status {

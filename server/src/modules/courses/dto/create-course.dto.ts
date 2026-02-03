@@ -1,17 +1,15 @@
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, IsArray, MaxLength } from 'class-validator';
 
 export class CreateCourseDto {
   @IsString()
   course_name: string;
 
   @IsString()
-  description: string;
-
-  @IsString()
   course_code: string;
 
-  @IsString()
+  @IsArray()
   @IsOptional()
-  course_image: string;
-
+  @IsString({ each: true })
+  @MaxLength(255, { each: true })
+  knowledge_categories?: string[];
 }

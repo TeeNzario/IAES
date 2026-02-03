@@ -117,7 +117,7 @@ export default function SimpleShowUsers() {
                     : "text-gray-500 hover:text-[#B7A3E3]"
                 }`}
               >
-                นักเรียน
+                สมาชิก
               </button>
             </div>
           </div>

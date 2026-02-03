@@ -1,12 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
-import { Upload } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { X } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+
+// Configuration constants
+const MAX_KNOWLEDGE_LENGTH = 30;
 
 interface CreateCourseFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
+}
+
+interface KnowledgeCategory {
+  knowledge_category_id: string;
+  name: string;
 }
 
 export default function CreateCourseForm({
@@ -15,15 +23,64 @@ export default function CreateCourseForm({
 }: CreateCourseFormProps) {
   const [formData, setFormData] = useState({
     course_name: "",
-    description: "",
     course_code: "",
-    image: null as File | null,
   });
+  const [knowledgeCategories, setKnowledgeCategories] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<KnowledgeCategory[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
+  // Fetch suggestions when search query changes
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (searchQuery.trim().length === 0) {
+        setSuggestions([]);
+        setShowDropdown(false);
+        return;
+      }
+
+      try {
+        const results = await apiFetch<KnowledgeCategory[]>(
+          `/knowledge-categories?search=${encodeURIComponent(searchQuery)}`,
+        );
+        // Filter out already added categories
+        const filtered = results.filter(
+          (cat) => !knowledgeCategories.includes(cat.name),
+        );
+        setSuggestions(filtered);
+        setShowDropdown(filtered.length > 0);
+      } catch (err) {
+        console.error("Failed to fetch suggestions:", err);
+        setSuggestions([]);
+        setShowDropdown(false);
+      }
+    };
+
+    const debounceTimer = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery, knowledgeCategories]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -31,49 +88,74 @@ export default function CreateCourseForm({
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFormData((prev) => ({
-        ...prev,
-        image: e.target.files![0],
-      }));
+  const handleKnowledgeInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const value = e.target.value;
+    if (value.length <= MAX_KNOWLEDGE_LENGTH) {
+      setSearchQuery(value);
     }
+  };
+
+  const addKnowledgeCategory = (name: string) => {
+    const trimmedName = name.trim();
+    if (
+      trimmedName.length > 0 &&
+      trimmedName.length <= MAX_KNOWLEDGE_LENGTH &&
+      !knowledgeCategories.includes(trimmedName)
+    ) {
+      setKnowledgeCategories((prev) => [...prev, trimmedName]);
+      setSearchQuery("");
+      setSuggestions([]);
+      setShowDropdown(false);
+    }
+  };
+
+  const removeKnowledgeCategory = (name: string) => {
+    setKnowledgeCategories((prev) => prev.filter((cat) => cat !== name));
+  };
+
+  const handleKnowledgeKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addKnowledgeCategory(searchQuery);
+    }
+  };
+
+  const handleSuggestionClick = (name: string) => {
+    addKnowledgeCategory(name);
+    inputRef.current?.focus();
   };
 
   const handleCancel = () => {
     setFormData({
       course_name: "",
-      description: "",
       course_code: "",
-      image: null,
     });
+    setKnowledgeCategories([]);
+    setSearchQuery("");
     onCancel?.();
   };
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const data = new FormData();
-      data.append("course_name", formData.course_name);
-      data.append("description", formData.description);
-      data.append("course_code", formData.course_code);
-
-      if (formData.image) {
-        data.append("image", formData.image);
-      }
-
       await apiFetch("/courses", {
         method: "POST",
-        data: data,
+        data: {
+          course_name: formData.course_name,
+          course_code: formData.course_code,
+          knowledge_categories: knowledgeCategories,
+        },
       });
 
       // Reset form
       setFormData({
         course_name: "",
-        description: "",
         course_code: "",
-        image: null,
       });
+      setKnowledgeCategories([]);
+      setSearchQuery("");
 
       onSuccess?.();
     } catch (err: any) {
@@ -108,21 +190,6 @@ export default function CreateCourseForm({
           />
         </div>
 
-        {/* คำอธิบายรายวิชา */}
-        <div>
-          <label className="block text-[#000000] text-sm font-light mb-2">
-            คำอธิบายรายวิชา
-          </label>
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-            rows={4}
-            className="w-full bg-white text-black px-4 py-3 rounded-xl border-1 border-[#B7A3E3] focus:outline-none focus:ring-2 focus:ring-purple-600 resize-none"
-            placeholder=""
-          />
-        </div>
-
         {/* รหัสวิชา */}
         <div>
           <label className="block text-[#000000] text-sm font-light mb-2">
@@ -138,22 +205,64 @@ export default function CreateCourseForm({
           />
         </div>
 
-        {/* เพิ่มภาพพื้นหลัง */}
-        <div>
+        {/* หมวดหมู่ความรู้ */}
+        <div className="relative">
           <label className="block text-[#000000] text-sm font-light mb-2">
-            เพิ่มภาพพื้นหลัง
+            หมวดหมู่ความรู้
           </label>
-          <label className="inline-flex items-center bg-[#B7A3E3] px-6 py-2 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
-            <span className="text-white font-medium">อัพโหลด</span>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-          </label>
-          {formData.image && (
-            <p className="text-white text-sm mt-2">{formData.image.name}</p>
+
+          {/* Tags display */}
+          {knowledgeCategories.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-2">
+              {knowledgeCategories.map((category) => (
+                <span
+                  key={category}
+                  className="inline-flex items-center bg-[#B7A3E3] text-white px-3 py-1 rounded-lg text-sm"
+                >
+                  {category}
+                  <button
+                    type="button"
+                    onClick={() => removeKnowledgeCategory(category)}
+                    className="ml-2 hover:text-red-200 transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Search input */}
+          <input
+            ref={inputRef}
+            type="text"
+            value={searchQuery}
+            onChange={handleKnowledgeInputChange}
+            onKeyDown={handleKnowledgeKeyDown}
+            className="w-full bg-white text-black px-4 py-3 rounded-xl border-1 border-[#B7A3E3] focus:outline-none focus:ring-2 focus:ring-purple-600"
+            placeholder="พิมพ์แล้วกด Enter เพื่อเพิ่ม"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            สูงสุด {MAX_KNOWLEDGE_LENGTH} ตัวอักษรต่อหมวดหมู่
+          </p>
+
+          {/* Suggestions dropdown */}
+          {showDropdown && suggestions.length > 0 && (
+            <div
+              ref={dropdownRef}
+              className="absolute z-10 w-full mt-1 bg-white border border-[#B7A3E3] rounded-xl shadow-lg max-h-48 overflow-y-auto"
+            >
+              {suggestions.map((suggestion) => (
+                <button
+                  key={suggestion.knowledge_category_id}
+                  type="button"
+                  onClick={() => handleSuggestionClick(suggestion.name)}
+                  className="w-full text-left px-4 py-2 hover:bg-purple-50 transition-colors text-black first:rounded-t-xl last:rounded-b-xl"
+                >
+                  {suggestion.name}
+                </button>
+              ))}
+            </div>
           )}
         </div>
 

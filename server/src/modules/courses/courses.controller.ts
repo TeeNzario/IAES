@@ -6,19 +6,15 @@ import {
   Patch,
   Param,
   Delete,
-  UseInterceptors,
-  UploadedFile,
   UseGuards,
   Req,
 } from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/guards/roles.guard';
-
 
 @Controller('courses')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -27,18 +23,9 @@ export class CoursesController {
 
   @Post()
   @Roles('INSTRUCTOR')
-  @UseInterceptors(FileInterceptor('image'))
-  create(
-    @Req() req,
-    @Body() createCourseDto: CreateCourseDto,
-    @UploadedFile() image?: Express.Multer.File,
-  ) {
+  create(@Req() req, @Body() createCourseDto: CreateCourseDto) {
     console.log('DTO:', createCourseDto);
-    return this.coursesService.create(
-      createCourseDto, 
-      req.user.id, 
-      image
-    );
+    return this.coursesService.create(createCourseDto, req.user.id);
   }
 
   @Get()
