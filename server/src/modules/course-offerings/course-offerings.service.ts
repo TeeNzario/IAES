@@ -452,4 +452,59 @@ export class CourseOfferingsService {
       return serializeBigInt(updated);
     });
   }
+
+  /**
+   * Check if a student code already exists in a specific course offering
+   * @param offeringId - The course offering ID to check within
+   * @param studentCode - The student code to check
+   * @returns true if exists, false otherwise
+   */
+  async checkStudentCodeExists(
+    offeringId: string,
+    studentCode: string,
+  ): Promise<boolean> {
+    if (!studentCode?.trim() || !offeringId) return false;
+
+    const id = BigInt(offeringId);
+
+    const existing = await this.prisma.course_enrollments.findUnique({
+      where: {
+        course_offerings_id_student_code: {
+          course_offerings_id: id,
+          student_code: studentCode.trim(),
+        },
+      },
+      select: { student_code: true },
+    });
+
+    return existing !== null;
+  }
+
+  /**
+   * Check if an email already exists in a specific course offering
+   * @param offeringId - The course offering ID to check within
+   * @param email - The email to check
+   * @returns true if exists, false otherwise
+   */
+  async checkStudentEmailExists(
+    offeringId: string,
+    email: string,
+  ): Promise<boolean> {
+    if (!email?.trim() || !offeringId) return false;
+
+    const id = BigInt(offeringId);
+
+    // First find all student_codes enrolled in this offering
+    const enrollment = await this.prisma.course_enrollments.findFirst({
+      where: {
+        course_offerings_id: id,
+        students: {
+          email: email.trim(),
+        },
+      },
+      select: { student_code: true },
+    });
+
+    return enrollment !== null;
+  }
 }
