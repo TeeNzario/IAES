@@ -16,7 +16,7 @@ import {
   checkEmailExists,
 } from "@/features/staff/staff.api";
 import { apiFetch } from "@/lib/api";
-import { AuthUser } from "@/types/auth";
+import { AuthUser } from "@/lib/auth";
 
 // ============================================================
 // VALIDATION CONFIG — Centralized limits and messages
@@ -165,7 +165,7 @@ export default function ManageUserPage() {
       // Exclude current logged-in user
       if (currentUser) {
         const currentId =
-          currentUser.userType === "STUDENT"
+          currentUser.type === "STUDENT"
             ? currentUser.student_code
             : String(currentUser.id);
         if (user.id === currentId) return false;
@@ -236,6 +236,9 @@ export default function ManageUserPage() {
 
     setIsSaving(true);
 
+    // Check if user is ADMIN (cannot change is_active)
+    const isAdminUser = editingUser.role === "ADMINISTRATOR";
+
     // Optimistic update
     setUsers((prev) =>
       (prev ?? []).map((u) =>
@@ -244,7 +247,8 @@ export default function ManageUserPage() {
               ...u,
               first_name: editFirstName,
               last_name: editLastName,
-              is_active: editActive === "ACTIVE",
+              // Don't update is_active for ADMIN
+              is_active: isAdminUser ? u.is_active : editActive === "ACTIVE",
             }
           : u,
       ),
@@ -258,11 +262,15 @@ export default function ManageUserPage() {
           is_active: editActive === "ACTIVE",
         });
       } else {
-        await apiUpdateStaff(editingUser.id, {
+        // For staff, only include is_active if NOT ADMIN
+        const updatePayload: any = {
           first_name: editFirstName,
           last_name: editLastName,
-          is_active: editActive === "ACTIVE",
-        });
+        };
+        if (!isAdminUser) {
+          updatePayload.is_active = editActive === "ACTIVE";
+        }
+        await apiUpdateStaff(editingUser.id, updatePayload);
       }
       setEditingUser(null);
     } catch (error) {
@@ -453,7 +461,7 @@ export default function ManageUserPage() {
             <div className="relative w-full sm:w-64">
               <input
                 type="text"
-                placeholder="SEARCH"
+                placeholder="ค้นหา"
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -475,23 +483,23 @@ export default function ManageUserPage() {
             <table className="w-full min-w-[640px] hidden sm:table">
               <thead>
                 <tr className="bg-[#B7A3E3] text-white">
-                  <th className="px-6 py-4 text-left font-semibold">ID</th>
-                  <th className="px-6 py-4 text-left font-semibold">NAME</th>
-                  <th className="px-6 py-4 text-left font-semibold">STATUS</th>
-                  <th className="px-6 py-4 text-left font-semibold">ACTION</th>
+                  <th className="px-6 py-4 text-left font-light">ID</th>
+                  <th className="px-6 py-4 text-left font-light">ชื่อ-นามสกุล</th>
+                  <th className="px-6 py-4 text-left font-light">สถานะ</th>
+                  <th className="px-6 py-4 text-left font-light">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedUsers.map((user) => (
-                  <tr key={user.id} className="border-b hover:bg-gray-50">
+                  <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-50">
                     <td className="px-6 py-4 text-gray-700">{user.id}</td>
                     <td className="px-6 py-4 text-gray-700">{`${user.first_name} ${user.last_name}`}</td>
                     <td className="px-6 py-4">
                       <span
                         className={`px-3 py-1 rounded-full text-sm font-medium ${
                           user.is_active
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
+                            ? "bg-[#B7A3E3] text-white"
+                            : "bg-white text-[#B7A3E3]"
                         }`}
                       >
                         {user.is_active ? "Active" : "Inactive"}
@@ -687,34 +695,45 @@ export default function ManageUserPage() {
                 )}
               </div>
 
-              {/* Status Toggle */}
-              <div className="mb-8">
-                <label className="block text-sm font-medium text-black mb-3">
-                  สถานะ
-                </label>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setEditActive("ACTIVE")}
-                    className={`flex-1 px-6 py-3 rounded-2xl font-medium transition-all ${
-                      editActive === "ACTIVE"
-                        ? "bg-[#B7A3E3] text-white shadow-md"
-                        : "bg-white text-black border-2 border-[#B7A3E3] hover:border-gray-300"
-                    }`}
-                  >
-                    Active
-                  </button>
-                  <button
-                    onClick={() => setEditActive("INACTIVE")}
-                    className={`flex-1 px-6 py-3 rounded-2xl font-medium transition-all ${
-                      editActive === "INACTIVE"
-                        ? "bg-[#B7A3E3] text-white shadow-md"
-                        : "bg-white text-black border-2 border-[#B7A3E3] hover:border-gray-300"
-                    }`}
-                  >
-                    Inactive
-                  </button>
+              {/* Status Toggle - Hidden for ADMIN users */}
+              {editingUser.role !== "ADMINISTRATOR" && (
+                <div className="mb-8">
+                  <label className="block text-sm font-medium text-black mb-3">
+                    สถานะ
+                  </label>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setEditActive("ACTIVE")}
+                      className={`flex-1 px-6 py-3 rounded-2xl font-medium transition-all ${
+                        editActive === "ACTIVE"
+                          ? "bg-[#B7A3E3] text-white shadow-md"
+                          : "bg-white text-black border-2 border-[#B7A3E3] hover:border-gray-300"
+                      }`}
+                    >
+                      Active
+                    </button>
+                    <button
+                      onClick={() => setEditActive("INACTIVE")}
+                      className={`flex-1 px-6 py-3 rounded-2xl font-medium transition-all ${
+                        editActive === "INACTIVE"
+                          ? "bg-[#B7A3E3] text-white shadow-md"
+                          : "bg-white text-black border-2 border-[#B7A3E3] hover:border-gray-300"
+                      }`}
+                    >
+                      Inactive
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Info message for ADMIN users */}
+              {editingUser.role === "ADMINISTRATOR" && (
+                <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-center">
+                  <p className="text-sm text-amber-700">
+                    ผู้ดูแลระบบไม่สามารถเปลี่ยนสถานะได้
+                  </p>
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className="flex gap-3">

@@ -1,5 +1,4 @@
-"use server";
-import axios from "axios";
+import { api } from "@/lib/api";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
@@ -29,7 +28,7 @@ export const getUsers = async (
   params: GetUsersParams,
 ): Promise<GetUsersResponse> => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/students`, {
+    const response = await api.get(`/students`, {
       params: {
         page: params.page || 1,
         limit: params.limit || 9,
@@ -47,7 +46,7 @@ export const getUsers = async (
 // Get user by ID
 export const getUserById = async (id: string): Promise<User> => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/students/${id}`);
+    const response = await api.get(`/students/${id}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching user:", error);
@@ -58,7 +57,7 @@ export const getUserById = async (id: string): Promise<User> => {
 // Create new user
 export const createUser = async (userData: Omit<User, "id">): Promise<User> => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/students`, userData);
+    const response = await api.post(`/students`, userData);
     return response.data;
   } catch (error) {
     console.error("Error creating user:", error);
@@ -78,10 +77,7 @@ export const updateUser = async (
   userData: UpdateUserPayload,
 ): Promise<User> => {
   try {
-    const response = await axios.patch(
-      `${API_BASE_URL}/students/${id}`,
-      userData,
-    );
+    const response = await api.patch(`/students/${id}`, userData);
     return response.data;
   } catch (error) {
     console.error("Error updating user:", error);
@@ -92,7 +88,7 @@ export const updateUser = async (
 // Delete user
 export const deleteUser = async (id: string): Promise<void> => {
   try {
-    await axios.delete(`${API_BASE_URL}/students/${id}`);
+    await api.delete(`/students/${id}`);
   } catch (error) {
     console.error("Error deleting user:", error);
     throw error;
@@ -106,7 +102,7 @@ export const toggleUserStatus = async (
 ): Promise<User> => {
   try {
     // use students PATCH endpoint to update active flag
-    const response = await axios.patch(`${API_BASE_URL}/students/${id}`, {
+    const response = await api.patch(`/students/${id}`, {
       is_active: active,
     });
     return response.data;
@@ -128,7 +124,7 @@ export const checkStudentCodeExists = async (
     const params: any = { student_code: studentCode };
     if (excludeCode) params.excludeCode = excludeCode;
 
-    const response = await axios.get(`${API_BASE_URL}/students/check-code`, {
+    const response = await api.get(`/students/check-code`, {
       params,
     });
     return response.data.exists;
