@@ -1,10 +1,12 @@
-import { IsString, IsOptional, IsArray, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsArray, MaxLength, IsNotEmpty } from 'class-validator';
 
 export class CreateCourseDto {
   @IsString()
+  @IsNotEmpty()
   course_name: string;
 
   @IsString()
+  @IsNotEmpty()
   course_code: string;
 
   @IsArray()

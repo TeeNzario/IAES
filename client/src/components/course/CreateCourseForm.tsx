@@ -177,7 +177,22 @@ export default function CreateCourseForm({
       <div className="space-y-4">
         {/* ชื่อรายวิชา */}
         <div>
-          <label className="block text-[#000000] text-sm font-light mb-2">
+ 
+        {/* รหัสวิชา */}
+        <div>
+          <label className="block text-[#000000] text-sm font-light mb-">
+            รหัสวิชา
+          </label>
+          <input
+            type="text"
+            name="course_code"
+            value={formData.course_code}
+            onChange={handleInputChange}
+            className="w-full bg-white text-black px-4 py-3 rounded-xl border-1 mb-5 border-[#B7A3E3] focus:outline-none focus:ring-2 focus:ring-purple-600"
+            placeholder=""
+          />
+        </div>
+         <label className="block text-[#000000] text-sm font-light mb-2">
             ชื่อรายวิชา
           </label>
           <input
@@ -186,21 +201,6 @@ export default function CreateCourseForm({
             value={formData.course_name}
             onChange={handleInputChange}
             className="w-full bg-white text-black px-4 py-3 rounded-xl border-1 border-[#B7A3E3] focus:outline-none focus:ring-2 focus:ring-purple-600 "
-            placeholder=""
-          />
-        </div>
-
-        {/* รหัสวิชา */}
-        <div>
-          <label className="block text-[#000000] text-sm font-light mb-2">
-            รหัสวิชา
-          </label>
-          <input
-            type="text"
-            name="course_code"
-            value={formData.course_code}
-            onChange={handleInputChange}
-            className="w-full bg-white text-black px-4 py-3 rounded-xl border-1 border-[#B7A3E3] focus:outline-none focus:ring-2 focus:ring-purple-600"
             placeholder=""
           />
         </div>
