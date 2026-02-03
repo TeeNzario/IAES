@@ -70,18 +70,19 @@ model course_instructors {
 }
 
 model course_offerings {
-  course_offerings_id  BigInt                 @id @default(autoincrement())
-  courses_id           BigInt
-  academic_year        Int
-  semester             Int                    @db.SmallInt
-  is_active            Boolean                @default(true)
-  created_at           DateTime               @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime               @default(now()) @db.Timestamptz(6)
-  course_enrollments   course_enrollments[]
-  course_instructors   course_instructors[]
-  courses              courses                @relation(fields: [courses_id], references: [courses_id], onDelete: Cascade, onUpdate: NoAction)
-  exams                exams[]
-  knowledge_categories knowledge_categories[]
+  course_offerings_id   BigInt                    @id @default(autoincrement())
+  courses_id            BigInt
+  academic_year         Int
+  semester              Int                       @db.SmallInt
+  is_active             Boolean                   @default(true)
+  created_at            DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime                  @default(now()) @db.Timestamptz(6)
+  course_enrollments    course_enrollments[]
+  course_instructors    course_instructors[]
+  courses               courses                   @relation(fields: [courses_id], references: [courses_id], onDelete: Cascade, onUpdate: NoAction)
+  exams                 exams[]
+  knowledge_categories  knowledge_categories[]
+  importPreviewSessions import_preview_sessions[]
 
   @@index([courses_id], map: "idx_course_offerings_course")
 }
@@ -165,18 +166,56 @@ model questions {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model staff_users {
-  staff_users_id       BigInt                 @id @default(autoincrement())
-  email                String                 @unique @db.VarChar(255)
-  password_hash        String
-  role                 user_role
-  first_name           String                 @db.VarChar(100)
-  last_name            String                 @db.VarChar(100)
-  is_active            Boolean                @default(true)
-  created_at           DateTime               @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime               @default(now()) @db.Timestamptz(6)
-  course_instructors   course_instructors[]
+  staff_users_id          BigInt                    @id @default(autoincrement())
+  email                   String                    @unique @db.VarChar(255)
+  password_hash           String
+  role                    user_role
+  first_name              String                    @db.VarChar(100)
+  last_name               String                    @db.VarChar(100)
+  is_active               Boolean                   @default(true)
+  created_at              DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime                  @default(now()) @db.Timestamptz(6)
+  course_instructors      course_instructors[]
+  import_preview_sessions import_preview_sessions[]
 
   @@index([role], map: "idx_staff_users_role")
+}
+
+/// Ephemeral staging table for CSV import preview (auto-expires)
+model import_preview_sessions {
+  id                  String   @id @default(uuid())
+  course_offerings_id BigInt
+  created_by          BigInt
+  expires_at          DateTime @db.Timestamptz(6)
+  created_at          DateTime @default(now()) @db.Timestamptz(6)
+
+  course_offerings course_offerings      @relation(fields: [course_offerings_id], references: [course_offerings_id], onDelete: Cascade)
+  staff_users      staff_users           @relation(fields: [created_by], references: [staff_users_id], onDelete: Cascade)
+  rows             import_preview_rows[]
+
+  @@index([course_offerings_id])
+  @@index([expires_at])
+}
+
+/// Ephemeral staging rows for CSV import preview
+model import_preview_rows {
+  id           String   @id @default(uuid())
+  session_id   String
+  row_index    Int // 0-indexed row from CSV
+  student_code String
+  email        String
+  first_name   String
+  last_name    String
+  status       String // NEW, EXISTS_NOT_ENROLLED, ALREADY_ENROLLED, DUPLICATE_IDENTITY, MISSING
+  note         String?
+  is_deleted   Boolean  @default(false)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  session import_preview_sessions @relation(fields: [session_id], references: [id], onDelete: Cascade)
+
+  @@unique([session_id, row_index])
+  @@index([session_id])
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
