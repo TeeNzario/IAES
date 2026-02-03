@@ -28,17 +28,27 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear auth data and redirect to login
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("user");
-      // Also clear cookies
-      document.cookie =
-        "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      // Check if we're on a login page - don't redirect if already there
+      const isOnLoginPage =
+        typeof window !== "undefined" &&
+        (window.location.pathname === "/login" ||
+          window.location.pathname === "/staff/login");
 
-      // Redirect to login page (only in browser)
-      if (typeof window !== "undefined") {
-        window.location.href = "/login";
+      // Only clear auth and redirect if NOT on login page
+      if (!isOnLoginPage) {
+        // Clear auth data and redirect to login
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("user");
+        // Also clear cookies
+        document.cookie =
+          "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie =
+          "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+        // Redirect to login page (only in browser)
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
+        }
       }
     }
     return Promise.reject(error);

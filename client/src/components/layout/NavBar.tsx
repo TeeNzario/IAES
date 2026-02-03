@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   Menu,
@@ -12,7 +12,7 @@ import {
   Settings,
   Database,
 } from "lucide-react";
-import { getUser, AuthUser } from "@/lib/auth";
+import { AuthUser } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 import Image from "next/image";
 
@@ -44,15 +44,36 @@ interface CourseOffering {
 
 const NavBar = ({ children }: PageLayoutProps) => {
   const router = useRouter();
+  const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isCoursesExpanded, setIsCoursesExpanded] = useState(true);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [courses, setCourses] = useState<CourseOffering[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
-
   const [userFetch, setUserFetch] = useState<UserProfile | null>(null);
 
-  //fetch current user
+  // Derive active states from pathname
+  const isHomeActive = pathname === "/";
+  const isCourseManageActive = pathname === "/course";
+  const isCourseSectionActive = pathname.startsWith("/course/");
+  const isResultsActive = pathname === "/results";
+  const isExamBankActive = pathname === "/exam-bank";
+
+  // Get active course offering ID from path
+  const activeCourseOfferingId = isCourseSectionActive
+    ? pathname.split("/")[2]
+    : null;
+
+  // Auto-expand courses section when on a course page
+  const [isCoursesExpanded, setIsCoursesExpanded] = useState(true);
+
+  // Expand courses section when navigating to a course page
+  useEffect(() => {
+    if (isCourseSectionActive) {
+      setIsCoursesExpanded(true);
+    }
+  }, [isCourseSectionActive]);
+
+  // Fetch current user
   useEffect(() => {
     apiFetch<AuthUser>("/auth/me")
       .then((user) => {
@@ -63,41 +84,33 @@ const NavBar = ({ children }: PageLayoutProps) => {
       });
   }, []);
 
-  console.log("User:", userFetch);
-
-  // 2️Fetch courses AFTER user is loaded
+  // Fetch courses AFTER user is loaded
   useEffect(() => {
     if (!user) return;
 
     fetchCourses(user);
 
     async function fetchCourses(user: AuthUser) {
-      console.log("Fetch start");
       setLoadingCourses(true);
 
       try {
         let endpoint = "";
         let user_endpoint = "";
 
-        console.log("User type:", user.userType);
-
         if (user.userType === "STAFF") {
           endpoint = "/course-offerings";
           user_endpoint = "/staff/me";
-          console.log("Hey yo Staff man");
           const me = await apiFetch<StaffProfile>(user_endpoint);
           setUserFetch(me);
         } else if (user.userType === "STUDENT") {
           endpoint = "/students/me/enrollments";
           user_endpoint = "/students/me";
-          console.log("Hey yo Student man");
           const me = await apiFetch<StudentProfile>(user_endpoint);
           setUserFetch(me);
         }
 
         if (!endpoint || !user_endpoint) return;
 
-        // 🔹 2. fetch courses
         const courses = await apiFetch<CourseOffering[]>(endpoint);
         setCourses(courses);
       } catch (err) {
@@ -128,6 +141,29 @@ const NavBar = ({ children }: PageLayoutProps) => {
     return "";
   };
 
+  // Style helpers
+  const getMenuButtonStyle = (isActive: boolean) => {
+    if (isActive) {
+      return `w-full flex items-center gap-3 ${isSidebarOpen ? "px-4 py-3 rounded-full" : "p-3 rounded-lg justify-center"} bg-[#B7A3E3] text-white mb-4 hover:bg-[#B7A3E3]/80 transition-colors cursor-pointer`;
+    }
+    return `w-full flex items-center gap-3 ${isSidebarOpen ? "px-4 py-3 rounded-full" : "p-3 rounded-lg justify-center"} text-[#575757] mb-4 hover:bg-gray-100 transition-colors cursor-pointer`;
+  };
+
+  const getSideMenuStyle = (isActive: boolean) => {
+    if (isActive) {
+      return `w-full flex items-center gap-3 ${isSidebarOpen ? "px-4" : "justify-center"} py-3 bg-[#B7A3E3] text-white rounded-lg transition-colors cursor-pointer`;
+    }
+    return `w-full flex items-center gap-3 ${isSidebarOpen ? "px-4" : "justify-center"} py-3 text-[#575757] hover:bg-gray-100 rounded-lg transition-colors cursor-pointer`;
+  };
+
+  const getCourseItemStyle = (courseOfferingId: string) => {
+    const isActive = activeCourseOfferingId === courseOfferingId;
+    if (isActive) {
+      return "w-full text-left px-4 py-2 bg-[#B7A3E3]/80 text-white rounded-lg transition-colors text-sm cursor-pointer font-medium";
+    }
+    return "w-full text-left px-4 py-2 text-[#575757] hover:bg-[#B7A3E3]/80 hover:text-white rounded-lg transition-colors text-sm cursor-pointer";
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
@@ -146,7 +182,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
           {/* Home Button */}
           <button
             onClick={() => router.push("/")}
-            className={`w-full flex items-center gap-3 ${isSidebarOpen ? "px-4 py-3 rounded-full" : "p-3 rounded-lg justify-center"} bg-[#B7A3E3] text-white mb-4 hover:bg-purple-400 transition-colors cursor-pointer`}
+            className={getMenuButtonStyle(isHomeActive)}
           >
             <Home size={20} />
             {isSidebarOpen && <span className="font-medium">หน้าแรก</span>}
@@ -156,7 +192,11 @@ const NavBar = ({ children }: PageLayoutProps) => {
           <div className="mb-4">
             <button
               onClick={() => setIsCoursesExpanded(!isCoursesExpanded)}
-              className={`w-full flex items-center ${isSidebarOpen ? "justify-between px-4" : "justify-center"} py-3 text-[#575757] hover:bg-gray-100 rounded-lg transition-colors cursor-pointer`}
+              className={`w-full flex items-center ${isSidebarOpen ? "justify-between px-4" : "justify-center"} py-3 ${
+                isCourseSectionActive
+                  ? "bg-[#B7A3E3]/80 text-white"
+                  : "text-[#575757] hover:bg-gray-100"
+              } rounded-lg transition-colors cursor-pointer`}
             >
               <div className="flex items-center gap-3">
                 <FileText size={20} />
@@ -165,7 +205,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
               {isSidebarOpen && (
                 <ChevronDown
                   size={16}
-                  className={`transition-transform ${isCoursesExpanded ? "rotate-180" : ""} text-[#575757]`}
+                  className={`transition-transform ${isCoursesExpanded ? "rotate-180" : ""}`}
                 />
               )}
             </button>
@@ -188,7 +228,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
                       onClick={() =>
                         router.push(`/course/${course.course_offerings_id}`)
                       }
-                      className="w-full text-left px-4 py-2 text-[#575757] hover:bg-purple-50 hover:text-purple-700 rounded-lg transition-colors text-sm cursor-pointer"
+                      className={getCourseItemStyle(course.course_offerings_id)}
                     >
                       {course.courses.course_code}
                     </button>
@@ -200,7 +240,8 @@ const NavBar = ({ children }: PageLayoutProps) => {
 
           {/* Results Section - Available to all */}
           <button
-            className={`w-full flex items-center gap-3 ${isSidebarOpen ? "px-4" : "justify-center"} py-3 text-[#575757] hover:bg-gray-100 rounded-lg transition-colors cursor-pointer`}
+            onClick={() => router.push("/results")}
+            className={getSideMenuStyle(isResultsActive)}
           >
             <BookOpen size={20} />
             {isSidebarOpen && <span>ผลสรุปการสอบ</span>}
@@ -209,19 +250,17 @@ const NavBar = ({ children }: PageLayoutProps) => {
           {/* Instructor-only menus */}
           {isInstructor && (
             <>
-              {/* <div className="my-4 border-t border-gray-200" /> */}
-
               <button
                 onClick={() => router.push("/course")}
-                className={`w-full flex items-center gap-3 ${isSidebarOpen ? "px-4" : "justify-center"} py-3 text-[#575757] hover:bg-gray-100 rounded-lg transition-colors cursor-pointer`}
+                className={getSideMenuStyle(isCourseManageActive)}
               >
                 <Settings size={20} />
                 {isSidebarOpen && <span>จัดการรายวิชา</span>}
               </button>
 
               <button
-                onClick={() => router.push("/")}
-                className={`w-full flex items-center gap-3 ${isSidebarOpen ? "px-4" : "justify-center"} py-3 text-[#575757] hover:bg-gray-100 rounded-lg transition-colors cursor-pointer`}
+                onClick={() => router.push("/exam-bank")}
+                className={getSideMenuStyle(isExamBankActive)}
               >
                 <Database size={20} />
                 {isSidebarOpen && <span>คลังข้อสอบ</span>}
@@ -243,12 +282,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                  <Image
-                    src="/IAES_logo.png"
-                    alt=""
-                    width={100}
-                    height={100}
-                  />
+                  <Image src="/IAES_logo.png" alt="" width={100} height={100} />
                 </div>
                 <span className="text-xl font-light text-gray-800">
                   IAES System

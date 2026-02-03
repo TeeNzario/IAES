@@ -105,6 +105,9 @@ export class CourseOfferingsService {
 
       const offerings = await this.prisma.course_offerings.findMany({
         where: {
+          courses: {
+            is_active: true,
+          },
           course_instructors: {
             some: {
               staff_users_id: user.staffUserId,
@@ -127,6 +130,9 @@ export class CourseOfferingsService {
 
       const offerings = await this.prisma.course_offerings.findMany({
         where: {
+          courses: {
+            is_active: true,
+          },
           course_enrollments: {
             some: {
               student_code: user.studentCode,

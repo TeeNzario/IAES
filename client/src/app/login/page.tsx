@@ -9,23 +9,47 @@ import Image from "next/image";
 const LoginPage = () => {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [language, setLanguage] = useState<string>("ไทย");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const router = useRouter();
 
+  const handleInputChange =
+    (setter: React.Dispatch<React.SetStateAction<string>>) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setter(e.target.value);
+      // Clear error when user edits any field
+      if (error) setError(null);
+    };
+
   const handleSubmit = async () => {
+    // Prevent double submission
+    if (isLoading) return;
+
+    setIsLoading(true);
+    setError(null);
+
     try {
       const res = await login({ student_code: username, password });
 
       setAuth({
         access_token: res.access_token,
-        user: res.student, // 👈 IMPORTANT
+        user: res.student,
       });
 
-      router.push("/"); // or student home
+      router.push("/");
     } catch (error) {
       console.error("Login failed:", error);
+      setError("รหัสนักศึกษา หรือ รหัสผ่านไม่ถูกต้อง");
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // if (e.key === "Enter") {
+    //   handleSubmit();
+    // }
   };
 
   return (
@@ -36,18 +60,10 @@ const LoginPage = () => {
           "linear-gradient(135deg, #a78bfa 0%, #e9d5ff 50%, #a78bfa 100%)",
       }}
     >
-      <div className="w-full max-w-2xl h-[25rem] bg-white rounded-3xl shadow-2xl p-8 relative flex flex-row items-center">
+      <div className="w-full max-w-2xl h-[27rem] bg-white rounded-3xl shadow-2xl p-8 relative flex flex-row items-center">
         <div className="w-1/2">
           {/* Logo */}
-          <div className="flex justify-center mb-6">
-            {/* <div className="bg-blue-100 rounded-2xl p-3 flex items-center gap-2">
-                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                </div>
-                <span className="text-blue-600 font-bold text-xl">IACS</span>
-            </div> */}
+          <div className="flex justify-center mb-2">
             <Image src="/IAES_logo.png" alt="Logo" width={100} height={100} />
           </div>
 
@@ -72,9 +88,11 @@ const LoginPage = () => {
             <input
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={handleInputChange(setUsername)}
+              onKeyDown={handleKeyDown}
               className="w-full text-black px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition"
               placeholder="รหัสนักศึกษา"
+              disabled={isLoading}
             />
           </div>
 
@@ -86,18 +104,31 @@ const LoginPage = () => {
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={handleInputChange(setPassword)}
+              onKeyDown={handleKeyDown}
               className="w-full text-black px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition"
               placeholder="รหัสผ่าน"
+              disabled={isLoading}
             />
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
+              {error}
+            </div>
+          )}
 
           {/* Submit Button */}
           <button
             onClick={handleSubmit}
-            className="w-full py-3 bg-gradient-to-r from-purple-400 to-purple-500 text-white font-medium rounded-xl hover:from-purple-500 hover:to-purple-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            disabled={isLoading}
+            className="w-full py-3 bg-gradient-to-r from-purple-400 to-purple-500 text-white font-medium rounded-xl hover:from-purple-500 hover:to-purple-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
           >
-            เข้าสู่ระบบ
+            {isLoading && (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            )}
+            {isLoading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
           </button>
           <p className="text-center text-sm text-gray-500">
             เป็นอาจารย์ใช่ไหม?{" "}
