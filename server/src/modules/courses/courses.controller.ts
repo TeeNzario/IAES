@@ -44,6 +44,40 @@ export class CoursesController {
     );
   }
 
+  /**
+   * Check if a course code already exists
+   * Used for frontend validation before form submission
+   */
+  @Get('check-code')
+  @Roles('INSTRUCTOR')
+  async checkCodeExists(
+    @Query('code') code: string,
+    @Query('excludeId') excludeId?: string,
+  ) {
+    const exists = await this.coursesService.checkCodeExists(
+      code,
+      excludeId ? parseInt(excludeId, 10) : undefined,
+    );
+    return { exists };
+  }
+
+  /**
+   * Check if a course name already exists
+   * Used for frontend validation before form submission
+   */
+  @Get('check-name')
+  @Roles('INSTRUCTOR')
+  async checkNameExists(
+    @Query('name') name: string,
+    @Query('excludeId') excludeId?: string,
+  ) {
+    const exists = await this.coursesService.checkNameExists(
+      name,
+      excludeId ? parseInt(excludeId, 10) : undefined,
+    );
+    return { exists };
+  }
+
   @Get(':id')
   @Roles('INSTRUCTOR')
   findOne(@Param('id') id: string) {

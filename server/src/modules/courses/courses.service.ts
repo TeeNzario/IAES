@@ -209,4 +209,40 @@ export class CoursesService {
 
     return { success: true };
   }
+
+  /**
+   * Check if a course code already exists
+   * @param code - The course code to check
+   * @param excludeId - Optional course ID to exclude (for edit mode)
+   * @returns true if exists, false otherwise
+   */
+  async checkCodeExists(code: string, excludeId?: number): Promise<boolean> {
+    const existing = await this.prisma.courses.findFirst({
+      where: {
+        course_code: code.trim(),
+        ...(excludeId ? { NOT: { courses_id: BigInt(excludeId) } } : {}),
+      },
+      select: { courses_id: true },
+    });
+
+    return existing !== null;
+  }
+
+  /**
+   * Check if a course name already exists
+   * @param name - The course name to check
+   * @param excludeId - Optional course ID to exclude (for edit mode)
+   * @returns true if exists, false otherwise
+   */
+  async checkNameExists(name: string, excludeId?: number): Promise<boolean> {
+    const existing = await this.prisma.courses.findFirst({
+      where: {
+        course_name: name.trim(),
+        ...(excludeId ? { NOT: { courses_id: BigInt(excludeId) } } : {}),
+      },
+      select: { courses_id: true },
+    });
+
+    return existing !== null;
+  }
 }
