@@ -90,18 +90,18 @@ export default function CourseManagement() {
                 onClick={() => setIsCreateModalOpen(true)}
                 className="px-12 py-2 bg-[#B7A3E3] border-1 border-[#B7A3E3] text-white text-lg font-bold rounded-xl hover:bg-gray-50 hover:text-[#B7A3E3] hover:border-[#B7A3E3] hover:border-1 transition-colors cursor-pointer"
               >
-                สร้างคอร์ส
+                สร้างรายวิชา
               </button>
             </div>
 
             {/* Search Bar */}
             <div className="flex gap-3 mb-4">
-              <button className="px-15 py-1 bg-white border border-[#B7A3E3] text-[#B7A3E3] text-lg font-bold rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
+              {/* <button className="px-15 py-1 bg-white border border-[#B7A3E3] text-[#B7A3E3] text-lg font-bold rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
                 ทั้งหมด
               </button>
               <button className="px-4 py-2 border border-[#B7A3E3] text-[#B7A3E3] bg-white rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2 cursor-pointer">
                 <Filter size={18} />
-              </button>
+              </button> */}
               <div className="relative">
                 <input
                   type="text"
@@ -216,9 +216,6 @@ export default function CourseManagement() {
                             className="px-5 py-2 text-sm text-[#B7A3E3] border border-[#B7A3E3] rounded-xl hover:bg-purple-50 transition-colors cursor-pointer"
                           >
                             เปิดรายวิชา
-                          </button>
-                          <button className="w-8 h-8 flex items-center justify-center text-[#B7A3E3] hover:bg-purple-50 rounded transition-colors cursor-pointer">
-                            <Trash2 size={16} />
                           </button>
                         </div>
                       </td>

@@ -49,7 +49,7 @@ const LoginPage = () => {
       <div className="w-full max-w-2xl h-[25rem] bg-white rounded-3xl shadow-2xl p-8 relative flex flex-row items-center">
         <div className="w-1/2">
           {/* Logo */}
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-2">
             {/* <div className="bg-blue-100 rounded-2xl p-3 flex items-center gap-2">
                 <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,8 +62,8 @@ const LoginPage = () => {
           </div>
 
           {/* Title */}
-          <h1 className="text-3xl font-bold text-center mb-2 text-gray-800">
-            ลงชื่อเข้าใช้
+          <h1 className="text-3xl font-bold text-center mb-5 text-gray-800">
+            ลงชื่อเข้าใช้ (ผู้ดูแล)
           </h1>
           <p className="text-center text-gray-500 text-sm mb-6">
             มีปัญหาในการลงชื่อเข้าใช้
@@ -77,7 +77,7 @@ const LoginPage = () => {
           {/* Username Field */}
           <div>
             <label className="block text-gray-700 text-sm font-medium mb-2">
-              ชื่อผู้ใช้
+              อีเมล
             </label>
             <input
               type="text"
@@ -109,6 +109,17 @@ const LoginPage = () => {
           >
             เข้าสู่ระบบ
           </button>
+          {/* Instructor Login Link */}
+          <p className="text-center text-sm text-gray-500">
+            เป็นนักเรียนใช่ไหม?{" "}
+            <button
+              type="button"
+              onClick={() => router.push("/login")}
+              className="text-purple-500 font-medium hover:underline cursor-pointer"
+            >
+              เข้าสู่ระบบที่นี่
+            </button>
+          </p>
         </div>
       </div>
     </div>

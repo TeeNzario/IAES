@@ -136,7 +136,7 @@ export default function CoursePage() {
                   : "bg-white text-gray-500 hover:bg-gray-50 border border-purple-200"
               }`}
             >
-              เพิ่มการสอบ
+              สร้างการสอบ
             </button>
             <button
               onClick={() => setActiveTab("assignments")}
@@ -156,10 +156,10 @@ export default function CoursePage() {
               </h3>
               <div className="space-y-3">
                 <div className="text-xs text-gray-600 p-3 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer">
-                  Database Focus Atten...
+                  ...
                 </div>
                 <div className="text-xs text-gray-600 p-3 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer">
-                  MySQL for Beginner
+                  ...
                 </div>
               </div>
             </div>

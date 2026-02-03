@@ -254,12 +254,12 @@ export default function ManageUserPage() {
               ผู้ดูแลระบบ
             </button>
 
-            <button 
+            {/* <button 
               onClick={() => setShowFilterPopup(true)}
               className="px-3 py-2 border-2 border-gray-300 text-gray-700 rounded-full hover:bg-gray-50"
             >
               <Filter size={18} />
-            </button>
+            </button> */}
           </div>
 
           <div className="w-full sm:w-auto">
