@@ -3,7 +3,7 @@
 import { login } from '@/features/auth/auth.api';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-
+import { setAuth } from '@/lib/auth';
 
 
 const LoginPage = () => {
@@ -13,16 +13,21 @@ const LoginPage = () => {
 
   const router = useRouter();
 
-  const handleSubmit = async () => {
-    try {
-      const res = await login({ student_code: username, password });
-     console.log(res.access_token);
-     router.push('/student');
-   }catch (error) {
-    console.error("Login failed : ", error);
-   }
+ const handleSubmit = async () => {
+  try {
+    const res = await login({ student_code: username, password });
 
-  };
+    setAuth({
+      access_token: res.access_token,
+      user: res.student, // 👈 IMPORTANT
+    });
+
+    router.push("/"); // or student home
+  } catch (error) {
+    console.error("Login failed:", error);
+  }
+}
+
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{

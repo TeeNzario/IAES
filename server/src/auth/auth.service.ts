@@ -42,11 +42,12 @@ export class AuthService {
     return {
       access_token: this.jwtService.sign(payload),
       user: {
+        id: student.student_code,
+        type: 'STUDENT' as const,
         student_code: student.student_code,
         email: student.email,
         first_name: student.first_name,
         last_name: student.last_name,
-        userType: 'STUDENT',
       },
     };
   }
@@ -84,12 +85,12 @@ export class AuthService {
     return {
       access_token: this.jwtService.sign(payload),
       user: {
-        staff_users_id: Number(staff.staff_users_id),
+        id: Number(staff.staff_users_id),
+        type: 'STAFF' as const,
         email: staff.email,
         first_name: staff.first_name,
         last_name: staff.last_name,
-        role: staff.role,
-        userType: 'STAFF',
+        staff_role: staff.role as StaffRole,
       },
     };
   }

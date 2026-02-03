@@ -78,6 +78,16 @@ export type questions = Prisma.questionsModel
  */
 export type staff_users = Prisma.staff_usersModel
 /**
+ * Model import_preview_sessions
+ * Ephemeral staging table for CSV import preview (auto-expires)
+ */
+export type import_preview_sessions = Prisma.import_preview_sessionsModel
+/**
+ * Model import_preview_rows
+ * Ephemeral staging rows for CSV import preview
+ */
+export type import_preview_rows = Prisma.import_preview_rowsModel
+/**
  * Model student_directory
  * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
  */

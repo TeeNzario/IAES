@@ -31,10 +31,14 @@ api.interceptors.response.use(
       // Clear auth data and redirect to login
       localStorage.removeItem("access_token");
       localStorage.removeItem("user");
+      // Also clear cookies
+      document.cookie =
+        "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
       // Redirect to login page (only in browser)
       if (typeof window !== "undefined") {
-        window.location.href = "/admin/login";
+        window.location.href = "/login";
       }
     }
     return Promise.reject(error);
