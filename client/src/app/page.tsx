@@ -8,16 +8,21 @@ import Link from "next/link";
 import { CourseOffering } from "@/types/course";
 import { formatInstructorName } from "@/utils/formatName";
 import EditCourseOfferingModal from "@/components/courseOffering/EditCourseOfferingModal";
+import { AuthUser } from "@/types/auth";
+import { useRouter } from "next/navigation";
 
 export default function CourseHomePage() {
+  const router = useRouter();
   const [courses, setCourses] = useState<CourseOffering[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Edit modal state
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedOffering, setSelectedOffering] =
-    useState<CourseOffering | null>(null);
+  const [selectedOffering, setSelectedOffering] = useState<CourseOffering | null>(null);
+
+  
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   const fetchCourseOfferings = useCallback(async () => {
     try {
@@ -48,6 +53,27 @@ export default function CourseHomePage() {
   const handleEditSuccess = () => {
     fetchCourseOfferings();
   };
+
+    useEffect(() => {
+    apiFetch<AuthUser>("/auth/me")
+      .then((user) => {
+        setUser(user);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch user", err);
+      });
+  }, []);
+
+  // Fetch courses AFTER user is loaded
+  useEffect(() => {
+    if (!user) return;
+
+    console.log("Check : ", user.userType);
+2
+    if (user.role === "ADMIN") {
+      router.push("/admin/manage-users");
+    }
+  }, [user]);
 
   return (
     <NavBar>

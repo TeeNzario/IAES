@@ -14,8 +14,8 @@ import BulkUploadModal from "@/features/courseOffering/components/BulkUploadStud
 // ============================================================
 // CONFIGURATION CONSTANTS — Adjust limits here
 // ============================================================
-const STUDENT_CODE_MAX_LENGTH = 15;
-const EMAIL_MAX_LENGTH = 100;
+const STUDENT_CODE_MAX_LENGTH = 8;
+const EMAIL_MAX_LENGTH = 50;
 const FIRST_NAME_MAX_LENGTH = 50;
 const LAST_NAME_MAX_LENGTH = 50;
 
