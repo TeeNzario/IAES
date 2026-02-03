@@ -353,6 +353,10 @@ export type course_enrollmentsOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type StringFieldUpdateOperationsInput = {
+  set?: string
+}
+
 export type course_enrollmentsCreateNestedManyWithoutCourse_offeringsInput = {
   create?: Prisma.XOR<Prisma.course_enrollmentsCreateWithoutCourse_offeringsInput, Prisma.course_enrollmentsUncheckedCreateWithoutCourse_offeringsInput> | Prisma.course_enrollmentsCreateWithoutCourse_offeringsInput[] | Prisma.course_enrollmentsUncheckedCreateWithoutCourse_offeringsInput[]
   connectOrCreate?: Prisma.course_enrollmentsCreateOrConnectWithoutCourse_offeringsInput | Prisma.course_enrollmentsCreateOrConnectWithoutCourse_offeringsInput[]

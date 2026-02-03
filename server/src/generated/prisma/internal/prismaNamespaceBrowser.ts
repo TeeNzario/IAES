@@ -53,20 +53,23 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   attempt_answers: 'attempt_answers',
   attempt_items: 'attempt_items',
-  choices: 'choices',
   course_enrollments: 'course_enrollments',
   course_instructors: 'course_instructors',
   course_offerings: 'course_offerings',
   courses: 'courses',
   exam_attempts: 'exam_attempts',
-  exams: 'exams',
+  course_exams: 'course_exams',
   knowledge_categories: 'knowledge_categories',
-  questions: 'questions',
+  course_knowledge: 'course_knowledge',
+  question_knowledge: 'question_knowledge',
+  question_choices: 'question_choices',
+  question_bank: 'question_bank',
   staff_users: 'staff_users',
   import_preview_sessions: 'import_preview_sessions',
   import_preview_rows: 'import_preview_rows',
   student_directory: 'student_directory',
-  students: 'students'
+  students: 'students',
+  exam_questions: 'exam_questions'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -100,29 +103,15 @@ export type Attempt_answersScalarFieldEnum = (typeof Attempt_answersScalarFieldE
 export const Attempt_itemsScalarFieldEnum = {
   attempt_items_id: 'attempt_items_id',
   exam_attempts_id: 'exam_attempts_id',
-  questions_id: 'questions_id',
+  question_id: 'question_id',
   sequence_index: 'sequence_index',
   shown_at: 'shown_at',
   answered_at: 'answered_at',
   time_per_item: 'time_per_item',
-  shuffled_choice_order: 'shuffled_choice_order',
   choice_selection_log: 'choice_selection_log'
 } as const
 
 export type Attempt_itemsScalarFieldEnum = (typeof Attempt_itemsScalarFieldEnum)[keyof typeof Attempt_itemsScalarFieldEnum]
-
-
-export const ChoicesScalarFieldEnum = {
-  choices_id: 'choices_id',
-  questions_id: 'questions_id',
-  choice_text: 'choice_text',
-  is_correct: 'is_correct',
-  display_order: 'display_order',
-  created_at: 'created_at',
-  updated_at: 'updated_at'
-} as const
-
-export type ChoicesScalarFieldEnum = (typeof ChoicesScalarFieldEnum)[keyof typeof ChoicesScalarFieldEnum]
 
 
 export const Course_enrollmentsScalarFieldEnum = {
@@ -173,7 +162,7 @@ export type CoursesScalarFieldEnum = (typeof CoursesScalarFieldEnum)[keyof typeo
 
 export const Exam_attemptsScalarFieldEnum = {
   exam_attempts_id: 'exam_attempts_id',
-  exams_id: 'exams_id',
+  course_exams_id: 'course_exams_id',
   student_code: 'student_code',
   status: 'status',
   started_at: 'started_at',
@@ -189,8 +178,8 @@ export const Exam_attemptsScalarFieldEnum = {
 export type Exam_attemptsScalarFieldEnum = (typeof Exam_attemptsScalarFieldEnum)[keyof typeof Exam_attemptsScalarFieldEnum]
 
 
-export const ExamsScalarFieldEnum = {
-  exams_id: 'exams_id',
+export const Course_examsScalarFieldEnum = {
+  course_exams_id: 'course_exams_id',
   course_offerings_id: 'course_offerings_id',
   title: 'title',
   description: 'description',
@@ -201,14 +190,13 @@ export const ExamsScalarFieldEnum = {
   updated_at: 'updated_at'
 } as const
 
-export type ExamsScalarFieldEnum = (typeof ExamsScalarFieldEnum)[keyof typeof ExamsScalarFieldEnum]
+export type Course_examsScalarFieldEnum = (typeof Course_examsScalarFieldEnum)[keyof typeof Course_examsScalarFieldEnum]
 
 
 export const Knowledge_categoriesScalarFieldEnum = {
-  knowledge_categories_id: 'knowledge_categories_id',
-  course_offerings_id: 'course_offerings_id',
-  knowledge_name: 'knowledge_name',
-  knowledge_description: 'knowledge_description',
+  knowledge_category_id: 'knowledge_category_id',
+  name: 'name',
+  created_by_staff_id: 'created_by_staff_id',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -216,21 +204,50 @@ export const Knowledge_categoriesScalarFieldEnum = {
 export type Knowledge_categoriesScalarFieldEnum = (typeof Knowledge_categoriesScalarFieldEnum)[keyof typeof Knowledge_categoriesScalarFieldEnum]
 
 
-export const QuestionsScalarFieldEnum = {
-  questions_id: 'questions_id',
-  exams_id: 'exams_id',
-  question_text: 'question_text',
-  question_type: 'question_type',
-  difficulty_param: 'difficulty_param',
-  discrimination_param: 'discrimination_param',
-  guessing_param: 'guessing_param',
-  max_score: 'max_score',
+export const Course_knowledgeScalarFieldEnum = {
+  courses_id: 'courses_id',
+  knowledge_category_id: 'knowledge_category_id'
+} as const
+
+export type Course_knowledgeScalarFieldEnum = (typeof Course_knowledgeScalarFieldEnum)[keyof typeof Course_knowledgeScalarFieldEnum]
+
+
+export const Question_knowledgeScalarFieldEnum = {
+  question_id: 'question_id',
+  knowledge_category_id: 'knowledge_category_id',
+  courses_id: 'courses_id'
+} as const
+
+export type Question_knowledgeScalarFieldEnum = (typeof Question_knowledgeScalarFieldEnum)[keyof typeof Question_knowledgeScalarFieldEnum]
+
+
+export const Question_choicesScalarFieldEnum = {
+  choice_id: 'choice_id',
+  question_id: 'question_id',
+  choice_text: 'choice_text',
+  is_correct: 'is_correct',
   display_order: 'display_order',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
 
-export type QuestionsScalarFieldEnum = (typeof QuestionsScalarFieldEnum)[keyof typeof QuestionsScalarFieldEnum]
+export type Question_choicesScalarFieldEnum = (typeof Question_choicesScalarFieldEnum)[keyof typeof Question_choicesScalarFieldEnum]
+
+
+export const Question_bankScalarFieldEnum = {
+  question_id: 'question_id',
+  question_text: 'question_text',
+  question_type: 'question_type',
+  difficulty_param: 'difficulty_param',
+  discrimination_param: 'discrimination_param',
+  guessing_param: 'guessing_param',
+  created_by_staff_id: 'created_by_staff_id',
+  is_active: 'is_active',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Question_bankScalarFieldEnum = (typeof Question_bankScalarFieldEnum)[keyof typeof Question_bankScalarFieldEnum]
 
 
 export const Staff_usersScalarFieldEnum = {
@@ -303,6 +320,15 @@ export const StudentsScalarFieldEnum = {
 } as const
 
 export type StudentsScalarFieldEnum = (typeof StudentsScalarFieldEnum)[keyof typeof StudentsScalarFieldEnum]
+
+
+export const Exam_questionsScalarFieldEnum = {
+  course_exams_id: 'course_exams_id',
+  question_id: 'question_id',
+  sequence_index: 'sequence_index'
+} as const
+
+export type Exam_questionsScalarFieldEnum = (typeof Exam_questionsScalarFieldEnum)[keyof typeof Exam_questionsScalarFieldEnum]
 
 
 export const SortOrder = {

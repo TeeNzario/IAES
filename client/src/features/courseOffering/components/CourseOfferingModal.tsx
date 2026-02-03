@@ -5,6 +5,7 @@ import { ChevronDown, Plus, X, Lock } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { formatInstructorName } from "@/utils/formatName";
 import { Instructor } from "@/types/staff";
+import { useRouter } from "next/navigation";
 
 interface CourseModalProps {
   isOpen: boolean;
@@ -41,6 +42,8 @@ export default function CourseModal({
   const academicYears = ["2023", "2024", "2025", "2026", "2027"];
   const semesters = ["1", "2", "3"];
   const statuses = ["Active", "Inactive"];
+
+  const router = useRouter();
 
   // Fetch creator (me) and all instructors on mount
   useEffect(() => {
@@ -137,6 +140,7 @@ export default function CourseModal({
       resetForm();
       onSuccess?.();
       onClose();
+      router.push("/");
     } catch (err) {
       console.error("Failed to create course offering:", err);
       setError("ไม่สามารถเปิดคอร์สได้ กรุณาลองใหม่อีกครั้ง");

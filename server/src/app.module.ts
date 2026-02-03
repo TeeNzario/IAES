@@ -11,12 +11,22 @@ import { AuthModule } from './auth/auth.module';
 import { CourseOfferingsService } from './modules/course-offerings/course-offerings.service';
 import { CourseOfferingsController } from './modules/course-offerings/course-offerings.controller';
 import { CourseOfferingsModule } from './modules/course-offerings/course-offerings.module';
+import { KnowledgeCategoriesModule } from './modules/knowledge-categories/knowledge-categories.module';
 
 @Module({
-  imports: [StaffModule, CoursesModule, PrismaModule, ConfigModule.forRoot({
-    isGlobal: true,
-    envFilePath: ['.env.local', '.env'],
-  }), StudentsModule, AuthModule, CourseOfferingsModule],
+  imports: [
+    StaffModule,
+    CoursesModule,
+    PrismaModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['.env.local', '.env'],
+    }),
+    StudentsModule,
+    AuthModule,
+    CourseOfferingsModule,
+    KnowledgeCategoriesModule,
+  ],
   controllers: [AppController, CourseOfferingsController],
   providers: [AppService, CourseOfferingsService],
 })

@@ -48,11 +48,6 @@ export type attempt_answers = Prisma.attempt_answersModel
  */
 export type attempt_items = Prisma.attempt_itemsModel
 /**
- * Model choices
- * 
- */
-export type choices = Prisma.choicesModel
-/**
  * Model course_enrollments
  * 
  */
@@ -78,20 +73,35 @@ export type courses = Prisma.coursesModel
  */
 export type exam_attempts = Prisma.exam_attemptsModel
 /**
- * Model exams
+ * Model course_exams
  * 
  */
-export type exams = Prisma.examsModel
+export type course_exams = Prisma.course_examsModel
 /**
  * Model knowledge_categories
  * 
  */
 export type knowledge_categories = Prisma.knowledge_categoriesModel
 /**
- * Model questions
+ * Model course_knowledge
  * 
  */
-export type questions = Prisma.questionsModel
+export type course_knowledge = Prisma.course_knowledgeModel
+/**
+ * Model question_knowledge
+ * 
+ */
+export type question_knowledge = Prisma.question_knowledgeModel
+/**
+ * Model question_choices
+ * 
+ */
+export type question_choices = Prisma.question_choicesModel
+/**
+ * Model question_bank
+ * 
+ */
+export type question_bank = Prisma.question_bankModel
 /**
  * Model staff_users
  * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -117,3 +127,8 @@ export type student_directory = Prisma.student_directoryModel
  * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
  */
 export type students = Prisma.studentsModel
+/**
+ * Model exam_questions
+ * 
+ */
+export type exam_questions = Prisma.exam_questionsModel

@@ -233,7 +233,7 @@ export type attempt_answersWhereInput = {
   is_correct?: Prisma.BoolNullableFilter<"attempt_answers"> | boolean | null
   saved_at?: Prisma.DateTimeFilter<"attempt_answers"> | Date | string
   attempt_items?: Prisma.XOR<Prisma.Attempt_itemsScalarRelationFilter, Prisma.attempt_itemsWhereInput>
-  choices?: Prisma.XOR<Prisma.ChoicesNullableScalarRelationFilter, Prisma.choicesWhereInput> | null
+  question_choices?: Prisma.XOR<Prisma.Question_choicesNullableScalarRelationFilter, Prisma.question_choicesWhereInput> | null
 }
 
 export type attempt_answersOrderByWithRelationInput = {
@@ -244,7 +244,7 @@ export type attempt_answersOrderByWithRelationInput = {
   is_correct?: Prisma.SortOrderInput | Prisma.SortOrder
   saved_at?: Prisma.SortOrder
   attempt_items?: Prisma.attempt_itemsOrderByWithRelationInput
-  choices?: Prisma.choicesOrderByWithRelationInput
+  question_choices?: Prisma.question_choicesOrderByWithRelationInput
 }
 
 export type attempt_answersWhereUniqueInput = Prisma.AtLeast<{
@@ -258,7 +258,7 @@ export type attempt_answersWhereUniqueInput = Prisma.AtLeast<{
   is_correct?: Prisma.BoolNullableFilter<"attempt_answers"> | boolean | null
   saved_at?: Prisma.DateTimeFilter<"attempt_answers"> | Date | string
   attempt_items?: Prisma.XOR<Prisma.Attempt_itemsScalarRelationFilter, Prisma.attempt_itemsWhereInput>
-  choices?: Prisma.XOR<Prisma.ChoicesNullableScalarRelationFilter, Prisma.choicesWhereInput> | null
+  question_choices?: Prisma.XOR<Prisma.Question_choicesNullableScalarRelationFilter, Prisma.question_choicesWhereInput> | null
 }, "attempt_answers_id">
 
 export type attempt_answersOrderByWithAggregationInput = {
@@ -293,7 +293,7 @@ export type attempt_answersCreateInput = {
   is_correct?: boolean | null
   saved_at?: Date | string
   attempt_items: Prisma.attempt_itemsCreateNestedOneWithoutAttempt_answersInput
-  choices?: Prisma.choicesCreateNestedOneWithoutAttempt_answersInput
+  question_choices?: Prisma.question_choicesCreateNestedOneWithoutAttempt_answersInput
 }
 
 export type attempt_answersUncheckedCreateInput = {
@@ -311,7 +311,7 @@ export type attempt_answersUpdateInput = {
   is_correct?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   saved_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   attempt_items?: Prisma.attempt_itemsUpdateOneRequiredWithoutAttempt_answersNestedInput
-  choices?: Prisma.choicesUpdateOneWithoutAttempt_answersNestedInput
+  question_choices?: Prisma.question_choicesUpdateOneWithoutAttempt_answersNestedInput
 }
 
 export type attempt_answersUncheckedUpdateInput = {
@@ -467,45 +467,45 @@ export type attempt_answersUncheckedUpdateManyWithoutAttempt_itemsNestedInput = 
   deleteMany?: Prisma.attempt_answersScalarWhereInput | Prisma.attempt_answersScalarWhereInput[]
 }
 
-export type attempt_answersCreateNestedManyWithoutChoicesInput = {
-  create?: Prisma.XOR<Prisma.attempt_answersCreateWithoutChoicesInput, Prisma.attempt_answersUncheckedCreateWithoutChoicesInput> | Prisma.attempt_answersCreateWithoutChoicesInput[] | Prisma.attempt_answersUncheckedCreateWithoutChoicesInput[]
-  connectOrCreate?: Prisma.attempt_answersCreateOrConnectWithoutChoicesInput | Prisma.attempt_answersCreateOrConnectWithoutChoicesInput[]
-  createMany?: Prisma.attempt_answersCreateManyChoicesInputEnvelope
+export type attempt_answersCreateNestedManyWithoutQuestion_choicesInput = {
+  create?: Prisma.XOR<Prisma.attempt_answersCreateWithoutQuestion_choicesInput, Prisma.attempt_answersUncheckedCreateWithoutQuestion_choicesInput> | Prisma.attempt_answersCreateWithoutQuestion_choicesInput[] | Prisma.attempt_answersUncheckedCreateWithoutQuestion_choicesInput[]
+  connectOrCreate?: Prisma.attempt_answersCreateOrConnectWithoutQuestion_choicesInput | Prisma.attempt_answersCreateOrConnectWithoutQuestion_choicesInput[]
+  createMany?: Prisma.attempt_answersCreateManyQuestion_choicesInputEnvelope
   connect?: Prisma.attempt_answersWhereUniqueInput | Prisma.attempt_answersWhereUniqueInput[]
 }
 
-export type attempt_answersUncheckedCreateNestedManyWithoutChoicesInput = {
-  create?: Prisma.XOR<Prisma.attempt_answersCreateWithoutChoicesInput, Prisma.attempt_answersUncheckedCreateWithoutChoicesInput> | Prisma.attempt_answersCreateWithoutChoicesInput[] | Prisma.attempt_answersUncheckedCreateWithoutChoicesInput[]
-  connectOrCreate?: Prisma.attempt_answersCreateOrConnectWithoutChoicesInput | Prisma.attempt_answersCreateOrConnectWithoutChoicesInput[]
-  createMany?: Prisma.attempt_answersCreateManyChoicesInputEnvelope
+export type attempt_answersUncheckedCreateNestedManyWithoutQuestion_choicesInput = {
+  create?: Prisma.XOR<Prisma.attempt_answersCreateWithoutQuestion_choicesInput, Prisma.attempt_answersUncheckedCreateWithoutQuestion_choicesInput> | Prisma.attempt_answersCreateWithoutQuestion_choicesInput[] | Prisma.attempt_answersUncheckedCreateWithoutQuestion_choicesInput[]
+  connectOrCreate?: Prisma.attempt_answersCreateOrConnectWithoutQuestion_choicesInput | Prisma.attempt_answersCreateOrConnectWithoutQuestion_choicesInput[]
+  createMany?: Prisma.attempt_answersCreateManyQuestion_choicesInputEnvelope
   connect?: Prisma.attempt_answersWhereUniqueInput | Prisma.attempt_answersWhereUniqueInput[]
 }
 
-export type attempt_answersUpdateManyWithoutChoicesNestedInput = {
-  create?: Prisma.XOR<Prisma.attempt_answersCreateWithoutChoicesInput, Prisma.attempt_answersUncheckedCreateWithoutChoicesInput> | Prisma.attempt_answersCreateWithoutChoicesInput[] | Prisma.attempt_answersUncheckedCreateWithoutChoicesInput[]
-  connectOrCreate?: Prisma.attempt_answersCreateOrConnectWithoutChoicesInput | Prisma.attempt_answersCreateOrConnectWithoutChoicesInput[]
-  upsert?: Prisma.attempt_answersUpsertWithWhereUniqueWithoutChoicesInput | Prisma.attempt_answersUpsertWithWhereUniqueWithoutChoicesInput[]
-  createMany?: Prisma.attempt_answersCreateManyChoicesInputEnvelope
+export type attempt_answersUpdateManyWithoutQuestion_choicesNestedInput = {
+  create?: Prisma.XOR<Prisma.attempt_answersCreateWithoutQuestion_choicesInput, Prisma.attempt_answersUncheckedCreateWithoutQuestion_choicesInput> | Prisma.attempt_answersCreateWithoutQuestion_choicesInput[] | Prisma.attempt_answersUncheckedCreateWithoutQuestion_choicesInput[]
+  connectOrCreate?: Prisma.attempt_answersCreateOrConnectWithoutQuestion_choicesInput | Prisma.attempt_answersCreateOrConnectWithoutQuestion_choicesInput[]
+  upsert?: Prisma.attempt_answersUpsertWithWhereUniqueWithoutQuestion_choicesInput | Prisma.attempt_answersUpsertWithWhereUniqueWithoutQuestion_choicesInput[]
+  createMany?: Prisma.attempt_answersCreateManyQuestion_choicesInputEnvelope
   set?: Prisma.attempt_answersWhereUniqueInput | Prisma.attempt_answersWhereUniqueInput[]
   disconnect?: Prisma.attempt_answersWhereUniqueInput | Prisma.attempt_answersWhereUniqueInput[]
   delete?: Prisma.attempt_answersWhereUniqueInput | Prisma.attempt_answersWhereUniqueInput[]
   connect?: Prisma.attempt_answersWhereUniqueInput | Prisma.attempt_answersWhereUniqueInput[]
-  update?: Prisma.attempt_answersUpdateWithWhereUniqueWithoutChoicesInput | Prisma.attempt_answersUpdateWithWhereUniqueWithoutChoicesInput[]
-  updateMany?: Prisma.attempt_answersUpdateManyWithWhereWithoutChoicesInput | Prisma.attempt_answersUpdateManyWithWhereWithoutChoicesInput[]
+  update?: Prisma.attempt_answersUpdateWithWhereUniqueWithoutQuestion_choicesInput | Prisma.attempt_answersUpdateWithWhereUniqueWithoutQuestion_choicesInput[]
+  updateMany?: Prisma.attempt_answersUpdateManyWithWhereWithoutQuestion_choicesInput | Prisma.attempt_answersUpdateManyWithWhereWithoutQuestion_choicesInput[]
   deleteMany?: Prisma.attempt_answersScalarWhereInput | Prisma.attempt_answersScalarWhereInput[]
 }
 
-export type attempt_answersUncheckedUpdateManyWithoutChoicesNestedInput = {
-  create?: Prisma.XOR<Prisma.attempt_answersCreateWithoutChoicesInput, Prisma.attempt_answersUncheckedCreateWithoutChoicesInput> | Prisma.attempt_answersCreateWithoutChoicesInput[] | Prisma.attempt_answersUncheckedCreateWithoutChoicesInput[]
-  connectOrCreate?: Prisma.attempt_answersCreateOrConnectWithoutChoicesInput | Prisma.attempt_answersCreateOrConnectWithoutChoicesInput[]
-  upsert?: Prisma.attempt_answersUpsertWithWhereUniqueWithoutChoicesInput | Prisma.attempt_answersUpsertWithWhereUniqueWithoutChoicesInput[]
-  createMany?: Prisma.attempt_answersCreateManyChoicesInputEnvelope
+export type attempt_answersUncheckedUpdateManyWithoutQuestion_choicesNestedInput = {
+  create?: Prisma.XOR<Prisma.attempt_answersCreateWithoutQuestion_choicesInput, Prisma.attempt_answersUncheckedCreateWithoutQuestion_choicesInput> | Prisma.attempt_answersCreateWithoutQuestion_choicesInput[] | Prisma.attempt_answersUncheckedCreateWithoutQuestion_choicesInput[]
+  connectOrCreate?: Prisma.attempt_answersCreateOrConnectWithoutQuestion_choicesInput | Prisma.attempt_answersCreateOrConnectWithoutQuestion_choicesInput[]
+  upsert?: Prisma.attempt_answersUpsertWithWhereUniqueWithoutQuestion_choicesInput | Prisma.attempt_answersUpsertWithWhereUniqueWithoutQuestion_choicesInput[]
+  createMany?: Prisma.attempt_answersCreateManyQuestion_choicesInputEnvelope
   set?: Prisma.attempt_answersWhereUniqueInput | Prisma.attempt_answersWhereUniqueInput[]
   disconnect?: Prisma.attempt_answersWhereUniqueInput | Prisma.attempt_answersWhereUniqueInput[]
   delete?: Prisma.attempt_answersWhereUniqueInput | Prisma.attempt_answersWhereUniqueInput[]
   connect?: Prisma.attempt_answersWhereUniqueInput | Prisma.attempt_answersWhereUniqueInput[]
-  update?: Prisma.attempt_answersUpdateWithWhereUniqueWithoutChoicesInput | Prisma.attempt_answersUpdateWithWhereUniqueWithoutChoicesInput[]
-  updateMany?: Prisma.attempt_answersUpdateManyWithWhereWithoutChoicesInput | Prisma.attempt_answersUpdateManyWithWhereWithoutChoicesInput[]
+  update?: Prisma.attempt_answersUpdateWithWhereUniqueWithoutQuestion_choicesInput | Prisma.attempt_answersUpdateWithWhereUniqueWithoutQuestion_choicesInput[]
+  updateMany?: Prisma.attempt_answersUpdateManyWithWhereWithoutQuestion_choicesInput | Prisma.attempt_answersUpdateManyWithWhereWithoutQuestion_choicesInput[]
   deleteMany?: Prisma.attempt_answersScalarWhereInput | Prisma.attempt_answersScalarWhereInput[]
 }
 
@@ -514,7 +514,7 @@ export type attempt_answersCreateWithoutAttempt_itemsInput = {
   answer_text?: string | null
   is_correct?: boolean | null
   saved_at?: Date | string
-  choices?: Prisma.choicesCreateNestedOneWithoutAttempt_answersInput
+  question_choices?: Prisma.question_choicesCreateNestedOneWithoutAttempt_answersInput
 }
 
 export type attempt_answersUncheckedCreateWithoutAttempt_itemsInput = {
@@ -563,7 +563,7 @@ export type attempt_answersScalarWhereInput = {
   saved_at?: Prisma.DateTimeFilter<"attempt_answers"> | Date | string
 }
 
-export type attempt_answersCreateWithoutChoicesInput = {
+export type attempt_answersCreateWithoutQuestion_choicesInput = {
   attempt_answers_id?: bigint | number
   answer_text?: string | null
   is_correct?: boolean | null
@@ -571,7 +571,7 @@ export type attempt_answersCreateWithoutChoicesInput = {
   attempt_items: Prisma.attempt_itemsCreateNestedOneWithoutAttempt_answersInput
 }
 
-export type attempt_answersUncheckedCreateWithoutChoicesInput = {
+export type attempt_answersUncheckedCreateWithoutQuestion_choicesInput = {
   attempt_answers_id?: bigint | number
   attempt_items_id: bigint | number
   answer_text?: string | null
@@ -579,30 +579,30 @@ export type attempt_answersUncheckedCreateWithoutChoicesInput = {
   saved_at?: Date | string
 }
 
-export type attempt_answersCreateOrConnectWithoutChoicesInput = {
+export type attempt_answersCreateOrConnectWithoutQuestion_choicesInput = {
   where: Prisma.attempt_answersWhereUniqueInput
-  create: Prisma.XOR<Prisma.attempt_answersCreateWithoutChoicesInput, Prisma.attempt_answersUncheckedCreateWithoutChoicesInput>
+  create: Prisma.XOR<Prisma.attempt_answersCreateWithoutQuestion_choicesInput, Prisma.attempt_answersUncheckedCreateWithoutQuestion_choicesInput>
 }
 
-export type attempt_answersCreateManyChoicesInputEnvelope = {
-  data: Prisma.attempt_answersCreateManyChoicesInput | Prisma.attempt_answersCreateManyChoicesInput[]
+export type attempt_answersCreateManyQuestion_choicesInputEnvelope = {
+  data: Prisma.attempt_answersCreateManyQuestion_choicesInput | Prisma.attempt_answersCreateManyQuestion_choicesInput[]
   skipDuplicates?: boolean
 }
 
-export type attempt_answersUpsertWithWhereUniqueWithoutChoicesInput = {
+export type attempt_answersUpsertWithWhereUniqueWithoutQuestion_choicesInput = {
   where: Prisma.attempt_answersWhereUniqueInput
-  update: Prisma.XOR<Prisma.attempt_answersUpdateWithoutChoicesInput, Prisma.attempt_answersUncheckedUpdateWithoutChoicesInput>
-  create: Prisma.XOR<Prisma.attempt_answersCreateWithoutChoicesInput, Prisma.attempt_answersUncheckedCreateWithoutChoicesInput>
+  update: Prisma.XOR<Prisma.attempt_answersUpdateWithoutQuestion_choicesInput, Prisma.attempt_answersUncheckedUpdateWithoutQuestion_choicesInput>
+  create: Prisma.XOR<Prisma.attempt_answersCreateWithoutQuestion_choicesInput, Prisma.attempt_answersUncheckedCreateWithoutQuestion_choicesInput>
 }
 
-export type attempt_answersUpdateWithWhereUniqueWithoutChoicesInput = {
+export type attempt_answersUpdateWithWhereUniqueWithoutQuestion_choicesInput = {
   where: Prisma.attempt_answersWhereUniqueInput
-  data: Prisma.XOR<Prisma.attempt_answersUpdateWithoutChoicesInput, Prisma.attempt_answersUncheckedUpdateWithoutChoicesInput>
+  data: Prisma.XOR<Prisma.attempt_answersUpdateWithoutQuestion_choicesInput, Prisma.attempt_answersUncheckedUpdateWithoutQuestion_choicesInput>
 }
 
-export type attempt_answersUpdateManyWithWhereWithoutChoicesInput = {
+export type attempt_answersUpdateManyWithWhereWithoutQuestion_choicesInput = {
   where: Prisma.attempt_answersScalarWhereInput
-  data: Prisma.XOR<Prisma.attempt_answersUpdateManyMutationInput, Prisma.attempt_answersUncheckedUpdateManyWithoutChoicesInput>
+  data: Prisma.XOR<Prisma.attempt_answersUpdateManyMutationInput, Prisma.attempt_answersUncheckedUpdateManyWithoutQuestion_choicesInput>
 }
 
 export type attempt_answersCreateManyAttempt_itemsInput = {
@@ -618,7 +618,7 @@ export type attempt_answersUpdateWithoutAttempt_itemsInput = {
   answer_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_correct?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
   saved_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  choices?: Prisma.choicesUpdateOneWithoutAttempt_answersNestedInput
+  question_choices?: Prisma.question_choicesUpdateOneWithoutAttempt_answersNestedInput
 }
 
 export type attempt_answersUncheckedUpdateWithoutAttempt_itemsInput = {
@@ -637,7 +637,7 @@ export type attempt_answersUncheckedUpdateManyWithoutAttempt_itemsInput = {
   saved_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type attempt_answersCreateManyChoicesInput = {
+export type attempt_answersCreateManyQuestion_choicesInput = {
   attempt_answers_id?: bigint | number
   attempt_items_id: bigint | number
   answer_text?: string | null
@@ -645,7 +645,7 @@ export type attempt_answersCreateManyChoicesInput = {
   saved_at?: Date | string
 }
 
-export type attempt_answersUpdateWithoutChoicesInput = {
+export type attempt_answersUpdateWithoutQuestion_choicesInput = {
   attempt_answers_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   answer_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_correct?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -653,7 +653,7 @@ export type attempt_answersUpdateWithoutChoicesInput = {
   attempt_items?: Prisma.attempt_itemsUpdateOneRequiredWithoutAttempt_answersNestedInput
 }
 
-export type attempt_answersUncheckedUpdateWithoutChoicesInput = {
+export type attempt_answersUncheckedUpdateWithoutQuestion_choicesInput = {
   attempt_answers_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   attempt_items_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   answer_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -661,7 +661,7 @@ export type attempt_answersUncheckedUpdateWithoutChoicesInput = {
   saved_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type attempt_answersUncheckedUpdateManyWithoutChoicesInput = {
+export type attempt_answersUncheckedUpdateManyWithoutQuestion_choicesInput = {
   attempt_answers_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   attempt_items_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   answer_text?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -679,7 +679,7 @@ export type attempt_answersSelect<ExtArgs extends runtime.Types.Extensions.Inter
   is_correct?: boolean
   saved_at?: boolean
   attempt_items?: boolean | Prisma.attempt_itemsDefaultArgs<ExtArgs>
-  choices?: boolean | Prisma.attempt_answers$choicesArgs<ExtArgs>
+  question_choices?: boolean | Prisma.attempt_answers$question_choicesArgs<ExtArgs>
 }, ExtArgs["result"]["attempt_answers"]>
 
 export type attempt_answersSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -690,7 +690,7 @@ export type attempt_answersSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   is_correct?: boolean
   saved_at?: boolean
   attempt_items?: boolean | Prisma.attempt_itemsDefaultArgs<ExtArgs>
-  choices?: boolean | Prisma.attempt_answers$choicesArgs<ExtArgs>
+  question_choices?: boolean | Prisma.attempt_answers$question_choicesArgs<ExtArgs>
 }, ExtArgs["result"]["attempt_answers"]>
 
 export type attempt_answersSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -701,7 +701,7 @@ export type attempt_answersSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   is_correct?: boolean
   saved_at?: boolean
   attempt_items?: boolean | Prisma.attempt_itemsDefaultArgs<ExtArgs>
-  choices?: boolean | Prisma.attempt_answers$choicesArgs<ExtArgs>
+  question_choices?: boolean | Prisma.attempt_answers$question_choicesArgs<ExtArgs>
 }, ExtArgs["result"]["attempt_answers"]>
 
 export type attempt_answersSelectScalar = {
@@ -716,22 +716,22 @@ export type attempt_answersSelectScalar = {
 export type attempt_answersOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"attempt_answers_id" | "attempt_items_id" | "selected_choice_id" | "answer_text" | "is_correct" | "saved_at", ExtArgs["result"]["attempt_answers"]>
 export type attempt_answersInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   attempt_items?: boolean | Prisma.attempt_itemsDefaultArgs<ExtArgs>
-  choices?: boolean | Prisma.attempt_answers$choicesArgs<ExtArgs>
+  question_choices?: boolean | Prisma.attempt_answers$question_choicesArgs<ExtArgs>
 }
 export type attempt_answersIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   attempt_items?: boolean | Prisma.attempt_itemsDefaultArgs<ExtArgs>
-  choices?: boolean | Prisma.attempt_answers$choicesArgs<ExtArgs>
+  question_choices?: boolean | Prisma.attempt_answers$question_choicesArgs<ExtArgs>
 }
 export type attempt_answersIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   attempt_items?: boolean | Prisma.attempt_itemsDefaultArgs<ExtArgs>
-  choices?: boolean | Prisma.attempt_answers$choicesArgs<ExtArgs>
+  question_choices?: boolean | Prisma.attempt_answers$question_choicesArgs<ExtArgs>
 }
 
 export type $attempt_answersPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "attempt_answers"
   objects: {
     attempt_items: Prisma.$attempt_itemsPayload<ExtArgs>
-    choices: Prisma.$choicesPayload<ExtArgs> | null
+    question_choices: Prisma.$question_choicesPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     attempt_answers_id: bigint
@@ -1135,7 +1135,7 @@ readonly fields: attempt_answersFieldRefs;
 export interface Prisma__attempt_answersClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   attempt_items<T extends Prisma.attempt_itemsDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.attempt_itemsDefaultArgs<ExtArgs>>): Prisma.Prisma__attempt_itemsClient<runtime.Types.Result.GetResult<Prisma.$attempt_itemsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  choices<T extends Prisma.attempt_answers$choicesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.attempt_answers$choicesArgs<ExtArgs>>): Prisma.Prisma__choicesClient<runtime.Types.Result.GetResult<Prisma.$choicesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  question_choices<T extends Prisma.attempt_answers$question_choicesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.attempt_answers$question_choicesArgs<ExtArgs>>): Prisma.Prisma__question_choicesClient<runtime.Types.Result.GetResult<Prisma.$question_choicesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1567,22 +1567,22 @@ export type attempt_answersDeleteManyArgs<ExtArgs extends runtime.Types.Extensio
 }
 
 /**
- * attempt_answers.choices
+ * attempt_answers.question_choices
  */
-export type attempt_answers$choicesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type attempt_answers$question_choicesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the choices
+   * Select specific fields to fetch from the question_choices
    */
-  select?: Prisma.choicesSelect<ExtArgs> | null
+  select?: Prisma.question_choicesSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the choices
+   * Omit specific fields from the question_choices
    */
-  omit?: Prisma.choicesOmit<ExtArgs> | null
+  omit?: Prisma.question_choicesOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.choicesInclude<ExtArgs> | null
-  where?: Prisma.choicesWhereInput
+  include?: Prisma.question_choicesInclude<ExtArgs> | null
+  where?: Prisma.question_choicesWhereInput
 }
 
 /**

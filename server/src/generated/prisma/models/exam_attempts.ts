@@ -28,7 +28,7 @@ export type AggregateExam_attempts = {
 
 export type Exam_attemptsAvgAggregateOutputType = {
   exam_attempts_id: number | null
-  exams_id: number | null
+  course_exams_id: number | null
   total_score: runtime.Decimal | null
   total_level: number | null
   time_per_exam: number | null
@@ -36,7 +36,7 @@ export type Exam_attemptsAvgAggregateOutputType = {
 
 export type Exam_attemptsSumAggregateOutputType = {
   exam_attempts_id: bigint | null
-  exams_id: bigint | null
+  course_exams_id: bigint | null
   total_score: runtime.Decimal | null
   total_level: number | null
   time_per_exam: number | null
@@ -44,7 +44,7 @@ export type Exam_attemptsSumAggregateOutputType = {
 
 export type Exam_attemptsMinAggregateOutputType = {
   exam_attempts_id: bigint | null
-  exams_id: bigint | null
+  course_exams_id: bigint | null
   student_code: string | null
   status: $Enums.exam_attempt_status | null
   started_at: Date | null
@@ -59,7 +59,7 @@ export type Exam_attemptsMinAggregateOutputType = {
 
 export type Exam_attemptsMaxAggregateOutputType = {
   exam_attempts_id: bigint | null
-  exams_id: bigint | null
+  course_exams_id: bigint | null
   student_code: string | null
   status: $Enums.exam_attempt_status | null
   started_at: Date | null
@@ -74,7 +74,7 @@ export type Exam_attemptsMaxAggregateOutputType = {
 
 export type Exam_attemptsCountAggregateOutputType = {
   exam_attempts_id: number
-  exams_id: number
+  course_exams_id: number
   student_code: number
   status: number
   started_at: number
@@ -91,7 +91,7 @@ export type Exam_attemptsCountAggregateOutputType = {
 
 export type Exam_attemptsAvgAggregateInputType = {
   exam_attempts_id?: true
-  exams_id?: true
+  course_exams_id?: true
   total_score?: true
   total_level?: true
   time_per_exam?: true
@@ -99,7 +99,7 @@ export type Exam_attemptsAvgAggregateInputType = {
 
 export type Exam_attemptsSumAggregateInputType = {
   exam_attempts_id?: true
-  exams_id?: true
+  course_exams_id?: true
   total_score?: true
   total_level?: true
   time_per_exam?: true
@@ -107,7 +107,7 @@ export type Exam_attemptsSumAggregateInputType = {
 
 export type Exam_attemptsMinAggregateInputType = {
   exam_attempts_id?: true
-  exams_id?: true
+  course_exams_id?: true
   student_code?: true
   status?: true
   started_at?: true
@@ -122,7 +122,7 @@ export type Exam_attemptsMinAggregateInputType = {
 
 export type Exam_attemptsMaxAggregateInputType = {
   exam_attempts_id?: true
-  exams_id?: true
+  course_exams_id?: true
   student_code?: true
   status?: true
   started_at?: true
@@ -137,7 +137,7 @@ export type Exam_attemptsMaxAggregateInputType = {
 
 export type Exam_attemptsCountAggregateInputType = {
   exam_attempts_id?: true
-  exams_id?: true
+  course_exams_id?: true
   student_code?: true
   status?: true
   started_at?: true
@@ -239,7 +239,7 @@ export type exam_attemptsGroupByArgs<ExtArgs extends runtime.Types.Extensions.In
 
 export type Exam_attemptsGroupByOutputType = {
   exam_attempts_id: bigint
-  exams_id: bigint
+  course_exams_id: bigint
   student_code: string
   status: $Enums.exam_attempt_status
   started_at: Date
@@ -277,7 +277,7 @@ export type exam_attemptsWhereInput = {
   OR?: Prisma.exam_attemptsWhereInput[]
   NOT?: Prisma.exam_attemptsWhereInput | Prisma.exam_attemptsWhereInput[]
   exam_attempts_id?: Prisma.BigIntFilter<"exam_attempts"> | bigint | number
-  exams_id?: Prisma.BigIntFilter<"exam_attempts"> | bigint | number
+  course_exams_id?: Prisma.BigIntFilter<"exam_attempts"> | bigint | number
   student_code?: Prisma.StringFilter<"exam_attempts"> | string
   status?: Prisma.Enumexam_attempt_statusFilter<"exam_attempts"> | $Enums.exam_attempt_status
   started_at?: Prisma.DateTimeFilter<"exam_attempts"> | Date | string
@@ -289,13 +289,13 @@ export type exam_attemptsWhereInput = {
   created_at?: Prisma.DateTimeFilter<"exam_attempts"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"exam_attempts"> | Date | string
   attempt_items?: Prisma.Attempt_itemsListRelationFilter
-  exams?: Prisma.XOR<Prisma.ExamsScalarRelationFilter, Prisma.examsWhereInput>
+  course_exams?: Prisma.XOR<Prisma.Course_examsScalarRelationFilter, Prisma.course_examsWhereInput>
   students?: Prisma.XOR<Prisma.StudentsScalarRelationFilter, Prisma.studentsWhereInput>
 }
 
 export type exam_attemptsOrderByWithRelationInput = {
   exam_attempts_id?: Prisma.SortOrder
-  exams_id?: Prisma.SortOrder
+  course_exams_id?: Prisma.SortOrder
   student_code?: Prisma.SortOrder
   status?: Prisma.SortOrder
   started_at?: Prisma.SortOrder
@@ -307,17 +307,17 @@ export type exam_attemptsOrderByWithRelationInput = {
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   attempt_items?: Prisma.attempt_itemsOrderByRelationAggregateInput
-  exams?: Prisma.examsOrderByWithRelationInput
+  course_exams?: Prisma.course_examsOrderByWithRelationInput
   students?: Prisma.studentsOrderByWithRelationInput
 }
 
 export type exam_attemptsWhereUniqueInput = Prisma.AtLeast<{
   exam_attempts_id?: bigint | number
-  exams_id_student_code?: Prisma.exam_attemptsExams_idStudent_codeCompoundUniqueInput
+  course_exams_id_student_code?: Prisma.exam_attemptsCourse_exams_idStudent_codeCompoundUniqueInput
   AND?: Prisma.exam_attemptsWhereInput | Prisma.exam_attemptsWhereInput[]
   OR?: Prisma.exam_attemptsWhereInput[]
   NOT?: Prisma.exam_attemptsWhereInput | Prisma.exam_attemptsWhereInput[]
-  exams_id?: Prisma.BigIntFilter<"exam_attempts"> | bigint | number
+  course_exams_id?: Prisma.BigIntFilter<"exam_attempts"> | bigint | number
   student_code?: Prisma.StringFilter<"exam_attempts"> | string
   status?: Prisma.Enumexam_attempt_statusFilter<"exam_attempts"> | $Enums.exam_attempt_status
   started_at?: Prisma.DateTimeFilter<"exam_attempts"> | Date | string
@@ -329,13 +329,13 @@ export type exam_attemptsWhereUniqueInput = Prisma.AtLeast<{
   created_at?: Prisma.DateTimeFilter<"exam_attempts"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"exam_attempts"> | Date | string
   attempt_items?: Prisma.Attempt_itemsListRelationFilter
-  exams?: Prisma.XOR<Prisma.ExamsScalarRelationFilter, Prisma.examsWhereInput>
+  course_exams?: Prisma.XOR<Prisma.Course_examsScalarRelationFilter, Prisma.course_examsWhereInput>
   students?: Prisma.XOR<Prisma.StudentsScalarRelationFilter, Prisma.studentsWhereInput>
-}, "exam_attempts_id" | "exams_id_student_code">
+}, "exam_attempts_id" | "course_exams_id_student_code">
 
 export type exam_attemptsOrderByWithAggregationInput = {
   exam_attempts_id?: Prisma.SortOrder
-  exams_id?: Prisma.SortOrder
+  course_exams_id?: Prisma.SortOrder
   student_code?: Prisma.SortOrder
   status?: Prisma.SortOrder
   started_at?: Prisma.SortOrder
@@ -358,7 +358,7 @@ export type exam_attemptsScalarWhereWithAggregatesInput = {
   OR?: Prisma.exam_attemptsScalarWhereWithAggregatesInput[]
   NOT?: Prisma.exam_attemptsScalarWhereWithAggregatesInput | Prisma.exam_attemptsScalarWhereWithAggregatesInput[]
   exam_attempts_id?: Prisma.BigIntWithAggregatesFilter<"exam_attempts"> | bigint | number
-  exams_id?: Prisma.BigIntWithAggregatesFilter<"exam_attempts"> | bigint | number
+  course_exams_id?: Prisma.BigIntWithAggregatesFilter<"exam_attempts"> | bigint | number
   student_code?: Prisma.StringWithAggregatesFilter<"exam_attempts"> | string
   status?: Prisma.Enumexam_attempt_statusWithAggregatesFilter<"exam_attempts"> | $Enums.exam_attempt_status
   started_at?: Prisma.DateTimeWithAggregatesFilter<"exam_attempts"> | Date | string
@@ -383,13 +383,13 @@ export type exam_attemptsCreateInput = {
   created_at?: Date | string
   updated_at?: Date | string
   attempt_items?: Prisma.attempt_itemsCreateNestedManyWithoutExam_attemptsInput
-  exams: Prisma.examsCreateNestedOneWithoutExam_attemptsInput
+  course_exams: Prisma.course_examsCreateNestedOneWithoutExam_attemptsInput
   students: Prisma.studentsCreateNestedOneWithoutExam_attemptsInput
 }
 
 export type exam_attemptsUncheckedCreateInput = {
   exam_attempts_id?: bigint | number
-  exams_id: bigint | number
+  course_exams_id: bigint | number
   student_code: string
   status?: $Enums.exam_attempt_status
   started_at?: Date | string
@@ -415,13 +415,13 @@ export type exam_attemptsUpdateInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   attempt_items?: Prisma.attempt_itemsUpdateManyWithoutExam_attemptsNestedInput
-  exams?: Prisma.examsUpdateOneRequiredWithoutExam_attemptsNestedInput
+  course_exams?: Prisma.course_examsUpdateOneRequiredWithoutExam_attemptsNestedInput
   students?: Prisma.studentsUpdateOneRequiredWithoutExam_attemptsNestedInput
 }
 
 export type exam_attemptsUncheckedUpdateInput = {
   exam_attempts_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  exams_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  course_exams_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   student_code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.Enumexam_attempt_statusFieldUpdateOperationsInput | $Enums.exam_attempt_status
   started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -437,7 +437,7 @@ export type exam_attemptsUncheckedUpdateInput = {
 
 export type exam_attemptsCreateManyInput = {
   exam_attempts_id?: bigint | number
-  exams_id: bigint | number
+  course_exams_id: bigint | number
   student_code: string
   status?: $Enums.exam_attempt_status
   started_at?: Date | string
@@ -465,7 +465,7 @@ export type exam_attemptsUpdateManyMutationInput = {
 
 export type exam_attemptsUncheckedUpdateManyInput = {
   exam_attempts_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  exams_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  course_exams_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   student_code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.Enumexam_attempt_statusFieldUpdateOperationsInput | $Enums.exam_attempt_status
   started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -483,14 +483,14 @@ export type Exam_attemptsScalarRelationFilter = {
   isNot?: Prisma.exam_attemptsWhereInput
 }
 
-export type exam_attemptsExams_idStudent_codeCompoundUniqueInput = {
-  exams_id: bigint | number
+export type exam_attemptsCourse_exams_idStudent_codeCompoundUniqueInput = {
+  course_exams_id: bigint | number
   student_code: string
 }
 
 export type exam_attemptsCountOrderByAggregateInput = {
   exam_attempts_id?: Prisma.SortOrder
-  exams_id?: Prisma.SortOrder
+  course_exams_id?: Prisma.SortOrder
   student_code?: Prisma.SortOrder
   status?: Prisma.SortOrder
   started_at?: Prisma.SortOrder
@@ -505,7 +505,7 @@ export type exam_attemptsCountOrderByAggregateInput = {
 
 export type exam_attemptsAvgOrderByAggregateInput = {
   exam_attempts_id?: Prisma.SortOrder
-  exams_id?: Prisma.SortOrder
+  course_exams_id?: Prisma.SortOrder
   total_score?: Prisma.SortOrder
   total_level?: Prisma.SortOrder
   time_per_exam?: Prisma.SortOrder
@@ -513,7 +513,7 @@ export type exam_attemptsAvgOrderByAggregateInput = {
 
 export type exam_attemptsMaxOrderByAggregateInput = {
   exam_attempts_id?: Prisma.SortOrder
-  exams_id?: Prisma.SortOrder
+  course_exams_id?: Prisma.SortOrder
   student_code?: Prisma.SortOrder
   status?: Prisma.SortOrder
   started_at?: Prisma.SortOrder
@@ -528,7 +528,7 @@ export type exam_attemptsMaxOrderByAggregateInput = {
 
 export type exam_attemptsMinOrderByAggregateInput = {
   exam_attempts_id?: Prisma.SortOrder
-  exams_id?: Prisma.SortOrder
+  course_exams_id?: Prisma.SortOrder
   student_code?: Prisma.SortOrder
   status?: Prisma.SortOrder
   started_at?: Prisma.SortOrder
@@ -543,7 +543,7 @@ export type exam_attemptsMinOrderByAggregateInput = {
 
 export type exam_attemptsSumOrderByAggregateInput = {
   exam_attempts_id?: Prisma.SortOrder
-  exams_id?: Prisma.SortOrder
+  course_exams_id?: Prisma.SortOrder
   total_score?: Prisma.SortOrder
   total_level?: Prisma.SortOrder
   time_per_exam?: Prisma.SortOrder
@@ -593,45 +593,45 @@ export type NullableFloatFieldUpdateOperationsInput = {
   divide?: number
 }
 
-export type exam_attemptsCreateNestedManyWithoutExamsInput = {
-  create?: Prisma.XOR<Prisma.exam_attemptsCreateWithoutExamsInput, Prisma.exam_attemptsUncheckedCreateWithoutExamsInput> | Prisma.exam_attemptsCreateWithoutExamsInput[] | Prisma.exam_attemptsUncheckedCreateWithoutExamsInput[]
-  connectOrCreate?: Prisma.exam_attemptsCreateOrConnectWithoutExamsInput | Prisma.exam_attemptsCreateOrConnectWithoutExamsInput[]
-  createMany?: Prisma.exam_attemptsCreateManyExamsInputEnvelope
+export type exam_attemptsCreateNestedManyWithoutCourse_examsInput = {
+  create?: Prisma.XOR<Prisma.exam_attemptsCreateWithoutCourse_examsInput, Prisma.exam_attemptsUncheckedCreateWithoutCourse_examsInput> | Prisma.exam_attemptsCreateWithoutCourse_examsInput[] | Prisma.exam_attemptsUncheckedCreateWithoutCourse_examsInput[]
+  connectOrCreate?: Prisma.exam_attemptsCreateOrConnectWithoutCourse_examsInput | Prisma.exam_attemptsCreateOrConnectWithoutCourse_examsInput[]
+  createMany?: Prisma.exam_attemptsCreateManyCourse_examsInputEnvelope
   connect?: Prisma.exam_attemptsWhereUniqueInput | Prisma.exam_attemptsWhereUniqueInput[]
 }
 
-export type exam_attemptsUncheckedCreateNestedManyWithoutExamsInput = {
-  create?: Prisma.XOR<Prisma.exam_attemptsCreateWithoutExamsInput, Prisma.exam_attemptsUncheckedCreateWithoutExamsInput> | Prisma.exam_attemptsCreateWithoutExamsInput[] | Prisma.exam_attemptsUncheckedCreateWithoutExamsInput[]
-  connectOrCreate?: Prisma.exam_attemptsCreateOrConnectWithoutExamsInput | Prisma.exam_attemptsCreateOrConnectWithoutExamsInput[]
-  createMany?: Prisma.exam_attemptsCreateManyExamsInputEnvelope
+export type exam_attemptsUncheckedCreateNestedManyWithoutCourse_examsInput = {
+  create?: Prisma.XOR<Prisma.exam_attemptsCreateWithoutCourse_examsInput, Prisma.exam_attemptsUncheckedCreateWithoutCourse_examsInput> | Prisma.exam_attemptsCreateWithoutCourse_examsInput[] | Prisma.exam_attemptsUncheckedCreateWithoutCourse_examsInput[]
+  connectOrCreate?: Prisma.exam_attemptsCreateOrConnectWithoutCourse_examsInput | Prisma.exam_attemptsCreateOrConnectWithoutCourse_examsInput[]
+  createMany?: Prisma.exam_attemptsCreateManyCourse_examsInputEnvelope
   connect?: Prisma.exam_attemptsWhereUniqueInput | Prisma.exam_attemptsWhereUniqueInput[]
 }
 
-export type exam_attemptsUpdateManyWithoutExamsNestedInput = {
-  create?: Prisma.XOR<Prisma.exam_attemptsCreateWithoutExamsInput, Prisma.exam_attemptsUncheckedCreateWithoutExamsInput> | Prisma.exam_attemptsCreateWithoutExamsInput[] | Prisma.exam_attemptsUncheckedCreateWithoutExamsInput[]
-  connectOrCreate?: Prisma.exam_attemptsCreateOrConnectWithoutExamsInput | Prisma.exam_attemptsCreateOrConnectWithoutExamsInput[]
-  upsert?: Prisma.exam_attemptsUpsertWithWhereUniqueWithoutExamsInput | Prisma.exam_attemptsUpsertWithWhereUniqueWithoutExamsInput[]
-  createMany?: Prisma.exam_attemptsCreateManyExamsInputEnvelope
+export type exam_attemptsUpdateManyWithoutCourse_examsNestedInput = {
+  create?: Prisma.XOR<Prisma.exam_attemptsCreateWithoutCourse_examsInput, Prisma.exam_attemptsUncheckedCreateWithoutCourse_examsInput> | Prisma.exam_attemptsCreateWithoutCourse_examsInput[] | Prisma.exam_attemptsUncheckedCreateWithoutCourse_examsInput[]
+  connectOrCreate?: Prisma.exam_attemptsCreateOrConnectWithoutCourse_examsInput | Prisma.exam_attemptsCreateOrConnectWithoutCourse_examsInput[]
+  upsert?: Prisma.exam_attemptsUpsertWithWhereUniqueWithoutCourse_examsInput | Prisma.exam_attemptsUpsertWithWhereUniqueWithoutCourse_examsInput[]
+  createMany?: Prisma.exam_attemptsCreateManyCourse_examsInputEnvelope
   set?: Prisma.exam_attemptsWhereUniqueInput | Prisma.exam_attemptsWhereUniqueInput[]
   disconnect?: Prisma.exam_attemptsWhereUniqueInput | Prisma.exam_attemptsWhereUniqueInput[]
   delete?: Prisma.exam_attemptsWhereUniqueInput | Prisma.exam_attemptsWhereUniqueInput[]
   connect?: Prisma.exam_attemptsWhereUniqueInput | Prisma.exam_attemptsWhereUniqueInput[]
-  update?: Prisma.exam_attemptsUpdateWithWhereUniqueWithoutExamsInput | Prisma.exam_attemptsUpdateWithWhereUniqueWithoutExamsInput[]
-  updateMany?: Prisma.exam_attemptsUpdateManyWithWhereWithoutExamsInput | Prisma.exam_attemptsUpdateManyWithWhereWithoutExamsInput[]
+  update?: Prisma.exam_attemptsUpdateWithWhereUniqueWithoutCourse_examsInput | Prisma.exam_attemptsUpdateWithWhereUniqueWithoutCourse_examsInput[]
+  updateMany?: Prisma.exam_attemptsUpdateManyWithWhereWithoutCourse_examsInput | Prisma.exam_attemptsUpdateManyWithWhereWithoutCourse_examsInput[]
   deleteMany?: Prisma.exam_attemptsScalarWhereInput | Prisma.exam_attemptsScalarWhereInput[]
 }
 
-export type exam_attemptsUncheckedUpdateManyWithoutExamsNestedInput = {
-  create?: Prisma.XOR<Prisma.exam_attemptsCreateWithoutExamsInput, Prisma.exam_attemptsUncheckedCreateWithoutExamsInput> | Prisma.exam_attemptsCreateWithoutExamsInput[] | Prisma.exam_attemptsUncheckedCreateWithoutExamsInput[]
-  connectOrCreate?: Prisma.exam_attemptsCreateOrConnectWithoutExamsInput | Prisma.exam_attemptsCreateOrConnectWithoutExamsInput[]
-  upsert?: Prisma.exam_attemptsUpsertWithWhereUniqueWithoutExamsInput | Prisma.exam_attemptsUpsertWithWhereUniqueWithoutExamsInput[]
-  createMany?: Prisma.exam_attemptsCreateManyExamsInputEnvelope
+export type exam_attemptsUncheckedUpdateManyWithoutCourse_examsNestedInput = {
+  create?: Prisma.XOR<Prisma.exam_attemptsCreateWithoutCourse_examsInput, Prisma.exam_attemptsUncheckedCreateWithoutCourse_examsInput> | Prisma.exam_attemptsCreateWithoutCourse_examsInput[] | Prisma.exam_attemptsUncheckedCreateWithoutCourse_examsInput[]
+  connectOrCreate?: Prisma.exam_attemptsCreateOrConnectWithoutCourse_examsInput | Prisma.exam_attemptsCreateOrConnectWithoutCourse_examsInput[]
+  upsert?: Prisma.exam_attemptsUpsertWithWhereUniqueWithoutCourse_examsInput | Prisma.exam_attemptsUpsertWithWhereUniqueWithoutCourse_examsInput[]
+  createMany?: Prisma.exam_attemptsCreateManyCourse_examsInputEnvelope
   set?: Prisma.exam_attemptsWhereUniqueInput | Prisma.exam_attemptsWhereUniqueInput[]
   disconnect?: Prisma.exam_attemptsWhereUniqueInput | Prisma.exam_attemptsWhereUniqueInput[]
   delete?: Prisma.exam_attemptsWhereUniqueInput | Prisma.exam_attemptsWhereUniqueInput[]
   connect?: Prisma.exam_attemptsWhereUniqueInput | Prisma.exam_attemptsWhereUniqueInput[]
-  update?: Prisma.exam_attemptsUpdateWithWhereUniqueWithoutExamsInput | Prisma.exam_attemptsUpdateWithWhereUniqueWithoutExamsInput[]
-  updateMany?: Prisma.exam_attemptsUpdateManyWithWhereWithoutExamsInput | Prisma.exam_attemptsUpdateManyWithWhereWithoutExamsInput[]
+  update?: Prisma.exam_attemptsUpdateWithWhereUniqueWithoutCourse_examsInput | Prisma.exam_attemptsUpdateWithWhereUniqueWithoutCourse_examsInput[]
+  updateMany?: Prisma.exam_attemptsUpdateManyWithWhereWithoutCourse_examsInput | Prisma.exam_attemptsUpdateManyWithWhereWithoutCourse_examsInput[]
   deleteMany?: Prisma.exam_attemptsScalarWhereInput | Prisma.exam_attemptsScalarWhereInput[]
 }
 
@@ -688,13 +688,13 @@ export type exam_attemptsCreateWithoutAttempt_itemsInput = {
   time_per_exam?: number | null
   created_at?: Date | string
   updated_at?: Date | string
-  exams: Prisma.examsCreateNestedOneWithoutExam_attemptsInput
+  course_exams: Prisma.course_examsCreateNestedOneWithoutExam_attemptsInput
   students: Prisma.studentsCreateNestedOneWithoutExam_attemptsInput
 }
 
 export type exam_attemptsUncheckedCreateWithoutAttempt_itemsInput = {
   exam_attempts_id?: bigint | number
-  exams_id: bigint | number
+  course_exams_id: bigint | number
   student_code: string
   status?: $Enums.exam_attempt_status
   started_at?: Date | string
@@ -734,13 +734,13 @@ export type exam_attemptsUpdateWithoutAttempt_itemsInput = {
   time_per_exam?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  exams?: Prisma.examsUpdateOneRequiredWithoutExam_attemptsNestedInput
+  course_exams?: Prisma.course_examsUpdateOneRequiredWithoutExam_attemptsNestedInput
   students?: Prisma.studentsUpdateOneRequiredWithoutExam_attemptsNestedInput
 }
 
 export type exam_attemptsUncheckedUpdateWithoutAttempt_itemsInput = {
   exam_attempts_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  exams_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  course_exams_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   student_code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.Enumexam_attempt_statusFieldUpdateOperationsInput | $Enums.exam_attempt_status
   started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -753,7 +753,7 @@ export type exam_attemptsUncheckedUpdateWithoutAttempt_itemsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type exam_attemptsCreateWithoutExamsInput = {
+export type exam_attemptsCreateWithoutCourse_examsInput = {
   exam_attempts_id?: bigint | number
   status?: $Enums.exam_attempt_status
   started_at?: Date | string
@@ -768,7 +768,7 @@ export type exam_attemptsCreateWithoutExamsInput = {
   students: Prisma.studentsCreateNestedOneWithoutExam_attemptsInput
 }
 
-export type exam_attemptsUncheckedCreateWithoutExamsInput = {
+export type exam_attemptsUncheckedCreateWithoutCourse_examsInput = {
   exam_attempts_id?: bigint | number
   student_code: string
   status?: $Enums.exam_attempt_status
@@ -783,30 +783,30 @@ export type exam_attemptsUncheckedCreateWithoutExamsInput = {
   attempt_items?: Prisma.attempt_itemsUncheckedCreateNestedManyWithoutExam_attemptsInput
 }
 
-export type exam_attemptsCreateOrConnectWithoutExamsInput = {
+export type exam_attemptsCreateOrConnectWithoutCourse_examsInput = {
   where: Prisma.exam_attemptsWhereUniqueInput
-  create: Prisma.XOR<Prisma.exam_attemptsCreateWithoutExamsInput, Prisma.exam_attemptsUncheckedCreateWithoutExamsInput>
+  create: Prisma.XOR<Prisma.exam_attemptsCreateWithoutCourse_examsInput, Prisma.exam_attemptsUncheckedCreateWithoutCourse_examsInput>
 }
 
-export type exam_attemptsCreateManyExamsInputEnvelope = {
-  data: Prisma.exam_attemptsCreateManyExamsInput | Prisma.exam_attemptsCreateManyExamsInput[]
+export type exam_attemptsCreateManyCourse_examsInputEnvelope = {
+  data: Prisma.exam_attemptsCreateManyCourse_examsInput | Prisma.exam_attemptsCreateManyCourse_examsInput[]
   skipDuplicates?: boolean
 }
 
-export type exam_attemptsUpsertWithWhereUniqueWithoutExamsInput = {
+export type exam_attemptsUpsertWithWhereUniqueWithoutCourse_examsInput = {
   where: Prisma.exam_attemptsWhereUniqueInput
-  update: Prisma.XOR<Prisma.exam_attemptsUpdateWithoutExamsInput, Prisma.exam_attemptsUncheckedUpdateWithoutExamsInput>
-  create: Prisma.XOR<Prisma.exam_attemptsCreateWithoutExamsInput, Prisma.exam_attemptsUncheckedCreateWithoutExamsInput>
+  update: Prisma.XOR<Prisma.exam_attemptsUpdateWithoutCourse_examsInput, Prisma.exam_attemptsUncheckedUpdateWithoutCourse_examsInput>
+  create: Prisma.XOR<Prisma.exam_attemptsCreateWithoutCourse_examsInput, Prisma.exam_attemptsUncheckedCreateWithoutCourse_examsInput>
 }
 
-export type exam_attemptsUpdateWithWhereUniqueWithoutExamsInput = {
+export type exam_attemptsUpdateWithWhereUniqueWithoutCourse_examsInput = {
   where: Prisma.exam_attemptsWhereUniqueInput
-  data: Prisma.XOR<Prisma.exam_attemptsUpdateWithoutExamsInput, Prisma.exam_attemptsUncheckedUpdateWithoutExamsInput>
+  data: Prisma.XOR<Prisma.exam_attemptsUpdateWithoutCourse_examsInput, Prisma.exam_attemptsUncheckedUpdateWithoutCourse_examsInput>
 }
 
-export type exam_attemptsUpdateManyWithWhereWithoutExamsInput = {
+export type exam_attemptsUpdateManyWithWhereWithoutCourse_examsInput = {
   where: Prisma.exam_attemptsScalarWhereInput
-  data: Prisma.XOR<Prisma.exam_attemptsUpdateManyMutationInput, Prisma.exam_attemptsUncheckedUpdateManyWithoutExamsInput>
+  data: Prisma.XOR<Prisma.exam_attemptsUpdateManyMutationInput, Prisma.exam_attemptsUncheckedUpdateManyWithoutCourse_examsInput>
 }
 
 export type exam_attemptsScalarWhereInput = {
@@ -814,7 +814,7 @@ export type exam_attemptsScalarWhereInput = {
   OR?: Prisma.exam_attemptsScalarWhereInput[]
   NOT?: Prisma.exam_attemptsScalarWhereInput | Prisma.exam_attemptsScalarWhereInput[]
   exam_attempts_id?: Prisma.BigIntFilter<"exam_attempts"> | bigint | number
-  exams_id?: Prisma.BigIntFilter<"exam_attempts"> | bigint | number
+  course_exams_id?: Prisma.BigIntFilter<"exam_attempts"> | bigint | number
   student_code?: Prisma.StringFilter<"exam_attempts"> | string
   status?: Prisma.Enumexam_attempt_statusFilter<"exam_attempts"> | $Enums.exam_attempt_status
   started_at?: Prisma.DateTimeFilter<"exam_attempts"> | Date | string
@@ -839,12 +839,12 @@ export type exam_attemptsCreateWithoutStudentsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   attempt_items?: Prisma.attempt_itemsCreateNestedManyWithoutExam_attemptsInput
-  exams: Prisma.examsCreateNestedOneWithoutExam_attemptsInput
+  course_exams: Prisma.course_examsCreateNestedOneWithoutExam_attemptsInput
 }
 
 export type exam_attemptsUncheckedCreateWithoutStudentsInput = {
   exam_attempts_id?: bigint | number
-  exams_id: bigint | number
+  course_exams_id: bigint | number
   status?: $Enums.exam_attempt_status
   started_at?: Date | string
   submitted_at?: Date | string | null
@@ -883,7 +883,7 @@ export type exam_attemptsUpdateManyWithWhereWithoutStudentsInput = {
   data: Prisma.XOR<Prisma.exam_attemptsUpdateManyMutationInput, Prisma.exam_attemptsUncheckedUpdateManyWithoutStudentsInput>
 }
 
-export type exam_attemptsCreateManyExamsInput = {
+export type exam_attemptsCreateManyCourse_examsInput = {
   exam_attempts_id?: bigint | number
   student_code: string
   status?: $Enums.exam_attempt_status
@@ -897,7 +897,7 @@ export type exam_attemptsCreateManyExamsInput = {
   updated_at?: Date | string
 }
 
-export type exam_attemptsUpdateWithoutExamsInput = {
+export type exam_attemptsUpdateWithoutCourse_examsInput = {
   exam_attempts_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   status?: Prisma.Enumexam_attempt_statusFieldUpdateOperationsInput | $Enums.exam_attempt_status
   started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -912,7 +912,7 @@ export type exam_attemptsUpdateWithoutExamsInput = {
   students?: Prisma.studentsUpdateOneRequiredWithoutExam_attemptsNestedInput
 }
 
-export type exam_attemptsUncheckedUpdateWithoutExamsInput = {
+export type exam_attemptsUncheckedUpdateWithoutCourse_examsInput = {
   exam_attempts_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   student_code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.Enumexam_attempt_statusFieldUpdateOperationsInput | $Enums.exam_attempt_status
@@ -927,7 +927,7 @@ export type exam_attemptsUncheckedUpdateWithoutExamsInput = {
   attempt_items?: Prisma.attempt_itemsUncheckedUpdateManyWithoutExam_attemptsNestedInput
 }
 
-export type exam_attemptsUncheckedUpdateManyWithoutExamsInput = {
+export type exam_attemptsUncheckedUpdateManyWithoutCourse_examsInput = {
   exam_attempts_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   student_code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.Enumexam_attempt_statusFieldUpdateOperationsInput | $Enums.exam_attempt_status
@@ -943,7 +943,7 @@ export type exam_attemptsUncheckedUpdateManyWithoutExamsInput = {
 
 export type exam_attemptsCreateManyStudentsInput = {
   exam_attempts_id?: bigint | number
-  exams_id: bigint | number
+  course_exams_id: bigint | number
   status?: $Enums.exam_attempt_status
   started_at?: Date | string
   submitted_at?: Date | string | null
@@ -967,12 +967,12 @@ export type exam_attemptsUpdateWithoutStudentsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   attempt_items?: Prisma.attempt_itemsUpdateManyWithoutExam_attemptsNestedInput
-  exams?: Prisma.examsUpdateOneRequiredWithoutExam_attemptsNestedInput
+  course_exams?: Prisma.course_examsUpdateOneRequiredWithoutExam_attemptsNestedInput
 }
 
 export type exam_attemptsUncheckedUpdateWithoutStudentsInput = {
   exam_attempts_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  exams_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  course_exams_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   status?: Prisma.Enumexam_attempt_statusFieldUpdateOperationsInput | $Enums.exam_attempt_status
   started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -987,7 +987,7 @@ export type exam_attemptsUncheckedUpdateWithoutStudentsInput = {
 
 export type exam_attemptsUncheckedUpdateManyWithoutStudentsInput = {
   exam_attempts_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  exams_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  course_exams_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   status?: Prisma.Enumexam_attempt_statusFieldUpdateOperationsInput | $Enums.exam_attempt_status
   started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1032,7 +1032,7 @@ export type Exam_attemptsCountOutputTypeCountAttempt_itemsArgs<ExtArgs extends r
 
 export type exam_attemptsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   exam_attempts_id?: boolean
-  exams_id?: boolean
+  course_exams_id?: boolean
   student_code?: boolean
   status?: boolean
   started_at?: boolean
@@ -1044,14 +1044,14 @@ export type exam_attemptsSelect<ExtArgs extends runtime.Types.Extensions.Interna
   created_at?: boolean
   updated_at?: boolean
   attempt_items?: boolean | Prisma.exam_attempts$attempt_itemsArgs<ExtArgs>
-  exams?: boolean | Prisma.examsDefaultArgs<ExtArgs>
+  course_exams?: boolean | Prisma.course_examsDefaultArgs<ExtArgs>
   students?: boolean | Prisma.studentsDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.Exam_attemptsCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["exam_attempts"]>
 
 export type exam_attemptsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   exam_attempts_id?: boolean
-  exams_id?: boolean
+  course_exams_id?: boolean
   student_code?: boolean
   status?: boolean
   started_at?: boolean
@@ -1062,13 +1062,13 @@ export type exam_attemptsSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   time_per_exam?: boolean
   created_at?: boolean
   updated_at?: boolean
-  exams?: boolean | Prisma.examsDefaultArgs<ExtArgs>
+  course_exams?: boolean | Prisma.course_examsDefaultArgs<ExtArgs>
   students?: boolean | Prisma.studentsDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["exam_attempts"]>
 
 export type exam_attemptsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   exam_attempts_id?: boolean
-  exams_id?: boolean
+  course_exams_id?: boolean
   student_code?: boolean
   status?: boolean
   started_at?: boolean
@@ -1079,13 +1079,13 @@ export type exam_attemptsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   time_per_exam?: boolean
   created_at?: boolean
   updated_at?: boolean
-  exams?: boolean | Prisma.examsDefaultArgs<ExtArgs>
+  course_exams?: boolean | Prisma.course_examsDefaultArgs<ExtArgs>
   students?: boolean | Prisma.studentsDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["exam_attempts"]>
 
 export type exam_attemptsSelectScalar = {
   exam_attempts_id?: boolean
-  exams_id?: boolean
+  course_exams_id?: boolean
   student_code?: boolean
   status?: boolean
   started_at?: boolean
@@ -1098,19 +1098,19 @@ export type exam_attemptsSelectScalar = {
   updated_at?: boolean
 }
 
-export type exam_attemptsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"exam_attempts_id" | "exams_id" | "student_code" | "status" | "started_at" | "submitted_at" | "total_score" | "passed" | "total_level" | "time_per_exam" | "created_at" | "updated_at", ExtArgs["result"]["exam_attempts"]>
+export type exam_attemptsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"exam_attempts_id" | "course_exams_id" | "student_code" | "status" | "started_at" | "submitted_at" | "total_score" | "passed" | "total_level" | "time_per_exam" | "created_at" | "updated_at", ExtArgs["result"]["exam_attempts"]>
 export type exam_attemptsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   attempt_items?: boolean | Prisma.exam_attempts$attempt_itemsArgs<ExtArgs>
-  exams?: boolean | Prisma.examsDefaultArgs<ExtArgs>
+  course_exams?: boolean | Prisma.course_examsDefaultArgs<ExtArgs>
   students?: boolean | Prisma.studentsDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.Exam_attemptsCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type exam_attemptsIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  exams?: boolean | Prisma.examsDefaultArgs<ExtArgs>
+  course_exams?: boolean | Prisma.course_examsDefaultArgs<ExtArgs>
   students?: boolean | Prisma.studentsDefaultArgs<ExtArgs>
 }
 export type exam_attemptsIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  exams?: boolean | Prisma.examsDefaultArgs<ExtArgs>
+  course_exams?: boolean | Prisma.course_examsDefaultArgs<ExtArgs>
   students?: boolean | Prisma.studentsDefaultArgs<ExtArgs>
 }
 
@@ -1118,12 +1118,12 @@ export type $exam_attemptsPayload<ExtArgs extends runtime.Types.Extensions.Inter
   name: "exam_attempts"
   objects: {
     attempt_items: Prisma.$attempt_itemsPayload<ExtArgs>[]
-    exams: Prisma.$examsPayload<ExtArgs>
+    course_exams: Prisma.$course_examsPayload<ExtArgs>
     students: Prisma.$studentsPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     exam_attempts_id: bigint
-    exams_id: bigint
+    course_exams_id: bigint
     student_code: string
     status: $Enums.exam_attempt_status
     started_at: Date
@@ -1529,7 +1529,7 @@ readonly fields: exam_attemptsFieldRefs;
 export interface Prisma__exam_attemptsClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   attempt_items<T extends Prisma.exam_attempts$attempt_itemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.exam_attempts$attempt_itemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$attempt_itemsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  exams<T extends Prisma.examsDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.examsDefaultArgs<ExtArgs>>): Prisma.Prisma__examsClient<runtime.Types.Result.GetResult<Prisma.$examsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  course_exams<T extends Prisma.course_examsDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.course_examsDefaultArgs<ExtArgs>>): Prisma.Prisma__course_examsClient<runtime.Types.Result.GetResult<Prisma.$course_examsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   students<T extends Prisma.studentsDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.studentsDefaultArgs<ExtArgs>>): Prisma.Prisma__studentsClient<runtime.Types.Result.GetResult<Prisma.$studentsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1561,7 +1561,7 @@ export interface Prisma__exam_attemptsClient<T, Null = never, ExtArgs extends ru
  */
 export interface exam_attemptsFieldRefs {
   readonly exam_attempts_id: Prisma.FieldRef<"exam_attempts", 'BigInt'>
-  readonly exams_id: Prisma.FieldRef<"exam_attempts", 'BigInt'>
+  readonly course_exams_id: Prisma.FieldRef<"exam_attempts", 'BigInt'>
   readonly student_code: Prisma.FieldRef<"exam_attempts", 'String'>
   readonly status: Prisma.FieldRef<"exam_attempts", 'exam_attempt_status'>
   readonly started_at: Prisma.FieldRef<"exam_attempts", 'DateTime'>
