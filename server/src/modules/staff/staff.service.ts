@@ -19,8 +19,11 @@ export class StaffService {
     return `This action adds a new staff`;
   }
 
-  async findAll() {
+  async findAllInstructors() {
     const staff = await this.prisma.staff_users.findMany({
+      where: {
+        role: 'INSTRUCTOR',
+      },
       select: {
         staff_users_id: true,
         first_name: true,

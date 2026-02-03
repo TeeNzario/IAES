@@ -17,6 +17,7 @@ export interface CourseOffering {
   course_offerings_id: string; // BigInt serialized → string
   academic_year: number;
   semester: number;
+  is_active: boolean;
   courses: CourseInfo;
   course_instructors: CourseInstructor[];
 }

@@ -11,6 +11,7 @@ import {
   ChevronDown,
   Settings,
   Database,
+  LogOut,
 } from "lucide-react";
 import { AuthUser } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
@@ -50,6 +51,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
   const [courses, setCourses] = useState<CourseOffering[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
   const [userFetch, setUserFetch] = useState<UserProfile | null>(null);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   // Derive active states from pathname
   const isHomeActive = pathname === "/";
@@ -139,6 +141,20 @@ const NavBar = ({ children }: PageLayoutProps) => {
     }
 
     return "";
+  };
+
+  const handleLogout = () => {
+    // Clear localStorage
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user");
+
+    // Clear cookies
+    document.cookie =
+      "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+    // Redirect to login
+    router.push("/login");
   };
 
   // Style helpers
@@ -290,12 +306,35 @@ const NavBar = ({ children }: PageLayoutProps) => {
               </div>
             </Link>
 
-            {/* Right Section - User Info */}
+            {/* Right Section - User Info with Dropdown */}
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-[#484848] font-medium">
-                  {getDisplayName()}
-                </span>
+              <div
+                className="relative"
+                onMouseEnter={() => setIsUserMenuOpen(true)}
+                onMouseLeave={() => setIsUserMenuOpen(false)}
+              >
+                <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+                  <span className="text-[#484848] font-medium">
+                    {getDisplayName()}
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    className={`text-gray-400 transition-transform ${isUserMenuOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                {/* Dropdown Menu */}
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 top-full w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-400 transition-colors cursor-pointer"
+                    >
+                      <LogOut size={16} />
+                      ออกจากระบบ
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

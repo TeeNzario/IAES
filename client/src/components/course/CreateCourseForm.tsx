@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 
 // Configuration constants
-const MAX_KNOWLEDGE_LENGTH = 30;
+const MAX_KNOWLEDGE_LENGTH = 25;
 
 interface CreateCourseFormProps {
   onSuccess?: () => void;

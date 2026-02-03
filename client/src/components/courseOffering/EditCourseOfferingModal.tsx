@@ -5,27 +5,41 @@ import { ChevronDown, Plus, X, Lock } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { formatInstructorName } from "@/utils/formatName";
 import { Instructor } from "@/types/staff";
-import { useRouter } from "next/navigation";
+import { CourseOffering } from "@/types/course";
 
-interface CourseModalProps {
+interface EditCourseOfferingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  courseId: string;
-  courseName: string;
+  courseOffering: CourseOffering;
   onSuccess?: () => void;
 }
 
-export default function CourseModal({
+// Generate academic years: current year ±1 (Buddhist year)
+const getCurrentBuddhistYear = () => new Date().getFullYear() + 543;
+
+export default function EditCourseOfferingModal({
   isOpen,
   onClose,
-  courseId,
-  courseName,
+  courseOffering,
   onSuccess,
-}: CourseModalProps) {
+}: EditCourseOfferingModalProps) {
+  const currentYear = getCurrentBuddhistYear();
+  const academicYears = [
+    String(currentYear - 1),
+    String(currentYear),
+    String(currentYear + 1),
+  ];
+  const semesters = ["1", "2", "3"];
+  const statuses = ["Active", "Inactive"];
+
   // Form state
-  const [academicYear, setAcademicYear] = useState("2025");
-  const [semester, setSemester] = useState("1");
-  const [status, setStatus] = useState("Active");
+  const [academicYear, setAcademicYear] = useState(
+    String(courseOffering.academic_year),
+  );
+  const [semester, setSemester] = useState(String(courseOffering.semester));
+  const [status, setStatus] = useState(
+    courseOffering.is_active ? "Active" : "Inactive",
+  );
 
   // Instructor state
   const [creatorInstructor, setCreatorInstructor] = useState<Instructor | null>(
@@ -39,17 +53,24 @@ export default function CourseModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Generate academic years: current year ±1 (Buddhist year)
-  const currentYear = new Date().getFullYear() + 543;
-  const academicYears = [
-    String(currentYear - 1),
-    String(currentYear),
-    String(currentYear + 1),
-  ];
-  const semesters = ["1", "2", "3"];
-  const statuses = ["Active", "Inactive"];
+  // Reset form when course offering changes
+  useEffect(() => {
+    if (isOpen && courseOffering) {
+      setAcademicYear(String(courseOffering.academic_year));
+      setSemester(String(courseOffering.semester));
+      setStatus(courseOffering.is_active ? "Active" : "Inactive");
 
-  const router = useRouter();
+      // Set additional instructors (exclude the first one which is the creator)
+      if (courseOffering.course_instructors.length > 1) {
+        const additionalIds = courseOffering.course_instructors
+          .slice(1)
+          .map((ci) => ci.staff_users_id);
+        setAdditionalSlots(additionalIds);
+      } else {
+        setAdditionalSlots([]);
+      }
+    }
+  }, [isOpen, courseOffering]);
 
   // Fetch creator (me) and all instructors on mount
   useEffect(() => {
@@ -77,12 +98,10 @@ export default function CourseModal({
 
   // Get available instructors for a slot (exclude creator + already selected)
   const getAvailableInstructors = (currentSlotValue: string) => {
-    // Already selected IDs (excluding current slot's value)
     const selectedIds = additionalSlots.filter(
       (id) => id !== "" && id !== currentSlotValue,
     );
 
-    // Filter out creator and already selected instructors
     return allInstructors.filter(
       (inst) =>
         inst.staff_users_id !== creatorInstructor?.staff_users_id &&
@@ -109,23 +128,10 @@ export default function CourseModal({
     );
   };
 
-  // Reset form state
-  const resetForm = () => {
-    setAcademicYear("2025");
-    setSemester("1");
-    setStatus("Active");
-    setAdditionalSlots([]);
-    setError(null);
-  };
-
   // Handle form submission
   const handleSubmit = async () => {
     setIsSubmitting(true);
     setError(null);
-    if (!courseId) {
-      setError("Course ID is missing");
-      return;
-    }
 
     try {
       // Filter out empty slots and convert to numbers
@@ -133,42 +139,48 @@ export default function CourseModal({
         .filter((id) => id !== "")
         .map((id) => Number(id));
 
-      await apiFetch("/course-offerings", {
-        method: "POST",
-        data: {
-          courses_id: String(courseId),
-          academic_year: Number(academicYear),
-          semester: Number(semester),
-          instructor_ids: instructorIds, // Backend prepends creator
+      await apiFetch(
+        `/course-offerings/${courseOffering.course_offerings_id}`,
+        {
+          method: "PATCH",
+          data: {
+            academic_year: Number(academicYear),
+            semester: Number(semester),
+            is_active: status === "Active",
+            instructor_ids: instructorIds,
+          },
         },
-      });
+      );
 
-      resetForm();
       onSuccess?.();
       onClose();
-      router.push("/");
     } catch (err) {
-      console.error("Failed to create course offering:", err);
-      setError("ไม่สามารถเปิดคอร์สได้ กรุณาลองใหม่อีกครั้ง");
+      console.error("Failed to update course offering:", err);
+      setError("ไม่สามารถอัปเดตได้ กรุณาลองใหม่อีกครั้ง");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleClose = () => {
-    resetForm();
-    onClose();
-  };
-
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 relative">
+    <div
+      className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div
+        className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 relative"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Course Name */}
-        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-          {courseName}
+        <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">
+          แก้ไขรายวิชา
         </h2>
+        <p className="text-center text-gray-500 mb-6">
+          {/* {courseOffering.courses.course_code} -{" "} */}
+          {courseOffering.courses.course_name}
+        </p>
 
         {/* Error Message */}
         {error && (
@@ -180,7 +192,7 @@ export default function CourseModal({
         {/* Academic Year Dropdown */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Academic year
+            ปีการศึกษา
           </label>
           <div className="relative">
             <select
@@ -204,7 +216,7 @@ export default function CourseModal({
         {/* Semester Dropdown */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Semester
+            ภาคการศึกษา
           </label>
           <div className="relative">
             <select
@@ -228,7 +240,7 @@ export default function CourseModal({
         {/* Status Toggle Buttons */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Status
+            สถานะ
           </label>
           <div className="flex gap-3">
             {statuses.map((stat) => (
@@ -242,7 +254,7 @@ export default function CourseModal({
                     : "border-2 border-purple-300 text-gray-700 bg-white hover:bg-purple-50"
                 }`}
               >
-                {stat}
+                {stat === "Active" ? "เปิดใช้งาน" : "ปิดใช้งาน"}
               </button>
             ))}
           </div>
@@ -251,7 +263,7 @@ export default function CourseModal({
         {/* Instructor Selection */}
         <div className="mb-8">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Instructors
+            อาจารย์ผู้สอน
           </label>
 
           {isLoading ? (
@@ -280,7 +292,6 @@ export default function CourseModal({
                     size={18}
                   />
                 </div>
-                {/* No delete button for locked slot */}
               </div>
 
               {/* Additional instructor slots (editable) */}
@@ -350,11 +361,11 @@ export default function CourseModal({
         {/* Buttons */}
         <div className="flex gap-3 justify-center">
           <button
-            onClick={handleClose}
+            onClick={onClose}
             disabled={isSubmitting}
             className="px-8 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium disabled:opacity-50"
           >
-            CANCEL
+            ยกเลิก
           </button>
           <button
             onClick={handleSubmit}
@@ -364,7 +375,7 @@ export default function CourseModal({
             {isSubmitting && (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             )}
-            OPEN
+            บันทึก
           </button>
         </div>
       </div>

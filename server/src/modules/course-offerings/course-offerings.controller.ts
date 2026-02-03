@@ -13,6 +13,7 @@ import {
 import { CourseOfferingsService } from './course-offerings.service';
 import { PreviewImportService } from './preview-import.service';
 import { CreateCourseOfferingDto } from './dto/create-course-offerings.dto';
+import { UpdateCourseOfferingDto } from './dto/update-course-offering.dto';
 import { JwtAuthGuard, RolesGuard, Roles } from 'src/auth/guards';
 import { AddStudentDto } from './dto/add-student.dto';
 import { BulkEnrollStudentDto } from './dto/bulk-enroll-student.dto';
@@ -89,6 +90,21 @@ export class CourseOfferingsController {
   @Get(':offeringId')
   findOne(@Param('offeringId') offeringId: string) {
     return this.courseOfferingsService.findOneById(offeringId);
+  }
+
+  @Patch(':offeringId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('INSTRUCTOR')
+  update(
+    @Param('offeringId') offeringId: string,
+    @Req() req,
+    @Body() updateDto: UpdateCourseOfferingDto,
+  ) {
+    return this.courseOfferingsService.update(
+      offeringId,
+      updateDto,
+      req.user.id,
+    );
   }
 
   @Post(':offeringId/students')
