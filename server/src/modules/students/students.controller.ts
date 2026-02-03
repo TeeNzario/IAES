@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -27,8 +28,21 @@ export class StudentsController {
     return this.studentsService.findAll();
   }
 
-
-
+  /**
+   * Check if student code already exists
+   * Used for frontend validation
+   */
+  @Get('check-code')
+  async checkCodeExists(
+    @Query('student_code') studentCode: string,
+    @Query('excludeCode') excludeCode?: string,
+  ) {
+    const exists = await this.studentsService.checkStudentCodeExists(
+      studentCode,
+      excludeCode,
+    );
+    return { exists };
+  }
 
   // @Get(':id')
   // findOne(@Param('id') id: string) {

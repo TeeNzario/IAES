@@ -30,7 +30,7 @@ export class AuthService {
     }
 
     if (!student.is_active) {
-      throw new UnauthorizedException('Account is inactive');
+      throw new UnauthorizedException('This account has been deactivated.');
     }
 
     const payload: JwtPayload = {
@@ -72,7 +72,7 @@ export class AuthService {
     }
 
     if (!staff.is_active) {
-      throw new UnauthorizedException('Account is inactive');
+      throw new UnauthorizedException('This account has been deactivated.');
     }
 
     const payload: JwtPayload = {
