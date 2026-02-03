@@ -26,7 +26,7 @@ export interface GetUsersResponse {
 
 // Get all users with filters
 export const getUsers = async (
-  params: GetUsersParams
+  params: GetUsersParams,
 ): Promise<GetUsersResponse> => {
   try {
     const response = await axios.get(`${API_BASE_URL}/students`, {
@@ -75,12 +75,12 @@ export interface UpdateUserPayload {
 
 export const updateUser = async (
   id: string,
-  userData: UpdateUserPayload
+  userData: UpdateUserPayload,
 ): Promise<User> => {
   try {
     const response = await axios.patch(
       `${API_BASE_URL}/students/${id}`,
-      userData
+      userData,
     );
     return response.data;
   } catch (error) {
@@ -101,8 +101,8 @@ export const deleteUser = async (id: string): Promise<void> => {
 
 // Change user active status
 export const toggleUserStatus = async (
-  id: string,   
-  active: boolean
+  id: string,
+  active: boolean,
 ): Promise<User> => {
   try {
     // use students PATCH endpoint to update active flag
@@ -113,5 +113,27 @@ export const toggleUserStatus = async (
   } catch (error) {
     console.error("Error toggling user status:", error);
     throw error;
+  }
+};
+
+/**
+ * Check if student code already exists
+ * Used for frontend validation before form submission
+ */
+export const checkStudentCodeExists = async (
+  studentCode: string,
+  excludeCode?: string,
+): Promise<boolean> => {
+  try {
+    const params: any = { student_code: studentCode };
+    if (excludeCode) params.excludeCode = excludeCode;
+
+    const response = await axios.get(`${API_BASE_URL}/students/check-code`, {
+      params,
+    });
+    return response.data.exists;
+  } catch (error) {
+    console.error("Error checking student code:", error);
+    return false;
   }
 };

@@ -93,4 +93,29 @@ export class StudentsService {
       courses: e.course_offerings.courses,
     }));
   }
+
+  /**
+   * Check if a student code already exists
+   * @param studentCode - The student code to check
+   * @param excludeCode - Optional code to exclude (for edit mode)
+   */
+  async checkStudentCodeExists(
+    studentCode: string,
+    excludeCode?: string,
+  ): Promise<boolean> {
+    if (!studentCode?.trim()) return false;
+
+    const where: any = { student_code: studentCode.trim() };
+
+    if (excludeCode) {
+      where.NOT = { student_code: excludeCode };
+    }
+
+    const existing = await this.prisma.students.findFirst({
+      where,
+      select: { student_code: true },
+    });
+
+    return existing !== null;
+  }
 }

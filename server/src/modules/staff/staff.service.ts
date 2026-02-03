@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
@@ -15,8 +15,68 @@ function serializeBigInt(data: any) {
 export class StaffService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(createStaffDto: CreateStaffDto) {
-    return `This action adds a new staff`;
+  /**
+   * Create a new staff user
+   * Password is stored as plain text per current requirement
+   */
+  async create(createStaffDto: CreateStaffDto) {
+    // Check for duplicate email
+    const existing = await this.prisma.staff_users.findUnique({
+      where: { email: createStaffDto.email },
+    });
+
+    if (existing) {
+      throw new ConflictException('Email already exists');
+    }
+
+    const staff = await this.prisma.staff_users.create({
+      data: {
+        email: createStaffDto.email,
+        password_hash: createStaffDto.password, // Plain text per requirement
+        first_name: createStaffDto.first_name,
+        last_name: createStaffDto.last_name,
+        role: createStaffDto.role,
+        is_active: true,
+      },
+      select: {
+        staff_users_id: true,
+        email: true,
+        first_name: true,
+        last_name: true,
+        role: true,
+        is_active: true,
+      },
+    });
+
+    return serializeBigInt(staff);
+  }
+
+  /**
+   * Find all staff with optional role filter
+   */
+  async findAll(role?: string) {
+    const where: any = {};
+
+    if (role === 'INSTRUCTOR') {
+      where.role = 'INSTRUCTOR';
+    } else if (role === 'ADMINISTRATOR' || role === 'ADMIN') {
+      where.role = 'ADMIN';
+    }
+
+    const staff = await this.prisma.staff_users.findMany({
+      where,
+      select: {
+        staff_users_id: true,
+        email: true,
+        first_name: true,
+        last_name: true,
+        role: true,
+        is_active: true,
+      },
+      orderBy: { staff_users_id: 'asc' },
+    });
+
+    return { data: serializeBigInt(staff) };
   }
 
   async findAllInstructors() {
@@ -43,6 +103,7 @@ export class StaffService {
         last_name: true,
         email: true,
         role: true,
+        is_active: true,
       },
     });
     return serializeBigInt(staff);
@@ -52,16 +113,48 @@ export class StaffService {
     return `This action returns a #${id} staff`;
   }
 
-  update(id: bigint, updateStaffDto: UpdateStaffDto) {
-    return this.prisma.staff_users.update({
+  async update(id: bigint, updateStaffDto: UpdateStaffDto) {
+    const updated = await this.prisma.staff_users.update({
       where: { staff_users_id: id },
       data: updateStaffDto,
+      select: {
+        staff_users_id: true,
+        email: true,
+        first_name: true,
+        last_name: true,
+        role: true,
+        is_active: true,
+      },
     });
+    return serializeBigInt(updated);
   }
 
-  remove(id: bigint) {
-    return this.prisma.staff_users.delete({
+  async remove(id: bigint) {
+    await this.prisma.staff_users.delete({
       where: { staff_users_id: id },
     });
+    return { success: true };
+  }
+
+  /**
+   * Check if email already exists
+   * @param email - The email to check
+   * @param excludeId - Optional ID to exclude (for edit mode)
+   */
+  async checkEmailExists(email: string, excludeId?: string): Promise<boolean> {
+    if (!email?.trim()) return false;
+
+    const where: any = { email: email.trim() };
+
+    if (excludeId) {
+      where.NOT = { staff_users_id: BigInt(excludeId) };
+    }
+
+    const existing = await this.prisma.staff_users.findFirst({
+      where,
+      select: { staff_users_id: true },
+    });
+
+    return existing !== null;
   }
 }

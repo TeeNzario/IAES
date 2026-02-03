@@ -12,6 +12,7 @@ import {
   Settings,
   Database,
   LogOut,
+  Users,
 } from "lucide-react";
 import { AuthUser } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
@@ -129,6 +130,16 @@ const NavBar = ({ children }: PageLayoutProps) => {
     "role" in userFetch &&
     userFetch.role === "INSTRUCTOR";
 
+  // Check if user is ADMIN
+  const isAdmin =
+    user?.userType === "STAFF" &&
+    userFetch &&
+    "role" in userFetch &&
+    userFetch.role === "ADMIN";
+
+  // Derive active state for admin menu
+  const isManageUsersActive = pathname === "/admin/manage-users";
+
   const getDisplayName = () => {
     if (!userFetch || !user) return "";
 
@@ -195,92 +206,110 @@ const NavBar = ({ children }: PageLayoutProps) => {
             <Menu size={24} className="text-gray-700" />
           </button>
 
-          {/* Home Button */}
-          <button
-            onClick={() => router.push("/")}
-            className={getMenuButtonStyle(isHomeActive)}
-          >
-            <Home size={20} />
-            {isSidebarOpen && <span className="font-medium">หน้าแรก</span>}
-          </button>
-
-          {/* Courses Section */}
-          <div className="mb-4">
+          {/* ADMIN-only menu: Show only "จัดการผู้ใช้" */}
+          {isAdmin ? (
             <button
-              onClick={() => setIsCoursesExpanded(!isCoursesExpanded)}
-              className={`w-full flex items-center ${isSidebarOpen ? "justify-between px-4" : "justify-center"} py-3 ${
-                isCourseSectionActive
-                  ? "bg-[#B7A3E3]/80 text-white"
-                  : "text-[#575757] hover:bg-gray-100"
-              } rounded-lg transition-colors cursor-pointer`}
+              onClick={() => router.push("/admin/manage-users")}
+              className={getMenuButtonStyle(isManageUsersActive)}
             >
-              <div className="flex items-center gap-3">
-                <FileText size={20} />
-                {isSidebarOpen && <span>รายวิชา</span>}
-              </div>
+              <Users size={20} />
               {isSidebarOpen && (
-                <ChevronDown
-                  size={16}
-                  className={`transition-transform ${isCoursesExpanded ? "rotate-180" : ""}`}
-                />
+                <span className="font-medium">จัดการผู้ใช้</span>
               )}
             </button>
+          ) : (
+            /* Non-ADMIN menus */
+            <>
+              {/* Home Button */}
+              <button
+                onClick={() => router.push("/")}
+                className={getMenuButtonStyle(isHomeActive)}
+              >
+                <Home size={20} />
+                {isSidebarOpen && <span className="font-medium">หน้าแรก</span>}
+              </button>
 
-            {/* Course List */}
-            {isCoursesExpanded && isSidebarOpen && (
-              <div className="ml-4 mt-2 space-y-1">
-                {loadingCourses ? (
-                  <div className="px-4 py-2 text-gray-400 text-sm">
-                    กำลังโหลด...
+              {/* Courses Section */}
+              <div className="mb-4">
+                <button
+                  onClick={() => setIsCoursesExpanded(!isCoursesExpanded)}
+                  className={`w-full flex items-center ${isSidebarOpen ? "justify-between px-4" : "justify-center"} py-3 ${
+                    isCourseSectionActive
+                      ? "bg-[#B7A3E3]/80 text-white"
+                      : "text-[#575757] hover:bg-gray-100"
+                  } rounded-lg transition-colors cursor-pointer`}
+                >
+                  <div className="flex items-center gap-3">
+                    <FileText size={20} />
+                    {isSidebarOpen && <span>รายวิชา</span>}
                   </div>
-                ) : courses.length === 0 ? (
-                  <div className="px-4 py-2 text-gray-400 text-sm">
-                    ไม่มีรายวิชา
+                  {isSidebarOpen && (
+                    <ChevronDown
+                      size={16}
+                      className={`transition-transform ${isCoursesExpanded ? "rotate-180" : ""}`}
+                    />
+                  )}
+                </button>
+
+                {/* Course List */}
+                {isCoursesExpanded && isSidebarOpen && (
+                  <div className="ml-4 mt-2 space-y-1">
+                    {loadingCourses ? (
+                      <div className="px-4 py-2 text-gray-400 text-sm">
+                        กำลังโหลด...
+                      </div>
+                    ) : courses.length === 0 ? (
+                      <div className="px-4 py-2 text-gray-400 text-sm">
+                        ไม่มีรายวิชา
+                      </div>
+                    ) : (
+                      courses.map((course) => (
+                        <button
+                          key={course.course_offerings_id}
+                          onClick={() =>
+                            router.push(`/course/${course.course_offerings_id}`)
+                          }
+                          className={getCourseItemStyle(
+                            course.course_offerings_id,
+                          )}
+                        >
+                          {course.courses.course_code}
+                        </button>
+                      ))
+                    )}
                   </div>
-                ) : (
-                  courses.map((course) => (
-                    <button
-                      key={course.course_offerings_id}
-                      onClick={() =>
-                        router.push(`/course/${course.course_offerings_id}`)
-                      }
-                      className={getCourseItemStyle(course.course_offerings_id)}
-                    >
-                      {course.courses.course_code}
-                    </button>
-                  ))
                 )}
               </div>
-            )}
-          </div>
 
-          {/* Results Section - Available to all */}
-          <button
-            onClick={() => router.push("/results")}
-            className={getSideMenuStyle(isResultsActive)}
-          >
-            <BookOpen size={20} />
-            {isSidebarOpen && <span>ผลสรุปการสอบ</span>}
-          </button>
-
-          {/* Instructor-only menus */}
-          {isInstructor && (
-            <>
+              {/* Results Section - Available to all */}
               <button
-                onClick={() => router.push("/course")}
-                className={getSideMenuStyle(isCourseManageActive)}
+                onClick={() => router.push("/results")}
+                className={getSideMenuStyle(isResultsActive)}
               >
-                <Settings size={20} />
-                {isSidebarOpen && <span>จัดการรายวิชา</span>}
+                <BookOpen size={20} />
+                {isSidebarOpen && <span>ผลสรุปการสอบ</span>}
               </button>
 
-              <button
-                onClick={() => router.push("/exam-bank")}
-                className={getSideMenuStyle(isExamBankActive)}
-              >
-                <Database size={20} />
-                {isSidebarOpen && <span>คลังข้อสอบ</span>}
-              </button>
+              {/* Instructor-only menus */}
+              {isInstructor && (
+                <>
+                  <button
+                    onClick={() => router.push("/course")}
+                    className={getSideMenuStyle(isCourseManageActive)}
+                  >
+                    <Settings size={20} />
+                    {isSidebarOpen && <span>จัดการรายวิชา</span>}
+                  </button>
+
+                  <button
+                    onClick={() => router.push("/exam-bank")}
+                    className={getSideMenuStyle(isExamBankActive)}
+                  >
+                    <Database size={20} />
+                    {isSidebarOpen && <span>คลังข้อสอบ</span>}
+                  </button>
+                </>
+              )}
             </>
           )}
         </div>
