@@ -1,37 +1,44 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  Filter,
-  Trash2,
-  Edit2,
-} from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Edit2 } from "lucide-react";
 import Navbar from "@/components/layout/NavBar";
 import CourseModal from "@/features/courseOffering/components/CourseOfferingModal";
 import CreateCourseModal from "@/components/course/CreateCourseModal";
+import EditCourseModal from "@/components/course/EditCourseModal";
+import KnowledgeCategoriesCell from "@/components/course/KnowledgeCategoriesCell";
 import { apiFetch } from "@/lib/api";
 
-// Interface matching backend response
+// Configuration
+const ITEMS_PER_PAGE = 3;
+
+// Interfaces
+interface KnowledgeCategory {
+  knowledge_category_id: string;
+  name: string;
+}
+
+interface CourseKnowledge {
+  knowledge_categories: KnowledgeCategory;
+}
+
 interface Course {
   courses_id: number;
   course_code: string;
   course_name: string;
-  status: "ACTIVE" | "INACTIVE";
+  is_active: boolean;
   created_at?: string;
+  course_knowledge?: CourseKnowledge[];
 }
 
-interface CourseModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  courseName: string;
-  onSave: (data: {
-    academicYear: string;
-    semester: string;
-    status: string;
-  }) => void;
+interface PaginatedResponse {
+  data: Course[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export default function CourseManagement() {
@@ -39,21 +46,31 @@ export default function CourseManagement() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
-  const [courseStatus, setCourseStatus] = useState("ACTIVE");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
 
-  // Fetch courses function (extracted for reuse)
-  const fetchCourses = useCallback(async () => {
+  // Fetch courses with pagination
+  const fetchCourses = useCallback(async (page = 1) => {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await apiFetch<Course[]>("/courses");
-      setCourses(data);
+      const response = await apiFetch<PaginatedResponse>(
+        `/courses?page=${page}&limit=${ITEMS_PER_PAGE}`,
+      );
+      setCourses(response.data);
+      setTotalPages(response.pagination.totalPages);
+      setTotalItems(response.pagination.total);
+      setCurrentPage(response.pagination.page);
     } catch (err) {
       console.error("Failed to fetch courses:", err);
       setError("ไม่สามารถโหลดข้อมูลคอร์สได้");
@@ -64,7 +81,7 @@ export default function CourseManagement() {
 
   // Fetch courses on mount
   useEffect(() => {
-    fetchCourses();
+    fetchCourses(1);
   }, [fetchCourses]);
 
   // Filter courses by search term
@@ -73,6 +90,79 @@ export default function CourseManagement() {
       course.course_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       course.course_code.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+
+  // Handle status change
+  const handleStatusChange = async (courseId: number, isActive: boolean) => {
+    try {
+      await apiFetch(`/courses/${courseId}/status`, {
+        method: "PATCH",
+        data: { is_active: isActive },
+      });
+      // Update local state
+      setCourses((prev) =>
+        prev.map((course) =>
+          course.courses_id === courseId
+            ? { ...course, is_active: isActive }
+            : course,
+        ),
+      );
+    } catch (err) {
+      console.error("Failed to update status:", err);
+      alert("ไม่สามารถอัปเดตสถานะได้");
+    }
+  };
+
+  // Handle edit click
+  const handleEditClick = (course: Course) => {
+    setEditingCourse(course);
+    setIsEditModalOpen(true);
+  };
+
+  // Pagination handlers
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      fetchCourses(page);
+    }
+  };
+
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always show first page
+      pages.push(1);
+
+      if (currentPage > 3) {
+        pages.push("...");
+      }
+
+      // Show pages around current
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      for (let i = start; i <= end; i++) {
+        if (i !== 1 && i !== totalPages) {
+          pages.push(i);
+        }
+      }
+
+      if (currentPage < totalPages - 2) {
+        pages.push("...");
+      }
+
+      // Always show last page
+      if (totalPages > 1) {
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
 
   return (
     <Navbar>
@@ -96,12 +186,6 @@ export default function CourseManagement() {
 
             {/* Search Bar */}
             <div className="flex gap-3 mb-4">
-              {/* <button className="px-15 py-1 bg-white border border-[#B7A3E3] text-[#B7A3E3] text-lg font-bold rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
-                ทั้งหมด
-              </button>
-              <button className="px-4 py-2 border border-[#B7A3E3] text-[#B7A3E3] bg-white rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2 cursor-pointer">
-                <Filter size={18} />
-              </button> */}
               <div className="relative">
                 <input
                   type="text"
@@ -122,19 +206,23 @@ export default function CourseManagement() {
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <table className="w-full">
               <colgroup>
-                <col className="w-1/6" />
-                <col className="w-3/6" />
-                <col className="w-2/6" />
+                <col className="w-[12%]" />
+                <col className="w-[28%]" />
+                <col className="w-[25%]" />
+                <col className="w-[35%]" />
               </colgroup>
               <thead className="bg-[#B7A3E3] text-white">
                 <tr>
-                  <th className="px-6 py-3 text-left text-md font-light">
+                  <th className="px-4 py-3 text-left text-md font-light">
                     รหัสวิชา
                   </th>
-                  <th className="px-6 py-3 text-left text-md font-light">
+                  <th className="px-4 py-3 text-left text-md font-light">
                     ชื่อวิชา
                   </th>
-                  <th className="px-6 py-3 text-left text-md font-light">
+                  <th className="px-4 py-3 text-left text-md font-light">
+                    หมวดหมู่ความรู้
+                  </th>
+                  <th className="px-4 py-3 text-left text-md font-light">
                     ACTION
                   </th>
                 </tr>
@@ -181,24 +269,42 @@ export default function CourseManagement() {
                   !error &&
                   filteredCourses.map((course) => (
                     <tr key={course.courses_id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm text-gray-700">
+                      <td className="px-4 py-4 text-sm text-gray-700">
                         {course.course_code}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
+                      <td className="px-4 py-4 text-sm text-gray-700">
                         {course.course_name}
                       </td>
-                      <td className="px-6 py-4 text-center">
-                        <div className="flex justify-end items-center gap-5">
+                      <td className="px-4 py-4">
+                        <KnowledgeCategoriesCell
+                          categories={
+                            course.course_knowledge?.map(
+                              (ck) => ck.knowledge_categories,
+                            ) || []
+                          }
+                          maxVisible={2}
+                        />
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <div className="flex justify-end items-center gap-3">
                           {/* Edit Button */}
-                          <button className="w-10 h-10 flex items-center justify-center text-[#B492FF] border border-[#B492FF] hover:bg-purple-50 rounded-lg transition-colors cursor-pointer">
+                          <button
+                            onClick={() => handleEditClick(course)}
+                            className="w-10 h-10 flex items-center justify-center text-[#B492FF] border border-[#B492FF] hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
+                          >
                             <Edit2 size={18} />
                           </button>
 
-                          {/* ACTIVE Dropdown */}
+                          {/* Status Dropdown */}
                           <select
-                            value={courseStatus}
-                            onChange={(e) => setCourseStatus(e.target.value)}
-                            className="px-1 py-2 text-sm font-medium  bg-white text-[#484848] hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#B7A3E3]"
+                            value={course.is_active ? "ACTIVE" : "INACTIVE"}
+                            onChange={(e) =>
+                              handleStatusChange(
+                                course.courses_id,
+                                e.target.value === "ACTIVE",
+                              )
+                            }
+                            className="px-2 py-2 text-sm font-medium bg-white text-[#484848] hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#B7A3E3] rounded"
                           >
                             <option value="ACTIVE" className="text-[#484848]">
                               ACTIVE
@@ -226,27 +332,50 @@ export default function CourseManagement() {
           </div>
 
           {/* Pagination */}
-          <div className="mt-4 flex justify-end items-center gap-2">
-            <button className="w-8 h-8 flex text-[#D2D2D2] items-center justify-center border border-gray-300 rounded hover:bg-gray-50">
-              <ChevronLeft size={16} />
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center bg-[#B7A3E3] text-white rounded">
-              1
-            </button>
-            <button className="w-8 h-8 flex text-[#D2D2D2] items-center justify-center border border-gray-300 rounded hover:bg-gray-50">
-              2
-            </button>
-            <button className="w-8 h-8 flex text-[#D2D2D2] items-center justify-center border border-gray-300 rounded hover:bg-gray-50">
-              3
-            </button>
-            <span className="px-2">...</span>
-            <button className="w-8 h-8 flex text-[#D2D2D2] items-center justify-center border border-gray-300 rounded hover:bg-gray-50">
-              10
-            </button>
-            <button className="w-8 h-8 flex text-[#D2D2D2] items-center justify-center border border-gray-300 rounded hover:bg-gray-50">
-              <ChevronRight size={16} />
-            </button>
-          </div>
+          {!isLoading && totalPages > 0 && (
+            <div className="mt-4 flex justify-between items-center">
+              <span className="text-sm text-gray-500">
+                แสดง {filteredCourses.length} จาก {totalItems} รายการ
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft size={16} className="text-[#D2D2D2]" />
+                </button>
+
+                {getPageNumbers().map((page, index) =>
+                  typeof page === "string" ? (
+                    <span key={`ellipsis-${index}`} className="px-2">
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`w-8 h-8 flex items-center justify-center rounded ${
+                        currentPage === page
+                          ? "bg-[#B7A3E3] text-white"
+                          : "text-[#D2D2D2] border border-gray-300 hover:bg-gray-50"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ),
+                )}
+
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight size={16} className="text-[#D2D2D2]" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -258,7 +387,6 @@ export default function CourseManagement() {
           courseName={selectedCourse.course_name}
           onSuccess={() => {
             console.log("Course offering created successfully");
-            // Optionally refresh courses here
           }}
         />
       )}
@@ -267,8 +395,21 @@ export default function CourseManagement() {
       <CreateCourseModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={fetchCourses}
+        onSuccess={() => fetchCourses(currentPage)}
       />
+
+      {/* Edit Course Modal */}
+      {editingCourse && (
+        <EditCourseModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setEditingCourse(null);
+          }}
+          onSuccess={() => fetchCourses(currentPage)}
+          course={editingCourse}
+        />
+      )}
     </Navbar>
   );
 }

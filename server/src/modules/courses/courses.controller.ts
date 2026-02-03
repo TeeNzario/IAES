@@ -8,10 +8,12 @@ import {
   Delete,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { UpdateStatusDto } from './dto/update-status.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/guards/roles.guard';
@@ -29,23 +31,43 @@ export class CoursesController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('INSTRUCTOR')
-  findAll(@Req() req) {
-    return this.coursesService.findAllByCreator(req.user.id);
+  findAll(
+    @Req() req,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.coursesService.findAllByCreator(
+      req.user.id,
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 10,
+    );
   }
 
   @Get(':id')
+  @Roles('INSTRUCTOR')
   findOne(@Param('id') id: string) {
     return this.coursesService.findOne(+id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCourseDto: UpdateCourseDto) {
-    return this.coursesService.update(+id, updateCourseDto);
+  @Roles('INSTRUCTOR')
+  update(
+    @Req() req,
+    @Param('id') id: string,
+    @Body() updateCourseDto: UpdateCourseDto,
+  ) {
+    return this.coursesService.update(+id, updateCourseDto, req.user.id);
+  }
+
+  @Patch(':id/status')
+  @Roles('INSTRUCTOR')
+  updateStatus(@Param('id') id: string, @Body() dto: UpdateStatusDto) {
+    return this.coursesService.updateStatus(+id, dto.is_active);
   }
 
   @Delete(':id')
+  @Roles('INSTRUCTOR')
   remove(@Param('id') id: string) {
     return this.coursesService.remove(+id);
   }
