@@ -7,6 +7,7 @@ import { CourseOffering } from "@/types/course";
 import { apiFetch } from "@/lib/api";
 import { useParams } from "next/navigation";
 import { formatInstructorName } from "@/utils/formatName";
+import { AuthUser } from "@/types/auth";
 
 export default function CoursePage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function CoursePage() {
   const [course, setCourse] = useState<CourseOffering | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   const { offeringId } = useParams<{ offeringId: string }>();
 
@@ -57,6 +59,18 @@ export default function CoursePage() {
   const handleNavigateToStudents = () => {
     router.push(`/course/${offeringId}/members`);
   };
+
+    useEffect(() => {
+  apiFetch<AuthUser>("/auth/me")
+    .then((user) => {
+      setUser(user);
+    })
+    .catch((err) => {
+      console.error("Failed to fetch user", err);
+    });
+}, []);
+
+const isStudent = user?.userType === "STUDENT";
 
   return (
     <Navbar>
@@ -124,10 +138,12 @@ export default function CoursePage() {
           </div>
         </div>
 
+            
         {/* Layout with sidebar and content */}
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left Sidebar - Navigation Boxes */}
           <div className="flex flex-col gap-4 w-full lg:w-48 flex-shrink-0">
+            {!isStudent && (
             <button
               onClick={() => setActiveTab("learn")}
               className={`px-4 lg:px-6 py-3 lg:py-6 rounded-2xl font-light transition-all duration-200 text-center text-sm lg:text-base cursor-pointer ${
@@ -138,6 +154,8 @@ export default function CoursePage() {
             >
               สร้างการสอบ
             </button>
+            )}
+            {!isStudent && (
             <button
               onClick={() => setActiveTab("assignments")}
               className={`px-4 lg:px-6 py-3 lg:py-6 rounded-2xl font-light transition-all duration-200 text-center text-sm cursor-pointer lg:text-base ${
@@ -148,6 +166,7 @@ export default function CoursePage() {
             >
               ดูการวิเคราะห์
             </button>
+            )}
 
             {/* Test Section - Hidden on mobile, shown on desktop */}
             <div className="hidden lg:block bg-white backdrop-blur-sm rounded-2xl  p-6">

@@ -153,6 +153,20 @@ export class CourseOfferingsController {
     return { exists };
   }
 
+  /**
+   * Un-enroll a student from a course offering
+   * This removes the enrollment record, NOT the student record globally
+   */
+  @Delete(':offeringId/students/:studentCode')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('INSTRUCTOR')
+  unenrollStudent(
+    @Param('offeringId') offeringId: string,
+    @Param('studentCode') studentCode: string,
+  ) {
+    return this.courseOfferingsService.unenrollStudent(offeringId, studentCode);
+  }
+
   @Post(':offeringId/bulk-enroll')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('INSTRUCTOR')

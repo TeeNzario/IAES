@@ -170,7 +170,7 @@ export default function CourseManagement() {
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <h1 className="text-3xl font-bold text-[#484848] mb-12">
-            จัดการคอร์สเรียน
+            จัดการรายวิชา
           </h1>
 
           <div className="flex flex-row justify-between items-center gap-4">

@@ -75,6 +75,19 @@ export default function CourseHomePage() {
     }
   }, [user]);
 
+  useEffect(() => {
+  apiFetch<AuthUser>("/auth/me")
+    .then((user) => {
+      setUser(user);
+    })
+    .catch((err) => {
+      console.error("Failed to fetch user", err);
+    });
+}, []);
+
+const isStudent = user?.userType === "STUDENT";
+
+
   return (
     <NavBar>
       <div className="min-h-screen bg-[#F1EAFF] p-20">
@@ -136,6 +149,7 @@ export default function CourseHomePage() {
                 <div className="px-6 py-4">
                   <div className="flex items-center justify-end gap-2">
                     {/* Action Buttons */}
+                    {!isStudent && (
                     <div className="flex gap-2 flex-shrink-0">
                       <button
                         onClick={(e) => handleEditClick(e, courseOffering)}
@@ -148,16 +162,19 @@ export default function CourseHomePage() {
                         <Edit size={18} className="text-white" />
                       </button>
                     </div>
+                    )}
                   </div>
                 </div>
               </Link>
             ))}
+            {!isStudent && (
             <Link
               href={`/course`}
               className="rounded-3xl border border-white border-dashed border-3 overflow-hiddend w-72 h-72 flex flex-col items-center justify-center hover:shadow-lg transition-shadow"
             >
               <Plus size={45} className="text-white" />
             </Link>
+            )}
           </div>
         </div>
       </div>

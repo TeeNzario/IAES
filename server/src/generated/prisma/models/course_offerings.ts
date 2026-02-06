@@ -268,6 +268,7 @@ export type course_offeringsOrderByWithRelationInput = {
 
 export type course_offeringsWhereUniqueInput = Prisma.AtLeast<{
   course_offerings_id?: bigint | number
+  courses_id_academic_year_semester?: Prisma.course_offeringsCourses_idAcademic_yearSemesterCompoundUniqueInput
   AND?: Prisma.course_offeringsWhereInput | Prisma.course_offeringsWhereInput[]
   OR?: Prisma.course_offeringsWhereInput[]
   NOT?: Prisma.course_offeringsWhereInput | Prisma.course_offeringsWhereInput[]
@@ -282,7 +283,7 @@ export type course_offeringsWhereUniqueInput = Prisma.AtLeast<{
   courses?: Prisma.XOR<Prisma.CoursesScalarRelationFilter, Prisma.coursesWhereInput>
   course_exams?: Prisma.Course_examsListRelationFilter
   importPreviewSessions?: Prisma.Import_preview_sessionsListRelationFilter
-}, "course_offerings_id">
+}, "course_offerings_id" | "courses_id_academic_year_semester">
 
 export type course_offeringsOrderByWithAggregationInput = {
   course_offerings_id?: Prisma.SortOrder
@@ -400,6 +401,12 @@ export type course_offeringsUncheckedUpdateManyInput = {
 export type Course_offeringsScalarRelationFilter = {
   is?: Prisma.course_offeringsWhereInput
   isNot?: Prisma.course_offeringsWhereInput
+}
+
+export type course_offeringsCourses_idAcademic_yearSemesterCompoundUniqueInput = {
+  courses_id: bigint | number
+  academic_year: number
+  semester: number
 }
 
 export type course_offeringsCountOrderByAggregateInput = {

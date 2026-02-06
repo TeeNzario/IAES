@@ -70,6 +70,7 @@ model course_offerings {
   course_exams          course_exams[]
   importPreviewSessions import_preview_sessions[]
 
+  @@unique([courses_id, academic_year, semester])
   @@index([courses_id], map: "idx_course_offerings_course")
 }
 
