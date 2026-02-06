@@ -147,9 +147,15 @@ export default function CourseModal({
       onSuccess?.();
       onClose();
       router.push("/");
-    } catch (err) {
-      console.error("Failed to create course offering:", err);
-      setError("ไม่สามารถเปิดคอร์สได้ กรุณาลองใหม่อีกครั้ง");
+    } catch (err: any) {
+      if (err.status == 409) {
+        setError(
+          "ไม่สามารถเปิดคอร์สได้ เนื่องจากมีการเปิดคอร์สนี้ในภาคเรียนและปีการศึกษานี้แล้ว",
+        );
+      } else {
+        console.error("Failed to create course offering:", err);
+        setError("ไม่สามารถเปิดคอร์สได้ กรุณาลองใหม่อีกครั้ง");
+      }
     } finally {
       setIsSubmitting(false);
     }

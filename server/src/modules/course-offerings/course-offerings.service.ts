@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  ConflictException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCourseOfferingDto } from './dto/create-course-offerings.dto';
 import { UpdateCourseOfferingDto } from './dto/update-course-offering.dto';
@@ -9,6 +14,7 @@ import {
   BulkEnrollRowResult,
   BulkEnrollResponse,
 } from './dto/bulk-enroll-student.dto';
+import { Prisma } from 'src/generated/prisma/client';
 
 const courseOfferingSelect = {
   course_offerings_id: true,
@@ -46,7 +52,7 @@ function serializeBigInt(data: any) {
 
 @Injectable()
 export class CourseOfferingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(dto: CreateCourseOfferingDto, creatorId: number) {
     // Prepend creator ID to instructor list (creator is always first)
@@ -56,32 +62,57 @@ export class CourseOfferingsService {
       throw new BadRequestException('Invalid courses_id');
     }
 
-    return this.prisma.$transaction(async (tx) => {
-      const courseId = BigInt(dto.courses_id);
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        const courseId = BigInt(dto.courses_id);
 
-      const courseOffering = await tx.course_offerings.create({
-        data: {
-          courses: {
-            connect: {
-              courses_id: courseId,
+        const courseOffering = await tx.course_offerings.create({
+          data: {
+            courses: {
+              connect: {
+                courses_id: courseId,
+              },
             },
+            academic_year: dto.academic_year,
+            semester: dto.semester,
           },
-          academic_year: dto.academic_year,
-          semester: dto.semester,
-        },
+        });
+
+        await tx.course_instructors.createMany({
+          data: allInstructorIds.map((instructorId) => ({
+            staff_users_id: instructorId,
+            course_offerings_id: courseOffering.course_offerings_id,
+          })),
+        });
+
+        console.log(courseOffering);
+
+        return serializeBigInt(courseOffering);
       });
+    } catch (error: unknown) {
+      const err = error as any;
 
-      await tx.course_instructors.createMany({
-        data: allInstructorIds.map((instructorId) => ({
-          staff_users_id: instructorId,
-          course_offerings_id: courseOffering.course_offerings_id,
-        })),
-      });
+    console.log("FULL ERROR:", err);
+    console.log("Prisma code:", err?.code);
+    console.log("PG originalCode:", err?.cause?.originalCode);
 
-      console.log(courseOffering);
+    //handle a course offering in semester and academic year already exists
+    if (err?.code === "P2002") {
+     throw new ConflictException(
+        "Course offering already exists for this course, academic year, and semester"
+      );
+    }
 
-      return serializeBigInt(courseOffering);
-    });
+    if (err?.cause?.originalCode === "23505") {
+      throw new ConflictException(
+        "This course is already opened for this academic year and semester"
+      );
+    }
+
+    throw new InternalServerErrorException(
+      "Failed to create course offering"
+    );
+    }
   }
 
   /**
@@ -93,65 +124,65 @@ export class CourseOfferingsService {
    * with an undefined value matches ALL records, leaking the entire table.
    */
   async findByUser(user: {
-    type: 'STUDENT' | 'STAFF';
-    staffUserId?: number;
-    studentCode?: string;
-  }) {
-    // CRITICAL: Validate required identifiers to prevent data leakage
-    if (user.type === 'STAFF') {
-      if (!user.staffUserId && user.staffUserId !== 0) {
-        throw new BadRequestException(
-          'staffUserId is required for STAFF users',
-        );
-      }
+      type: 'STUDENT' | 'STAFF';
+      staffUserId?: number;
+      studentCode?: string;
+    }) {
+      // CRITICAL: Validate required identifiers to prevent data leakage
+      if (user.type === 'STAFF') {
+        if (!user.staffUserId && user.staffUserId !== 0) {
+          throw new BadRequestException(
+            'staffUserId is required for STAFF users',
+          );
+        }
 
-      const offerings = await this.prisma.course_offerings.findMany({
-        where: {
-          courses: {
-            is_active: true,
-          },
-          course_instructors: {
-            some: {
-              staff_users_id: user.staffUserId,
+        const offerings = await this.prisma.course_offerings.findMany({
+          where: {
+            courses: {
+              is_active: true,
+            },
+            course_instructors: {
+              some: {
+                staff_users_id: user.staffUserId,
+              },
             },
           },
-        },
-        select: courseOfferingSelect,
-        orderBy: [{ academic_year: 'desc' }, { semester: 'desc' }],
-      });
+          select: courseOfferingSelect,
+          orderBy: [{ academic_year: 'desc' }, { semester: 'desc' }],
+        });
 
-      return serializeBigInt(offerings);
-    }
-
-    if (user.type === 'STUDENT') {
-      if (!user.studentCode) {
-        throw new BadRequestException(
-          'studentCode is required for STUDENT users',
-        );
+        return serializeBigInt(offerings);
       }
 
-      const offerings = await this.prisma.course_offerings.findMany({
-        where: {
-          is_active: true,
-          courses: {
+      if (user.type === 'STUDENT') {
+        if (!user.studentCode) {
+          throw new BadRequestException(
+            'studentCode is required for STUDENT users',
+          );
+        }
+
+        const offerings = await this.prisma.course_offerings.findMany({
+          where: {
             is_active: true,
-          },
-          course_enrollments: {
-            some: {
-              student_code: user.studentCode,
+            courses: {
+              is_active: true,
+            },
+            course_enrollments: {
+              some: {
+                student_code: user.studentCode,
+              },
             },
           },
-        },
-        select: courseOfferingSelect,
-        orderBy: [{ academic_year: 'desc' }, { semester: 'desc' }],
-      });
+          select: courseOfferingSelect,
+          orderBy: [{ academic_year: 'desc' }, { semester: 'desc' }],
+        });
 
-      return serializeBigInt(offerings);
+        return serializeBigInt(offerings);
+      }
+
+      // Unknown user type - should never reach here
+      throw new BadRequestException('Invalid user type');
     }
-
-    // Unknown user type - should never reach here
-    throw new BadRequestException('Invalid user type');
-  }
 
   //   async findByStudentCode(studentCode: string) {
   //   const offerings = await this.prisma.course_offerings.findMany({
@@ -170,104 +201,104 @@ export class CourseOfferingsService {
   // }
 
   async findOneById(offeringId: string) {
-    if (!offeringId || offeringId === 'undefined') {
-      throw new BadRequestException('Invalid course_offerings_id');
+      if (!offeringId || offeringId === 'undefined') {
+        throw new BadRequestException('Invalid course_offerings_id');
+      }
+
+      const id = BigInt(offeringId);
+
+      const offering = await this.prisma.course_offerings.findUnique({
+        where: {
+          course_offerings_id: id,
+        },
+        select: courseOfferingSelect,
+      });
+
+      if (!offering) {
+        throw new BadRequestException('Course offering not found');
+      }
+
+      return serializeBigInt(offering);
     }
-
-    const id = BigInt(offeringId);
-
-    const offering = await this.prisma.course_offerings.findUnique({
-      where: {
-        course_offerings_id: id,
-      },
-      select: courseOfferingSelect,
-    });
-
-    if (!offering) {
-      throw new BadRequestException('Course offering not found');
-    }
-
-    return serializeBigInt(offering);
-  }
 
   async addStudentToOffering(offeringId: string, dto: AddStudentDto) {
-    const offeringBigInt = BigInt(offeringId);
+      const offeringBigInt = BigInt(offeringId);
 
-    return this.prisma.$transaction(async (tx) => {
-      // 1. Ensure student exists (or create)
-      const student = await tx.students.upsert({
-        where: { student_code: dto.student_code },
-        update: {
-          email: dto.email,
-          first_name: dto.first_name,
-          last_name: dto.last_name,
-        },
-        create: {
-          student_code: dto.student_code,
-          email: dto.email,
-          password_hash: '12345678', // 🔒 replace later with invite flow
-          first_name: dto.first_name,
-          last_name: dto.last_name,
-        },
+      return this.prisma.$transaction(async (tx) => {
+        // 1. Ensure student exists (or create)
+        const student = await tx.students.upsert({
+          where: { student_code: dto.student_code },
+          update: {
+            email: dto.email,
+            first_name: dto.first_name,
+            last_name: dto.last_name,
+          },
+          create: {
+            student_code: dto.student_code,
+            email: dto.email,
+            password_hash: '12345678', // 🔒 replace later with invite flow
+            first_name: dto.first_name,
+            last_name: dto.last_name,
+          },
+        });
+
+        // 2. Enroll student (unique constraint prevents duplicates)
+        await tx.course_enrollments.create({
+          data: {
+            course_offerings_id: offeringBigInt,
+            student_code: student.student_code,
+          },
+        });
+
+        return {
+          success: true,
+        };
       });
-
-      // 2. Enroll student (unique constraint prevents duplicates)
-      await tx.course_enrollments.create({
-        data: {
-          course_offerings_id: offeringBigInt,
-          student_code: student.student_code,
-        },
-      });
-
-      return {
-        success: true,
-      };
-    });
-  }
+    }
 
   async getStudentsByOffering(offeringId: string) {
-    const id = BigInt(offeringId);
+      const id = BigInt(offeringId);
 
-    const enrollments = await this.prisma.course_enrollments.findMany({
-      where: {
-        course_offerings_id: id,
-      },
-      select: {
-        student_code: true,
-        students: {
-          select: {
-            student_code: true,
-            first_name: true,
-            last_name: true,
-            email: true,
+      const enrollments = await this.prisma.course_enrollments.findMany({
+        where: {
+          course_offerings_id: id,
+        },
+        select: {
+          student_code: true,
+          students: {
+            select: {
+              student_code: true,
+              first_name: true,
+              last_name: true,
+              email: true,
+            },
           },
         },
-      },
-      orderBy: {
-        enrolled_at: 'asc',
-      },
-    });
+        orderBy: {
+          enrolled_at: 'asc',
+        },
+      });
 
-    return enrollments.map((e) => ({
-      student_code: e.student_code,
-      first_name: e.students.first_name,
-      last_name: e.students.last_name,
-      email: e.students.email,
-    }));
-  }
+      return enrollments.map((e) => ({
+        student_code: e.student_code,
+        first_name: e.students.first_name,
+        last_name: e.students.last_name,
+        email: e.students.email,
+      }));
+    }
 
   /**
    * Bulk enroll students into a course offering
    * Each row is processed in its own transaction for fault isolation
    */
   async bulkEnrollStudents(
-    offeringId: string,
-    dto: BulkEnrollStudentDto,
-  ): Promise<BulkEnrollResponse> {
-    const offeringBigInt = BigInt(offeringId);
-    const results: BulkEnrollRowResult[] = [];
+      offeringId: string,
+      dto: BulkEnrollStudentDto,
+    ): Promise < BulkEnrollResponse > {
+      const offeringBigInt = BigInt(offeringId);
+      const results: BulkEnrollRowResult[] = [];
 
-    for (const row of dto.students) {
+      for(const row of dto.students) {
       try {
         const result = await this.processStudentRow(offeringBigInt, row);
         results.push(result);
@@ -506,5 +537,29 @@ export class CourseOfferingsService {
     });
 
     return enrollment !== null;
+  }
+
+  /**
+   * Un-enroll a student from a specific course offering
+   * This removes the enrollment record, NOT the student record
+   * @param offeringId - The course offering ID
+   * @param studentCode - The student code to un-enroll
+   */
+  async unenrollStudent(
+    offeringId: string,
+    studentCode: string,
+  ): Promise<{ success: boolean }> {
+    const id = BigInt(offeringId);
+
+    await this.prisma.course_enrollments.delete({
+      where: {
+        course_offerings_id_student_code: {
+          course_offerings_id: id,
+          student_code: studentCode,
+        },
+      },
+    });
+
+    return { success: true };
   }
 }

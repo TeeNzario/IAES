@@ -10,6 +10,7 @@ import { Student } from "@/types/student";
 import { CourseOffering } from "@/types/course";
 import { formatInstructorName } from "@/utils/formatName";
 import BulkUploadModal from "@/features/courseOffering/components/BulkUploadStudent";
+import { AuthUser } from "@/types/auth";
 
 // ============================================================
 // CONFIGURATION CONSTANTS — Adjust limits here
@@ -76,6 +77,8 @@ export default function SimpleShowUsers() {
 
   // Validation errors state
   const [errors, setErrors] = useState<FormErrors>({});
+
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   // Duplicate check loading states
   const [isCheckingCode, setIsCheckingCode] = useState(false);
@@ -326,6 +329,28 @@ export default function SimpleShowUsers() {
     }
   };
 
+  // ฟังก์ชันลบนักศึกษาออกจากรายวิชา (ไม่ลบข้อมูลนักศึกษาในระบบ)
+  const handleUnenrollStudent = async (
+    studentCode: string,
+    studentName: string,
+  ) => {
+    const confirmed = window.confirm(
+      `ยืนยันการนำ ${studentName} (${studentCode}) ออกจากรายวิชานี้?`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await apiFetch(`course-offerings/${offeringId}/students/${studentCode}`, {
+        method: "DELETE",
+      });
+      await fetchStudents(); // Refresh list
+    } catch (err: any) {
+      console.error("Failed to unenroll student:", err);
+      alert("เกิดข้อผิดพลาด: " + (err?.message || "ไม่สามารถลบนักศึกษาได้"));
+    }
+  };
+
   //fetch instructors name
   useEffect(() => {
     const fetchOffering = async () => {
@@ -337,6 +362,18 @@ export default function SimpleShowUsers() {
     };
     fetchOffering();
   }, [offeringId]);
+
+   useEffect(() => {
+  apiFetch<AuthUser>("/auth/me")
+    .then((user) => {
+      setUser(user);
+    })
+    .catch((err) => {
+      console.error("Failed to fetch user", err);
+    });
+}, []);
+
+const isStudent = user?.userType === "STUDENT";
 
   // ============================================================
   // COMPUTED VALUES
@@ -442,7 +479,17 @@ export default function SimpleShowUsers() {
                         </span>
                       </div>
                       {/* Delete button - visible on hover */}
-                      <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-50 rounded">
+                      {!isStudent && (
+                      <button
+                        onClick={() =>
+                          handleUnenrollStudent(
+                            student.student_code,
+                            `${student.first_name} ${student.last_name}`,
+                          )
+                        }
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-50 rounded"
+                        title="นำออกจากรายวิชา"
+                      >
                         <svg
                           className="w-5 h-5 text-red-400"
                           fill="none"
@@ -457,6 +504,7 @@ export default function SimpleShowUsers() {
                           />
                         </svg>
                       </button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -464,6 +512,7 @@ export default function SimpleShowUsers() {
             </div>
 
             {/* Right Section - Action Buttons */}
+            {!isStudent && (
             <div className="flex flex-col gap-3 ">
               {/* Add Student Button */}
               <div className="bg-red-500 flex flex-col bg-white rounded-2xl py-1">
@@ -487,6 +536,7 @@ export default function SimpleShowUsers() {
                 </button>
               </div>
             </div>
+            )}
           </div>
         </div>
 
