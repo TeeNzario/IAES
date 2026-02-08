@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ChevronDown, Plus, X, Lock } from "lucide-react";
+import { ChevronDown, Plus, X, Lock, Trash2 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { formatInstructorName } from "@/utils/formatName";
 import { Instructor } from "@/types/staff";
 import { CourseOffering } from "@/types/course";
+import ConfirmModal from "@/components/ui/ConfirmModal";
+import axios from "axios";
 
 interface EditCourseOfferingModalProps {
   isOpen: boolean;
@@ -52,6 +54,11 @@ export default function EditCourseOfferingModal({
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Delete state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Reset form when course offering changes
   useEffect(() => {
@@ -159,6 +166,32 @@ export default function EditCourseOfferingModal({
       setError("ไม่สามารถอัปเดตได้ กรุณาลองใหม่อีกครั้ง");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Handle delete
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      await apiFetch(
+        `/course-offerings/${courseOffering.course_offerings_id}`,
+        { method: "DELETE" },
+      );
+      setShowDeleteConfirm(false);
+      onSuccess?.();
+      onClose();
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 409) {
+        setDeleteError(
+          "ไม่สามารถลบรายวิชานี้ได้ เนื่องจากมีนักศึกษาลงทะเบียนอยู่แล้ว",
+        );
+      } else {
+        setDeleteError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+      }
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -362,14 +395,25 @@ export default function EditCourseOfferingModal({
         <div className="flex gap-3 justify-center">
           <button
             onClick={onClose}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isDeleting}
             className="px-8 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium disabled:opacity-50"
           >
             ยกเลิก
           </button>
           <button
+            onClick={() => {
+              setDeleteError(null);
+              setShowDeleteConfirm(true);
+            }}
+            disabled={isSubmitting || isDeleting || isLoading}
+            className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium disabled:opacity-50 flex items-center gap-2"
+          >
+            <Trash2 size={16} />
+            ลบ
+          </button>
+          <button
             onClick={handleSubmit}
-            disabled={isSubmitting || isLoading}
+            disabled={isSubmitting || isLoading || isDeleting}
             className="px-8 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50 flex items-center gap-2"
           >
             {isSubmitting && (
@@ -379,6 +423,26 @@ export default function EditCourseOfferingModal({
           </button>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => {
+          if (!isDeleting) {
+            setShowDeleteConfirm(false);
+            setDeleteError(null);
+          }
+        }}
+        onConfirm={handleDelete}
+        title="ลบรายวิชาที่เปิดสอน"
+        message={
+          deleteError || `คุณแน่ใจหรือไม่ว่าต้องการลบรายวิชาที่เปิดสอนนี้?`
+        }
+        confirmText="ลบ"
+        cancelText="ยกเลิก"
+        isLoading={isDeleting}
+        variant={deleteError ? "warning" : "danger"}
+      />
     </div>
   );
 }

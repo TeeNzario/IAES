@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Search, ChevronLeft, ChevronRight, Edit2 } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Edit2, Trash2 } from "lucide-react";
 import Navbar from "@/components/layout/NavBar";
 import CourseModal from "@/features/courseOffering/components/CourseOfferingModal";
 import CreateCourseModal from "@/components/course/CreateCourseModal";
@@ -9,6 +9,8 @@ import EditCourseModal from "@/components/course/EditCourseModal";
 import KnowledgeCategoriesCell from "@/components/course/KnowledgeCategoriesCell";
 import { apiFetch } from "@/lib/api";
 import CourseOfferingModal from "@/features/courseOffering/components/CourseOfferingModal";
+import ConfirmModal from "@/components/ui/ConfirmModal";
+import axios from "axios";
 
 // Configuration
 const ITEMS_PER_PAGE = 3;
@@ -59,6 +61,12 @@ export default function CourseManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+
+  // Delete state
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deletingCourse, setDeletingCourse] = useState<Course | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Fetch courses with pagination
   const fetchCourses = useCallback(async (page = 1) => {
@@ -117,6 +125,40 @@ export default function CourseManagement() {
   const handleEditClick = (course: Course) => {
     setEditingCourse(course);
     setIsEditModalOpen(true);
+  };
+
+  // Handle delete click
+  const handleDeleteClick = (course: Course) => {
+    setDeletingCourse(course);
+    setDeleteError(null);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Handle delete confirm
+  const handleDeleteConfirm = async () => {
+    if (!deletingCourse) return;
+
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      await apiFetch(`/courses/${deletingCourse.courses_id}`, {
+        method: "DELETE",
+      });
+      setIsDeleteModalOpen(false);
+      setDeletingCourse(null);
+      fetchCourses(currentPage);
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 409) {
+        setDeleteError(
+          "ไม่สามารถลบรายวิชานี้ได้ เนื่องจากมีการเปิดสอนรายวิชานี้อยู่",
+        );
+      } else {
+        setDeleteError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+      }
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // Pagination handlers
@@ -296,6 +338,14 @@ export default function CourseManagement() {
                             <Edit2 size={18} />
                           </button>
 
+                          {/* Delete Button */}
+                          <button
+                            onClick={() => handleDeleteClick(course)}
+                            className="w-10 h-10 flex items-center justify-center text-red-500 border border-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+
                           {/* Status Dropdown */}
                           <select
                             value={course.is_active ? "ACTIVE" : "INACTIVE"}
@@ -411,6 +461,28 @@ export default function CourseManagement() {
           course={editingCourse}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          if (!isDeleting) {
+            setIsDeleteModalOpen(false);
+            setDeletingCourse(null);
+            setDeleteError(null);
+          }
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="ลบรายวิชา"
+        message={
+          deleteError ||
+          `คุณแน่ใจหรือไม่ว่าต้องการลบรายวิชา "${deletingCourse?.course_name || ""}"?`
+        }
+        confirmText="ลบ"
+        cancelText="ยกเลิก"
+        isLoading={isDeleting}
+        variant={deleteError ? "warning" : "danger"}
+      />
     </Navbar>
   );
 }
