@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -203,6 +203,17 @@ export class CoursesService {
   }
 
   async remove(id: number) {
+    // Check if course has any offerings
+    const offeringsCount = await this.prisma.course_offerings.count({
+      where: { courses_id: BigInt(id) },
+    });
+
+    if (offeringsCount > 0) {
+      throw new ConflictException(
+        'Cannot delete this course because course offerings already exist for this course.',
+      );
+    }
+
     await this.prisma.courses.delete({
       where: { courses_id: BigInt(id) },
     });
