@@ -10,6 +10,7 @@ import { formatInstructorName } from "@/utils/formatName";
 import EditCourseOfferingModal from "@/components/courseOffering/EditCourseOfferingModal";
 import { AuthUser } from "@/types/auth";
 import { useRouter } from "next/navigation";
+import { toBuddhistYear } from "@/utils/academicYear";
 
 export default function CourseHomePage() {
   const router = useRouter();
@@ -114,7 +115,7 @@ const isStudent = user?.userType === "STUDENT";
                         : "text-gray-400"
                     }`}
                   >
-                    {courseOffering.semester}/{courseOffering.academic_year}{" "}
+                    {courseOffering.semester}/{toBuddhistYear(courseOffering.academic_year)}{" "}
                     {courseOffering.courses.course_code}
                     {!courseOffering.is_active && (
                       <span className="ml-2 text-xs bg-gray-400 text-white px-2 py-0.5 rounded">

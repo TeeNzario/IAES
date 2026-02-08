@@ -91,7 +91,10 @@ function mapStaffToUser(staff: any): User {
   };
 }
 
+// Email and Name validation regex pattern
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const NAME_REGEX = /^[A-Za-zก-๙\s]+$/;
+
 
 export default function ManageUserPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -227,6 +230,16 @@ export default function ManageUserPage() {
       errors.last_name = ERROR_MESSAGES.lastName.maxLength;
     }
 
+    // Validate name format 
+    if (!NAME_REGEX.test(editFirstName.trim())) {
+      errors.first_name = "ชื่อต้องเป็นตัวอักษรเท่านั้น";
+    }
+
+    if (!NAME_REGEX.test(editLastName.trim())) {
+      errors.last_name = "นามสกุลต้องเป็นตัวอักษรเท่านั้น";
+    }
+
+
     setEditErrors(errors);
     return Object.keys(errors).length === 0;
   }
@@ -244,12 +257,12 @@ export default function ManageUserPage() {
       (prev ?? []).map((u) =>
         u.id === editingUser.id
           ? {
-              ...u,
-              first_name: editFirstName,
-              last_name: editLastName,
-              // Don't update is_active for ADMIN
-              is_active: isAdminUser ? u.is_active : editActive === "ACTIVE",
-            }
+            ...u,
+            first_name: editFirstName,
+            last_name: editLastName,
+            // Don't update is_active for ADMIN
+            is_active: isAdminUser ? u.is_active : editActive === "ACTIVE",
+          }
           : u,
       ),
     );
@@ -310,6 +323,16 @@ export default function ManageUserPage() {
     } else if (createLastName.length > USER_VALIDATION_CONFIG.lastName.max) {
       errors.last_name = ERROR_MESSAGES.lastName.maxLength;
     }
+
+    // Validate name format 
+    if (!NAME_REGEX.test(createFirstName.trim())) {
+      errors.first_name = "ชื่อต้องเป็นตัวอักษรเท่านั้น";
+    }
+
+    if (!NAME_REGEX.test(createLastName.trim())) {
+      errors.last_name = "นามสกุลต้องเป็นตัวอักษรเท่านั้น";
+    }
+
 
     // Email
     if (!createEmail.trim()) {
@@ -399,11 +422,10 @@ export default function ManageUserPage() {
                 setRoleFilter("STUDENT");
                 setCurrentPage(1);
               }}
-              className={`px-6 py-2 rounded-full font-medium transition-colors ${
-                roleFilter === "STUDENT"
-                  ? "bg-[#B7A3E3] text-white"
-                  : "bg-white border-2 border-[#B7A3E3] text-[#B7A3E3] hover:bg-purple-50"
-              }`}
+              className={`px-6 py-2 rounded-full font-medium transition-colors ${roleFilter === "STUDENT"
+                ? "bg-[#B7A3E3] text-white"
+                : "bg-white border-2 border-[#B7A3E3] text-[#B7A3E3] hover:bg-purple-50"
+                }`}
             >
               นักเรียน
             </button>
@@ -415,11 +437,10 @@ export default function ManageUserPage() {
                 setRoleFilter("INSTRUCTOR");
                 setCurrentPage(1);
               }}
-              className={`px-6 py-2 rounded-full font-medium transition-colors ${
-                roleFilter === "INSTRUCTOR"
-                  ? "bg-[#B7A3E3] text-white"
-                  : "bg-white border-2 border-[#B7A3E3] text-[#B7A3E3] hover:bg-purple-50"
-              }`}
+              className={`px-6 py-2 rounded-full font-medium transition-colors ${roleFilter === "INSTRUCTOR"
+                ? "bg-[#B7A3E3] text-white"
+                : "bg-white border-2 border-[#B7A3E3] text-[#B7A3E3] hover:bg-purple-50"
+                }`}
             >
               อาจารย์
             </button>
@@ -431,11 +452,10 @@ export default function ManageUserPage() {
                 setRoleFilter("ADMINISTRATOR");
                 setCurrentPage(1);
               }}
-              className={`px-6 py-2 rounded-full font-medium transition-colors ${
-                roleFilter === "ADMINISTRATOR"
-                  ? "bg-[#B7A3E3] text-white"
-                  : "bg-white border-2 border-[#B7A3E3] text-[#B7A3E3] hover:bg-purple-50"
-              }`}
+              className={`px-6 py-2 rounded-full font-medium transition-colors ${roleFilter === "ADMINISTRATOR"
+                ? "bg-[#B7A3E3] text-white"
+                : "bg-white border-2 border-[#B7A3E3] text-[#B7A3E3] hover:bg-purple-50"
+                }`}
             >
               ผู้ดูแลระบบ
             </button>
@@ -443,18 +463,18 @@ export default function ManageUserPage() {
             {/* Add button for staff sections */}
             {(roleFilter === "INSTRUCTOR" ||
               roleFilter === "ADMINISTRATOR") && (
-              <button
-                onClick={() =>
-                  openCreateModal(
-                    roleFilter === "ADMINISTRATOR" ? "ADMIN" : "INSTRUCTOR",
-                  )
-                }
-                className="p-2 bg-[#7C3AED] text-white rounded-full hover:bg-[#6D28D9] transition-colors"
-                title={`เพิ่ม${roleFilter === "INSTRUCTOR" ? "อาจารย์" : "ผู้ดูแลระบบ"}`}
-              >
-                <Plus size={20} />
-              </button>
-            )}
+                <button
+                  onClick={() =>
+                    openCreateModal(
+                      roleFilter === "ADMINISTRATOR" ? "ADMIN" : "INSTRUCTOR",
+                    )
+                  }
+                  className="p-2 bg-[#7C3AED] text-white rounded-full hover:bg-[#6D28D9] transition-colors"
+                  title={`เพิ่ม${roleFilter === "INSTRUCTOR" ? "อาจารย์" : "ผู้ดูแลระบบ"}`}
+                >
+                  <Plus size={20} />
+                </button>
+              )}
           </div>
 
           <div className="w-full sm:w-auto">
@@ -496,11 +516,10 @@ export default function ManageUserPage() {
                     <td className="px-6 py-4 text-gray-700">{`${user.first_name} ${user.last_name}`}</td>
                     <td className="px-6 py-4">
                       <span
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          user.is_active
-                            ? "bg-[#B7A3E3] text-white"
-                            : "bg-white text-[#B7A3E3]"
-                        }`}
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${user.is_active
+                          ? "bg-[#B7A3E3] text-white"
+                          : "bg-white text-[#B7A3E3]"
+                          }`}
                       >
                         {user.is_active ? "Active" : "Inactive"}
                       </span>
@@ -542,11 +561,10 @@ export default function ManageUserPage() {
                     <div className="text-sm text-gray-500">ID: {user.id}</div>
                     <div className="font-medium text-gray-800">{`${user.first_name} ${user.last_name}`}</div>
                     <span
-                      className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                        user.is_active
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
+                      className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${user.is_active
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700"
+                        }`}
                     >
                       {user.is_active ? "Active" : "Inactive"}
                     </span>
@@ -646,16 +664,16 @@ export default function ManageUserPage() {
                   type="text"
                   value={editFirstName}
                   onChange={(e) => {
-                    setEditFirstName(e.target.value);
+                    const value = e.target.value.replace(/[^A-Za-zก-๙\s]/g, "");
+                    setEditFirstName(value);
                     if (editErrors.first_name)
                       setEditErrors((p) => ({ ...p, first_name: undefined }));
                   }}
                   maxLength={USER_VALIDATION_CONFIG.firstName.max}
-                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${
-                    editErrors.first_name
-                      ? "border-red-500"
-                      : "border-[#9264F5] focus:border-[#B7A3E3]"
-                  }`}
+                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${editErrors.first_name
+                    ? "border-red-500"
+                    : "border-[#9264F5] focus:border-[#B7A3E3]"
+                    }`}
                 />
                 {editErrors.first_name && (
                   <p className="text-red-500 text-xs mt-1">
@@ -677,16 +695,16 @@ export default function ManageUserPage() {
                   type="text"
                   value={editLastName}
                   onChange={(e) => {
-                    setEditLastName(e.target.value);
+                    const value = e.target.value.replace(/[^A-Za-zก-๙\s]/g, "");
+                    setEditLastName(value);
                     if (editErrors.last_name)
                       setEditErrors((p) => ({ ...p, last_name: undefined }));
                   }}
                   maxLength={USER_VALIDATION_CONFIG.lastName.max}
-                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${
-                    editErrors.last_name
-                      ? "border-red-500"
-                      : "border-[#9264F5] focus:border-[#B7A3E3]"
-                  }`}
+                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${editErrors.last_name
+                    ? "border-red-500"
+                    : "border-[#9264F5] focus:border-[#B7A3E3]"
+                    }`}
                 />
                 {editErrors.last_name && (
                   <p className="text-red-500 text-xs mt-1">
@@ -704,21 +722,19 @@ export default function ManageUserPage() {
                   <div className="flex gap-3">
                     <button
                       onClick={() => setEditActive("ACTIVE")}
-                      className={`flex-1 px-6 py-3 rounded-2xl font-medium transition-all ${
-                        editActive === "ACTIVE"
-                          ? "bg-[#B7A3E3] text-white shadow-md"
-                          : "bg-white text-black border-2 border-[#B7A3E3] hover:border-gray-300"
-                      }`}
+                      className={`flex-1 px-6 py-3 rounded-2xl font-medium transition-all ${editActive === "ACTIVE"
+                        ? "bg-[#B7A3E3] text-white shadow-md"
+                        : "bg-white text-black border-2 border-[#B7A3E3] hover:border-gray-300"
+                        }`}
                     >
                       Active
                     </button>
                     <button
                       onClick={() => setEditActive("INACTIVE")}
-                      className={`flex-1 px-6 py-3 rounded-2xl font-medium transition-all ${
-                        editActive === "INACTIVE"
-                          ? "bg-[#B7A3E3] text-white shadow-md"
-                          : "bg-white text-black border-2 border-[#B7A3E3] hover:border-gray-300"
-                      }`}
+                      className={`flex-1 px-6 py-3 rounded-2xl font-medium transition-all ${editActive === "INACTIVE"
+                        ? "bg-[#B7A3E3] text-white shadow-md"
+                        : "bg-white text-black border-2 border-[#B7A3E3] hover:border-gray-300"
+                        }`}
                     >
                       Inactive
                     </button>
@@ -782,11 +798,10 @@ export default function ManageUserPage() {
                       setCreateErrors((p) => ({ ...p, email: undefined }));
                   }}
                   maxLength={USER_VALIDATION_CONFIG.email.max}
-                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${
-                    createErrors.email
-                      ? "border-red-500"
-                      : "border-[#9264F5] focus:border-[#B7A3E3]"
-                  }`}
+                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${createErrors.email
+                    ? "border-red-500"
+                    : "border-[#9264F5] focus:border-[#B7A3E3]"
+                    }`}
                 />
                 {createErrors.email && (
                   <p className="text-red-500 text-xs mt-1">
@@ -808,16 +823,16 @@ export default function ManageUserPage() {
                   type="text"
                   value={createFirstName}
                   onChange={(e) => {
-                    setCreateFirstName(e.target.value);
+                    const value = e.target.value.replace(/[^A-Za-zก-๙\s]/g, "");
+                    setCreateFirstName(value);
                     if (createErrors.first_name)
                       setCreateErrors((p) => ({ ...p, first_name: undefined }));
                   }}
                   maxLength={USER_VALIDATION_CONFIG.firstName.max}
-                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${
-                    createErrors.first_name
-                      ? "border-red-500"
-                      : "border-[#9264F5] focus:border-[#B7A3E3]"
-                  }`}
+                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${createErrors.first_name
+                    ? "border-red-500"
+                    : "border-[#9264F5] focus:border-[#B7A3E3]"
+                    }`}
                 />
                 {createErrors.first_name && (
                   <p className="text-red-500 text-xs mt-1">
@@ -839,16 +854,16 @@ export default function ManageUserPage() {
                   type="text"
                   value={createLastName}
                   onChange={(e) => {
-                    setCreateLastName(e.target.value);
+                    const value = e.target.value.replace(/[^A-Za-zก-๙\s]/g, "");
+                    setCreateLastName(value);
                     if (createErrors.last_name)
                       setCreateErrors((p) => ({ ...p, last_name: undefined }));
                   }}
                   maxLength={USER_VALIDATION_CONFIG.lastName.max}
-                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${
-                    createErrors.last_name
-                      ? "border-red-500"
-                      : "border-[#9264F5] focus:border-[#B7A3E3]"
-                  }`}
+                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${createErrors.last_name
+                    ? "border-red-500"
+                    : "border-[#9264F5] focus:border-[#B7A3E3]"
+                    }`}
                 />
                 {createErrors.last_name && (
                   <p className="text-red-500 text-xs mt-1">
@@ -873,11 +888,10 @@ export default function ManageUserPage() {
                     if (createErrors.password)
                       setCreateErrors((p) => ({ ...p, password: undefined }));
                   }}
-                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${
-                    createErrors.password
-                      ? "border-red-500"
-                      : "border-[#9264F5] focus:border-[#B7A3E3]"
-                  }`}
+                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${createErrors.password
+                    ? "border-red-500"
+                    : "border-[#9264F5] focus:border-[#B7A3E3]"
+                    }`}
                 />
                 {createErrors.password && (
                   <p className="text-red-500 text-xs mt-1">
@@ -902,11 +916,10 @@ export default function ManageUserPage() {
                         confirmPassword: undefined,
                       }));
                   }}
-                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${
-                    createErrors.confirmPassword
-                      ? "border-red-500"
-                      : "border-[#9264F5] focus:border-[#B7A3E3]"
-                  }`}
+                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${createErrors.confirmPassword
+                    ? "border-red-500"
+                    : "border-[#9264F5] focus:border-[#B7A3E3]"
+                    }`}
                 />
                 {createErrors.confirmPassword && (
                   <p className="text-red-500 text-xs mt-1">

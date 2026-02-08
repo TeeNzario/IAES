@@ -85,8 +85,6 @@ export class CourseOfferingsService {
           })),
         });
 
-        console.log(courseOffering);
-
         return serializeBigInt(courseOffering);
       });
     } catch (error: unknown) {

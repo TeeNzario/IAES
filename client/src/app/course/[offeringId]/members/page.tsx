@@ -20,8 +20,10 @@ const EMAIL_MAX_LENGTH = 50;
 const FIRST_NAME_MAX_LENGTH = 50;
 const LAST_NAME_MAX_LENGTH = 50;
 
-// Email validation regex pattern
+// Email and Name validation regex pattern
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const NAME_REGEX = /^[A-Za-zก-๙\s]+$/;
+
 
 // ============================================================
 // VALIDATION ERROR MESSAGES (Thai)
@@ -31,6 +33,7 @@ const ERROR_MESSAGES = {
     required: "กรุณากรอกรหัสนักศึกษา",
     maxLength: `รหัสนักศึกษาไม่เกิน ${STUDENT_CODE_MAX_LENGTH} ตัวอักษร`,
     duplicate: "รหัสนักศึกษานี้มีอยู่แล้ว",
+    length: `รหัสนักศึกษาต้องมี ${STUDENT_CODE_MAX_LENGTH} หลัก`,
   },
   email: {
     required: "กรุณากรอกอีเมล",
@@ -118,8 +121,8 @@ export default function SimpleShowUsers() {
   const validateStudentCode = (value: string): string | undefined => {
     const trimmed = value.trim();
     if (!trimmed) return ERROR_MESSAGES.student_code.required;
-    if (trimmed.length > STUDENT_CODE_MAX_LENGTH)
-      return ERROR_MESSAGES.student_code.maxLength;
+    if (trimmed.length !== STUDENT_CODE_MAX_LENGTH)
+      return ERROR_MESSAGES.student_code.length;
     return undefined;
   };
 
@@ -143,6 +146,8 @@ export default function SimpleShowUsers() {
     if (!trimmed) return ERROR_MESSAGES.first_name.required;
     if (trimmed.length > FIRST_NAME_MAX_LENGTH)
       return ERROR_MESSAGES.first_name.maxLength;
+    if (!NAME_REGEX.test(trimmed))
+      return "ชื่อจริงต้องเป็นตัวอักษรเท่านั้น";
     return undefined;
   };
 
@@ -154,6 +159,8 @@ export default function SimpleShowUsers() {
     if (!trimmed) return ERROR_MESSAGES.last_name.required;
     if (trimmed.length > LAST_NAME_MAX_LENGTH)
       return ERROR_MESSAGES.last_name.maxLength;
+    if (!NAME_REGEX.test(trimmed))
+      return "นามสกุลต้องเป็นตัวอักษรเท่านั้น";
     return undefined;
   };
 
@@ -249,7 +256,9 @@ export default function SimpleShowUsers() {
   // ============================================================
 
   const handleStudentIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    //only number
+    const value = e.target.value.replace(/\D/g, "");
+
     setStudentId(value);
     // Clear error and re-validate synchronously
     setErrors((prev) => ({
@@ -268,7 +277,11 @@ export default function SimpleShowUsers() {
   };
 
   const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+
+    const rawValue = e.target.value;
+    //only letter and space
+    const value = rawValue.replace(/[^A-Za-zก-๙\s]/g, "");
+
     setFirstName(value);
     setErrors((prev) => ({
       ...prev,
@@ -277,7 +290,11 @@ export default function SimpleShowUsers() {
   };
 
   const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+
+    const rawValue = e.target.value;
+    //only letter and space
+    const value = rawValue.replace(/[^A-Za-zก-๙\s]/g, "");
+
     setLastName(value);
     setErrors((prev) => ({
       ...prev,
@@ -560,6 +577,8 @@ const isStudent = user?.userType === "STUDENT";
                   </label>
                   <input
                     type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={studentId}
                     onChange={handleStudentIdChange}
                     maxLength={STUDENT_CODE_MAX_LENGTH}
