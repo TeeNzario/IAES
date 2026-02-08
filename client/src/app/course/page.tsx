@@ -8,6 +8,7 @@ import CreateCourseModal from "@/components/course/CreateCourseModal";
 import EditCourseModal from "@/components/course/EditCourseModal";
 import KnowledgeCategoriesCell from "@/components/course/KnowledgeCategoriesCell";
 import { apiFetch } from "@/lib/api";
+import CourseOfferingModal from "@/features/courseOffering/components/CourseOfferingModal";
 
 // Configuration
 const ITEMS_PER_PAGE = 3;
@@ -380,7 +381,7 @@ export default function CourseManagement() {
       </div>
 
       {selectedCourse && (
-        <CourseModal
+        <CourseOfferingModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           courseId={String(selectedCourse.courses_id)}

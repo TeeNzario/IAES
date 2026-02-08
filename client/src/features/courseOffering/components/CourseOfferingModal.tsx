@@ -6,8 +6,9 @@ import { apiFetch } from "@/lib/api";
 import { formatInstructorName } from "@/utils/formatName";
 import { Instructor } from "@/types/staff";
 import { useRouter } from "next/navigation";
+import { toBuddhistYear } from "@/utils/academicYear";
 
-interface CourseModalProps {
+interface CourseOfferingModalProps {
   isOpen: boolean;
   onClose: () => void;
   courseId: string;
@@ -15,13 +16,13 @@ interface CourseModalProps {
   onSuccess?: () => void;
 }
 
-export default function CourseModal({
+export default function CourseOfferingModal({
   isOpen,
   onClose,
   courseId,
   courseName,
   onSuccess,
-}: CourseModalProps) {
+}: CourseOfferingModalProps) {
   // Form state
   const [academicYear, setAcademicYear] = useState("2025");
   const [semester, setSemester] = useState("1");
@@ -40,7 +41,7 @@ export default function CourseModal({
   const [error, setError] = useState<string | null>(null);
 
   // Generate academic years: current year ±1 (Buddhist year)
-  const currentYear = new Date().getFullYear() + 543;
+  const currentYear = new Date().getFullYear();
   const academicYears = [
     String(currentYear - 1),
     String(currentYear),
@@ -196,7 +197,7 @@ export default function CourseModal({
             >
               {academicYears.map((year) => (
                 <option key={year} value={year}>
-                  {year}
+                  {toBuddhistYear(Number(year))}
                 </option>
               ))}
             </select>
