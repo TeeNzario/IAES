@@ -108,6 +108,17 @@ export class CourseOfferingsController {
     );
   }
 
+  /**
+   * Delete a course offering
+   * Business rule: Can only delete if no students are enrolled
+   */
+  @Delete(':offeringId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('INSTRUCTOR')
+  remove(@Param('offeringId') offeringId: string) {
+    return this.courseOfferingsService.remove(offeringId);
+  }
+
   @Post(':offeringId/students')
   addStudent(
     @Param('offeringId') offeringId: string,
