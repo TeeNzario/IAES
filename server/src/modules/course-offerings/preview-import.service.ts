@@ -200,6 +200,17 @@ export class PreviewImportService {
     const results: ConfirmResult[] = [];
 
     for (const row of session.rows) {
+      // Skip rows with validation errors
+      if (row.status === 'VALIDATION_ERROR') {
+        results.push({
+          student_code: row.student_code,
+          email: row.email,
+          status: 'skipped',
+          note: row.note || 'Validation errors',
+        });
+        continue;
+      }
+
       // Skip rows with missing data
       if (row.status === 'MISSING') {
         results.push({
@@ -320,7 +331,54 @@ export class PreviewImportService {
     firstName: string,
     lastName: string,
   ): Promise<{ status: PreviewRowStatus; note?: string }> {
-    // 1. Check required fields
+    // Format validation: collect all errors before checking DB
+    const formatErrors: string[] = [];
+
+    // Required fields check
+    if (!studentCode || !email || !firstName || !lastName) {
+      formatErrors.push('Required field missing');
+    }
+
+    // Student ID: must contain numbers only and be exactly 8 digits
+    if (studentCode) {
+      if (!/^\d+$/.test(studentCode)) {
+        formatErrors.push('Student ID must contain numbers only');
+      } else if (studentCode.length !== 8) {
+        formatErrors.push('Student ID must be 8 digits');
+      }
+    }
+
+    // Email: must match valid email format
+    if (email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        formatErrors.push('Invalid email format');
+      }
+    }
+
+    // First name: only letters (A-Z, a-z)
+    if (firstName) {
+      if (!/^[A-Za-z]+$/.test(firstName)) {
+        formatErrors.push('First name cannot contain special characters');
+      }
+    }
+
+    // Last name: only letters (A-Z, a-z)
+    if (lastName) {
+      if (!/^[A-Za-z]+$/.test(lastName)) {
+        formatErrors.push('Last name cannot contain special characters');
+      }
+    }
+
+    // If any format validation errors, return combined errors
+    if (formatErrors.length > 0) {
+      return {
+        status: 'VALIDATION_ERROR',
+        note: formatErrors.join(', '),
+      };
+    }
+
+    // 1. Check required fields (kept for backward compatibility)
     if (!studentCode || !email || !firstName || !lastName) {
       return { status: 'MISSING', note: 'Required fields missing' };
     }
@@ -446,6 +504,8 @@ export class PreviewImportService {
         duplicateIdentity: rows.filter((r) => r.status === 'DUPLICATE_IDENTITY')
           .length,
         missing: rows.filter((r) => r.status === 'MISSING').length,
+        validationError: rows.filter((r) => r.status === 'VALIDATION_ERROR')
+          .length,
       },
     };
   }

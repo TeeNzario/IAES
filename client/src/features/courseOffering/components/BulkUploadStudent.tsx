@@ -18,7 +18,8 @@ interface PreviewRow {
     | "EXISTS_NOT_ENROLLED"
     | "ALREADY_ENROLLED"
     | "DUPLICATE_IDENTITY"
-    | "MISSING";
+    | "MISSING"
+    | "VALIDATION_ERROR";
   note?: string;
   is_deleted: boolean;
 }
@@ -68,7 +69,8 @@ type FilterStatus =
   | "EXISTS_NOT_ENROLLED"
   | "ALREADY_ENROLLED"
   | "DUPLICATE_IDENTITY"
-  | "MISSING";
+  | "MISSING"
+  | "VALIDATION_ERROR";
 
 export default function BulkUploadModal({
   isOpen,
@@ -107,6 +109,7 @@ export default function BulkUploadModal({
       ALREADY_ENROLLED: "ลงทะเบียนแล้ว",
       DUPLICATE_IDENTITY: "ข้อมูลซ้ำ/ขัดแย้ง",
       MISSING: "ข้อมูลไม่ครบ",
+      VALIDATION_ERROR: "ข้อมูลไม่ถูกต้อง",
     };
     return statusMap[status];
   };
@@ -118,6 +121,7 @@ export default function BulkUploadModal({
       ALREADY_ENROLLED: "text-[#484848]",
       DUPLICATE_IDENTITY: "text-[#484848]",
       MISSING: "text-[#484848]",
+      VALIDATION_ERROR: "text-red-600",
     };
     return colorMap[status];
   };
@@ -328,8 +332,12 @@ export default function BulkUploadModal({
     return rows.filter((r) => r.status === status).length;
   };
 
+  const hasValidationErrors = rows.some(
+    (r) => r.status === "VALIDATION_ERROR",
+  );
+
   const enrollableCount = rows.filter(
-    (r) => r.status !== "ALREADY_ENROLLED" && r.status !== "MISSING",
+    (r) => r.status !== "ALREADY_ENROLLED" && r.status !== "MISSING" && r.status !== "VALIDATION_ERROR",
   ).length;
 
   return (
@@ -470,6 +478,16 @@ export default function BulkUploadModal({
                   }`}
                 >
                   ไม่ครบ ({getStatusCount("MISSING")})
+                </button>
+                <button
+                  onClick={() => setFilterStatus("VALIDATION_ERROR")}
+                  className={`px-3 py-1.5 rounded-lg border-2 text-sm transition-colors cursor-pointer ${
+                    filterStatus === "VALIDATION_ERROR"
+                      ? "border-[#B7A3E3] bg-white text-[#B7A3E3]"
+                      : "border-gray-300 text-gray-600 hover:border-[#B7A3E3]"
+                  }`}
+                >
+                  ข้อมูลไม่ถูกต้อง ({getStatusCount("VALIDATION_ERROR")})
                 </button>
               </div>
             </div>
@@ -636,7 +654,7 @@ export default function BulkUploadModal({
               </button>
               <button
                 onClick={handleConfirm}
-                disabled={isLoading || enrollableCount === 0}
+                disabled={isLoading || enrollableCount === 0 || hasValidationErrors}
                 className="px-23 py-3 bg-[#9264F5] text-white rounded-xl hover:bg-purple-600 transition-colors font-medium disabled:opacity-50 flex items-center gap-2 cursor-pointer"
               >
                 {isLoading && <Loader2 size={20} className="animate-spin" />}

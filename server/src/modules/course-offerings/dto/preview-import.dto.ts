@@ -57,7 +57,8 @@ export type PreviewRowStatus =
   | 'EXISTS_NOT_ENROLLED'
   | 'ALREADY_ENROLLED'
   | 'DUPLICATE_IDENTITY'
-  | 'MISSING';
+  | 'MISSING'
+  | 'VALIDATION_ERROR';
 
 export interface PreviewRowResponse {
   id: string;
@@ -82,6 +83,7 @@ export interface PreviewSessionResponse {
     alreadyEnrolled: number;
     duplicateIdentity: number;
     missing: number;
+    validationError: number;
   };
 }
 
