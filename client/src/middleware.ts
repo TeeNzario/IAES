@@ -98,6 +98,11 @@ export function middleware(request: NextRequest) {
 
   const role = getUserRole(user);
 
+  // UX: ADMIN visiting "/" → redirect to admin dashboard
+  if (pathname === "/" && role === "ADMIN") {
+    return NextResponse.redirect(new URL("/admin/manage-users", request.url));
+  }
+
   const allowed = isAllowed(pathname, role);
 
   if (!allowed) {
