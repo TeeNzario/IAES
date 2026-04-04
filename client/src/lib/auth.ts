@@ -64,8 +64,6 @@ export function setAuth<T extends AuthUser>(response: LoginResponse<T>): void {
   localStorage.setItem(TOKEN_KEY, response.access_token);
   setCookie(TOKEN_COOKIE, response.access_token);
 
-  console.log("Hello man ", response.user)
-
   const user = response.user;
   if (user) {
     const userJson = JSON.stringify(user);

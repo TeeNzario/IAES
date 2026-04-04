@@ -34,10 +34,7 @@ const LoginPage = () => {
       const res = await adminLogin({ email, password });
 
       // Store token and user info in localStorage
-      setAuth({
-        access_token: res.access_token,
-        user: res.staff,
-      });
+      setAuth(res);
 
       router.push("/");
     } catch (error) {

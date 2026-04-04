@@ -32,10 +32,7 @@ const LoginPage = () => {
     try {
       const res = await login({ student_code: username, password });
 
-      setAuth({
-        access_token: res.access_token,
-        user: res.student,
-      });
+      setAuth(res);
 
       router.push("/");
     } catch (error) {

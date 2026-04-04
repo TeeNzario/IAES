@@ -1,13 +1,15 @@
 import { apiFetch } from "@/lib/api";
-import { LoginDto } from "@/types/login";
-import { AdminLoginDto } from "@/types/auth";
+import { AdminLoginDto, LoginDto } from "@/types/auth";
+import type { StaffRole } from "@/lib/auth";
 
 // Student login response
 export interface StudentLoginResponse {
   access_token: string;
-  student: {
-    id: number;
+  user: {
+    id: string;
+    type: "STUDENT";
     student_code: string;
+    email: string;
     first_name: string;
     last_name: string;
   };
@@ -16,12 +18,13 @@ export interface StudentLoginResponse {
 // Staff/Admin login response
 export interface StaffLoginResponse {
   access_token: string;
-  staff: {
+  user: {
     id: number;
+    type: "STAFF";
     email: string;
     first_name: string;
     last_name: string;
-    role: string;
+    staff_role: StaffRole;
   };
 }
 
