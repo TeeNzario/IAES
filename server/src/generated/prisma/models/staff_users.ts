@@ -28,10 +28,12 @@ export type AggregateStaff_users = {
 
 export type Staff_usersAvgAggregateOutputType = {
   staff_users_id: number | null
+  facultyCode: number | null
 }
 
 export type Staff_usersSumAggregateOutputType = {
   staff_users_id: bigint | null
+  facultyCode: number | null
 }
 
 export type Staff_usersMinAggregateOutputType = {
@@ -39,6 +41,7 @@ export type Staff_usersMinAggregateOutputType = {
   email: string | null
   password_hash: string | null
   role: $Enums.user_role | null
+  facultyCode: number | null
   first_name: string | null
   last_name: string | null
   is_active: boolean | null
@@ -51,6 +54,7 @@ export type Staff_usersMaxAggregateOutputType = {
   email: string | null
   password_hash: string | null
   role: $Enums.user_role | null
+  facultyCode: number | null
   first_name: string | null
   last_name: string | null
   is_active: boolean | null
@@ -63,6 +67,7 @@ export type Staff_usersCountAggregateOutputType = {
   email: number
   password_hash: number
   role: number
+  facultyCode: number
   first_name: number
   last_name: number
   is_active: number
@@ -74,10 +79,12 @@ export type Staff_usersCountAggregateOutputType = {
 
 export type Staff_usersAvgAggregateInputType = {
   staff_users_id?: true
+  facultyCode?: true
 }
 
 export type Staff_usersSumAggregateInputType = {
   staff_users_id?: true
+  facultyCode?: true
 }
 
 export type Staff_usersMinAggregateInputType = {
@@ -85,6 +92,7 @@ export type Staff_usersMinAggregateInputType = {
   email?: true
   password_hash?: true
   role?: true
+  facultyCode?: true
   first_name?: true
   last_name?: true
   is_active?: true
@@ -97,6 +105,7 @@ export type Staff_usersMaxAggregateInputType = {
   email?: true
   password_hash?: true
   role?: true
+  facultyCode?: true
   first_name?: true
   last_name?: true
   is_active?: true
@@ -109,6 +118,7 @@ export type Staff_usersCountAggregateInputType = {
   email?: true
   password_hash?: true
   role?: true
+  facultyCode?: true
   first_name?: true
   last_name?: true
   is_active?: true
@@ -208,6 +218,7 @@ export type Staff_usersGroupByOutputType = {
   email: string
   password_hash: string
   role: $Enums.user_role
+  facultyCode: number
   first_name: string
   last_name: string
   is_active: boolean
@@ -243,6 +254,7 @@ export type staff_usersWhereInput = {
   email?: Prisma.StringFilter<"staff_users"> | string
   password_hash?: Prisma.StringFilter<"staff_users"> | string
   role?: Prisma.Enumuser_roleFilter<"staff_users"> | $Enums.user_role
+  facultyCode?: Prisma.IntFilter<"staff_users"> | number
   first_name?: Prisma.StringFilter<"staff_users"> | string
   last_name?: Prisma.StringFilter<"staff_users"> | string
   is_active?: Prisma.BoolFilter<"staff_users"> | boolean
@@ -258,6 +270,7 @@ export type staff_usersOrderByWithRelationInput = {
   email?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  facultyCode?: Prisma.SortOrder
   first_name?: Prisma.SortOrder
   last_name?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -276,6 +289,7 @@ export type staff_usersWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.staff_usersWhereInput | Prisma.staff_usersWhereInput[]
   password_hash?: Prisma.StringFilter<"staff_users"> | string
   role?: Prisma.Enumuser_roleFilter<"staff_users"> | $Enums.user_role
+  facultyCode?: Prisma.IntFilter<"staff_users"> | number
   first_name?: Prisma.StringFilter<"staff_users"> | string
   last_name?: Prisma.StringFilter<"staff_users"> | string
   is_active?: Prisma.BoolFilter<"staff_users"> | boolean
@@ -291,6 +305,7 @@ export type staff_usersOrderByWithAggregationInput = {
   email?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  facultyCode?: Prisma.SortOrder
   first_name?: Prisma.SortOrder
   last_name?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -311,6 +326,7 @@ export type staff_usersScalarWhereWithAggregatesInput = {
   email?: Prisma.StringWithAggregatesFilter<"staff_users"> | string
   password_hash?: Prisma.StringWithAggregatesFilter<"staff_users"> | string
   role?: Prisma.Enumuser_roleWithAggregatesFilter<"staff_users"> | $Enums.user_role
+  facultyCode?: Prisma.IntWithAggregatesFilter<"staff_users"> | number
   first_name?: Prisma.StringWithAggregatesFilter<"staff_users"> | string
   last_name?: Prisma.StringWithAggregatesFilter<"staff_users"> | string
   is_active?: Prisma.BoolWithAggregatesFilter<"staff_users"> | boolean
@@ -323,6 +339,7 @@ export type staff_usersCreateInput = {
   email: string
   password_hash: string
   role: $Enums.user_role
+  facultyCode: number
   first_name: string
   last_name: string
   is_active?: boolean
@@ -338,6 +355,7 @@ export type staff_usersUncheckedCreateInput = {
   email: string
   password_hash: string
   role: $Enums.user_role
+  facultyCode: number
   first_name: string
   last_name: string
   is_active?: boolean
@@ -353,6 +371,7 @@ export type staff_usersUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.Enumuser_roleFieldUpdateOperationsInput | $Enums.user_role
+  facultyCode?: Prisma.IntFieldUpdateOperationsInput | number
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -368,6 +387,7 @@ export type staff_usersUncheckedUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.Enumuser_roleFieldUpdateOperationsInput | $Enums.user_role
+  facultyCode?: Prisma.IntFieldUpdateOperationsInput | number
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -383,6 +403,7 @@ export type staff_usersCreateManyInput = {
   email: string
   password_hash: string
   role: $Enums.user_role
+  facultyCode: number
   first_name: string
   last_name: string
   is_active?: boolean
@@ -395,6 +416,7 @@ export type staff_usersUpdateManyMutationInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.Enumuser_roleFieldUpdateOperationsInput | $Enums.user_role
+  facultyCode?: Prisma.IntFieldUpdateOperationsInput | number
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -407,6 +429,7 @@ export type staff_usersUncheckedUpdateManyInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.Enumuser_roleFieldUpdateOperationsInput | $Enums.user_role
+  facultyCode?: Prisma.IntFieldUpdateOperationsInput | number
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -424,6 +447,7 @@ export type staff_usersCountOrderByAggregateInput = {
   email?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  facultyCode?: Prisma.SortOrder
   first_name?: Prisma.SortOrder
   last_name?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -433,6 +457,7 @@ export type staff_usersCountOrderByAggregateInput = {
 
 export type staff_usersAvgOrderByAggregateInput = {
   staff_users_id?: Prisma.SortOrder
+  facultyCode?: Prisma.SortOrder
 }
 
 export type staff_usersMaxOrderByAggregateInput = {
@@ -440,6 +465,7 @@ export type staff_usersMaxOrderByAggregateInput = {
   email?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  facultyCode?: Prisma.SortOrder
   first_name?: Prisma.SortOrder
   last_name?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -452,6 +478,7 @@ export type staff_usersMinOrderByAggregateInput = {
   email?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  facultyCode?: Prisma.SortOrder
   first_name?: Prisma.SortOrder
   last_name?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -461,6 +488,7 @@ export type staff_usersMinOrderByAggregateInput = {
 
 export type staff_usersSumOrderByAggregateInput = {
   staff_users_id?: Prisma.SortOrder
+  facultyCode?: Prisma.SortOrder
 }
 
 export type staff_usersCreateNestedOneWithoutCourse_instructorsInput = {
@@ -514,6 +542,7 @@ export type staff_usersCreateWithoutCourse_instructorsInput = {
   email: string
   password_hash: string
   role: $Enums.user_role
+  facultyCode: number
   first_name: string
   last_name: string
   is_active?: boolean
@@ -528,6 +557,7 @@ export type staff_usersUncheckedCreateWithoutCourse_instructorsInput = {
   email: string
   password_hash: string
   role: $Enums.user_role
+  facultyCode: number
   first_name: string
   last_name: string
   is_active?: boolean
@@ -558,6 +588,7 @@ export type staff_usersUpdateWithoutCourse_instructorsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.Enumuser_roleFieldUpdateOperationsInput | $Enums.user_role
+  facultyCode?: Prisma.IntFieldUpdateOperationsInput | number
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -572,6 +603,7 @@ export type staff_usersUncheckedUpdateWithoutCourse_instructorsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.Enumuser_roleFieldUpdateOperationsInput | $Enums.user_role
+  facultyCode?: Prisma.IntFieldUpdateOperationsInput | number
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -586,6 +618,7 @@ export type staff_usersCreateWithoutQuestionBanksInput = {
   email: string
   password_hash: string
   role: $Enums.user_role
+  facultyCode: number
   first_name: string
   last_name: string
   is_active?: boolean
@@ -600,6 +633,7 @@ export type staff_usersUncheckedCreateWithoutQuestionBanksInput = {
   email: string
   password_hash: string
   role: $Enums.user_role
+  facultyCode: number
   first_name: string
   last_name: string
   is_active?: boolean
@@ -630,6 +664,7 @@ export type staff_usersUpdateWithoutQuestionBanksInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.Enumuser_roleFieldUpdateOperationsInput | $Enums.user_role
+  facultyCode?: Prisma.IntFieldUpdateOperationsInput | number
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -644,6 +679,7 @@ export type staff_usersUncheckedUpdateWithoutQuestionBanksInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.Enumuser_roleFieldUpdateOperationsInput | $Enums.user_role
+  facultyCode?: Prisma.IntFieldUpdateOperationsInput | number
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -658,6 +694,7 @@ export type staff_usersCreateWithoutImport_preview_sessionsInput = {
   email: string
   password_hash: string
   role: $Enums.user_role
+  facultyCode: number
   first_name: string
   last_name: string
   is_active?: boolean
@@ -672,6 +709,7 @@ export type staff_usersUncheckedCreateWithoutImport_preview_sessionsInput = {
   email: string
   password_hash: string
   role: $Enums.user_role
+  facultyCode: number
   first_name: string
   last_name: string
   is_active?: boolean
@@ -702,6 +740,7 @@ export type staff_usersUpdateWithoutImport_preview_sessionsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.Enumuser_roleFieldUpdateOperationsInput | $Enums.user_role
+  facultyCode?: Prisma.IntFieldUpdateOperationsInput | number
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -716,6 +755,7 @@ export type staff_usersUncheckedUpdateWithoutImport_preview_sessionsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.Enumuser_roleFieldUpdateOperationsInput | $Enums.user_role
+  facultyCode?: Prisma.IntFieldUpdateOperationsInput | number
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -779,6 +819,7 @@ export type staff_usersSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   email?: boolean
   password_hash?: boolean
   role?: boolean
+  facultyCode?: boolean
   first_name?: boolean
   last_name?: boolean
   is_active?: boolean
@@ -795,6 +836,7 @@ export type staff_usersSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   email?: boolean
   password_hash?: boolean
   role?: boolean
+  facultyCode?: boolean
   first_name?: boolean
   last_name?: boolean
   is_active?: boolean
@@ -807,6 +849,7 @@ export type staff_usersSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   email?: boolean
   password_hash?: boolean
   role?: boolean
+  facultyCode?: boolean
   first_name?: boolean
   last_name?: boolean
   is_active?: boolean
@@ -819,6 +862,7 @@ export type staff_usersSelectScalar = {
   email?: boolean
   password_hash?: boolean
   role?: boolean
+  facultyCode?: boolean
   first_name?: boolean
   last_name?: boolean
   is_active?: boolean
@@ -826,7 +870,7 @@ export type staff_usersSelectScalar = {
   updated_at?: boolean
 }
 
-export type staff_usersOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"staff_users_id" | "email" | "password_hash" | "role" | "first_name" | "last_name" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["staff_users"]>
+export type staff_usersOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"staff_users_id" | "email" | "password_hash" | "role" | "facultyCode" | "first_name" | "last_name" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["staff_users"]>
 export type staff_usersInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   course_instructors?: boolean | Prisma.staff_users$course_instructorsArgs<ExtArgs>
   import_preview_sessions?: boolean | Prisma.staff_users$import_preview_sessionsArgs<ExtArgs>
@@ -848,6 +892,7 @@ export type $staff_usersPayload<ExtArgs extends runtime.Types.Extensions.Interna
     email: string
     password_hash: string
     role: $Enums.user_role
+    facultyCode: number
     first_name: string
     last_name: string
     is_active: boolean
@@ -1283,6 +1328,7 @@ export interface staff_usersFieldRefs {
   readonly email: Prisma.FieldRef<"staff_users", 'String'>
   readonly password_hash: Prisma.FieldRef<"staff_users", 'String'>
   readonly role: Prisma.FieldRef<"staff_users", 'user_role'>
+  readonly facultyCode: Prisma.FieldRef<"staff_users", 'Int'>
   readonly first_name: Prisma.FieldRef<"staff_users", 'String'>
   readonly last_name: Prisma.FieldRef<"staff_users", 'String'>
   readonly is_active: Prisma.FieldRef<"staff_users", 'Boolean'>

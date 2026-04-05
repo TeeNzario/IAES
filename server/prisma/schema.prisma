@@ -211,6 +211,7 @@ model staff_users {
   email                   String                    @unique @db.VarChar(255)
   password_hash           String
   role                    user_role
+  facultyCode             Int                       @map("faculty_code")
   first_name              String                    @db.VarChar(100)
   last_name               String                    @db.VarChar(100)
   is_active               Boolean                   @default(true)
@@ -277,6 +278,7 @@ model students {
   student_code       String               @id @db.VarChar(50)
   email              String               @unique @db.VarChar(255)
   password_hash      String
+  facultyCode        Int                  @map("faculty_code")
   first_name         String               @db.VarChar(100)
   last_name          String               @db.VarChar(100)
   is_active          Boolean              @default(true)

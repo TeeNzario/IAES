@@ -3,7 +3,8 @@
 
 import NavBar from "@/components/layout/NavBar";
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { Search, ChevronLeft, ChevronRight, Plus, Loader2 } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Plus, Loader2, ChevronDown } from "lucide-react";
+import { FACULTY_MAP, getFacultyName } from "@/lib/faculty-map";
 import {
   getUsers,
   updateUser as apiUpdateUser,
@@ -59,6 +60,7 @@ interface User {
   is_active: boolean;
   role: RoleFilter;
   email?: string;
+  facultyCode: number;
 }
 
 interface FormErrors {
@@ -77,6 +79,7 @@ function mapStudentToUser(student: any): User {
     is_active: !!student.is_active,
     role: "STUDENT",
     email: student.email,
+    facultyCode: student.facultyCode ?? 1,
   };
 }
 
@@ -88,6 +91,7 @@ function mapStaffToUser(staff: any): User {
     is_active: !!staff.is_active,
     role: staff.role === "ADMIN" ? "ADMINISTRATOR" : (staff.role as RoleFilter),
     email: staff.email,
+    facultyCode: staff.facultyCode ?? 1,
   };
 }
 
@@ -112,6 +116,7 @@ export default function ManageUserPage() {
   const [editId, setEditId] = useState("");
   const [editFirstName, setEditFirstName] = useState("");
   const [editLastName, setEditLastName] = useState("");
+  const [editFacultyCode, setEditFacultyCode] = useState<number>(1);
   const [editActive, setEditActive] = useState<"ACTIVE" | "INACTIVE">("ACTIVE");
   const [editErrors, setEditErrors] = useState<FormErrors>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -124,6 +129,7 @@ export default function ManageUserPage() {
   const [createEmail, setCreateEmail] = useState("");
   const [createPassword, setCreatePassword] = useState("");
   const [createConfirmPassword, setCreateConfirmPassword] = useState("");
+  const [createFacultyCode, setCreateFacultyCode] = useState<number>(1);
   const [createFirstName, setCreateFirstName] = useState("");
   const [createLastName, setCreateLastName] = useState("");
   const [createErrors, setCreateErrors] = useState<FormErrors>({});
@@ -211,6 +217,7 @@ export default function ManageUserPage() {
     setEditId(user.id);
     setEditFirstName(user.first_name);
     setEditLastName(user.last_name);
+    setEditFacultyCode(user.facultyCode ?? 1);
     setEditActive(user.is_active ? "ACTIVE" : "INACTIVE");
     setEditErrors({});
   }
@@ -260,6 +267,7 @@ export default function ManageUserPage() {
             ...u,
             first_name: editFirstName,
             last_name: editLastName,
+            facultyCode: editFacultyCode,
             // Don't update is_active for ADMIN
             is_active: isAdminUser ? u.is_active : editActive === "ACTIVE",
           }
@@ -272,13 +280,15 @@ export default function ManageUserPage() {
         await apiUpdateUser(editingUser.id, {
           first_name: editFirstName,
           last_name: editLastName,
+          facultyCode: editFacultyCode,
           is_active: editActive === "ACTIVE",
         });
       } else {
-        // For staff, only include is_active if NOT ADMIN
+        // For staff, include facultyCode; only include is_active if NOT ADMIN
         const updatePayload: any = {
           first_name: editFirstName,
           last_name: editLastName,
+          facultyCode: editFacultyCode,
         };
         if (!isAdminUser) {
           updatePayload.is_active = editActive === "ACTIVE";
@@ -301,6 +311,7 @@ export default function ManageUserPage() {
     setCreateEmail("");
     setCreatePassword("");
     setCreateConfirmPassword("");
+    setCreateFacultyCode(1);
     setCreateFirstName("");
     setCreateLastName("");
     setCreateErrors({});
@@ -379,6 +390,7 @@ export default function ManageUserPage() {
       await apiCreateStaff({
         email: createEmail,
         password: createPassword,
+        facultyCode: createFacultyCode,
         first_name: createFirstName,
         last_name: createLastName,
         role: createRole,
@@ -505,6 +517,7 @@ export default function ManageUserPage() {
                 <tr className="bg-[#B7A3E3] text-white">
                   <th className="px-6 py-4 text-left font-light">ID</th>
                   <th className="px-6 py-4 text-left font-light">ชื่อ-นามสกุล</th>
+                  <th className="px-6 py-4 text-left font-light">คณะ</th>
                   <th className="px-6 py-4 text-left font-light">สถานะ</th>
                   <th className="px-6 py-4 text-left font-light">Action</th>
                 </tr>
@@ -514,6 +527,7 @@ export default function ManageUserPage() {
                   <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-50">
                     <td className="px-6 py-4 text-gray-700">{user.id}</td>
                     <td className="px-6 py-4 text-gray-700">{`${user.first_name} ${user.last_name}`}</td>
+                    <td className="px-6 py-4 text-gray-700">{getFacultyName(user.facultyCode ?? 1)}</td>
                     <td className="px-6 py-4">
                       <span
                         className={`px-3 py-1 rounded-full text-sm font-medium ${user.is_active
@@ -713,6 +727,27 @@ export default function ManageUserPage() {
                 )}
               </div>
 
+              {/* Faculty Dropdown */}
+              <div className="mb-5">
+                <label className="block text-sm font-medium text-black mb-2">
+                  คณะ / สังกัด
+                </label>
+                <div className="relative">
+                  <select
+                    value={editFacultyCode}
+                    onChange={(e) => setEditFacultyCode(Number(e.target.value))}
+                    className="w-full px-4 py-3 border-2 border-[#9264F5] rounded-2xl focus:outline-none focus:border-[#B7A3E3] transition-colors text-black appearance-none bg-white"
+                  >
+                    {Object.entries(FACULTY_MAP).map(([code, name]) => (
+                      <option key={code} value={code}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                </div>
+              </div>
+
               {/* Status Toggle - Hidden for ADMIN users */}
               {editingUser.role !== "ADMINISTRATOR" && (
                 <div className="mb-8">
@@ -870,6 +905,27 @@ export default function ManageUserPage() {
                     {createErrors.last_name}
                   </p>
                 )}
+              </div>
+
+              {/* Faculty Dropdown */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-black mb-2">
+                  คณะ / สังกัด
+                </label>
+                <div className="relative">
+                  <select
+                    value={createFacultyCode}
+                    onChange={(e) => setCreateFacultyCode(Number(e.target.value))}
+                    className="w-full px-4 py-3 border-2 border-[#9264F5] rounded-2xl focus:outline-none focus:border-[#B7A3E3] transition-colors text-black appearance-none bg-white"
+                  >
+                    {Object.entries(FACULTY_MAP).map(([code, name]) => (
+                      <option key={code} value={code}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                </div>
               </div>
 
               {/* Password Field */}

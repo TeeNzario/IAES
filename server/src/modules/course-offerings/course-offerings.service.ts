@@ -60,7 +60,7 @@ export class CourseOfferingsService {
     // Prepend creator ID to instructor list (creator is always first)
     const allInstructorIds = [
       BigInt(creatorId),
-      ...dto.instructor_ids.map((instructorId) => BigInt(instructorId)),
+      ...(dto.instructor_ids ?? []).map((instructorId) => BigInt(instructorId)),
     ];
 
     if (!dto.courses_id || dto.courses_id === 'undefined') {
@@ -240,6 +240,7 @@ export class CourseOfferingsService {
           student_code: dto.student_code,
           email: dto.email,
           password_hash: '12345678', // 🔒 replace later with invite flow
+          facultyCode: 1,
           first_name: dto.first_name,
           last_name: dto.last_name,
         },
@@ -387,6 +388,7 @@ export class CourseOfferingsService {
           student_code: row.student_code,
           email: row.email,
           password_hash: '12345678', // Placeholder for invite flow
+          facultyCode: 1,
           first_name: row.first_name,
           last_name: row.last_name,
         },
@@ -463,7 +465,7 @@ export class CourseOfferingsService {
         // Prepend the current user (owner) to instructor list
         const allInstructorIds = [
           BigInt(userId),
-          ...dto.instructor_ids.map((instructorId) => BigInt(instructorId)),
+          ...(dto.instructor_ids ?? []).map((instructorId) => BigInt(instructorId)),
         ];
 
         // Delete existing instructors

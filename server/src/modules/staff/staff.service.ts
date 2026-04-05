@@ -33,6 +33,7 @@ export class StaffService {
       data: {
         email: createStaffDto.email,
         password_hash: createStaffDto.password, // Plain text per requirement
+        facultyCode: createStaffDto.facultyCode,
         first_name: createStaffDto.first_name,
         last_name: createStaffDto.last_name,
         role: createStaffDto.role,
@@ -41,6 +42,7 @@ export class StaffService {
       select: {
         staff_users_id: true,
         email: true,
+        facultyCode: true,
         first_name: true,
         last_name: true,
         role: true,
@@ -68,6 +70,7 @@ export class StaffService {
       select: {
         staff_users_id: true,
         email: true,
+        facultyCode: true,
         first_name: true,
         last_name: true,
         role: true,
@@ -89,6 +92,7 @@ export class StaffService {
         first_name: true,
         last_name: true,
         email: true,
+        facultyCode: true,
       },
     });
     return serializeBigInt(staff);
@@ -103,6 +107,7 @@ export class StaffService {
         last_name: true,
         email: true,
         role: true,
+        facultyCode: true,
         is_active: true,
       },
     });
@@ -133,6 +138,7 @@ export class StaffService {
       select: {
         staff_users_id: true,
         email: true,
+        facultyCode: true,
         first_name: true,
         last_name: true,
         role: true,
