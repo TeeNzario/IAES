@@ -1928,6 +1928,8 @@ export const CoursesScalarFieldEnum = {
   courses_id: 'courses_id',
   course_code: 'course_code',
   course_name: 'course_name',
+  course_name_th: 'course_name_th',
+  course_name_en: 'course_name_en',
   description: 'description',
   course_image: 'course_image',
   is_active: 'is_active',

@@ -10,6 +10,7 @@ import { formatInstructorName } from "@/utils/formatName";
 import EditCourseOfferingModal from "@/components/courseOffering/EditCourseOfferingModal";
 import { AuthUser } from "@/types/auth";
 import { toBuddhistYear } from "@/utils/academicYear";
+import { formatCourseName } from "@/utils/formatCourseName";
 
 export default function CourseHomePage() {
   const [courses, setCourses] = useState<CourseOffering[]>([]);
@@ -107,7 +108,7 @@ const isStudent = user?.userType === "STUDENT";
                         : "text-gray-400"
                     }`}
                   >
-                    {courseOffering.courses.course_name}
+                    {formatCourseName(courseOffering.courses)}
                   </h2>
                   {courseOffering.course_instructors.map((staff) => (
                     <p

@@ -1,16 +1,25 @@
-export type UserType = 'STUDENT' | 'STAFF';
+import { Request } from 'express';
+
+export type AuthUserType = 'staff' | 'student';
 export type StaffRole = 'INSTRUCTOR' | 'ADMIN';
 
-export interface JwtPayload {
-  sub: string | number; // student_code or staff_users_id
-  userType: UserType;
-  email: string;
-  role?: StaffRole; // Only for STAFF
+interface BaseJwtPayload {
+  sub: string;
+  type: AuthUserType;
 }
 
-export interface RequestUser {
-  id: string | number;
-  userType: UserType;
-  email: string;
-  role?: StaffRole;
+export interface StaffJwtPayload extends BaseJwtPayload {
+  type: 'staff';
+  role: StaffRole;
+}
+
+export interface StudentJwtPayload extends BaseJwtPayload {
+  type: 'student';
+}
+
+export type JwtPayload = StaffJwtPayload | StudentJwtPayload;
+export type RequestUser = JwtPayload;
+
+export interface AuthenticatedRequest extends Request {
+  user: RequestUser;
 }

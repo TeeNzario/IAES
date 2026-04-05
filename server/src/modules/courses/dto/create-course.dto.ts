@@ -7,6 +7,14 @@ export class CreateCourseDto {
 
   @IsString()
   @IsNotEmpty()
+  course_name_th: string;
+
+  @IsString()
+  @IsNotEmpty()
+  course_name_en: string;
+
+  @IsString()
+  @IsNotEmpty()
   course_code: string;
 
   @IsArray()

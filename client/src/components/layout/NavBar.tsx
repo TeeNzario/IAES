@@ -14,23 +14,9 @@ import {
   LogOut,
   Users,
 } from "lucide-react";
-import { AuthUser } from "@/lib/auth";
+import { AuthUser, getUser, clearAuth } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 import Image from "next/image";
-
-interface StaffProfile {
-  first_name: string;
-  last_name: string;
-  role: "INSTRUCTOR" | "ADMIN";
-}
-
-interface StudentProfile {
-  first_name: string;
-  last_name: string;
-  student_code: string;
-}
-
-type UserProfile = StaffProfile | StudentProfile;
 
 type PageLayoutProps = {
   children: React.ReactNode;
@@ -48,11 +34,17 @@ const NavBar = ({ children }: PageLayoutProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [user, setUser] = useState<AuthUser | null>(null);
   const [courses, setCourses] = useState<CourseOffering[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
-  const [userFetch, setUserFetch] = useState<UserProfile | null>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  // Read user from localStorage on client mount only.
+  // Must use useEffect to avoid reading during SSR (window guard).
+  const [user, setUser] = useState<AuthUser | null>(null);
+
+  useEffect(() => {
+    setUser(getUser<AuthUser>());
+  }, []);
 
   // Derive active states from pathname
   const isHomeActive = pathname === "/";
@@ -76,43 +68,18 @@ const NavBar = ({ children }: PageLayoutProps) => {
     }
   }, [isCourseSectionActive]);
 
-  // Fetch current user
-  useEffect(() => {
-    apiFetch<AuthUser>("/auth/me")
-      .then((user) => {
-        setUser(user);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch user", err);
-      });
-  }, []);
-
-  // Fetch courses AFTER user is loaded
+  // Fetch courses for the logged-in user
   useEffect(() => {
     if (!user) return;
+    const userType = user.type;
 
-    fetchCourses(user);
-
-    async function fetchCourses(user: AuthUser) {
+    async function fetchCourses() {
       setLoadingCourses(true);
-
       try {
-        let endpoint = "";
-        let user_endpoint = "";
-
-        if (user.userType === "STAFF") {
-          endpoint = "/course-offerings";
-          user_endpoint = "/staff/me";
-          const me = await apiFetch<StaffProfile>(user_endpoint);
-          setUserFetch(me);
-        } else if (user.userType === "STUDENT") {
-          endpoint = "/students/me/enrollments";
-          user_endpoint = "/students/me";
-          const me = await apiFetch<StudentProfile>(user_endpoint);
-          setUserFetch(me);
-        }
-
-        if (!endpoint || !user_endpoint) return;
+        const endpoint =
+          userType === "STAFF"
+            ? "/course-offerings"
+            : "/students/me/enrollments";
 
         const courses = await apiFetch<CourseOffering[]>(endpoint);
         setCourses(courses);
@@ -122,49 +89,29 @@ const NavBar = ({ children }: PageLayoutProps) => {
         setLoadingCourses(false);
       }
     }
-  }, [user]);
 
-  const isInstructor =
-    user?.userType === "STAFF" &&
-    userFetch &&
-    "role" in userFetch &&
-    userFetch.role === "INSTRUCTOR";
+    fetchCourses();
+  }, [user, user?.type]);
 
-  // Check if user is ADMIN
-  const isAdmin =
-    user?.userType === "STAFF" &&
-    userFetch &&
-    "role" in userFetch &&
-    userFetch.role === "ADMIN";
+  const isInstructor = user?.type === "STAFF" && user?.staff_role === "INSTRUCTOR";
+  const isAdmin = user?.type === "STAFF" && user?.staff_role === "ADMIN";
 
   // Derive active state for admin menu
   const isManageUsersActive = pathname === "/admin/manage-users";
 
   const getDisplayName = () => {
-    if (!userFetch || !user) return "";
+    if (!user) return "เข้าสู่ระบบ";
 
-    if (user.userType === "STUDENT" && "student_code" in userFetch) {
-      return `${userFetch.student_code} ${userFetch.first_name}`;
+    if (user.type === "STUDENT") {
+      return `${user.student_code ?? ""} ${user.first_name ?? ""}`.trim() || "Student";
     }
 
-    if (user.userType === "STAFF" && "last_name" in userFetch) {
-      return `${userFetch.first_name} ${userFetch.last_name}`;
-    }
-
-    return "";
+    // STAFF
+    return `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() || "Staff";
   };
 
   const handleLogout = () => {
-    // Clear localStorage
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("user");
-
-    // Clear cookies
-    document.cookie =
-      "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
-    // Redirect to login
+    clearAuth();
     router.push("/login");
   };
 
@@ -195,7 +142,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <div
-        className={`${isSidebarOpen ? "w-64" : "w-20"} transition-all duration-300 bg-white shadow-lg flex-shrink-0`}
+        className={`${isSidebarOpen ? "w-64" : "w-20"} h-screen overflow-y-auto transition-all duration-300 bg-white shadow-lg flex-shrink-0`}
       >
         <div className="p-4">
           {/* Burger Button */}

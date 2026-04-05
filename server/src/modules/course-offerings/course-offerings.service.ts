@@ -26,6 +26,8 @@ const courseOfferingSelect = {
     select: {
       course_code: true,
       course_name: true,
+      course_name_th: true,
+      course_name_en: true,
     },
   },
 
@@ -54,9 +56,12 @@ function serializeBigInt(data: any) {
 export class CourseOfferingsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateCourseOfferingDto, creatorId: number) {
+  async create(dto: CreateCourseOfferingDto, creatorId: string) {
     // Prepend creator ID to instructor list (creator is always first)
-    const allInstructorIds = [creatorId, ...dto.instructor_ids];
+    const allInstructorIds = [
+      BigInt(creatorId),
+      ...dto.instructor_ids.map((instructorId) => BigInt(instructorId)),
+    ];
 
     if (!dto.courses_id || dto.courses_id === 'undefined') {
       throw new BadRequestException('Invalid courses_id');
@@ -122,15 +127,15 @@ export class CourseOfferingsService {
    * with an undefined value matches ALL records, leaking the entire table.
    */
   async findByUser(user: {
-    type: 'STUDENT' | 'STAFF';
-    staffUserId?: number;
+    type: 'student' | 'staff';
+    staffUserId?: string;
     studentCode?: string;
   }) {
     // CRITICAL: Validate required identifiers to prevent data leakage
-    if (user.type === 'STAFF') {
-      if (!user.staffUserId && user.staffUserId !== 0) {
+    if (user.type === 'staff') {
+      if (!user.staffUserId) {
         throw new BadRequestException(
-          'staffUserId is required for STAFF users',
+          'staffUserId is required for staff users',
         );
       }
 
@@ -141,7 +146,7 @@ export class CourseOfferingsService {
           },
           course_instructors: {
             some: {
-              staff_users_id: user.staffUserId,
+              staff_users_id: BigInt(user.staffUserId),
             },
           },
         },
@@ -152,10 +157,10 @@ export class CourseOfferingsService {
       return serializeBigInt(offerings);
     }
 
-    if (user.type === 'STUDENT') {
+    if (user.type === 'student') {
       if (!user.studentCode) {
         throw new BadRequestException(
-          'studentCode is required for STUDENT users',
+          'studentCode is required for student users',
         );
       }
 
@@ -429,7 +434,7 @@ export class CourseOfferingsService {
   async update(
     offeringId: string,
     dto: UpdateCourseOfferingDto,
-    userId: number,
+    userId: string,
   ) {
     if (!offeringId || offeringId === 'undefined') {
       throw new BadRequestException('Invalid course_offerings_id');
@@ -456,7 +461,10 @@ export class CourseOfferingsService {
       // Update instructors if provided
       if (dto.instructor_ids !== undefined) {
         // Prepend the current user (owner) to instructor list
-        const allInstructorIds = [userId, ...dto.instructor_ids];
+        const allInstructorIds = [
+          BigInt(userId),
+          ...dto.instructor_ids.map((instructorId) => BigInt(instructorId)),
+        ];
 
         // Delete existing instructors
         await tx.course_instructors.deleteMany({

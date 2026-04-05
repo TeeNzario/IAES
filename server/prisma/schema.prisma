@@ -78,6 +78,8 @@ model courses {
   courses_id                BigInt                    @id @default(autoincrement())
   course_code               String                    @db.VarChar(50)
   course_name               String                    @db.VarChar(255)
+  course_name_th            String                    @db.VarChar(255)
+  course_name_en            String                    @db.VarChar(255)
   description               String?
   course_image              String?
   is_active                 Boolean                   @default(true)

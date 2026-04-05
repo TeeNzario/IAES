@@ -1,7 +1,15 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
-import { JwtPayload, StaffRole } from './types/jwt-payload.type';
+import {
+  StaffJwtPayload,
+  StaffRole,
+  StudentJwtPayload,
+} from './types/jwt-payload.type';
 
 @Injectable()
 export class AuthService {
@@ -10,22 +18,40 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  /**
-   * Student Login
-   * Uses student_code and password
-   */
-  async loginStudent(student_code: string, password: string) {
+  private isEmail(value: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  }
+
+  private isStudentIdentifier(value: string): boolean {
+    return /^\d{8}$/.test(value);
+  }
+
+  async login(identifier: string, password: string) {
+    const normalizedIdentifier = identifier.trim();
+
+    if (this.isEmail(normalizedIdentifier)) {
+      return this.loginStaff(normalizedIdentifier, password);
+    }
+
+    if (this.isStudentIdentifier(normalizedIdentifier)) {
+      return this.loginStudent(normalizedIdentifier, password);
+    }
+
+    throw new BadRequestException(
+      'identifier must be a staff email or an 8-digit studentId',
+    );
+  }
+
+  async loginStudent(studentCode: string, password: string) {
     const student = await this.prisma.students.findUnique({
-      where: { student_code },
+      where: { student_code: studentCode },
     });
 
     if (!student) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // TODO: Replace with bcrypt.compare() for production
-    const isMatch = password === student.password_hash;
-    if (!isMatch) {
+    if (student.password_hash !== password) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -33,10 +59,9 @@ export class AuthService {
       throw new UnauthorizedException('This account has been deactivated.');
     }
 
-    const payload: JwtPayload = {
+    const payload: StudentJwtPayload = {
       sub: student.student_code,
-      userType: 'STUDENT',
-      email: student.email,
+      type: 'student',
     };
 
     return {
@@ -52,10 +77,6 @@ export class AuthService {
     };
   }
 
-  /**
-   * Staff Login (INSTRUCTOR / ADMIN)
-   * Uses email and password
-   */
   async loginStaff(email: string, password: string) {
     const staff = await this.prisma.staff_users.findUnique({
       where: { email },
@@ -65,9 +86,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // TODO: Replace with bcrypt.compare() for production
-    const isMatch = password === staff.password_hash;
-    if (!isMatch) {
+    if (staff.password_hash !== password) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -75,17 +94,16 @@ export class AuthService {
       throw new UnauthorizedException('This account has been deactivated.');
     }
 
-    const payload: JwtPayload = {
-      sub: Number(staff.staff_users_id), // Convert BigInt to number
-      userType: 'STAFF',
-      email: staff.email,
+    const payload: StaffJwtPayload = {
+      sub: staff.staff_users_id.toString(),
+      type: 'staff',
       role: staff.role as StaffRole,
     };
 
     return {
       access_token: this.jwtService.sign(payload),
       user: {
-        id: Number(staff.staff_users_id),
+        id: staff.staff_users_id.toString(),
         type: 'STAFF' as const,
         email: staff.email,
         first_name: staff.first_name,

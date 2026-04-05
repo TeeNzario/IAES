@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { ChevronDown, Plus, X, Lock, Trash2 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { formatInstructorName } from "@/utils/formatName";
+import { formatCourseName } from "@/utils/formatCourseName";
 import { Instructor } from "@/types/staff";
 import { CourseOffering } from "@/types/course";
 import ConfirmModal from "@/components/ui/ConfirmModal";
@@ -212,7 +213,7 @@ export default function EditCourseOfferingModal({
         </h2>
         <p className="text-center text-gray-500 mb-6">
           {/* {courseOffering.courses.course_code} -{" "} */}
-          {courseOffering.courses.course_name}
+          {formatCourseName(courseOffering.courses)}
         </p>
 
         {/* Error Message */}

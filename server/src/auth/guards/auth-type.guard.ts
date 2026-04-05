@@ -8,25 +8,26 @@ import {
 import { Reflector } from '@nestjs/core';
 import {
   AuthenticatedRequest,
+  AuthUserType,
   RequestUser,
-  StaffRole,
 } from '../types/jwt-payload.type';
 
-export const ROLES_KEY = 'roles';
+export const AUTH_TYPE_KEY = 'auth_type';
 
-export const Roles = (...roles: StaffRole[]) => SetMetadata(ROLES_KEY, roles);
+export const AuthType = (...types: AuthUserType[]) =>
+  SetMetadata(AUTH_TYPE_KEY, types);
 
 @Injectable()
-export class RolesGuard implements CanActivate {
+export class AuthTypeGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<StaffRole[]>(
-      ROLES_KEY,
+    const requiredTypes = this.reflector.getAllAndOverride<AuthUserType[]>(
+      AUTH_TYPE_KEY,
       [context.getHandler(), context.getClass()],
     );
 
-    if (!requiredRoles || requiredRoles.length === 0) {
+    if (!requiredTypes || requiredTypes.length === 0) {
       return true;
     }
 
@@ -37,12 +38,10 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('User not authenticated');
     }
 
-    if (user.type !== 'staff') {
-      throw new ForbiddenException('Staff access required');
-    }
-
-    if (!requiredRoles.includes(user.role)) {
-      throw new ForbiddenException('Insufficient permissions');
+    if (!requiredTypes.includes(user.type)) {
+      throw new ForbiddenException(
+        `This route requires auth type: ${requiredTypes.join(' or ')}`,
+      );
     }
 
     return true;

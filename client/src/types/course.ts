@@ -10,6 +10,8 @@ export interface CourseInstructor {
 export interface CourseInfo {
   course_code: string;
   course_name: string;
+  course_name_th?: string;
+  course_name_en?: string;
 }
 
 // Course offering (main object)

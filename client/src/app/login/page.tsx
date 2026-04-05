@@ -4,10 +4,71 @@ import { login } from "@/features/auth/auth.api";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { setAuth } from "@/lib/auth";
+import type { LoginDto } from "@/types/auth";
 import Image from "next/image";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const STUDENT_ID_REGEX = /^\d{8}$/;
+
+function isValidIdentifier(identifier: string): boolean {
+  const value = identifier.trim();
+  return EMAIL_REGEX.test(value) || STUDENT_ID_REGEX.test(value);
+}
+
+function resolvePreferredRedirectPath(user: {
+  type?: string;
+  userType?: string;
+  role?: string;
+  staff_role?: string;
+}): string {
+  const userType = String(user.type ?? user.userType ?? "").toLowerCase();
+  const role = String(user.role ?? user.staff_role ?? "").toLowerCase();
+
+  if (userType === "staff" && role === "admin") {
+    return "/admin/manage-users";
+  }
+  if (userType === "staff") {
+    return "/staff";
+  }
+  if (userType === "student") {
+    return "/student";
+  }
+  return "/";
+}
+
+function resolveSafeRedirectPath(path: string): string {
+  if (path === "/staff" || path === "/student") {
+    return "/";
+  }
+  return path;
+}
+
+function getLoginErrorMessage(error: unknown): string {
+  const apiError = error as {
+    response?: { status?: number; data?: { message?: string | string[] } };
+  };
+
+  if (apiError.response?.status === 400) {
+    return "รูปแบบบัญชีไม่ถูกต้อง กรุณาใช้อีเมล (staff) หรือรหัสนักศึกษา 8 หลัก";
+  }
+
+  if (apiError.response?.status === 401) {
+    return "ข้อมูลเข้าสู่ระบบไม่ถูกต้อง";
+  }
+
+  const message = apiError.response?.data?.message;
+  if (Array.isArray(message) && message.length > 0) {
+    return message[0];
+  }
+  if (typeof message === "string" && message.trim()) {
+    return message;
+  }
+
+  return "ไม่สามารถเข้าสู่ระบบได้ กรุณาลองใหม่อีกครั้ง";
+}
+
 const LoginPage = () => {
-  const [username, setUsername] = useState<string>("");
+  const [identifier, setIdentifier] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,27 +87,44 @@ const LoginPage = () => {
     // Prevent double submission
     if (isLoading) return;
 
+    const trimmedIdentifier = identifier.trim();
+    if (!trimmedIdentifier || !password.trim()) {
+      setError("กรุณากรอกบัญชีผู้ใช้และรหัสผ่าน");
+      return;
+    }
+
+    if (!isValidIdentifier(trimmedIdentifier)) {
+      setError("กรุณาใช้อีเมล (staff) หรือรหัสนักศึกษา 8 หลัก");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
-      const res = await login({ student_code: username, password });
+      const payload: LoginDto = {
+        identifier: trimmedIdentifier,
+        password,
+      };
+      const res = await login(payload);
 
       setAuth(res);
 
-      router.push("/");
+      const preferredRedirect = resolvePreferredRedirectPath(res.user);
+      const safeRedirect = resolveSafeRedirectPath(preferredRedirect);
+      router.push(safeRedirect);
     } catch (error) {
       console.error("Login failed:", error);
-      setError("รหัสนักศึกษา หรือ รหัสผ่านไม่ถูกต้อง");
+      setError(getLoginErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // if (e.key === "Enter") {
-    //   handleSubmit();
-    // }
+    if (e.key === "Enter") {
+      handleSubmit();
+    }
   };
 
   return (
@@ -80,15 +158,15 @@ const LoginPage = () => {
           {/* Username Field */}
           <div>
             <label className="block text-gray-700 text-sm font-medium mb-2">
-              รหัสนักศึกษา
+              Email (staff) หรือ Student ID
             </label>
             <input
               type="text"
-              value={username}
-              onChange={handleInputChange(setUsername)}
+              value={identifier}
+              onChange={handleInputChange(setIdentifier)}
               onKeyDown={handleKeyDown}
               className="w-full text-black px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition"
-              placeholder="รหัสนักศึกษา"
+              placeholder="example@university.ac.th หรือ 65123456"
               disabled={isLoading}
             />
           </div>
@@ -128,14 +206,7 @@ const LoginPage = () => {
             {isLoading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
           </button>
           <p className="text-center text-sm text-gray-500">
-            เป็นอาจารย์ใช่ไหม?{" "}
-            <button
-              type="button"
-              onClick={() => router.push("/staff/login")}
-              className="text-purple-500 font-medium hover:underline cursor-pointer"
-            >
-              เข้าสู่ระบบที่นี่
-            </button>
+            ใช้ฟอร์มเดียวสำหรับทั้ง Staff และ Student
           </p>
         </div>
       </div>

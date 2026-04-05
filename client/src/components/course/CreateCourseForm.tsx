@@ -20,8 +20,13 @@ const ERROR_MESSAGES = {
     maxLength: `รหัสวิชาไม่เกิน ${COURSE_CODE_MAX_LENGTH} ตัวอักษร`,
     duplicate: "รหัสวิชานี้ถูกใช้แล้ว กรุณาใช้รหัสอื่น",
   },
-  course_name: {
-    required: "กรุณากรอกชื่อรายวิชา",
+  course_name_th: {
+    required: "กรุณากรอกชื่อรายวิชา (ภาษาไทย)",
+    maxLength: `ชื่อรายวิชาไม่เกิน ${COURSE_NAME_MAX_LENGTH} ตัวอักษร`,
+    duplicate: "ชื่อรายวิชานี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น",
+  },
+  course_name_en: {
+    required: "กรุณากรอกชื่อรายวิชา (ภาษาอังกฤษ)",
     maxLength: `ชื่อรายวิชาไม่เกิน ${COURSE_NAME_MAX_LENGTH} ตัวอักษร`,
     duplicate: "ชื่อรายวิชานี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น",
   },
@@ -42,7 +47,8 @@ interface KnowledgeCategory {
 
 interface FormErrors {
   course_code?: string;
-  course_name?: string;
+  course_name_th?: string;
+  course_name_en?: string;
 }
 
 interface DuplicateCheckResponse {
@@ -58,7 +64,8 @@ export default function CreateCourseForm({
 }: CreateCourseFormProps) {
   // Form state
   const [formData, setFormData] = useState({
-    course_name: "",
+    course_name_th: "",
+    course_name_en: "",
     course_code: "",
   });
 
@@ -91,7 +98,7 @@ export default function CreateCourseForm({
    * Returns error message or undefined if valid
    */
   const validateFieldSync = (
-    field: "course_code" | "course_name",
+    field: "course_code" | "course_name_th" | "course_name_en",
     value: string,
   ): string | undefined => {
     const trimmedValue = value.trim();
@@ -164,13 +171,15 @@ export default function CreateCourseForm({
 
     // Sync validation first
     const codeError = validateFieldSync("course_code", formData.course_code);
-    const nameError = validateFieldSync("course_name", formData.course_name);
+    const nameThError = validateFieldSync("course_name_th", formData.course_name_th);
+    const nameEnError = validateFieldSync("course_name_en", formData.course_name_en);
 
     if (codeError) newErrors.course_code = codeError;
-    if (nameError) newErrors.course_name = nameError;
+    if (nameThError) newErrors.course_name_th = nameThError;
+    if (nameEnError) newErrors.course_name_en = nameEnError;
 
     // If sync validation failed, don't check duplicates
-    if (codeError || nameError) {
+    if (codeError || nameThError || nameEnError) {
       setErrors(newErrors);
       return false;
     }
@@ -178,7 +187,7 @@ export default function CreateCourseForm({
     // Async duplicate checks (run in parallel for speed)
     const [codeExists, nameExists] = await Promise.all([
       checkCodeDuplicate(formData.course_code),
-      checkNameDuplicate(formData.course_name),
+      checkNameDuplicate(formData.course_name_th),
     ]);
 
     if (codeExists) {
@@ -186,7 +195,7 @@ export default function CreateCourseForm({
     }
 
     if (nameExists) {
-      newErrors.course_name = ERROR_MESSAGES.course_name.duplicate;
+      newErrors.course_name_th = ERROR_MESSAGES.course_name_th.duplicate;
     }
 
     setErrors(newErrors);
@@ -202,7 +211,7 @@ export default function CreateCourseForm({
    */
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    const field = name as "course_code" | "course_name";
+    const field = name as "course_code" | "course_name_th" | "course_name_en";
 
     setFormData((prev) => ({
       ...prev,
@@ -268,7 +277,8 @@ export default function CreateCourseForm({
 
   const handleCancel = () => {
     setFormData({
-      course_name: "",
+      course_name_th: "",
+      course_name_en: "",
       course_code: "",
     });
     setErrors({});
@@ -290,7 +300,9 @@ export default function CreateCourseForm({
       await apiFetch("/courses", {
         method: "POST",
         data: {
-          course_name: formData.course_name.trim(),
+          course_name: formData.course_name_th.trim(),
+          course_name_th: formData.course_name_th.trim(),
+          course_name_en: formData.course_name_en.trim(),
           course_code: formData.course_code.trim(),
           knowledge_categories: knowledgeCategories,
         },
@@ -298,7 +310,8 @@ export default function CreateCourseForm({
 
       // Reset form on success
       setFormData({
-        course_name: "",
+        course_name_th: "",
+        course_name_en: "",
         course_code: "",
       });
       setErrors({});
@@ -371,7 +384,9 @@ export default function CreateCourseForm({
   // Disable submit if any required field is empty or has errors
   const hasErrors = Object.values(errors).some((error) => !!error);
   const isFormEmpty =
-    !formData.course_code.trim() || !formData.course_name.trim();
+    !formData.course_code.trim() ||
+    !formData.course_name_th.trim() ||
+    !formData.course_name_en.trim();
   const isSubmitDisabled =
     hasErrors ||
     isFormEmpty ||
@@ -421,31 +436,60 @@ export default function CreateCourseForm({
           </div>
         </div>
 
-        {/* ชื่อรายวิชา */}
+        {/* ชื่อรายวิชา (ภาษาไทย) */}
         <div>
           <label className="block text-[#000000] text-sm font-light mb-2">
-            ชื่อรายวิชา <span className="text-red-500">*</span>
+            ชื่อรายวิชา (ภาษาไทย) <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
-            name="course_name"
-            value={formData.course_name}
+            name="course_name_th"
+            value={formData.course_name_th}
             onChange={handleInputChange}
             maxLength={COURSE_NAME_MAX_LENGTH}
             className={`w-full bg-white text-black px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-purple-600 ${
-              errors.course_name ? "border-red-500" : "border-[#B7A3E3]"
+              errors.course_name_th ? "border-red-500" : "border-[#B7A3E3]"
             }`}
             placeholder=""
           />
           {/* Character count hint */}
           <div className="flex justify-between items-center mt-1">
-            {errors.course_name ? (
-              <p className="text-red-500 text-xs">{errors.course_name}</p>
+            {errors.course_name_th ? (
+              <p className="text-red-500 text-xs">{errors.course_name_th}</p>
             ) : (
               <span />
             )}
             <span className="text-xs text-gray-400">
-              {formData.course_name.length}/{COURSE_NAME_MAX_LENGTH}
+              {formData.course_name_th.length}/{COURSE_NAME_MAX_LENGTH}
+            </span>
+          </div>
+        </div>
+
+        {/* Course Name (English) */}
+        <div>
+          <label className="block text-[#000000] text-sm font-light mb-2">
+            Course Name (English) <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            name="course_name_en"
+            value={formData.course_name_en}
+            onChange={handleInputChange}
+            maxLength={COURSE_NAME_MAX_LENGTH}
+            className={`w-full bg-white text-black px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-purple-600 ${
+              errors.course_name_en ? "border-red-500" : "border-[#B7A3E3]"
+            }`}
+            placeholder=""
+          />
+          {/* Character count hint */}
+          <div className="flex justify-between items-center mt-1">
+            {errors.course_name_en ? (
+              <p className="text-red-500 text-xs">{errors.course_name_en}</p>
+            ) : (
+              <span />
+            )}
+            <span className="text-xs text-gray-400">
+              {formData.course_name_en.length}/{COURSE_NAME_MAX_LENGTH}
             </span>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JwtPayload, RequestUser } from '../types/jwt-payload.type';
@@ -12,16 +12,22 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  /**
-   * Transforms JWT payload into RequestUser object
-   * This will be available as req.user in controllers
-   */
   async validate(payload: JwtPayload): Promise<RequestUser> {
+    if (payload.type === 'staff') {
+      if (!payload.role) {
+        throw new UnauthorizedException('Invalid staff token');
+      }
+
+      return {
+        sub: String(payload.sub),
+        type: 'staff',
+        role: payload.role,
+      };
+    }
+
     return {
-      id: payload.sub,
-      userType: payload.userType,
-      email: payload.email,
-      role: payload.role,
+      sub: String(payload.sub),
+      type: 'student',
     };
   }
 }

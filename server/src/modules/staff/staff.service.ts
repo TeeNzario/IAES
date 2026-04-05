@@ -94,7 +94,7 @@ export class StaffService {
     return serializeBigInt(staff);
   }
 
-  async findById(id: number) {
+  async findById(id: string) {
     const staff = await this.prisma.staff_users.findUnique({
       where: { staff_users_id: BigInt(id) },
       select: {
