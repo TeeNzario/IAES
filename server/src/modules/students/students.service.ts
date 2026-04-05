@@ -8,12 +8,53 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 export class StudentsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(createStudentDto: CreateStudentDto) {
-    return 'This action adds a new student';
+  async create(createStudentDto: CreateStudentDto) {
+    // Check for duplicate student_code
+    const existing = await this.prisma.students.findUnique({
+      where: { student_code: createStudentDto.student_code },
+    });
+
+    if (existing) {
+      throw new Error('Student code already exists');
+    }
+
+    const student = await this.prisma.students.create({
+      data: {
+        student_code: createStudentDto.student_code,
+        email: createStudentDto.email,
+        password_hash: createStudentDto.password_hash ?? createStudentDto.student_code,
+        facultyCode: createStudentDto.facultyCode,
+        first_name: createStudentDto.first_name,
+        last_name: createStudentDto.last_name,
+        is_active: true,
+      },
+      select: {
+        student_code: true,
+        email: true,
+        facultyCode: true,
+        first_name: true,
+        last_name: true,
+        is_active: true,
+      },
+    });
+
+    return student;
   }
 
   findAll() {
-    return this.prisma.students.findMany();
+    return this.prisma.students.findMany({
+      select: {
+        student_code: true,
+        email: true,
+        facultyCode: true,
+        first_name: true,
+        last_name: true,
+        is_active: true,
+        created_at: true,
+        updated_at: true,
+      },
+      orderBy: { student_code: 'asc' },
+    });
   }
 
   // findOne(id: string) {
@@ -27,6 +68,7 @@ export class StudentsService {
       select: {
         student_code: true,
         email: true,
+        facultyCode: true,
         first_name: true,
         last_name: true,
       },
@@ -40,7 +82,7 @@ export class StudentsService {
     });
   }
 
-  update(id: string, updateStudentDto: UpdateStudentDto) {
+  async update(id: string, updateStudentDto: UpdateStudentDto) {
     return this.prisma.students.update({
       where: { student_code: id },
       data: {
@@ -50,6 +92,7 @@ export class StudentsService {
       select: {
         student_code: true,
         email: true,
+        facultyCode: true,
         first_name: true,
         last_name: true,
         is_active: true,

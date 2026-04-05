@@ -1,10 +1,13 @@
 import {
+  IsInt,
+  IsNotEmpty,
   IsString,
   IsEmail,
-  IsNotEmpty,
   MaxLength,
   MinLength,
   IsEnum,
+  IsOptional,
+  IsBoolean,
 } from 'class-validator';
 
 export enum StaffRole {
@@ -22,6 +25,14 @@ export class CreateStaffDto {
   @IsNotEmpty()
   @MinLength(8)
   password: string;
+
+  @IsInt()
+  @IsNotEmpty()
+  facultyCode: number;
+
+  @IsBoolean()
+  @IsOptional()
+  is_active?: boolean;
 
   @IsString()
   @IsNotEmpty()

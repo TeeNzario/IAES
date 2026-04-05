@@ -11,6 +11,7 @@ export interface Staff {
   role: StaffRole;
   email?: string;
   is_active: boolean;
+  facultyCode: number;
 }
 
 export interface GetStaffsParams {
@@ -60,6 +61,7 @@ export const getStaffById = async (id: string): Promise<Staff> => {
 export interface CreateStaffPayload {
   email: string;
   password: string;
+  facultyCode: number;
   first_name: string;
   last_name: string;
   role: "INSTRUCTOR" | "ADMIN";
