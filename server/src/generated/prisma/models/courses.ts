@@ -40,6 +40,8 @@ export type CoursesMinAggregateOutputType = {
   courses_id: bigint | null
   course_code: string | null
   course_name: string | null
+  course_name_th: string | null
+  course_name_en: string | null
   description: string | null
   course_image: string | null
   is_active: boolean | null
@@ -52,6 +54,8 @@ export type CoursesMaxAggregateOutputType = {
   courses_id: bigint | null
   course_code: string | null
   course_name: string | null
+  course_name_th: string | null
+  course_name_en: string | null
   description: string | null
   course_image: string | null
   is_active: boolean | null
@@ -64,6 +68,8 @@ export type CoursesCountAggregateOutputType = {
   courses_id: number
   course_code: number
   course_name: number
+  course_name_th: number
+  course_name_en: number
   description: number
   course_image: number
   is_active: number
@@ -88,6 +94,8 @@ export type CoursesMinAggregateInputType = {
   courses_id?: true
   course_code?: true
   course_name?: true
+  course_name_th?: true
+  course_name_en?: true
   description?: true
   course_image?: true
   is_active?: true
@@ -100,6 +108,8 @@ export type CoursesMaxAggregateInputType = {
   courses_id?: true
   course_code?: true
   course_name?: true
+  course_name_th?: true
+  course_name_en?: true
   description?: true
   course_image?: true
   is_active?: true
@@ -112,6 +122,8 @@ export type CoursesCountAggregateInputType = {
   courses_id?: true
   course_code?: true
   course_name?: true
+  course_name_th?: true
+  course_name_en?: true
   description?: true
   course_image?: true
   is_active?: true
@@ -211,6 +223,8 @@ export type CoursesGroupByOutputType = {
   courses_id: bigint
   course_code: string
   course_name: string
+  course_name_th: string
+  course_name_en: string
   description: string | null
   course_image: string | null
   is_active: boolean
@@ -246,6 +260,8 @@ export type coursesWhereInput = {
   courses_id?: Prisma.BigIntFilter<"courses"> | bigint | number
   course_code?: Prisma.StringFilter<"courses"> | string
   course_name?: Prisma.StringFilter<"courses"> | string
+  course_name_th?: Prisma.StringFilter<"courses"> | string
+  course_name_en?: Prisma.StringFilter<"courses"> | string
   description?: Prisma.StringNullableFilter<"courses"> | string | null
   course_image?: Prisma.StringNullableFilter<"courses"> | string | null
   is_active?: Prisma.BoolFilter<"courses"> | boolean
@@ -261,6 +277,8 @@ export type coursesOrderByWithRelationInput = {
   courses_id?: Prisma.SortOrder
   course_code?: Prisma.SortOrder
   course_name?: Prisma.SortOrder
+  course_name_th?: Prisma.SortOrder
+  course_name_en?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   course_image?: Prisma.SortOrderInput | Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -279,6 +297,8 @@ export type coursesWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.coursesWhereInput | Prisma.coursesWhereInput[]
   course_code?: Prisma.StringFilter<"courses"> | string
   course_name?: Prisma.StringFilter<"courses"> | string
+  course_name_th?: Prisma.StringFilter<"courses"> | string
+  course_name_en?: Prisma.StringFilter<"courses"> | string
   description?: Prisma.StringNullableFilter<"courses"> | string | null
   course_image?: Prisma.StringNullableFilter<"courses"> | string | null
   is_active?: Prisma.BoolFilter<"courses"> | boolean
@@ -294,6 +314,8 @@ export type coursesOrderByWithAggregationInput = {
   courses_id?: Prisma.SortOrder
   course_code?: Prisma.SortOrder
   course_name?: Prisma.SortOrder
+  course_name_th?: Prisma.SortOrder
+  course_name_en?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   course_image?: Prisma.SortOrderInput | Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -314,6 +336,8 @@ export type coursesScalarWhereWithAggregatesInput = {
   courses_id?: Prisma.BigIntWithAggregatesFilter<"courses"> | bigint | number
   course_code?: Prisma.StringWithAggregatesFilter<"courses"> | string
   course_name?: Prisma.StringWithAggregatesFilter<"courses"> | string
+  course_name_th?: Prisma.StringWithAggregatesFilter<"courses"> | string
+  course_name_en?: Prisma.StringWithAggregatesFilter<"courses"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"courses"> | string | null
   course_image?: Prisma.StringNullableWithAggregatesFilter<"courses"> | string | null
   is_active?: Prisma.BoolWithAggregatesFilter<"courses"> | boolean
@@ -326,6 +350,8 @@ export type coursesCreateInput = {
   courses_id?: bigint | number
   course_code: string
   course_name: string
+  course_name_th: string
+  course_name_en: string
   description?: string | null
   course_image?: string | null
   is_active?: boolean
@@ -341,6 +367,8 @@ export type coursesUncheckedCreateInput = {
   courses_id?: bigint | number
   course_code: string
   course_name: string
+  course_name_th: string
+  course_name_en: string
   description?: string | null
   course_image?: string | null
   is_active?: boolean
@@ -356,6 +384,8 @@ export type coursesUpdateInput = {
   courses_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   course_code?: Prisma.StringFieldUpdateOperationsInput | string
   course_name?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_th?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_en?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   course_image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -371,6 +401,8 @@ export type coursesUncheckedUpdateInput = {
   courses_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   course_code?: Prisma.StringFieldUpdateOperationsInput | string
   course_name?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_th?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_en?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   course_image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -386,6 +418,8 @@ export type coursesCreateManyInput = {
   courses_id?: bigint | number
   course_code: string
   course_name: string
+  course_name_th: string
+  course_name_en: string
   description?: string | null
   course_image?: string | null
   is_active?: boolean
@@ -398,6 +432,8 @@ export type coursesUpdateManyMutationInput = {
   courses_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   course_code?: Prisma.StringFieldUpdateOperationsInput | string
   course_name?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_th?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_en?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   course_image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -410,6 +446,8 @@ export type coursesUncheckedUpdateManyInput = {
   courses_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   course_code?: Prisma.StringFieldUpdateOperationsInput | string
   course_name?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_th?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_en?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   course_image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -427,6 +465,8 @@ export type coursesCountOrderByAggregateInput = {
   courses_id?: Prisma.SortOrder
   course_code?: Prisma.SortOrder
   course_name?: Prisma.SortOrder
+  course_name_th?: Prisma.SortOrder
+  course_name_en?: Prisma.SortOrder
   description?: Prisma.SortOrder
   course_image?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -444,6 +484,8 @@ export type coursesMaxOrderByAggregateInput = {
   courses_id?: Prisma.SortOrder
   course_code?: Prisma.SortOrder
   course_name?: Prisma.SortOrder
+  course_name_th?: Prisma.SortOrder
+  course_name_en?: Prisma.SortOrder
   description?: Prisma.SortOrder
   course_image?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -456,6 +498,8 @@ export type coursesMinOrderByAggregateInput = {
   courses_id?: Prisma.SortOrder
   course_code?: Prisma.SortOrder
   course_name?: Prisma.SortOrder
+  course_name_th?: Prisma.SortOrder
+  course_name_en?: Prisma.SortOrder
   description?: Prisma.SortOrder
   course_image?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -515,6 +559,8 @@ export type coursesCreateWithoutCourse_offeringsInput = {
   courses_id?: bigint | number
   course_code: string
   course_name: string
+  course_name_th: string
+  course_name_en: string
   description?: string | null
   course_image?: string | null
   is_active?: boolean
@@ -529,6 +575,8 @@ export type coursesUncheckedCreateWithoutCourse_offeringsInput = {
   courses_id?: bigint | number
   course_code: string
   course_name: string
+  course_name_th: string
+  course_name_en: string
   description?: string | null
   course_image?: string | null
   is_active?: boolean
@@ -559,6 +607,8 @@ export type coursesUpdateWithoutCourse_offeringsInput = {
   courses_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   course_code?: Prisma.StringFieldUpdateOperationsInput | string
   course_name?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_th?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_en?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   course_image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -573,6 +623,8 @@ export type coursesUncheckedUpdateWithoutCourse_offeringsInput = {
   courses_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   course_code?: Prisma.StringFieldUpdateOperationsInput | string
   course_name?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_th?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_en?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   course_image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -587,6 +639,8 @@ export type coursesCreateWithoutCourse_knowledgeInput = {
   courses_id?: bigint | number
   course_code: string
   course_name: string
+  course_name_th: string
+  course_name_en: string
   description?: string | null
   course_image?: string | null
   is_active?: boolean
@@ -601,6 +655,8 @@ export type coursesUncheckedCreateWithoutCourse_knowledgeInput = {
   courses_id?: bigint | number
   course_code: string
   course_name: string
+  course_name_th: string
+  course_name_en: string
   description?: string | null
   course_image?: string | null
   is_active?: boolean
@@ -631,6 +687,8 @@ export type coursesUpdateWithoutCourse_knowledgeInput = {
   courses_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   course_code?: Prisma.StringFieldUpdateOperationsInput | string
   course_name?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_th?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_en?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   course_image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -645,6 +703,8 @@ export type coursesUncheckedUpdateWithoutCourse_knowledgeInput = {
   courses_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   course_code?: Prisma.StringFieldUpdateOperationsInput | string
   course_name?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_th?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_en?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   course_image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -659,6 +719,8 @@ export type coursesCreateWithoutQuestion_knowledgeInput = {
   courses_id?: bigint | number
   course_code: string
   course_name: string
+  course_name_th: string
+  course_name_en: string
   description?: string | null
   course_image?: string | null
   is_active?: boolean
@@ -673,6 +735,8 @@ export type coursesUncheckedCreateWithoutQuestion_knowledgeInput = {
   courses_id?: bigint | number
   course_code: string
   course_name: string
+  course_name_th: string
+  course_name_en: string
   description?: string | null
   course_image?: string | null
   is_active?: boolean
@@ -703,6 +767,8 @@ export type coursesUpdateWithoutQuestion_knowledgeInput = {
   courses_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   course_code?: Prisma.StringFieldUpdateOperationsInput | string
   course_name?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_th?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_en?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   course_image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -717,6 +783,8 @@ export type coursesUncheckedUpdateWithoutQuestion_knowledgeInput = {
   courses_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   course_code?: Prisma.StringFieldUpdateOperationsInput | string
   course_name?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_th?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_en?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   course_image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -780,6 +848,8 @@ export type coursesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   courses_id?: boolean
   course_code?: boolean
   course_name?: boolean
+  course_name_th?: boolean
+  course_name_en?: boolean
   description?: boolean
   course_image?: boolean
   is_active?: boolean
@@ -796,6 +866,8 @@ export type coursesSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   courses_id?: boolean
   course_code?: boolean
   course_name?: boolean
+  course_name_th?: boolean
+  course_name_en?: boolean
   description?: boolean
   course_image?: boolean
   is_active?: boolean
@@ -808,6 +880,8 @@ export type coursesSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   courses_id?: boolean
   course_code?: boolean
   course_name?: boolean
+  course_name_th?: boolean
+  course_name_en?: boolean
   description?: boolean
   course_image?: boolean
   is_active?: boolean
@@ -820,6 +894,8 @@ export type coursesSelectScalar = {
   courses_id?: boolean
   course_code?: boolean
   course_name?: boolean
+  course_name_th?: boolean
+  course_name_en?: boolean
   description?: boolean
   course_image?: boolean
   is_active?: boolean
@@ -828,7 +904,7 @@ export type coursesSelectScalar = {
   updated_at?: boolean
 }
 
-export type coursesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"courses_id" | "course_code" | "course_name" | "description" | "course_image" | "is_active" | "created_by_instructors_id" | "created_at" | "updated_at", ExtArgs["result"]["courses"]>
+export type coursesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"courses_id" | "course_code" | "course_name" | "course_name_th" | "course_name_en" | "description" | "course_image" | "is_active" | "created_by_instructors_id" | "created_at" | "updated_at", ExtArgs["result"]["courses"]>
 export type coursesInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   course_offerings?: boolean | Prisma.courses$course_offeringsArgs<ExtArgs>
   course_knowledge?: boolean | Prisma.courses$course_knowledgeArgs<ExtArgs>
@@ -849,6 +925,8 @@ export type $coursesPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     courses_id: bigint
     course_code: string
     course_name: string
+    course_name_th: string
+    course_name_en: string
     description: string | null
     course_image: string | null
     is_active: boolean
@@ -1284,6 +1362,8 @@ export interface coursesFieldRefs {
   readonly courses_id: Prisma.FieldRef<"courses", 'BigInt'>
   readonly course_code: Prisma.FieldRef<"courses", 'String'>
   readonly course_name: Prisma.FieldRef<"courses", 'String'>
+  readonly course_name_th: Prisma.FieldRef<"courses", 'String'>
+  readonly course_name_en: Prisma.FieldRef<"courses", 'String'>
   readonly description: Prisma.FieldRef<"courses", 'String'>
   readonly course_image: Prisma.FieldRef<"courses", 'String'>
   readonly is_active: Prisma.FieldRef<"courses", 'Boolean'>

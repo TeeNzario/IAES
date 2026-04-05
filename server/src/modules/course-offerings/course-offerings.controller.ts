@@ -1,21 +1,20 @@
 import {
-  Controller,
-  Post,
   Body,
-  UseGuards,
-  Req,
+  Controller,
   Get,
-  Param,
-  Patch,
   Delete,
+  Param,
   ParseIntPipe,
+  Patch,
+  Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import { CourseOfferingsService } from './course-offerings.service';
 import { PreviewImportService } from './preview-import.service';
 import { CreateCourseOfferingDto } from './dto/create-course-offerings.dto';
 import { UpdateCourseOfferingDto } from './dto/update-course-offering.dto';
-import { JwtAuthGuard, RolesGuard, Roles } from 'src/auth/guards';
+import { Auth, Roles } from 'src/auth/guards';
 import { AddStudentDto } from './dto/add-student.dto';
 import { BulkEnrollStudentDto } from './dto/bulk-enroll-student.dto';
 import {
@@ -23,6 +22,7 @@ import {
   EditPreviewRowDto,
 } from './dto/preview-import.dto';
 import { BadRequestException } from '@nestjs/common';
+import type { AuthenticatedRequest } from 'src/auth/types/jwt-payload.type';
 
 @Controller('course-offerings')
 export class CourseOfferingsController {
@@ -32,16 +32,15 @@ export class CourseOfferingsController {
   ) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Auth()
   @Roles('INSTRUCTOR')
   create(
-    @Req() req,
+    @Req() req: AuthenticatedRequest,
     @Body() createCourseOfferingsDto: CreateCourseOfferingDto,
   ) {
-    console.log('DTO:', createCourseOfferingsDto);
     return this.courseOfferingsService.create(
       createCourseOfferingsDto,
-      req.user.id,
+      req.user.sub,
     );
   }
 
@@ -50,28 +49,23 @@ export class CourseOfferingsController {
    * - STAFF: returns courses they teach
    * - STUDENT: returns courses they are enrolled in
    */
-  @UseGuards(JwtAuthGuard)
+  @Auth()
   @Get('/')
-  getMyCourseOfferings(@Req() req) {
-    // JWT strategy returns: { id, userType, email, role? }
-    // For STAFF: id = staff_users_id (number)
-    // For STUDENT: id = student_code (string)
-
-    if (req.user.userType === 'STAFF') {
+  getMyCourseOfferings(@Req() req: AuthenticatedRequest) {
+    if (req.user.type === 'staff') {
       return this.courseOfferingsService.findByUser({
-        type: 'STAFF',
-        staffUserId: Number(req.user.id),
+        type: 'staff',
+        staffUserId: req.user.sub,
       });
     }
 
-    if (req.user.userType === 'STUDENT') {
+    if (req.user.type === 'student') {
       return this.courseOfferingsService.findByUser({
-        type: 'STUDENT',
-        studentCode: String(req.user.id),
+        type: 'student',
+        studentCode: req.user.sub,
       });
     }
 
-    console.log('[getMyCourseOfferings] Unknown userType:', req.user.userType);
     throw new BadRequestException('Unknown user type');
   }
 
@@ -94,17 +88,17 @@ export class CourseOfferingsController {
   }
 
   @Patch(':offeringId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Auth()
   @Roles('INSTRUCTOR')
   update(
     @Param('offeringId') offeringId: string,
-    @Req() req,
+    @Req() req: AuthenticatedRequest,
     @Body() updateDto: UpdateCourseOfferingDto,
   ) {
     return this.courseOfferingsService.update(
       offeringId,
       updateDto,
-      req.user.id,
+      req.user.sub,
     );
   }
 
@@ -113,7 +107,7 @@ export class CourseOfferingsController {
    * Business rule: Can only delete if no students are enrolled
    */
   @Delete(':offeringId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Auth()
   @Roles('INSTRUCTOR')
   remove(@Param('offeringId') offeringId: string) {
     return this.courseOfferingsService.remove(offeringId);
@@ -169,7 +163,7 @@ export class CourseOfferingsController {
    * This removes the enrollment record, NOT the student record globally
    */
   @Delete(':offeringId/students/:studentCode')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Auth()
   @Roles('INSTRUCTOR')
   unenrollStudent(
     @Param('offeringId') offeringId: string,
@@ -179,7 +173,7 @@ export class CourseOfferingsController {
   }
 
   @Post(':offeringId/bulk-enroll')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Auth()
   @Roles('INSTRUCTOR')
   bulkEnroll(
     @Param('offeringId') offeringId: string,
@@ -191,29 +185,29 @@ export class CourseOfferingsController {
   // =============== Preview Import Endpoints ===============
 
   @Post(':offeringId/import/preview')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Auth()
   @Roles('INSTRUCTOR')
   createPreviewSession(
     @Param('offeringId') offeringId: string,
-    @Req() req,
+    @Req() req: AuthenticatedRequest,
     @Body() dto: CreatePreviewSessionDto,
   ) {
     return this.previewImportService.createPreviewSession(
       offeringId,
-      req.user.id,
+      req.user.sub,
       dto,
     );
   }
 
   @Get(':offeringId/import/preview/:sessionId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Auth()
   @Roles('INSTRUCTOR')
   getPreviewSession(@Param('sessionId') sessionId: string) {
     return this.previewImportService.getPreviewSession(sessionId);
   }
 
   @Patch(':offeringId/import/preview/:sessionId/:rowIndex')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Auth()
   @Roles('INSTRUCTOR')
   editPreviewRow(
     @Param('offeringId') offeringId: string,
@@ -230,7 +224,7 @@ export class CourseOfferingsController {
   }
 
   @Delete(':offeringId/import/preview/:sessionId/:rowIndex')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Auth()
   @Roles('INSTRUCTOR')
   deletePreviewRow(
     @Param('sessionId') sessionId: string,
@@ -240,7 +234,7 @@ export class CourseOfferingsController {
   }
 
   @Post(':offeringId/import/confirm/:sessionId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Auth()
   @Roles('INSTRUCTOR')
   confirmImport(
     @Param('offeringId') offeringId: string,

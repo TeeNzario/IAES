@@ -15,14 +15,18 @@ function serializeBigInt(data: any) {
 export class CoursesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateCourseDto, instructor_id: number) {
+  async create(dto: CreateCourseDto, instructorId: string) {
     const result = await this.prisma.$transaction(async (tx) => {
       // 1. Create course
+      // course_name is set to course_name_th for backward compatibility
+      // (all existing UI code references course_name)
       const course = await tx.courses.create({
         data: {
-          course_name: dto.course_name,
+          course_name: dto.course_name_th,
+          course_name_th: dto.course_name_th,
+          course_name_en: dto.course_name_en,
           course_code: dto.course_code,
-          created_by_instructors_id: BigInt(instructor_id),
+          created_by_instructors_id: BigInt(instructorId),
         },
       });
 
@@ -38,7 +42,7 @@ export class CoursesService {
             category = await tx.knowledge_categories.create({
               data: {
                 name: categoryName,
-                created_by_staff_id: BigInt(instructor_id),
+                created_by_staff_id: BigInt(instructorId),
               },
             });
           }
@@ -69,7 +73,7 @@ export class CoursesService {
     return serializeBigInt(result);
   }
 
-  async findAllByCreator(instructorId: number, page = 1, limit = 10) {
+  async findAllByCreator(instructorId: string, page = 1, limit = 10) {
     const skip = (page - 1) * limit;
 
     const [courses, total] = await Promise.all([
@@ -133,14 +137,20 @@ export class CoursesService {
     return serializeBigInt(course);
   }
 
-  async update(id: number, dto: UpdateCourseDto, instructorId: number) {
+  async update(id: number, dto: UpdateCourseDto, instructorId: string) {
     const result = await this.prisma.$transaction(async (tx) => {
       // 1. Update basic course info
+      // For backward compatibility: course_name mirrors course_name_th
       await tx.courses.update({
         where: { courses_id: BigInt(id) },
         data: {
-          course_name: dto.course_name,
-          course_code: dto.course_code,
+          ...(dto.course_name && { course_name: dto.course_name }),
+          ...(dto.course_name_th && {
+            course_name: dto.course_name_th,
+            course_name_th: dto.course_name_th,
+          }),
+          ...(dto.course_name_en && { course_name_en: dto.course_name_en }),
+          ...(dto.course_code && { course_code: dto.course_code }),
         },
       });
 
@@ -248,7 +258,11 @@ export class CoursesService {
   async checkNameExists(name: string, excludeId?: number): Promise<boolean> {
     const existing = await this.prisma.courses.findFirst({
       where: {
-        course_name: name.trim(),
+        OR: [
+          { course_name: name.trim() },
+          { course_name_th: name.trim() },
+          { course_name_en: name.trim() },
+        ],
         ...(excludeId ? { NOT: { courses_id: BigInt(excludeId) } } : {}),
       },
       select: { courses_id: true },

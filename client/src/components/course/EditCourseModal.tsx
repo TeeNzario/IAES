@@ -20,8 +20,13 @@ const ERROR_MESSAGES = {
     maxLength: `รหัสวิชาไม่เกิน ${COURSE_CODE_MAX_LENGTH} ตัวอักษร`,
     duplicate: "รหัสวิชานี้ถูกใช้แล้ว กรุณาใช้รหัสอื่น",
   },
-  course_name: {
-    required: "กรุณากรอกชื่อรายวิชา",
+  course_name_th: {
+    required: "กรุณากรอกชื่อรายวิชา (ภาษาไทย)",
+    maxLength: `ชื่อรายวิชาไม่เกิน ${COURSE_NAME_MAX_LENGTH} ตัวอักษร`,
+    duplicate: "ชื่อรายวิชานี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น",
+  },
+  course_name_en: {
+    required: "กรุณากรอกชื่อรายวิชา (ภาษาอังกฤษ)",
     maxLength: `ชื่อรายวิชาไม่เกิน ${COURSE_NAME_MAX_LENGTH} ตัวอักษร`,
     duplicate: "ชื่อรายวิชานี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น",
   },
@@ -43,6 +48,8 @@ interface CourseData {
   courses_id: number;
   course_code: string;
   course_name: string;
+  course_name_th?: string;
+  course_name_en?: string;
   course_knowledge?: CourseKnowledge[];
 }
 
@@ -55,7 +62,8 @@ interface EditCourseModalProps {
 
 interface FormErrors {
   course_code?: string;
-  course_name?: string;
+  course_name_th?: string;
+  course_name_en?: string;
 }
 
 interface DuplicateCheckResponse {
@@ -73,13 +81,15 @@ export default function EditCourseModal({
 }: EditCourseModalProps) {
   // Form state
   const [formData, setFormData] = useState({
-    course_name: "",
+    course_name_th: "",
+    course_name_en: "",
     course_code: "",
   });
 
   // Store original values to detect changes (for edit mode duplicate checks)
   const [originalData, setOriginalData] = useState({
-    course_name: "",
+    course_name_th: "",
+    course_name_en: "",
     course_code: "",
   });
 
@@ -113,20 +123,26 @@ export default function EditCourseModal({
   useEffect(() => {
     if (course && isOpen) {
       const initialData = {
-        course_name: course.course_name,
+        course_name_th: course.course_name_th || course.course_name || "",
+        course_name_en: course.course_name_en || "",
         course_code: course.course_code,
       };
       setFormData(initialData);
-      setOriginalData(initialData); // Store original for comparison
+      setOriginalData(initialData);
 
-      // Extract knowledge category names
-      const categoryNames =
-        course.course_knowledge?.map((ck) => ck.knowledge_categories.name) ||
-        [];
-      setKnowledgeCategories(categoryNames);
-
-      // Clear errors when opening
+      // Extract knowledge categories from course data
+      if (course.course_knowledge) {
+        setKnowledgeCategories(
+          course.course_knowledge.map(
+            (k) => k.knowledge_categories.name,
+          ),
+        );
+      } else {
+        setKnowledgeCategories([]);
+      }
+      // Clear errors and search query
       setErrors({});
+      setSearchQuery("");
     }
   }, [course, isOpen]);
 

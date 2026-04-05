@@ -7,6 +7,7 @@ import { CourseOffering } from "@/types/course";
 import { apiFetch } from "@/lib/api";
 import { useParams } from "next/navigation";
 import { formatInstructorName } from "@/utils/formatName";
+import { formatCourseName } from "@/utils/formatCourseName";
 import { AuthUser } from "@/types/auth";
 
 export default function CoursePage() {
@@ -121,7 +122,7 @@ const isStudent = user?.userType === "STUDENT";
                   {course.semester}/{course.academic_year} {course.courses.course_code}
                 </div>
                 <h2 className="text-2xl lg:text-4xl font-light text-[#575757] mb-3 lg:mb-4">
-                  {course.courses.course_name}
+                  {formatCourseName(course.courses)}
                 </h2>
                 <div className="flex flex-wrap flex-col mt-1">
                   {course.course_instructors.map((ci) => (

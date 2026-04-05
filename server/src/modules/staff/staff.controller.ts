@@ -1,37 +1,36 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  UseGuards,
+  Get,
+  Param,
+  Patch,
+  Post,
   Req,
   Query,
 } from '@nestjs/common';
 import { StaffService } from './staff.service';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
-import { JwtAuthGuard, RolesGuard, Roles } from 'src/auth/guards';
+import { Auth, AuthType, Roles } from 'src/auth/guards';
+import type { AuthenticatedRequest } from 'src/auth/types/jwt-payload.type';
 
 @Controller('staff')
 export class StaffController {
   constructor(private readonly staffService: StaffService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Auth()
   @Roles('ADMIN')
   create(@Body() createStaffDto: CreateStaffDto) {
     return this.staffService.create(createStaffDto);
   }
 
-  // Get current authenticated user info
   @Get('me')
-  @UseGuards(JwtAuthGuard)
-  getMe(@Req() req) {
-    console.log('req.user in staff controller: ', req.user.id);
-    return this.staffService.findById(req.user.id);
+  @Auth()
+  @AuthType('staff')
+  getMe(@Req() req: AuthenticatedRequest) {
+    return this.staffService.findById(req.user.sub);
   }
 
   /**
@@ -67,14 +66,14 @@ export class StaffController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Auth()
   @Roles('ADMIN')
   update(@Param('id') id: string, @Body() updateStaffDto: UpdateStaffDto) {
     return this.staffService.update(BigInt(id), updateStaffDto);
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Auth()
   @Roles('ADMIN')
   remove(@Param('id') id: string) {
     return this.staffService.remove(BigInt(id));

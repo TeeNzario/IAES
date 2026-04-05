@@ -11,6 +11,7 @@ import { apiFetch } from "@/lib/api";
 import CourseOfferingModal from "@/features/courseOffering/components/CourseOfferingModal";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import axios from "axios";
+import { getThaiCourseName } from "@/utils/formatCourseName";
 
 // Configuration
 const ITEMS_PER_PAGE = 3;
@@ -29,6 +30,8 @@ interface Course {
   courses_id: number;
   course_code: string;
   course_name: string;
+  course_name_th?: string;
+  course_name_en?: string;
   is_active: boolean;
   created_at?: string;
   course_knowledge?: CourseKnowledge[];
@@ -96,7 +99,7 @@ export default function CourseManagement() {
   // Filter courses by search term
   const filteredCourses = courses.filter(
     (course) =>
-      course.course_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getThaiCourseName(course).toLowerCase().includes(searchTerm.toLowerCase()) ||
       course.course_code.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
@@ -316,7 +319,7 @@ export default function CourseManagement() {
                         {course.course_code}
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-700">
-                        {course.course_name}
+                        {getThaiCourseName(course)}
                       </td>
                       <td className="px-4 py-4">
                         <KnowledgeCategoriesCell
@@ -435,7 +438,7 @@ export default function CourseManagement() {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           courseId={String(selectedCourse.courses_id)}
-          courseName={selectedCourse.course_name}
+          courseName={getThaiCourseName(selectedCourse)}
           onSuccess={() => {
             console.log("Course offering created successfully");
           }}
@@ -476,7 +479,7 @@ export default function CourseManagement() {
         title="ลบรายวิชา"
         message={
           deleteError ||
-          `คุณแน่ใจหรือไม่ว่าต้องการลบรายวิชา "${deletingCourse?.course_name || ""}"?`
+          `คุณแน่ใจหรือไม่ว่าต้องการลบรายวิชา "${deletingCourse ? getThaiCourseName(deletingCourse) : ""}"?`
         }
         confirmText="ลบ"
         cancelText="ยกเลิก"

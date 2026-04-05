@@ -1,9 +1,15 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
-/**
- * DTO for Student Login
- * POST /auth/student/login
- */
+export class LoginDto {
+  @IsString()
+  @IsNotEmpty()
+  identifier: string;
+
+  @IsString()
+  @IsNotEmpty()
+  password: string;
+}
+
 export class StudentLoginDto {
   @IsString()
   @IsNotEmpty()
@@ -14,10 +20,6 @@ export class StudentLoginDto {
   password: string;
 }
 
-/**
- * DTO for Staff Login (INSTRUCTOR / ADMIN)
- * POST /auth/staff/login
- */
 export class StaffLoginDto {
   @IsString()
   @IsNotEmpty()

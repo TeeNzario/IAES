@@ -1,18 +1,20 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  ForbiddenException,
+  Get,
+  Param,
+  Patch,
+  Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { UseGuards, Req } from '@nestjs/common';
+import { Auth, AuthType, Roles } from 'src/auth/guards';
+import type { AuthenticatedRequest } from 'src/auth/types/jwt-payload.type';
 
 @Controller('students')
 export class StudentsController {
@@ -49,42 +51,50 @@ export class StudentsController {
   //   return this.studentsService.findOne(id);
   // }
 
-  @UseGuards(JwtAuthGuard)
   @Get('me')
-  getMe(@Req() req) {
-    // For students, req.user.id is the student_code (from JWT sub)
-    return this.studentsService.findById(String(req.user.id));
+  @Auth()
+  @AuthType('student')
+  getMe(@Req() req: AuthenticatedRequest) {
+    return this.studentsService.findById(req.user.sub);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Patch('me')
-  updateMe(@Req() req, @Body() dto: UpdateStudentDto) {
-    return this.studentsService.updateByStudentCode(String(req.user.id), dto);
+  @Auth()
+  @AuthType('student')
+  updateMe(@Req() req: AuthenticatedRequest, @Body() dto: UpdateStudentDto) {
+    return this.studentsService.updateByStudentCode(req.user.sub, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('me/enrollments')
-  getMyEnrollments(@Req() req) {
-    console.log('req.user : ', req.user);
-    // For students, req.user.id is the student_code (from JWT sub)
-    return this.studentsService.findEnrollments(String(req.user.id));
+  @Auth()
+  @AuthType('student')
+  getMyEnrollments(@Req() req: AuthenticatedRequest) {
+    return this.studentsService.findEnrollments(req.user.sub);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Patch(':id')
+  @Auth()
   update(
     @Param('id') id: string,
     @Body() updateStudentDto: UpdateStudentDto,
-    @Req() req,
+    @Req() req: AuthenticatedRequest,
   ) {
-    // Allow student to update their own profile or admin to update any student
-    if (String(req.user.id) !== id) {
-      // Could add admin check here if needed
+    if (req.user.type === 'student' && req.user.sub !== id) {
+      throw new ForbiddenException(
+        'Students can only update their own profile',
+      );
     }
+
+    if (req.user.type === 'staff' && req.user.role !== 'ADMIN') {
+      throw new ForbiddenException('Only admin staff can update students');
+    }
+
     return this.studentsService.update(id, updateStudentDto);
   }
 
   @Delete(':id')
+  @Auth()
+  @Roles('ADMIN')
   remove(@Param('id') id: string) {
     return this.studentsService.remove(id);
   }

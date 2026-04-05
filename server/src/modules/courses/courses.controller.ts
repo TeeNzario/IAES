@@ -1,44 +1,43 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  UseGuards,
-  Req,
+  Get,
+  Param,
+  Patch,
+  Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { Roles } from 'src/auth/guards/roles.guard';
+import { Auth, Roles } from 'src/auth/guards';
+import type { AuthenticatedRequest } from 'src/auth/types/jwt-payload.type';
 
 @Controller('courses')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@Auth()
+@Roles('INSTRUCTOR')
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
 
   @Post()
-  @Roles('INSTRUCTOR')
-  create(@Req() req, @Body() createCourseDto: CreateCourseDto) {
-    console.log('DTO:', createCourseDto);
-    return this.coursesService.create(createCourseDto, req.user.id);
+  create(
+    @Req() req: AuthenticatedRequest,
+    @Body() createCourseDto: CreateCourseDto,
+  ) {
+    return this.coursesService.create(createCourseDto, req.user.sub);
   }
 
   @Get()
-  @Roles('INSTRUCTOR')
   findAll(
-    @Req() req,
+    @Req() req: AuthenticatedRequest,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
     return this.coursesService.findAllByCreator(
-      req.user.id,
+      req.user.sub,
       page ? parseInt(page, 10) : 1,
       limit ? parseInt(limit, 10) : 10,
     );
@@ -85,13 +84,12 @@ export class CoursesController {
   }
 
   @Patch(':id')
-  @Roles('INSTRUCTOR')
   update(
-    @Req() req,
+    @Req() req: AuthenticatedRequest,
     @Param('id') id: string,
     @Body() updateCourseDto: UpdateCourseDto,
   ) {
-    return this.coursesService.update(+id, updateCourseDto, req.user.id);
+    return this.coursesService.update(+id, updateCourseDto, req.user.sub);
   }
 
   @Patch(':id/status')

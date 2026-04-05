@@ -23,15 +23,10 @@ export class PreviewImportService {
    */
   async createPreviewSession(
     offeringId: string,
-    createdBy: number,
+    createdBy: string,
     dto: CreatePreviewSessionDto,
   ): Promise<PreviewSessionResponse> {
     const offeringBigInt = BigInt(offeringId);
-
-
-    console.log('DEBUG dto =', dto);
-  console.log('DEBUG dto.rows =', dto?.rows);
-  
 
     // Session expires in 1 hour
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
@@ -41,7 +36,7 @@ export class PreviewImportService {
       const newSession = await tx.import_preview_sessions.create({
         data: {
           course_offerings_id: offeringBigInt,
-          created_by: createdBy,
+          created_by: BigInt(createdBy),
           expires_at: expiresAt,
         },
       });
