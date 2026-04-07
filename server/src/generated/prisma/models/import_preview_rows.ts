@@ -28,10 +28,12 @@ export type AggregateImport_preview_rows = {
 
 export type Import_preview_rowsAvgAggregateOutputType = {
   row_index: number | null
+  facultyCode: number | null
 }
 
 export type Import_preview_rowsSumAggregateOutputType = {
   row_index: number | null
+  facultyCode: number | null
 }
 
 export type Import_preview_rowsMinAggregateOutputType = {
@@ -40,6 +42,7 @@ export type Import_preview_rowsMinAggregateOutputType = {
   row_index: number | null
   student_code: string | null
   email: string | null
+  facultyCode: number | null
   first_name: string | null
   last_name: string | null
   status: string | null
@@ -55,6 +58,7 @@ export type Import_preview_rowsMaxAggregateOutputType = {
   row_index: number | null
   student_code: string | null
   email: string | null
+  facultyCode: number | null
   first_name: string | null
   last_name: string | null
   status: string | null
@@ -70,6 +74,7 @@ export type Import_preview_rowsCountAggregateOutputType = {
   row_index: number
   student_code: number
   email: number
+  facultyCode: number
   first_name: number
   last_name: number
   status: number
@@ -83,10 +88,12 @@ export type Import_preview_rowsCountAggregateOutputType = {
 
 export type Import_preview_rowsAvgAggregateInputType = {
   row_index?: true
+  facultyCode?: true
 }
 
 export type Import_preview_rowsSumAggregateInputType = {
   row_index?: true
+  facultyCode?: true
 }
 
 export type Import_preview_rowsMinAggregateInputType = {
@@ -95,6 +102,7 @@ export type Import_preview_rowsMinAggregateInputType = {
   row_index?: true
   student_code?: true
   email?: true
+  facultyCode?: true
   first_name?: true
   last_name?: true
   status?: true
@@ -110,6 +118,7 @@ export type Import_preview_rowsMaxAggregateInputType = {
   row_index?: true
   student_code?: true
   email?: true
+  facultyCode?: true
   first_name?: true
   last_name?: true
   status?: true
@@ -125,6 +134,7 @@ export type Import_preview_rowsCountAggregateInputType = {
   row_index?: true
   student_code?: true
   email?: true
+  facultyCode?: true
   first_name?: true
   last_name?: true
   status?: true
@@ -227,8 +237,9 @@ export type Import_preview_rowsGroupByOutputType = {
   row_index: number
   student_code: string
   email: string
-  first_name: string
-  last_name: string
+  facultyCode: number | null
+  first_name: string | null
+  last_name: string | null
   status: string
   note: string | null
   is_deleted: boolean
@@ -265,8 +276,9 @@ export type import_preview_rowsWhereInput = {
   row_index?: Prisma.IntFilter<"import_preview_rows"> | number
   student_code?: Prisma.StringFilter<"import_preview_rows"> | string
   email?: Prisma.StringFilter<"import_preview_rows"> | string
-  first_name?: Prisma.StringFilter<"import_preview_rows"> | string
-  last_name?: Prisma.StringFilter<"import_preview_rows"> | string
+  facultyCode?: Prisma.IntNullableFilter<"import_preview_rows"> | number | null
+  first_name?: Prisma.StringNullableFilter<"import_preview_rows"> | string | null
+  last_name?: Prisma.StringNullableFilter<"import_preview_rows"> | string | null
   status?: Prisma.StringFilter<"import_preview_rows"> | string
   note?: Prisma.StringNullableFilter<"import_preview_rows"> | string | null
   is_deleted?: Prisma.BoolFilter<"import_preview_rows"> | boolean
@@ -281,8 +293,9 @@ export type import_preview_rowsOrderByWithRelationInput = {
   row_index?: Prisma.SortOrder
   student_code?: Prisma.SortOrder
   email?: Prisma.SortOrder
-  first_name?: Prisma.SortOrder
-  last_name?: Prisma.SortOrder
+  facultyCode?: Prisma.SortOrderInput | Prisma.SortOrder
+  first_name?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_name?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   note?: Prisma.SortOrderInput | Prisma.SortOrder
   is_deleted?: Prisma.SortOrder
@@ -301,8 +314,9 @@ export type import_preview_rowsWhereUniqueInput = Prisma.AtLeast<{
   row_index?: Prisma.IntFilter<"import_preview_rows"> | number
   student_code?: Prisma.StringFilter<"import_preview_rows"> | string
   email?: Prisma.StringFilter<"import_preview_rows"> | string
-  first_name?: Prisma.StringFilter<"import_preview_rows"> | string
-  last_name?: Prisma.StringFilter<"import_preview_rows"> | string
+  facultyCode?: Prisma.IntNullableFilter<"import_preview_rows"> | number | null
+  first_name?: Prisma.StringNullableFilter<"import_preview_rows"> | string | null
+  last_name?: Prisma.StringNullableFilter<"import_preview_rows"> | string | null
   status?: Prisma.StringFilter<"import_preview_rows"> | string
   note?: Prisma.StringNullableFilter<"import_preview_rows"> | string | null
   is_deleted?: Prisma.BoolFilter<"import_preview_rows"> | boolean
@@ -317,8 +331,9 @@ export type import_preview_rowsOrderByWithAggregationInput = {
   row_index?: Prisma.SortOrder
   student_code?: Prisma.SortOrder
   email?: Prisma.SortOrder
-  first_name?: Prisma.SortOrder
-  last_name?: Prisma.SortOrder
+  facultyCode?: Prisma.SortOrderInput | Prisma.SortOrder
+  first_name?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_name?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   note?: Prisma.SortOrderInput | Prisma.SortOrder
   is_deleted?: Prisma.SortOrder
@@ -340,8 +355,9 @@ export type import_preview_rowsScalarWhereWithAggregatesInput = {
   row_index?: Prisma.IntWithAggregatesFilter<"import_preview_rows"> | number
   student_code?: Prisma.StringWithAggregatesFilter<"import_preview_rows"> | string
   email?: Prisma.StringWithAggregatesFilter<"import_preview_rows"> | string
-  first_name?: Prisma.StringWithAggregatesFilter<"import_preview_rows"> | string
-  last_name?: Prisma.StringWithAggregatesFilter<"import_preview_rows"> | string
+  facultyCode?: Prisma.IntNullableWithAggregatesFilter<"import_preview_rows"> | number | null
+  first_name?: Prisma.StringNullableWithAggregatesFilter<"import_preview_rows"> | string | null
+  last_name?: Prisma.StringNullableWithAggregatesFilter<"import_preview_rows"> | string | null
   status?: Prisma.StringWithAggregatesFilter<"import_preview_rows"> | string
   note?: Prisma.StringNullableWithAggregatesFilter<"import_preview_rows"> | string | null
   is_deleted?: Prisma.BoolWithAggregatesFilter<"import_preview_rows"> | boolean
@@ -354,8 +370,9 @@ export type import_preview_rowsCreateInput = {
   row_index: number
   student_code: string
   email: string
-  first_name: string
-  last_name: string
+  facultyCode?: number | null
+  first_name?: string | null
+  last_name?: string | null
   status: string
   note?: string | null
   is_deleted?: boolean
@@ -370,8 +387,9 @@ export type import_preview_rowsUncheckedCreateInput = {
   row_index: number
   student_code: string
   email: string
-  first_name: string
-  last_name: string
+  facultyCode?: number | null
+  first_name?: string | null
+  last_name?: string | null
   status: string
   note?: string | null
   is_deleted?: boolean
@@ -384,8 +402,9 @@ export type import_preview_rowsUpdateInput = {
   row_index?: Prisma.IntFieldUpdateOperationsInput | number
   student_code?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  first_name?: Prisma.StringFieldUpdateOperationsInput | string
-  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  facultyCode?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  first_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -400,8 +419,9 @@ export type import_preview_rowsUncheckedUpdateInput = {
   row_index?: Prisma.IntFieldUpdateOperationsInput | number
   student_code?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  first_name?: Prisma.StringFieldUpdateOperationsInput | string
-  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  facultyCode?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  first_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -415,8 +435,9 @@ export type import_preview_rowsCreateManyInput = {
   row_index: number
   student_code: string
   email: string
-  first_name: string
-  last_name: string
+  facultyCode?: number | null
+  first_name?: string | null
+  last_name?: string | null
   status: string
   note?: string | null
   is_deleted?: boolean
@@ -429,8 +450,9 @@ export type import_preview_rowsUpdateManyMutationInput = {
   row_index?: Prisma.IntFieldUpdateOperationsInput | number
   student_code?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  first_name?: Prisma.StringFieldUpdateOperationsInput | string
-  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  facultyCode?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  first_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -444,8 +466,9 @@ export type import_preview_rowsUncheckedUpdateManyInput = {
   row_index?: Prisma.IntFieldUpdateOperationsInput | number
   student_code?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  first_name?: Prisma.StringFieldUpdateOperationsInput | string
-  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  facultyCode?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  first_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -474,6 +497,7 @@ export type import_preview_rowsCountOrderByAggregateInput = {
   row_index?: Prisma.SortOrder
   student_code?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  facultyCode?: Prisma.SortOrder
   first_name?: Prisma.SortOrder
   last_name?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -485,6 +509,7 @@ export type import_preview_rowsCountOrderByAggregateInput = {
 
 export type import_preview_rowsAvgOrderByAggregateInput = {
   row_index?: Prisma.SortOrder
+  facultyCode?: Prisma.SortOrder
 }
 
 export type import_preview_rowsMaxOrderByAggregateInput = {
@@ -493,6 +518,7 @@ export type import_preview_rowsMaxOrderByAggregateInput = {
   row_index?: Prisma.SortOrder
   student_code?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  facultyCode?: Prisma.SortOrder
   first_name?: Prisma.SortOrder
   last_name?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -508,6 +534,7 @@ export type import_preview_rowsMinOrderByAggregateInput = {
   row_index?: Prisma.SortOrder
   student_code?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  facultyCode?: Prisma.SortOrder
   first_name?: Prisma.SortOrder
   last_name?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -519,6 +546,7 @@ export type import_preview_rowsMinOrderByAggregateInput = {
 
 export type import_preview_rowsSumOrderByAggregateInput = {
   row_index?: Prisma.SortOrder
+  facultyCode?: Prisma.SortOrder
 }
 
 export type import_preview_rowsCreateNestedManyWithoutSessionInput = {
@@ -568,8 +596,9 @@ export type import_preview_rowsCreateWithoutSessionInput = {
   row_index: number
   student_code: string
   email: string
-  first_name: string
-  last_name: string
+  facultyCode?: number | null
+  first_name?: string | null
+  last_name?: string | null
   status: string
   note?: string | null
   is_deleted?: boolean
@@ -582,8 +611,9 @@ export type import_preview_rowsUncheckedCreateWithoutSessionInput = {
   row_index: number
   student_code: string
   email: string
-  first_name: string
-  last_name: string
+  facultyCode?: number | null
+  first_name?: string | null
+  last_name?: string | null
   status: string
   note?: string | null
   is_deleted?: boolean
@@ -626,8 +656,9 @@ export type import_preview_rowsScalarWhereInput = {
   row_index?: Prisma.IntFilter<"import_preview_rows"> | number
   student_code?: Prisma.StringFilter<"import_preview_rows"> | string
   email?: Prisma.StringFilter<"import_preview_rows"> | string
-  first_name?: Prisma.StringFilter<"import_preview_rows"> | string
-  last_name?: Prisma.StringFilter<"import_preview_rows"> | string
+  facultyCode?: Prisma.IntNullableFilter<"import_preview_rows"> | number | null
+  first_name?: Prisma.StringNullableFilter<"import_preview_rows"> | string | null
+  last_name?: Prisma.StringNullableFilter<"import_preview_rows"> | string | null
   status?: Prisma.StringFilter<"import_preview_rows"> | string
   note?: Prisma.StringNullableFilter<"import_preview_rows"> | string | null
   is_deleted?: Prisma.BoolFilter<"import_preview_rows"> | boolean
@@ -640,8 +671,9 @@ export type import_preview_rowsCreateManySessionInput = {
   row_index: number
   student_code: string
   email: string
-  first_name: string
-  last_name: string
+  facultyCode?: number | null
+  first_name?: string | null
+  last_name?: string | null
   status: string
   note?: string | null
   is_deleted?: boolean
@@ -654,8 +686,9 @@ export type import_preview_rowsUpdateWithoutSessionInput = {
   row_index?: Prisma.IntFieldUpdateOperationsInput | number
   student_code?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  first_name?: Prisma.StringFieldUpdateOperationsInput | string
-  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  facultyCode?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  first_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -668,8 +701,9 @@ export type import_preview_rowsUncheckedUpdateWithoutSessionInput = {
   row_index?: Prisma.IntFieldUpdateOperationsInput | number
   student_code?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  first_name?: Prisma.StringFieldUpdateOperationsInput | string
-  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  facultyCode?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  first_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -682,8 +716,9 @@ export type import_preview_rowsUncheckedUpdateManyWithoutSessionInput = {
   row_index?: Prisma.IntFieldUpdateOperationsInput | number
   student_code?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  first_name?: Prisma.StringFieldUpdateOperationsInput | string
-  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  facultyCode?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  first_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -699,6 +734,7 @@ export type import_preview_rowsSelect<ExtArgs extends runtime.Types.Extensions.I
   row_index?: boolean
   student_code?: boolean
   email?: boolean
+  facultyCode?: boolean
   first_name?: boolean
   last_name?: boolean
   status?: boolean
@@ -715,6 +751,7 @@ export type import_preview_rowsSelectCreateManyAndReturn<ExtArgs extends runtime
   row_index?: boolean
   student_code?: boolean
   email?: boolean
+  facultyCode?: boolean
   first_name?: boolean
   last_name?: boolean
   status?: boolean
@@ -731,6 +768,7 @@ export type import_preview_rowsSelectUpdateManyAndReturn<ExtArgs extends runtime
   row_index?: boolean
   student_code?: boolean
   email?: boolean
+  facultyCode?: boolean
   first_name?: boolean
   last_name?: boolean
   status?: boolean
@@ -747,6 +785,7 @@ export type import_preview_rowsSelectScalar = {
   row_index?: boolean
   student_code?: boolean
   email?: boolean
+  facultyCode?: boolean
   first_name?: boolean
   last_name?: boolean
   status?: boolean
@@ -756,7 +795,7 @@ export type import_preview_rowsSelectScalar = {
   updated_at?: boolean
 }
 
-export type import_preview_rowsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "session_id" | "row_index" | "student_code" | "email" | "first_name" | "last_name" | "status" | "note" | "is_deleted" | "created_at" | "updated_at", ExtArgs["result"]["import_preview_rows"]>
+export type import_preview_rowsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "session_id" | "row_index" | "student_code" | "email" | "facultyCode" | "first_name" | "last_name" | "status" | "note" | "is_deleted" | "created_at" | "updated_at", ExtArgs["result"]["import_preview_rows"]>
 export type import_preview_rowsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   session?: boolean | Prisma.import_preview_sessionsDefaultArgs<ExtArgs>
 }
@@ -778,8 +817,9 @@ export type $import_preview_rowsPayload<ExtArgs extends runtime.Types.Extensions
     row_index: number
     student_code: string
     email: string
-    first_name: string
-    last_name: string
+    facultyCode: number | null
+    first_name: string | null
+    last_name: string | null
     status: string
     note: string | null
     is_deleted: boolean
@@ -1214,6 +1254,7 @@ export interface import_preview_rowsFieldRefs {
   readonly row_index: Prisma.FieldRef<"import_preview_rows", 'Int'>
   readonly student_code: Prisma.FieldRef<"import_preview_rows", 'String'>
   readonly email: Prisma.FieldRef<"import_preview_rows", 'String'>
+  readonly facultyCode: Prisma.FieldRef<"import_preview_rows", 'Int'>
   readonly first_name: Prisma.FieldRef<"import_preview_rows", 'String'>
   readonly last_name: Prisma.FieldRef<"import_preview_rows", 'String'>
   readonly status: Prisma.FieldRef<"import_preview_rows", 'String'>

@@ -285,6 +285,7 @@ export const Import_preview_rowsScalarFieldEnum = {
   row_index: 'row_index',
   student_code: 'student_code',
   email: 'email',
+  facultyCode: 'facultyCode',
   first_name: 'first_name',
   last_name: 'last_name',
   status: 'status',

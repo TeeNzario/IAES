@@ -4,6 +4,7 @@ import { useState, useRef, DragEvent, ChangeEvent } from "react";
 import { Edit2, Trash2, Loader2, Save, X } from "lucide-react";
 import Papa from "papaparse";
 import { apiFetch } from "@/lib/api";
+import { FACULTY_MAP, getFacultyName } from "@/lib/faculty-map";
 
 // Row data from preview session
 interface PreviewRow {
@@ -11,6 +12,7 @@ interface PreviewRow {
   row_index: number;
   student_code: string;
   email: string;
+  facultyCode: number;
   first_name: string;
   last_name: string;
   status:
@@ -92,6 +94,7 @@ export default function BulkUploadModal({
   const [editForm, setEditForm] = useState({
     student_code: "",
     email: "",
+    facultyCode: 1,
     first_name: "",
     last_name: "",
   });
@@ -109,6 +112,10 @@ export default function BulkUploadModal({
       MISSING: "ข้อมูลไม่ครบ",
     };
     return statusMap[status];
+  };
+
+  const willBeSkipped = (status: PreviewRow["status"]) => {
+    return ["ALREADY_ENROLLED", "MISSING", "DUPLICATE_IDENTITY"].includes(status);
   };
 
   const getStatusColor = (status: PreviewRow["status"]) => {
@@ -174,21 +181,23 @@ export default function BulkUploadModal({
           // Parse CSV rows
           const parsedRows = results.data.map((row: any) => ({
             student_code: (
+              row.studentCode ||
               row.student_code ||
               row.studentId ||
               row.รหัสนักศึกษา ||
               ""
             ).trim(),
             email: (row.email || row.อีเมล || "").trim(),
+            facultyCode: row.facultyCode ? Number(row.facultyCode) : (row.คณะ ? Number(row.คณะ) : undefined),
             first_name: (
-              row.first_name ||
               row.firstName ||
+              row.first_name ||
               row.ชื่อ ||
               ""
             ).trim(),
             last_name: (
-              row.last_name ||
               row.lastName ||
+              row.last_name ||
               row.นามสกุล ||
               ""
             ).trim(),
@@ -230,6 +239,7 @@ export default function BulkUploadModal({
     setEditForm({
       student_code: row.student_code,
       email: row.email,
+      facultyCode: row.facultyCode ?? 1,
       first_name: row.first_name,
       last_name: row.last_name,
     });
@@ -486,6 +496,7 @@ export default function BulkUploadModal({
                       <th className="py-3 px-4 text-left font-light text-sm">ชื่อ</th>
                       <th className="py-3 px-4 text-left font-light text-sm">นามสกุล</th>
                       <th className="py-3 px-4 text-left font-light text-sm">อีเมล</th>
+                      <th className="py-3 px-4 text-left font-light text-sm">คณะ</th>
                       <th className="py-3 px-4 text-left font-light text-sm">สถานะ</th>
                       <th className="py-3 px-4 text-left font-light text-sm">หมายเหตุ</th>
                       <th className="py-3 px-4 text-center font-light text-sm rounded-tr-lg w-24">
@@ -497,7 +508,13 @@ export default function BulkUploadModal({
                     {filteredRows.map((row, index) => (
                       <tr
                         key={row.id}
-                        className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
+                        className={
+                          willBeSkipped(row.status)
+                            ? "bg-red-50"
+                            : index % 2 === 0
+                            ? "bg-gray-50"
+                            : "bg-white"
+                        }
                       >
                         {editingRowIndex === row.row_index ? (
                           // Edit mode
@@ -554,6 +571,24 @@ export default function BulkUploadModal({
                                 className="w-full px-2 py-1 border rounded text-sm"
                               />
                             </td>
+                            <td className="py-2 px-4">
+                              <select
+                                value={editForm.facultyCode}
+                                onChange={(e) =>
+                                  setEditForm((f) => ({
+                                    ...f,
+                                    facultyCode: Number(e.target.value),
+                                  }))
+                                }
+                                className="w-full px-2 py-1 border rounded text-sm"
+                              >
+                                {Object.entries(FACULTY_MAP).map(([code, name]) => (
+                                  <option key={code} value={code}>
+                                    {name}
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
                             <td className="py-2 px-4 text-gray-400 text-sm italic">
                               (บันทึกเพื่อตรวจสอบ)
                             </td>
@@ -590,6 +625,9 @@ export default function BulkUploadModal({
                             </td>
                             <td className="py-3 px-4 text-gray-700 text-sm">
                               {row.email || "-"}
+                            </td>
+                            <td className="py-3 px-4 text-gray-700 text-sm">
+                              {row.facultyCode != null ? getFacultyName(row.facultyCode) : "-"}
                             </td>
                             <td className="py-3 px-4">
                               <span

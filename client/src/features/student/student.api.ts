@@ -54,6 +54,27 @@ export const getUserById = async (id: string): Promise<User> => {
   }
 };
 
+export interface CreateStudentPayload {
+  student_code: string;
+  email: string;
+  password?: string;
+  facultyCode: number;
+  first_name: string;
+  last_name: string;
+}
+
+export const createStudent = async (
+  payload: CreateStudentPayload,
+): Promise<any> => {
+  try {
+    const response = await api.post(`/students`, payload);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating student:", error);
+    throw error;
+  }
+};
+
 // Create new user
 export const createUser = async (userData: Omit<User, "id">): Promise<User> => {
   try {
@@ -70,6 +91,7 @@ export interface UpdateUserPayload {
   first_name?: string;
   last_name?: string;
   is_active?: boolean;
+  facultyCode?: number;
 }
 
 export const updateUser = async (

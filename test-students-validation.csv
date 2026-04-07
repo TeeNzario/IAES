@@ -1,0 +1,11 @@
+student_code,email,facultyCode,first_name,last_name
+6501000001,somchai@email.com,1,สมชาย,ใจดี
+,suda@email.com,2,สุภา,รักเรียน
+6501000003,invalid-email,1,prasert,เก่งกาจ
+6501000004,nattaya@email.com,SCI,ณัฐยา,สุขใจ
+6501000005,,1,wichai,มุ่งมั่น
+6501000001,somchai2@email.com,2,somchai,duplicate-code
+6501000007,porn@email.com,,พร,เรียนดี
+6501000008,kittisak@email.com,3,กิตติศักดิ์,ประเสริฐ
+6501000009,manee@email.com,2,,วงศ์งาม
+6501000010,suda@email.com,3,suda,duplicate-email

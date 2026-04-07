@@ -1,7 +1,7 @@
 import {
   IsArray,
   IsEmail,
-  IsNotEmpty,
+  IsInt,
   IsOptional,
   IsString,
   ValidateNested,
@@ -9,19 +9,27 @@ import {
 import { Type } from 'class-transformer';
 
 // DTO for a single preview row from CSV
+// All fields are optional — validation happens in service-level row validation
+// so that invalid rows are flagged as MISSING instead of rejecting the entire request.
 export class PreviewRowDto {
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  student_code: string;
+  student_code?: string;
 
-  @IsEmail()
-  email: string;
-
+  @IsOptional()
   @IsString()
-  first_name: string;
+  email?: string;
 
+  @IsOptional()
+  facultyCode?: number | string;
+
+  @IsOptional()
   @IsString()
-  last_name: string;
+  first_name?: string;
+
+  @IsOptional()
+  @IsString()
+  last_name?: string;
 }
 
 // DTO for creating a preview session
@@ -41,6 +49,10 @@ export class EditPreviewRowDto {
   @IsEmail()
   @IsOptional()
   email?: string;
+
+  @IsOptional()
+  @IsInt()
+  facultyCode?: number;
 
   @IsString()
   @IsOptional()
@@ -64,6 +76,7 @@ export interface PreviewRowResponse {
   row_index: number;
   student_code: string;
   email: string;
+  facultyCode: number;
   first_name: string;
   last_name: string;
   status: PreviewRowStatus;

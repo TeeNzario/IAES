@@ -44,13 +44,20 @@ export class PreviewImportService {
       // Validate and create rows
       const rowsData = await Promise.all(
         dto.rows.map(async (row, index) => {
+          const facultyCodeNum = (() => {
+            if (row.facultyCode == null || row.facultyCode === '') return undefined;
+            const n = Number(row.facultyCode);
+            return Number.isInteger(n) ? n : undefined;
+          })();
+
           const { status, note } = await this.validateRow(
             tx,
             offeringBigInt,
-            row.student_code,
-            row.email,
-            row.first_name,
-            row.last_name,
+            row.student_code ?? '',
+            row.email ?? '',
+            facultyCodeNum,
+            row.first_name ?? '',
+            row.last_name ?? '',
           );
 
           return {
@@ -58,6 +65,7 @@ export class PreviewImportService {
             row_index: index,
             student_code: row.student_code || '',
             email: row.email || '',
+            facultyCode: facultyCodeNum,
             first_name: row.first_name || '',
             last_name: row.last_name || '',
             status,
@@ -112,8 +120,9 @@ export class PreviewImportService {
     const updatedData = {
       student_code: dto.student_code ?? row.student_code,
       email: dto.email ?? row.email,
-      first_name: dto.first_name ?? row.first_name,
-      last_name: dto.last_name ?? row.last_name,
+      facultyCode: dto.facultyCode ?? row.facultyCode,
+      first_name: dto.first_name ?? row.first_name ?? '',
+      last_name: dto.last_name ?? row.last_name ?? '',
     };
 
     // Revalidate with new data
@@ -122,6 +131,7 @@ export class PreviewImportService {
       offeringBigInt,
       updatedData.student_code,
       updatedData.email,
+      updatedData.facultyCode ?? undefined,
       updatedData.first_name,
       updatedData.last_name,
     );
@@ -239,16 +249,17 @@ export class PreviewImportService {
             where: { student_code: row.student_code },
             update: {
               email: row.email,
-              first_name: row.first_name,
-              last_name: row.last_name,
+              ...(row.first_name != null && { first_name: row.first_name }),
+              ...(row.last_name != null && { last_name: row.last_name }),
+              ...(row.facultyCode != null && { facultyCode: row.facultyCode }),
             },
             create: {
               student_code: row.student_code,
               email: row.email,
               password_hash: '12345678', // Placeholder
-              facultyCode: 1,
-              first_name: row.first_name,
-              last_name: row.last_name,
+              facultyCode: row.facultyCode ?? 0,
+              first_name: row.first_name ?? '',
+              last_name: row.last_name ?? '',
             },
           });
 
@@ -313,12 +324,23 @@ export class PreviewImportService {
     offeringId: bigint,
     studentCode: string,
     email: string,
+    facultyCode: number | string | undefined,
     firstName: string,
     lastName: string,
   ): Promise<{ status: PreviewRowStatus; note?: string }> {
     // 1. Check required fields
     if (!studentCode || !email || !firstName || !lastName) {
       return { status: 'MISSING', note: 'Required fields missing' };
+    }
+
+    // 1b. Validate email format
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return { status: 'MISSING', note: 'Email format invalid' };
+    }
+
+    // 2. Check required facultyCode
+    if (facultyCode == null || isNaN(Number(facultyCode)) || !Number.isInteger(Number(facultyCode))) {
+      return { status: 'MISSING', note: 'facultyCode is required and must be a valid integer' };
     }
 
     // 2. Check if already enrolled in this offering
@@ -452,6 +474,7 @@ export class PreviewImportService {
       row_index: row.row_index,
       student_code: row.student_code,
       email: row.email,
+      facultyCode: row.facultyCode,
       first_name: row.first_name,
       last_name: row.last_name,
       status: row.status as PreviewRowStatus,
