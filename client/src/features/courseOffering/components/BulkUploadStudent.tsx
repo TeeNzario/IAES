@@ -64,13 +64,7 @@ interface BulkUploadModalProps {
   onSuccess?: () => void;
 }
 
-type FilterStatus =
-  | "all"
-  | "NEW"
-  | "EXISTS_NOT_ENROLLED"
-  | "ALREADY_ENROLLED"
-  | "DUPLICATE_IDENTITY"
-  | "MISSING";
+type FilterStatus = "all" | "new" | "enrolled" | "error";
 
 export default function BulkUploadModal({
   isOpen,
@@ -118,15 +112,16 @@ export default function BulkUploadModal({
     return ["ALREADY_ENROLLED", "MISSING", "DUPLICATE_IDENTITY"].includes(status);
   };
 
+  const getRowCategory = (status: PreviewRow["status"]): FilterStatus => {
+    if (status === "NEW" || status === "EXISTS_NOT_ENROLLED") return "new";
+    if (status === "ALREADY_ENROLLED") return "enrolled";
+    return "error";
+  };
+
   const getStatusColor = (status: PreviewRow["status"]) => {
-    const colorMap = {
-      NEW: "text-[#484848]",
-      EXISTS_NOT_ENROLLED: "text-[#484848]",
-      ALREADY_ENROLLED: "text-[#484848]",
-      DUPLICATE_IDENTITY: "text-[#484848]",
-      MISSING: "text-[#484848]",
-    };
-    return colorMap[status];
+    if (status === "ALREADY_ENROLLED") return "bg-[#F1EFFF] text-[#9264F5]";
+    if (status === "MISSING" || status === "DUPLICATE_IDENTITY") return "bg-red-50 text-red-600";
+    return "bg-gray-50 text-[#484848]";
   };
 
   const handleDragEnter = (e: DragEvent<HTMLDivElement>) => {
@@ -329,17 +324,20 @@ export default function BulkUploadModal({
   };
 
   const filteredRows = rows.filter((row) => {
+    const cat = getRowCategory(row.status);
     if (filterStatus === "all") return true;
-    return row.status === filterStatus;
+    return cat === filterStatus;
   });
 
   const getStatusCount = (status: FilterStatus) => {
     if (status === "all") return rows.length;
-    return rows.filter((r) => r.status === status).length;
+    if (status === "new") return rows.filter((r) => r.status === "NEW" || r.status === "EXISTS_NOT_ENROLLED").length;
+    if (status === "enrolled") return rows.filter((r) => r.status === "ALREADY_ENROLLED").length;
+    return rows.filter((r) => r.status === "MISSING" || r.status === "DUPLICATE_IDENTITY").length;
   };
 
   const enrollableCount = rows.filter(
-    (r) => r.status !== "ALREADY_ENROLLED" && r.status !== "MISSING",
+    (r) => r.status !== "ALREADY_ENROLLED" && r.status !== "MISSING" && r.status !== "DUPLICATE_IDENTITY",
   ).length;
 
   return (
@@ -432,54 +430,34 @@ export default function BulkUploadModal({
                   ทั้งหมด ({getStatusCount("all")})
                 </button>
                 <button
-                  onClick={() => setFilterStatus("NEW")}
+                  onClick={() => setFilterStatus("new")}
                   className={`px-3 py-1.5 rounded-lg border-2 text-sm transition-colors cursor-pointer ${
-                    filterStatus === "NEW"
-                      ? "border-[#B7A3E3] text-[#B7A3E3]"
-                      : "border-gray-300 text-gray-600 hover:border-[#B7A3E3]"
-                  }`}
-                >
-                  ใหม่ ({getStatusCount("NEW")})
-                </button>
-                <button
-                  onClick={() => setFilterStatus("EXISTS_NOT_ENROLLED")}
-                  className={`px-3 py-1.5 rounded-lg border-2 text-sm transition-colors cursor-pointer ${
-                    filterStatus === "EXISTS_NOT_ENROLLED"
+                    filterStatus === "new"
                       ? "border-[#B7A3E3] bg-white text-[#B7A3E3]"
                       : "border-gray-300 text-gray-600 hover:border-[#B7A3E3]"
                   }`}
                 >
-                  มีในระบบ ({getStatusCount("EXISTS_NOT_ENROLLED")})
+                  ใหม่ ({getStatusCount("new")})
                 </button>
                 <button
-                  onClick={() => setFilterStatus("ALREADY_ENROLLED")}
+                  onClick={() => setFilterStatus("enrolled")}
                   className={`px-3 py-1.5 rounded-lg border-2 text-sm transition-colors cursor-pointer ${
-                    filterStatus === "ALREADY_ENROLLED"
-                      ? "border-[#B7A3E3] bg-white text-[#B7A3E3]"
+                    filterStatus === "enrolled"
+                      ? "border-purple-400 bg-[#F1EFFF] text-[#9264F5]"
                       : "border-gray-300 text-gray-600 hover:border-[#B7A3E3]"
                   }`}
                 >
-                  ลงทะเบียนแล้ว ({getStatusCount("ALREADY_ENROLLED")})
+                  ลงทะเบียนแล้ว ({getStatusCount("enrolled")})
                 </button>
                 <button
-                  onClick={() => setFilterStatus("DUPLICATE_IDENTITY")}
+                  onClick={() => setFilterStatus("error")}
                   className={`px-3 py-1.5 rounded-lg border-2 text-sm transition-colors cursor-pointer ${
-                    filterStatus === "DUPLICATE_IDENTITY"
-                      ? "border-[#B7A3E3] bg-white text-[#B7A3E3]"
+                    filterStatus === "error"
+                      ? "border-red-400 bg-red-50 text-red-600"
                       : "border-gray-300 text-gray-600 hover:border-[#B7A3E3]"
                   }`}
                 >
-                  ข้อมูลซ้ำ ({getStatusCount("DUPLICATE_IDENTITY")})
-                </button>
-                <button
-                  onClick={() => setFilterStatus("MISSING")}
-                  className={`px-3 py-1.5 rounded-lg border-2 text-sm transition-colors cursor-pointer ${
-                    filterStatus === "MISSING"
-                      ? "border-[#B7A3E3] bg-white text-[#B7A3E3]"
-                      : "border-gray-300 text-gray-600 hover:border-[#B7A3E3]"
-                  }`}
-                >
-                  ไม่ครบ ({getStatusCount("MISSING")})
+                  ผิดพลาด ({getStatusCount("error")})
                 </button>
               </div>
             </div>
@@ -509,8 +487,10 @@ export default function BulkUploadModal({
                       <tr
                         key={row.id}
                         className={
-                          willBeSkipped(row.status)
+                          willBeSkipped(row.status) && row.status !== "ALREADY_ENROLLED"
                             ? "bg-red-50"
+                            : row.status === "ALREADY_ENROLLED"
+                            ? "bg-gray-200"
                             : index % 2 === 0
                             ? "bg-gray-50"
                             : "bg-white"
