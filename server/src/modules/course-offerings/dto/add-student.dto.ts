@@ -1,5 +1,5 @@
 // dto/add-student.dto.ts
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsInt, IsNotEmpty, IsString } from 'class-validator';
 
 export class AddStudentDto {
   @IsString()
@@ -8,6 +8,10 @@ export class AddStudentDto {
 
   @IsEmail()
   email: string;
+
+  @IsInt()
+  @IsNotEmpty()
+  facultyCode: number;
 
   @IsString()
   first_name: string;

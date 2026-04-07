@@ -240,7 +240,7 @@ export class CourseOfferingsService {
           student_code: dto.student_code,
           email: dto.email,
           password_hash: '12345678', // 🔒 replace later with invite flow
-          facultyCode: 1,
+          facultyCode: dto.facultyCode,
           first_name: dto.first_name,
           last_name: dto.last_name,
         },
@@ -388,7 +388,7 @@ export class CourseOfferingsService {
           student_code: row.student_code,
           email: row.email,
           password_hash: '12345678', // Placeholder for invite flow
-          facultyCode: 1,
+          facultyCode: row.facultyCode,
           first_name: row.first_name,
           last_name: row.last_name,
         },

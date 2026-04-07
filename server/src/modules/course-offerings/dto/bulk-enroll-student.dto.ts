@@ -2,6 +2,7 @@ import {
   IsArray,
   IsBoolean,
   IsEmail,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -16,6 +17,10 @@ export class BulkEnrollStudentRowDto {
 
   @IsEmail()
   email: string;
+
+  @IsInt()
+  @IsNotEmpty()
+  facultyCode: number;
 
   @IsString()
   first_name: string;

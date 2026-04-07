@@ -247,8 +247,9 @@ model import_preview_rows {
   row_index    Int // 0-indexed row from CSV
   student_code String
   email        String
-  first_name   String
-  last_name    String
+  facultyCode  Int?
+  first_name   String?
+  last_name    String?
   status       String // NEW, EXISTS_NOT_ENROLLED, ALREADY_ENROLLED, DUPLICATE_IDENTITY, MISSING
   note         String?
   is_deleted   Boolean  @default(false)

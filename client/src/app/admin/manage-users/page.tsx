@@ -2,13 +2,14 @@
 "use client";
 
 import NavBar from "@/components/layout/NavBar";
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, ChevronLeft, ChevronRight, Plus, Loader2, ChevronDown } from "lucide-react";
 import { FACULTY_MAP, getFacultyName } from "@/lib/faculty-map";
 import {
   getUsers,
   updateUser as apiUpdateUser,
   checkStudentCodeExists,
+  createStudent as apiCreateStudent,
 } from "@/features/student/student.api";
 import {
   getStaffs,
@@ -134,6 +135,16 @@ export default function ManageUserPage() {
   const [createLastName, setCreateLastName] = useState("");
   const [createErrors, setCreateErrors] = useState<FormErrors>({});
   const [isCreating, setIsCreating] = useState(false);
+
+  // Create student modal states
+  const [showCreateStudentModal, setShowCreateStudentModal] = useState(false);
+  const [studentCode, setStudentCode] = useState("");
+  const [studentEmail, setStudentEmail] = useState("");
+  const [studentFirstName, setStudentFirstName] = useState("");
+  const [studentLastName, setStudentLastName] = useState("");
+  const [studentFacultyCode, setStudentFacultyCode] = useState<number>(1);
+  const [studentErrors, setStudentErrors] = useState<FormErrors & { student_code?: string; facultyCode?: string }>({});
+  const [isCreatingStudent, setIsCreatingStudent] = useState(false);
 
   // Fetch current user on mount
   useEffect(() => {
@@ -417,6 +428,94 @@ export default function ManageUserPage() {
     }
   }
 
+  // ============================================================
+  // CREATE STUDENT MODAL FUNCTIONS
+  // ============================================================
+  function openCreateStudentModal() {
+    setStudentCode("");
+    setStudentEmail("");
+    setStudentFirstName("");
+    setStudentLastName("");
+    setStudentFacultyCode(1);
+    setStudentErrors({});
+    setShowCreateStudentModal(true);
+  }
+
+  async function validateCreateStudentForm(): Promise<boolean> {
+    const errors: FormErrors & { student_code?: string; facultyCode?: string } =
+      {};
+
+    if (!studentCode.trim()) {
+      errors.student_code = "กรุณาระบุรหัสนักศึกษา";
+    }
+
+    if (!createFirstName.trim()) {
+      errors.first_name = ERROR_MESSAGES.firstName.required;
+    } else if (createFirstName.length > USER_VALIDATION_CONFIG.firstName.max) {
+      errors.first_name = ERROR_MESSAGES.firstName.maxLength;
+    }
+
+    if (!createLastName.trim()) {
+      errors.last_name = ERROR_MESSAGES.lastName.required;
+    } else if (createLastName.length > USER_VALIDATION_CONFIG.lastName.max) {
+      errors.last_name = ERROR_MESSAGES.lastName.maxLength;
+    }
+
+    if (!studentEmail.trim()) {
+      errors.email = ERROR_MESSAGES.email.required;
+    } else if (studentEmail.length > USER_VALIDATION_CONFIG.email.max) {
+      errors.email = ERROR_MESSAGES.email.maxLength;
+    } else if (!EMAIL_REGEX.test(studentEmail)) {
+      errors.email = ERROR_MESSAGES.email.invalid;
+    }
+
+    setStudentErrors(errors);
+
+    if (Object.keys(errors).length === 0) {
+      const codeExists = await checkStudentCodeExists(studentCode);
+      if (codeExists) {
+        setStudentErrors({ student_code: "รหัสนักศึกษานี้ถูกใช้งานแล้ว" });
+        return false;
+      }
+    }
+
+    return Object.keys(errors).length === 0;
+  }
+
+  async function handleCreateStudent() {
+    const isValid = await validateCreateStudentForm();
+    if (!isValid) return;
+
+    setIsCreatingStudent(true);
+
+    try {
+      await apiCreateStudent({
+        student_code: studentCode,
+        email: studentEmail,
+        facultyCode: studentFacultyCode,
+        first_name: studentFirstName,
+        last_name: studentLastName,
+        password: studentCode,
+      });
+
+      setRoleFilter("STUDENT");
+      setShowCreateStudentModal(false);
+
+      // Re-fetch
+      const res = await getUsers({ role: "" });
+      const data = Array.isArray(res) ? res : (res?.data ?? []);
+      setUsers(data.map(mapStudentToUser));
+    } catch (error: any) {
+      if (error?.response?.status === 409) {
+        setStudentErrors({ student_code: "รหัสนักศึกษานี้ถูกใช้งานแล้ว" });
+      } else {
+        console.error("Error creating student:", error);
+      }
+    } finally {
+      setIsCreatingStudent(false);
+    }
+  }
+
   return (
     <NavBar>
       <div className="p-4 sm:p-8 bg-gray-50 min-h-screen w-full">
@@ -471,6 +570,17 @@ export default function ManageUserPage() {
             >
               ผู้ดูแลระบบ
             </button>
+
+            {/* Add button for STUDENT */}
+            {roleFilter === "STUDENT" && (
+              <button
+                onClick={openCreateStudentModal}
+                className="p-2 bg-[#7C3AED] text-white rounded-full hover:bg-[#6D28D9] transition-colors"
+                title="เพิ่มนักเรียน"
+              >
+                <Plus size={20} />
+              </button>
+            )}
 
             {/* Add button for staff sections */}
             {(roleFilter === "INSTRUCTOR" ||
@@ -802,6 +912,167 @@ export default function ManageUserPage() {
                 >
                   {isSaving && <Loader2 size={18} className="animate-spin" />}
                   บันทึก
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Create Staff Modal */}
+        {/* Create Student Modal */}
+        {showCreateStudentModal && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+              <h2 className="text-xl font-bold text-gray-800 mb-6">
+                เพิ่มนักเรียน
+              </h2>
+
+              {/* Student Code Field */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-black mb-2">
+                  รหัสนักศึกษา
+                </label>
+                <input
+                  type="text"
+                  value={studentCode}
+                  onChange={(e) => {
+                    setStudentCode(e.target.value);
+                    if (studentErrors.student_code)
+                      setStudentErrors((p) => ({ ...p, student_code: undefined }));
+                  }}
+                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${
+                    studentErrors.student_code
+                      ? "border-red-500"
+                      : "border-[#9264F5] focus:border-[#B7A3E3]"
+                  }`}
+                />
+                {studentErrors.student_code && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {studentErrors.student_code}
+                  </p>
+                )}
+              </div>
+
+              {/* First Name Field */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-black mb-2">
+                  ชื่อ
+                </label>
+                <input
+                  type="text"
+                  value={studentFirstName}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^A-Za-zก-๙\s]/g, "");
+                    setStudentFirstName(value);
+                    if (studentErrors.first_name)
+                      setStudentErrors((p) => ({ ...p, first_name: undefined }));
+                  }}
+                  maxLength={USER_VALIDATION_CONFIG.firstName.max}
+                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${
+                    studentErrors.first_name
+                      ? "border-red-500"
+                      : "border-[#9264F5] focus:border-[#B7A3E3]"
+                  }`}
+                />
+                {studentErrors.first_name && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {studentErrors.first_name}
+                  </p>
+                )}
+              </div>
+
+              {/* Last Name Field */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-black mb-2">
+                  นามสกุล
+                </label>
+                <input
+                  type="text"
+                  value={studentLastName}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^A-Za-zก-๙\s]/g, "");
+                    setStudentLastName(value);
+                    if (studentErrors.last_name)
+                      setStudentErrors((p) => ({ ...p, last_name: undefined }));
+                  }}
+                  maxLength={USER_VALIDATION_CONFIG.lastName.max}
+                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${
+                    studentErrors.last_name
+                      ? "border-red-500"
+                      : "border-[#9264F5] focus:border-[#B7A3E3]"
+                  }`}
+                />
+                {studentErrors.last_name && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {studentErrors.last_name}
+                  </p>
+                )}
+              </div>
+
+              {/* Faculty Dropdown */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-black mb-2">
+                  คณะ <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={studentFacultyCode}
+                    onChange={(e) => setStudentFacultyCode(Number(e.target.value))}
+                    className="w-full px-4 py-3 border-2 border-[#9264F5] rounded-2xl focus:outline-none focus:border-[#B7A3E3] transition-colors text-black appearance-none bg-white"
+                  >
+                    {Object.entries(FACULTY_MAP).map(([code, name]) => (
+                      <option key={code} value={code}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                </div>
+              </div>
+
+              {/* Email Field */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-black mb-2">
+                  อีเมล
+                </label>
+                <input
+                  type="email"
+                  value={studentEmail}
+                  onChange={(e) => {
+                    setStudentEmail(e.target.value);
+                    if (studentErrors.email)
+                      setStudentErrors((p) => ({ ...p, email: undefined }));
+                  }}
+                  maxLength={USER_VALIDATION_CONFIG.email.max}
+                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${
+                    studentErrors.email
+                      ? "border-red-500"
+                      : "border-[#9264F5] focus:border-[#B7A3E3]"
+                  }`}
+                />
+                {studentErrors.email && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {studentErrors.email}
+                  </p>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowCreateStudentModal(false)}
+                  disabled={isCreatingStudent}
+                  className="flex-1 px-6 py-3 rounded-2xl font-medium border-2 border-gray-300 text-black hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  onClick={handleCreateStudent}
+                  disabled={isCreatingStudent}
+                  className="flex-1 px-6 py-3 rounded-2xl font-medium bg-[#7C3AED] text-white hover:bg-[#6D28D9] transition-colors shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isCreatingStudent && <Loader2 size={18} className="animate-spin" />}
+                  สร้าง
                 </button>
               </div>
             </div>

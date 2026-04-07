@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Navbar from "@/components/layout/NavBar";
 import { useRouter } from "next/navigation";
-import { UserPlus, Upload } from "lucide-react";
+import { UserPlus, Upload, ChevronDown } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { useParams } from "next/navigation";
 import { Student } from "@/types/student";
@@ -11,6 +11,7 @@ import { CourseOffering } from "@/types/course";
 import { formatInstructorName } from "@/utils/formatName";
 import BulkUploadModal from "@/features/courseOffering/components/BulkUploadStudent";
 import { AuthUser } from "@/types/auth";
+import { FACULTY_MAP } from "@/lib/faculty-map";
 
 // ============================================================
 // CONFIGURATION CONSTANTS — Adjust limits here
@@ -77,6 +78,7 @@ export default function SimpleShowUsers() {
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [addFacultyCode, setAddFacultyCode] = useState<number>(1);
 
   // Validation errors state
   const [errors, setErrors] = useState<FormErrors>({});
@@ -313,6 +315,7 @@ export default function SimpleShowUsers() {
     setEmail("");
     setFirstName("");
     setLastName("");
+    setAddFacultyCode(1);
     setErrors({}); // Clear errors when closing modal
   };
 
@@ -332,6 +335,7 @@ export default function SimpleShowUsers() {
         data: {
           student_code: studentId.trim(),
           email: email.trim(),
+          facultyCode: addFacultyCode,
           first_name: firstName.trim(),
           last_name: lastName.trim(),
         },
@@ -685,6 +689,27 @@ const isStudent = user?.userType === "STUDENT";
                     <span className="text-xs text-gray-400">
                       {lastName.length}/{LAST_NAME_MAX_LENGTH}
                     </span>
+                  </div>
+                </div>
+
+                {/* คณะ */}
+                <div>
+                  <label className="block text-base font-normal text-gray-900 mb-2">
+                    คณะ <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={addFacultyCode}
+                      onChange={(e) => setAddFacultyCode(Number(e.target.value))}
+                      className="w-full px-4 py-3.5 border border-[#B7A3E3] rounded-xl focus:outline-none focus:border-purple-500 transition-colors text-base appearance-none bg-white"
+                    >
+                      {Object.entries(FACULTY_MAP).map(([code, name]) => (
+                        <option key={code} value={code}>
+                          {name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-3.5 text-gray-400 pointer-events-none" size={18} />
                   </div>
                 </div>
               </div>
