@@ -72,6 +72,7 @@ export default function CoursePage() {
 }, []);
 
 const isStudent = user?.userType === "STUDENT";
+const isInstructor = user?.staff_role === "INSTRUCTOR" || user?.role === "INSTRUCTOR";
 
   return (
     <Navbar>
@@ -154,6 +155,13 @@ const isStudent = user?.userType === "STUDENT";
               }`}
             >
               สร้างการสอบ
+            </button>
+            )}
+            {isInstructor && (
+            <button
+              className="px-4 lg:px-6 py-3 lg:py-6 rounded-2xl font-light transition-all duration-200 text-center text-sm lg:text-base cursor-pointer bg-white text-[#B7A3E3] hover:bg-gray-50 border border-purple-200"
+            >
+              คลังข้อสอบ
             </button>
             )}
             {!isStudent && (

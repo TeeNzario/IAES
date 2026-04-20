@@ -1,12 +1,20 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Search, ChevronLeft, ChevronRight, Edit2, Trash2 } from "lucide-react";
+import {
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Edit2,
+  Trash2,
+  BookOpen,
+} from "lucide-react";
 import Navbar from "@/components/layout/NavBar";
 import CourseModal from "@/features/courseOffering/components/CourseOfferingModal";
 import CreateCourseModal from "@/components/course/CreateCourseModal";
 import EditCourseModal from "@/components/course/EditCourseModal";
 import KnowledgeCategoriesCell from "@/components/course/KnowledgeCategoriesCell";
+import KnowledgeCategoriesModal from "@/components/course/KnowledgeCategoriesModal";
 import { apiFetch } from "@/lib/api";
 import CourseOfferingModal from "@/features/courseOffering/components/CourseOfferingModal";
 import ConfirmModal from "@/components/ui/ConfirmModal";
@@ -71,6 +79,13 @@ export default function CourseManagement() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  // Knowledge categories modal state
+  const [isKnowledgeModalOpen, setIsKnowledgeModalOpen] = useState(false);
+  const [knowledgeCourse, setKnowledgeCourse] = useState<{
+    courses_id: number;
+    name: string;
+  } | null>(null);
+
   // Fetch courses with pagination
   const fetchCourses = useCallback(async (page = 1) => {
     try {
@@ -99,7 +114,9 @@ export default function CourseManagement() {
   // Filter courses by search term
   const filteredCourses = courses.filter(
     (course) =>
-      getThaiCourseName(course).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getThaiCourseName(course)
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
       course.course_code.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
@@ -333,6 +350,21 @@ export default function CourseManagement() {
                       </td>
                       <td className="px-4 py-4 text-center">
                         <div className="flex justify-end items-center gap-3">
+                          {/* Knowledge Categories Button */}
+                          <button
+                            onClick={() => {
+                              setKnowledgeCourse({
+                                courses_id: course.courses_id,
+                                name: getThaiCourseName(course),
+                              });
+                              setIsKnowledgeModalOpen(true);
+                            }}
+                            className="w-10 h-10 flex items-center justify-center text-[#B492FF] border border-[#B492FF] hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
+                            title="จัดการหมวดหมู่ความรู้"
+                          >
+                            <BookOpen size={18} />
+                          </button>
+
                           {/* Edit Button */}
                           <button
                             onClick={() => handleEditClick(course)}
@@ -462,6 +494,19 @@ export default function CourseManagement() {
           }}
           onSuccess={() => fetchCourses(currentPage)}
           course={editingCourse}
+        />
+      )}
+
+      {/* Knowledge Categories Modal */}
+      {knowledgeCourse && (
+        <KnowledgeCategoriesModal
+          isOpen={isKnowledgeModalOpen}
+          onClose={() => {
+            setIsKnowledgeModalOpen(false);
+            setKnowledgeCourse(null);
+          }}
+          course={knowledgeCourse}
+          onSuccess={() => fetchCourses(currentPage)}
         />
       )}
 

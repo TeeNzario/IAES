@@ -1,0 +1,264 @@
+"use client";
+
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { X } from "lucide-react";
+import { apiFetch } from "@/lib/api";
+
+const MAX_KNOWLEDGE_LENGTH = 100;
+
+interface KnowledgeCategory {
+  knowledge_category_id: string;
+  name: string;
+}
+
+interface KnowledgeCategoriesModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  course: { courses_id: number; name: string };
+  onSuccess?: () => void;
+}
+
+export default function KnowledgeCategoriesModal({
+  isOpen,
+  onClose,
+  course,
+  onSuccess,
+}: KnowledgeCategoriesModalProps) {
+  const [categories, setCategories] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<KnowledgeCategory[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Load existing categories when modal opens
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const loadCategories = async () => {
+      setIsLoading(true);
+      try {
+        const data = await apiFetch<any[]>(
+          `/courses/${course.courses_id}/knowledge-categories`,
+        );
+        setCategories(data.map((d) => d.name));
+      } catch {
+        setCategories([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCategories();
+    setSearchQuery("");
+    setSuggestions([]);
+    setShowDropdown(false);
+  }, [isOpen, course.courses_id]);
+
+  const addCategory = (name: string) => {
+    const trimmed = name.trim();
+    if (
+      trimmed.length > 0 &&
+      trimmed.length <= MAX_KNOWLEDGE_LENGTH &&
+      !categories.includes(trimmed)
+    ) {
+      setCategories((prev) => [...prev, trimmed]);
+      setSearchQuery("");
+      setSuggestions([]);
+      setShowDropdown(false);
+    }
+  };
+
+  const removeCategory = (name: string) => {
+    setCategories((prev) => prev.filter((cat) => cat !== name));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addCategory(searchQuery);
+    }
+  };
+
+  const handleSuggestionClick = (name: string) => {
+    addCategory(name);
+    inputRef.current?.focus();
+  };
+
+  const handleSave = async () => {
+    // If there's text in the input that hasn't been added yet, add it
+    const trimmed = searchQuery.trim();
+    const finalCategories =
+      trimmed.length > 0 &&
+      trimmed.length <= MAX_KNOWLEDGE_LENGTH &&
+      !categories.includes(trimmed)
+        ? [...categories, trimmed]
+        : categories;
+
+    setIsSubmitting(true);
+    try {
+      await apiFetch(`/courses/${course.courses_id}/knowledge-categories`, {
+        method: "PUT",
+        data: { names: finalCategories },
+      });
+      onSuccess?.();
+      onClose();
+    } catch (err: any) {
+      console.error(err);
+      alert("ERROR: " + (err?.message || err));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Fetch suggestions
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (searchQuery.trim().length === 0) {
+        setSuggestions([]);
+        setShowDropdown(false);
+        return;
+      }
+
+      try {
+        const results = await apiFetch<KnowledgeCategory[]>(
+          `/knowledge-categories?search=${encodeURIComponent(searchQuery)}`,
+        );
+        const filtered = results.filter(
+          (cat) => !categories.includes(cat.name),
+        );
+        setSuggestions(filtered);
+        setShowDropdown(filtered.length > 0);
+      } catch {
+        setSuggestions([]);
+        setShowDropdown(false);
+      }
+    };
+
+    const timer = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery, categories]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(e.target as Node)
+      ) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-lg">
+        <div className="text-center mb-3">
+          <h2 className="text-2xl font-light text-gray-800">
+            หมวดหมู่ความรู้ — {course.name}
+          </h2>
+        </div>
+
+        <div className="space-y-4">
+          {/* Tags display */}
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="w-6 h-6 border-3 border-[#B7A3E3] border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : (
+            <>
+              {categories.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {categories.map((cat) => (
+                    <span
+                      key={cat}
+                      className="inline-flex items-center bg-[#B7A3E3] text-white px-3 py-2 rounded-lg text-sm"
+                    >
+                      {cat}
+                      <button
+                        type="button"
+                        onClick={() => removeCategory(cat)}
+                        className="ml-2 hover:text-red-200 transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Search input */}
+              <div className="relative">
+                <textarea
+                  ref={inputRef as any}
+                  value={searchQuery}
+                  onChange={(e) => {
+                    if (e.target.value.length <= MAX_KNOWLEDGE_LENGTH) {
+                      setSearchQuery(e.target.value);
+                    }
+                  }}
+                  onKeyDown={handleKeyDown}
+                  rows={3}
+                  className="w-full bg-white text-black px-4 py-3 rounded-xl border border-[#B7A3E3] focus:outline-none focus:ring-2 focus:ring-purple-600 resize-none min-h-[80px]"
+                  placeholder="พิมพ์แล้วกด Enter เพื่อเพิ่ม"
+                />
+                {/* Suggestions dropdown */}
+                {showDropdown && suggestions.length > 0 && (
+                  <div
+                    ref={dropdownRef}
+                    className="absolute z-10 w-full mt-1 bg-white border border-[#B7A3E3] rounded-xl shadow-lg max-h-48 overflow-y-auto"
+                  >
+                    {suggestions.map((s) => (
+                      <button
+                        key={s.knowledge_category_id}
+                        type="button"
+                        onClick={() => handleSuggestionClick(s.name)}
+                        className="w-full text-left px-4 py-2 hover:bg-purple-50 transition-colors text-black first:rounded-t-xl last:rounded-b-xl"
+                      >
+                        {s.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                สูงสุด {MAX_KNOWLEDGE_LENGTH} ตัวอักษรต่อหมวดหมู่
+              </p>
+
+              {/* Buttons */}
+              <div className="flex gap-4 pt-4">
+                <button
+                  onClick={onClose}
+                  disabled={isSubmitting}
+                  className="flex-1 bg-white text-[#B7A3E3] border border-[#B7A3E3] font-medium py-2 rounded-2xl hover:bg-gray-50 transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={isSubmitting}
+                  className="flex-1 bg-[#9264F5] text-white font-medium py-2 rounded-2xl hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {isSubmitting && (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  )}
+                  บันทึก
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -270,4 +270,79 @@ export class CoursesService {
 
     return existing !== null;
   }
+
+  async getCourseKnowledgeCategories(courseId: number) {
+    const course = await this.prisma.courses.findUnique({
+      where: { courses_id: BigInt(courseId) },
+      include: {
+        course_knowledge: {
+          include: {
+            knowledge_categories: {
+              select: {
+                knowledge_category_id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!course) return [];
+
+    const serialized = serializeBigInt(course);
+    return serialized.course_knowledge.map(
+      (ck: any) => ck.knowledge_categories,
+    );
+  }
+
+  async updateKnowledgeCategories(
+    courseId: number,
+    names: string[],
+    instructorId: string,
+  ) {
+    const result = await this.prisma.$transaction(async (tx) => {
+      // Delete all existing relations
+      await tx.course_knowledge.deleteMany({
+        where: { courses_id: BigInt(courseId) },
+      });
+
+      // Create new relations
+      for (const categoryName of names) {
+        let category = await tx.knowledge_categories.findFirst({
+          where: { name: categoryName },
+        });
+
+        if (!category) {
+          category = await tx.knowledge_categories.create({
+            data: {
+              name: categoryName,
+              created_by_staff_id: BigInt(instructorId),
+            },
+          });
+        }
+
+        await tx.course_knowledge.create({
+          data: {
+            courses_id: BigInt(courseId),
+            knowledge_category_id: category.knowledge_category_id,
+          },
+        });
+      }
+
+      // Return updated course with knowledge categories
+      return tx.courses.findUnique({
+        where: { courses_id: BigInt(courseId) },
+        include: {
+          course_knowledge: {
+            include: {
+              knowledge_categories: true,
+            },
+          },
+        },
+      });
+    });
+
+    return serializeBigInt(result);
+  }
 }

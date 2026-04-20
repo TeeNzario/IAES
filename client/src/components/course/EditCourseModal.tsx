@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { X } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
 import { apiFetch } from "@/lib/api";
 
 // ============================================================
@@ -9,7 +8,6 @@ import { apiFetch } from "@/lib/api";
 // ============================================================
 const COURSE_CODE_MAX_LENGTH = 10;
 const COURSE_NAME_MAX_LENGTH = 100;
-const MAX_KNOWLEDGE_LENGTH = 30;
 
 // ============================================================
 // VALIDATION ERROR MESSAGES (Thai)
@@ -35,22 +33,12 @@ const ERROR_MESSAGES = {
 // ============================================================
 // TYPES
 // ============================================================
-interface KnowledgeCategoryResponse {
-  knowledge_category_id: string;
-  name: string;
-}
-
-interface CourseKnowledge {
-  knowledge_categories: KnowledgeCategoryResponse;
-}
-
 interface CourseData {
   courses_id: number;
   course_code: string;
   course_name: string;
   course_name_th?: string;
   course_name_en?: string;
-  course_knowledge?: CourseKnowledge[];
 }
 
 interface EditCourseModalProps {
@@ -100,20 +88,8 @@ export default function EditCourseModal({
   const [isCheckingCode, setIsCheckingCode] = useState(false);
   const [isCheckingName, setIsCheckingName] = useState(false);
 
-  // Knowledge categories state
-  const [knowledgeCategories, setKnowledgeCategories] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<KnowledgeCategoryResponse[]>(
-    [],
-  );
-  const [showDropdown, setShowDropdown] = useState(false);
-
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Refs
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   // ============================================================
   // INITIALIZATION
@@ -130,19 +106,8 @@ export default function EditCourseModal({
       setFormData(initialData);
       setOriginalData(initialData);
 
-      // Extract knowledge categories from course data
-      if (course.course_knowledge) {
-        setKnowledgeCategories(
-          course.course_knowledge.map(
-            (k) => k.knowledge_categories.name,
-          ),
-        );
-      } else {
-        setKnowledgeCategories([]);
-      }
       // Clear errors and search query
       setErrors({});
-      setSearchQuery("");
     }
   }, [course, isOpen]);
 
@@ -154,7 +119,7 @@ export default function EditCourseModal({
    * Validates a single field synchronously (required + max length)
    */
   const validateFieldSync = (
-    field: "course_code" | "course_name",
+    field: "course_code" | "course_name_th" | "course_name_en",
     value: string,
   ): string | undefined => {
     const trimmedValue = value.trim();
@@ -227,10 +192,10 @@ export default function EditCourseModal({
 
     // Sync validation
     const codeError = validateFieldSync("course_code", formData.course_code);
-    const nameError = validateFieldSync("course_name", formData.course_name);
+    const nameError = validateFieldSync("course_name_th", formData.course_name_th);
 
     if (codeError) newErrors.course_code = codeError;
-    if (nameError) newErrors.course_name = nameError;
+    if (nameError) newErrors.course_name_th = nameError;
 
     // If sync validation failed, don't check duplicates
     if (codeError || nameError) {
@@ -242,7 +207,7 @@ export default function EditCourseModal({
     const codeChanged =
       formData.course_code.trim() !== originalData.course_code.trim();
     const nameChanged =
-      formData.course_name.trim() !== originalData.course_name.trim();
+      formData.course_name_th.trim() !== originalData.course_name_th.trim();
 
     const checks: Promise<boolean>[] = [];
 
@@ -253,7 +218,7 @@ export default function EditCourseModal({
     }
 
     if (nameChanged) {
-      checks.push(checkNameDuplicate(formData.course_name));
+      checks.push(checkNameDuplicate(formData.course_name_th));
     } else {
       checks.push(Promise.resolve(false));
     }
@@ -265,7 +230,7 @@ export default function EditCourseModal({
     }
 
     if (nameExists) {
-      newErrors.course_name = ERROR_MESSAGES.course_name.duplicate;
+      newErrors.course_name_th = ERROR_MESSAGES.course_name_th.duplicate;
     }
 
     setErrors(newErrors);
@@ -278,7 +243,7 @@ export default function EditCourseModal({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    const field = name as "course_code" | "course_name";
+    const field = name as "course_code" | "course_name_th" | "course_name_en";
 
     setFormData((prev) => ({
       ...prev,
@@ -293,55 +258,11 @@ export default function EditCourseModal({
     }));
   };
 
-  const handleKnowledgeInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const value = e.target.value;
-    if (value.length <= MAX_KNOWLEDGE_LENGTH) {
-      setSearchQuery(value);
-    }
-  };
-
-  // ============================================================
-  // KNOWLEDGE CATEGORIES HANDLERS
-  // ============================================================
-
-  const addKnowledgeCategory = (name: string) => {
-    const trimmedName = name.trim();
-    if (
-      trimmedName.length > 0 &&
-      trimmedName.length <= MAX_KNOWLEDGE_LENGTH &&
-      !knowledgeCategories.includes(trimmedName)
-    ) {
-      setKnowledgeCategories((prev) => [...prev, trimmedName]);
-      setSearchQuery("");
-      setSuggestions([]);
-      setShowDropdown(false);
-    }
-  };
-
-  const removeKnowledgeCategory = (name: string) => {
-    setKnowledgeCategories((prev) => prev.filter((cat) => cat !== name));
-  };
-
-  const handleKnowledgeKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addKnowledgeCategory(searchQuery);
-    }
-  };
-
-  const handleSuggestionClick = (name: string) => {
-    addKnowledgeCategory(name);
-    inputRef.current?.focus();
-  };
-
   // ============================================================
   // FORM ACTIONS
   // ============================================================
 
   const handleCancel = () => {
-    setSearchQuery("");
     setErrors({});
     onClose();
   };
@@ -358,13 +279,11 @@ export default function EditCourseModal({
       await apiFetch(`/courses/${course.courses_id}`, {
         method: "PATCH",
         data: {
-          course_name: formData.course_name.trim(),
+          course_name_th: formData.course_name_th.trim(),
           course_code: formData.course_code.trim(),
-          knowledge_categories: knowledgeCategories,
         },
       });
 
-      setSearchQuery("");
       setErrors({});
       onSuccess?.();
       onClose();
@@ -383,62 +302,12 @@ export default function EditCourseModal({
   };
 
   // ============================================================
-  // EFFECTS
-  // ============================================================
-
-  // Fetch suggestions
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (searchQuery.trim().length === 0) {
-        setSuggestions([]);
-        setShowDropdown(false);
-        return;
-      }
-
-      try {
-        const results = await apiFetch<KnowledgeCategoryResponse[]>(
-          `/knowledge-categories?search=${encodeURIComponent(searchQuery)}`,
-        );
-        const filtered = results.filter(
-          (cat) => !knowledgeCategories.includes(cat.name),
-        );
-        setSuggestions(filtered);
-        setShowDropdown(filtered.length > 0);
-      } catch (err) {
-        console.error("Failed to fetch suggestions:", err);
-        setSuggestions([]);
-        setShowDropdown(false);
-      }
-    };
-
-    const debounceTimer = setTimeout(fetchSuggestions, 300);
-    return () => clearTimeout(debounceTimer);
-  }, [searchQuery, knowledgeCategories]);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        inputRef.current &&
-        !inputRef.current.contains(event.target as Node)
-      ) {
-        setShowDropdown(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // ============================================================
   // COMPUTED VALUES
   // ============================================================
 
   const hasErrors = Object.values(errors).some((error) => !!error);
   const isFormEmpty =
-    !formData.course_code.trim() || !formData.course_name.trim();
+    !formData.course_code.trim() || !formData.course_name_th.trim();
   const isSubmitDisabled =
     hasErrors ||
     isFormEmpty ||
@@ -495,94 +364,61 @@ export default function EditCourseModal({
             </div>
           </div>
 
-          {/* ชื่อรายวิชา */}
-          <div>
-            <label className="block text-[#000000] text-sm font-light mb-2">
-              ชื่อรายวิชา <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="course_name"
-              value={formData.course_name}
-              onChange={handleInputChange}
-              maxLength={COURSE_NAME_MAX_LENGTH}
-              className={`w-full bg-white text-black px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-purple-600 ${
-                errors.course_name ? "border-red-500" : "border-[#B7A3E3]"
-              }`}
-              placeholder=""
-            />
-            <div className="flex justify-between items-center mt-1">
-              {errors.course_name ? (
-                <p className="text-red-500 text-xs">{errors.course_name}</p>
-              ) : (
-                <span />
-              )}
-              <span className="text-xs text-gray-400">
-                {formData.course_name.length}/{COURSE_NAME_MAX_LENGTH}
-              </span>
+            {/* ชื่อรายวิชา (ภาษาไทย) */}
+            <div>
+              <label className="block text-[#000000] text-sm font-light mb-2">
+                ชื่อรายวิชา (ภาษาไทย) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="course_name_th"
+                value={formData.course_name_th}
+                onChange={handleInputChange}
+                maxLength={COURSE_NAME_MAX_LENGTH}
+                className={`w-full bg-white text-black px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-purple-600 ${
+                  errors.course_name_th ? "border-red-500" : "border-[#B7A3E3]"
+                }`}
+                placeholder=""
+              />
+              <div className="flex justify-between items-center mt-1">
+                {errors.course_name_th ? (
+                  <p className="text-red-500 text-xs">{errors.course_name_th}</p>
+                ) : (
+                  <span />
+                )}
+                <span className="text-xs text-gray-400">
+                  {formData.course_name_th.length}/{COURSE_NAME_MAX_LENGTH}
+                </span>
+              </div>
             </div>
-          </div>
 
-          {/* หมวดหมู่ความรู้ */}
-          <div className="relative">
-            <label className="block text-[#000000] text-sm font-light mb-2">
-              หมวดหมู่ความรู้
-            </label>
-
-            {/* Tags display */}
-            {knowledgeCategories.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-2">
-                {knowledgeCategories.map((category) => (
-                  <span
-                    key={category}
-                    className="inline-flex items-center bg-[#B7A3E3] text-white px-3 py-1 rounded-lg text-sm"
-                  >
-                    {category}
-                    <button
-                      type="button"
-                      onClick={() => removeKnowledgeCategory(category)}
-                      className="ml-2 hover:text-red-200 transition-colors"
-                    >
-                      <X size={14} />
-                    </button>
-                  </span>
-                ))}
+            {/* Course Name (English) */}
+            <div>
+              <label className="block text-[#000000] text-sm font-light mb-2">
+                Course Name (English) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="course_name_en"
+                value={formData.course_name_en}
+                onChange={handleInputChange}
+                maxLength={COURSE_NAME_MAX_LENGTH}
+                className={`w-full bg-white text-black px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-purple-600 ${
+                  errors.course_name_en ? "border-red-500" : "border-[#B7A3E3]"
+                }`}
+                placeholder=""
+              />
+              <div className="flex justify-between items-center mt-1">
+                {errors.course_name_en ? (
+                  <p className="text-red-500 text-xs">{errors.course_name_en}</p>
+                ) : (
+                  <span />
+                )}
+                <span className="text-xs text-gray-400">
+                  {formData.course_name_en.length}/{COURSE_NAME_MAX_LENGTH}
+                </span>
               </div>
-            )}
-
-            {/* Search input */}
-            <input
-              ref={inputRef}
-              type="text"
-              value={searchQuery}
-              onChange={handleKnowledgeInputChange}
-              onKeyDown={handleKnowledgeKeyDown}
-              className="w-full bg-white text-black px-4 py-3 rounded-xl border border-[#B7A3E3] focus:outline-none focus:ring-2 focus:ring-purple-600"
-              placeholder="พิมพ์แล้วกด Enter เพื่อเพิ่ม"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              สูงสุด {MAX_KNOWLEDGE_LENGTH} ตัวอักษรต่อหมวดหมู่
-            </p>
-
-            {/* Suggestions dropdown */}
-            {showDropdown && suggestions.length > 0 && (
-              <div
-                ref={dropdownRef}
-                className="absolute z-10 w-full mt-1 bg-white border border-[#B7A3E3] rounded-xl shadow-lg max-h-48 overflow-y-auto"
-              >
-                {suggestions.map((suggestion) => (
-                  <button
-                    key={suggestion.knowledge_category_id}
-                    type="button"
-                    onClick={() => handleSuggestionClick(suggestion.name)}
-                    className="w-full text-left px-4 py-2 hover:bg-purple-50 transition-colors text-black first:rounded-t-xl last:rounded-b-xl"
-                  >
-                    {suggestion.name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+            </div>
 
           {/* Buttons */}
           <div className="flex gap-4 pt-4 pl-25">
