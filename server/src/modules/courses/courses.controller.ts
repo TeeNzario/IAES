@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   Req,
 } from '@nestjs/common';
@@ -102,5 +103,26 @@ export class CoursesController {
   @Roles('INSTRUCTOR')
   remove(@Param('id') id: string) {
     return this.coursesService.remove(+id);
+  }
+
+  @Get(':id/knowledge-categories')
+  @Roles('INSTRUCTOR')
+  async getKnowledgeCategories(@Param('id') id: string) {
+    return this.coursesService.getCourseKnowledgeCategories(+id);
+  }
+
+  @Put(':id/knowledge-categories')
+  @Roles('INSTRUCTOR')
+  updateKnowledgeCategories(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Body() dto: { names: string[] },
+  ) {
+    console.log('[DEBUG] PUT knowledge-categories, id:', id, 'names:', dto.names, 'user:', req.user.sub);
+    return this.coursesService.updateKnowledgeCategories(
+      +id,
+      dto.names,
+      req.user.sub,
+    );
   }
 }
