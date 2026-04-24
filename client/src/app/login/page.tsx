@@ -158,7 +158,7 @@ const LoginPage = () => {
           {/* Username Field */}
           <div>
             <label className="block text-gray-700 text-sm font-medium mb-2">
-              Email (staff) หรือ Student ID
+              อีเมล (บุคลากร) หรือ รหัสนักศึกษา
             </label>
             <input
               type="text"

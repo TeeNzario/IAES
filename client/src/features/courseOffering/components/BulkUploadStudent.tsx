@@ -478,7 +478,7 @@ export default function BulkUploadModal({
                       <th className="py-3 px-4 text-left font-light text-sm">สถานะ</th>
                       <th className="py-3 px-4 text-left font-light text-sm">หมายเหตุ</th>
                       <th className="py-3 px-4 text-center font-light text-sm rounded-tr-lg w-24">
-                        ACTION
+                        จัดการ
                       </th>
                     </tr>
                   </thead>

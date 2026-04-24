@@ -625,11 +625,11 @@ export default function ManageUserPage() {
             <table className="w-full min-w-[640px] hidden sm:table">
               <thead>
                 <tr className="bg-[#B7A3E3] text-white">
-                  <th className="px-6 py-4 text-left font-light">ID</th>
+                  <th className="px-6 py-4 text-left font-light">ไอดี</th>
                   <th className="px-6 py-4 text-left font-light">ชื่อ-นามสกุล</th>
                   <th className="px-6 py-4 text-left font-light">คณะ</th>
                   <th className="px-6 py-4 text-left font-light">สถานะ</th>
-                  <th className="px-6 py-4 text-left font-light">Action</th>
+                  <th className="px-6 py-4 text-left font-light">แก้ไข</th>
                 </tr>
               </thead>
               <tbody>
@@ -645,7 +645,7 @@ export default function ManageUserPage() {
                           : "bg-white text-[#B7A3E3]"
                           }`}
                       >
-                        {user.is_active ? "Active" : "Inactive"}
+                        {user.is_active ? "เปิดใช้งาน" : "ปิดใช้งาน"}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-gray-700">
@@ -690,7 +690,7 @@ export default function ManageUserPage() {
                         : "bg-red-100 text-red-700"
                         }`}
                     >
-                      {user.is_active ? "Active" : "Inactive"}
+                      {user.is_active ? "เปิดใช้งาน" : "ปิดใช้งาน"}
                     </span>
                   </div>
                   <div className="flex flex-col gap-2 items-end">
@@ -872,7 +872,7 @@ export default function ManageUserPage() {
                         : "bg-white text-black border-2 border-[#B7A3E3] hover:border-gray-300"
                         }`}
                     >
-                      Active
+                      เปิดใช้งาน
                     </button>
                     <button
                       onClick={() => setEditActive("INACTIVE")}
@@ -881,7 +881,7 @@ export default function ManageUserPage() {
                         : "bg-white text-black border-2 border-[#B7A3E3] hover:border-gray-300"
                         }`}
                     >
-                      Inactive
+                      ปิดใช้งาน
                     </button>
                   </div>
                 </div>

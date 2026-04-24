@@ -26,7 +26,7 @@ export default function CourseOfferingModal({
   // Form state
   const [academicYear, setAcademicYear] = useState("2025");
   const [semester, setSemester] = useState("1");
-  const [status, setStatus] = useState("Active");
+  const [status, setStatus] = useState("เปิดใช้งาน");
 
   // Instructor state
   const [creatorInstructor, setCreatorInstructor] = useState<Instructor | null>(
@@ -48,7 +48,7 @@ export default function CourseOfferingModal({
     String(currentYear + 1),
   ];
   const semesters = ["1", "2", "3"];
-  const statuses = ["Active", "Inactive"];
+  const statuses = ["เปิดใช้งาน", "ปิดใช้งาน"];
 
   const router = useRouter();
 
@@ -114,7 +114,7 @@ export default function CourseOfferingModal({
   const resetForm = () => {
     setAcademicYear("2025");
     setSemester("1");
-    setStatus("Active");
+    setStatus("เปิดใช้งาน");
     setAdditionalSlots([]);
     setError(null);
   };
@@ -124,7 +124,7 @@ export default function CourseOfferingModal({
     setIsSubmitting(true);
     setError(null);
     if (!courseId) {
-      setError("Course ID is missing");
+      setError("ไม่พบรหัสรายวิชา");
       return;
     }
 
@@ -187,7 +187,7 @@ export default function CourseOfferingModal({
         {/* Academic Year Dropdown */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Academic year
+            ปีการศึกษา
           </label>
           <div className="relative">
             <select
@@ -211,7 +211,7 @@ export default function CourseOfferingModal({
         {/* Semester Dropdown */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Semester
+            ภาคการศึกษา
           </label>
           <div className="relative">
             <select
@@ -235,7 +235,7 @@ export default function CourseOfferingModal({
         {/* Status Toggle Buttons */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Status
+            สถานะ
           </label>
           <div className="flex gap-3">
             {statuses.map((stat) => (
@@ -258,7 +258,7 @@ export default function CourseOfferingModal({
         {/* Instructor Selection */}
         <div className="mb-8">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Instructors
+            อาจารย์ผู้สอน
           </label>
 
           {isLoading ? (
@@ -371,7 +371,7 @@ export default function CourseOfferingModal({
             {isSubmitting && (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             )}
-            OPEN
+            เปิดสอบ
           </button>
         </div>
       </div>

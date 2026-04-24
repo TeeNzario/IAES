@@ -103,11 +103,11 @@ const NavBar = ({ children }: PageLayoutProps) => {
     if (!user) return "เข้าสู่ระบบ";
 
     if (user.type === "STUDENT") {
-      return `${user.student_code ?? ""} ${user.first_name ?? ""}`.trim() || "Student";
+      return `${user.student_code ?? ""} ${user.first_name ?? ""}`.trim() || "นักศึกษา";
     }
 
     // STAFF
-    return `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() || "Staff";
+    return `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() || "บุคลากร";
   };
 
   const handleLogout = () => {

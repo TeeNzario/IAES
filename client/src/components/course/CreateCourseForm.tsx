@@ -2,12 +2,19 @@
 
 import React, { useState, useCallback } from "react";
 import { apiFetch } from "@/lib/api";
+import AlertModal from "@/components/ui/AlertModal";
 
 // ============================================================
 // CONFIGURATION CONSTANTS — Adjust limits here
 // ============================================================
 const COURSE_CODE_MAX_LENGTH = 10;
 const COURSE_NAME_MAX_LENGTH = 100;
+
+// ============================================================
+// LANGUAGE VALIDATION REGEX
+// ============================================================
+const THAI_REGEX = /^[\u0E00-\u0E7F0-9\s\.\,\-\(\)\/\u0026\u2013\u2014]+$/;
+const ENGLISH_REGEX = /^[A-Za-z0-9\s\.\,\-\(\)\/\u0026\u2013\u2014]+$/;
 
 // ============================================================
 // VALIDATION ERROR MESSAGES (Thai)
@@ -22,11 +29,13 @@ const ERROR_MESSAGES = {
     required: "กรุณากรอกชื่อรายวิชา (ภาษาไทย)",
     maxLength: `ชื่อรายวิชาไม่เกิน ${COURSE_NAME_MAX_LENGTH} ตัวอักษร`,
     duplicate: "ชื่อรายวิชานี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น",
+    invalidLanguage: "ชื่อรายวิชาภาษาไทยต้องกรอกเป็นภาษาไทยเท่านั้น",
   },
   course_name_en: {
     required: "กรุณากรอกชื่อรายวิชา (ภาษาอังกฤษ)",
     maxLength: `ชื่อรายวิชาไม่เกิน ${COURSE_NAME_MAX_LENGTH} ตัวอักษร`,
     duplicate: "ชื่อรายวิชานี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น",
+    invalidLanguage: "ชื่อรายวิชาภาษาอังกฤษต้องกรอกเป็นภาษาอังกฤษเท่านั้น",
   },
 };
 
@@ -72,6 +81,14 @@ export default function CreateCourseForm({
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Alert state
+  const [alertState, setAlertState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    variant: "error" | "success" | "warning";
+  }>({ isOpen: false, title: "", message: "", variant: "error" });
+
   // ============================================================
   // VALIDATION HELPERS
   // ============================================================
@@ -94,6 +111,15 @@ export default function CreateCourseForm({
 
     if (trimmedValue.length > maxLength) {
       return ERROR_MESSAGES[field].maxLength;
+    }
+
+    // Language-specific validation
+    if (field === "course_name_th" && !THAI_REGEX.test(trimmedValue)) {
+      return ERROR_MESSAGES.course_name_th.invalidLanguage;
+    }
+
+    if (field === "course_name_en" && !ENGLISH_REGEX.test(trimmedValue)) {
+      return ERROR_MESSAGES.course_name_en.invalidLanguage;
     }
 
     return undefined;
@@ -255,7 +281,12 @@ export default function CreateCourseForm({
       onSuccess?.();
     } catch (err: any) {
       console.error(err);
-      alert("ERROR: " + (err?.message || err));
+      setAlertState({
+        isOpen: true,
+        title: "เกิดข้อผิดพลาด",
+        message: err?.message || "ไม่สามารถสร้างรายวิชาได้ กรุณาลองใหม่อีกครั้ง",
+        variant: "error",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -283,7 +314,8 @@ export default function CreateCourseForm({
   // ============================================================
 
   return (
-    <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
+    <>
+      <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
       <div className="text-center mb-3">
         <div className="inline-flex items-center justify-center bg-opacity-30 rounded-2xl px-6 py-3 mb-2">
           <h1 className="text-3xl font-medium text-[#000000]">สร้างรายวิชา</h1>
@@ -352,7 +384,7 @@ export default function CreateCourseForm({
         {/* Course Name (English) */}
         <div>
           <label className="block text-[#000000] text-sm font-light mb-2">
-            Course Name (English) <span className="text-red-500">*</span>
+            ชื่อรายวิชา (ภาษาอังกฤษ) <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -399,7 +431,16 @@ export default function CreateCourseForm({
             ยืนยัน
           </button>
         </div>
+        </div>
       </div>
-    </div>
+
+      <AlertModal
+        isOpen={alertState.isOpen}
+        onClose={() => setAlertState((prev) => ({ ...prev, isOpen: false }))}
+        title={alertState.title}
+        message={alertState.message}
+        variant={alertState.variant}
+      />
+    </>
   );
 }
