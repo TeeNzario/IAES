@@ -30,7 +30,7 @@ export default function CourseHomePage() {
       const data = await apiFetch<CourseOffering[]>("course-offerings");
       setCourses(data);
     } catch (err) {
-      setError("Failed to fetch courses");
+      setError("ไม่สามารถโหลดข้อมูลรายวิชาได้");
     } finally {
       setLoading(false);
     }

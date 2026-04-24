@@ -116,7 +116,7 @@ const isInstructor = user?.staff_role === "INSTRUCTOR" || user?.role === "INSTRU
 
           {/* Course Info */}
           <div className="relative z-10 p-6 lg:p-7 lg:px-10">
-            {loading && <p>Loading...</p>}
+            {loading && <p>กำลังโหลด...</p>}
             {course && (
               <>
                 <div className="inline-block text-[#B7A3E3] py-1 text-lg lg:text-xl font-medium mb-2 lg:mb-3">

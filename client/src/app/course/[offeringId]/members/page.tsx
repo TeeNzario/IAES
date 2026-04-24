@@ -10,6 +10,8 @@ import { Student } from "@/types/student";
 import { CourseOffering } from "@/types/course";
 import { formatInstructorName } from "@/utils/formatName";
 import BulkUploadModal from "@/features/courseOffering/components/BulkUploadStudent";
+import ConfirmModal from "@/components/ui/ConfirmModal";
+import AlertModal from "@/components/ui/AlertModal";
 import { AuthUser } from "@/types/auth";
 import { FACULTY_MAP } from "@/lib/faculty-map";
 
@@ -43,8 +45,8 @@ const ERROR_MESSAGES = {
     duplicate: "อีเมลนี้ถูกใช้แล้ว",
   },
   first_name: {
-    required: "กรุณากรอกชื่อจริง",
-    maxLength: `ชื่อจริงไม่เกิน ${FIRST_NAME_MAX_LENGTH} ตัวอักษร`,
+    required: "กรุณากรอกชื่อ",
+    maxLength: `ชื่อไม่เกิน ${FIRST_NAME_MAX_LENGTH} ตัวอักษร`,
   },
   last_name: {
     required: "กรุณากรอกนามสกุล",
@@ -89,6 +91,19 @@ export default function SimpleShowUsers() {
   const [isCheckingCode, setIsCheckingCode] = useState(false);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Unenroll confirmation state
+  const [isUnenrollModalOpen, setIsUnenrollModalOpen] = useState(false);
+  const [unenrollingStudent, setUnenrollingStudent] = useState<{ code: string; name: string } | null>(null);
+  const [isUnenrolling, setIsUnenrolling] = useState(false);
+
+  // Alert state
+  const [alertState, setAlertState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    variant: "error" | "success" | "warning";
+  }>({ isOpen: false, title: "", message: "", variant: "error" });
 
   const [offering, setOffering] = useState<CourseOffering | null>(null);
   const [students, setStudents] = useState<any[]>([]);
@@ -149,7 +164,7 @@ export default function SimpleShowUsers() {
     if (trimmed.length > FIRST_NAME_MAX_LENGTH)
       return ERROR_MESSAGES.first_name.maxLength;
     if (!NAME_REGEX.test(trimmed))
-      return "ชื่อจริงต้องเป็นตัวอักษรเท่านั้น";
+      return "ชื่อต้องเป็นตัวอักษรเท่านั้น";
     return undefined;
   };
 
@@ -344,7 +359,12 @@ export default function SimpleShowUsers() {
       handleCancelAddStudent();
     } catch (err: any) {
       console.error(err);
-      alert("ERROR: " + (err?.message || err));
+      setAlertState({
+        isOpen: true,
+        title: "เกิดข้อผิดพลาด",
+        message: err?.message || "ไม่สามารถเพิ่มนักศึกษาได้ กรุณาลองใหม่อีกครั้ง",
+        variant: "error",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -355,20 +375,31 @@ export default function SimpleShowUsers() {
     studentCode: string,
     studentName: string,
   ) => {
-    const confirmed = window.confirm(
-      `ยืนยันการนำ ${studentName} (${studentCode}) ออกจากรายวิชานี้?`,
-    );
+    setUnenrollingStudent({ code: studentCode, name: studentName });
+    setIsUnenrollModalOpen(true);
+  };
 
-    if (!confirmed) return;
+  const handleUnenrollConfirm = async () => {
+    if (!unenrollingStudent) return;
 
+    setIsUnenrolling(true);
     try {
-      await apiFetch(`course-offerings/${offeringId}/students/${studentCode}`, {
+      await apiFetch(`course-offerings/${offeringId}/students/${unenrollingStudent.code}`, {
         method: "DELETE",
       });
       await fetchStudents(); // Refresh list
+      setIsUnenrollModalOpen(false);
+      setUnenrollingStudent(null);
     } catch (err: any) {
       console.error("Failed to unenroll student:", err);
-      alert("เกิดข้อผิดพลาด: " + (err?.message || "ไม่สามารถลบนักศึกษาได้"));
+      setAlertState({
+        isOpen: true,
+        title: "เกิดข้อผิดพลาด",
+        message: err?.message || "ไม่สามารถลบนักศึกษาได้ กรุณาลองใหม่อีกครั้ง",
+        variant: "error",
+      });
+    } finally {
+      setIsUnenrolling(false);
     }
   };
 
@@ -634,10 +665,10 @@ const isStudent = user?.userType === "STUDENT";
                   </div>
                 </div>
 
-                {/* ชื่อจริง */}
+                {/* ชื่อ */}
                 <div>
                   <label className="block text-base font-normal text-gray-900 mb-2">
-                    ชื่อจริง <span className="text-red-500">*</span>
+                    ชื่อ <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -743,6 +774,32 @@ const isStudent = user?.userType === "STUDENT";
           onClose={() => setShowUploadModal(false)}
           offeringId={offeringId}
           onSuccess={() => fetchStudents()}
+        />
+
+        {/* Unenroll Confirmation Modal */}
+        <ConfirmModal
+          isOpen={isUnenrollModalOpen}
+          onClose={() => {
+            if (!isUnenrolling) {
+              setIsUnenrollModalOpen(false);
+              setUnenrollingStudent(null);
+            }
+          }}
+          onConfirm={handleUnenrollConfirm}
+          title="นำนักศึกษาออกจากรายวิชา"
+          message={`คุณแน่ใจหรือไม่ว่าต้องการนำ ${unenrollingStudent?.name || ""} (${unenrollingStudent?.code || ""}) ออกจากรายวิชานี้?`}
+          confirmText="นำออก"
+          cancelText="ยกเลิก"
+          isLoading={isUnenrolling}
+          variant="danger"
+        />
+
+        <AlertModal
+          isOpen={alertState.isOpen}
+          onClose={() => setAlertState((prev) => ({ ...prev, isOpen: false }))}
+          title={alertState.title}
+          message={alertState.message}
+          variant={alertState.variant}
         />
       </div>
     </Navbar>

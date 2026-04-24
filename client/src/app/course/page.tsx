@@ -18,6 +18,7 @@ import KnowledgeCategoriesModal from "@/components/course/KnowledgeCategoriesMod
 import { apiFetch } from "@/lib/api";
 import CourseOfferingModal from "@/features/courseOffering/components/CourseOfferingModal";
 import ConfirmModal from "@/components/ui/ConfirmModal";
+import AlertModal from "@/components/ui/AlertModal";
 import axios from "axios";
 import { getThaiCourseName } from "@/utils/formatCourseName";
 
@@ -79,6 +80,14 @@ export default function CourseManagement() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  // Alert state
+  const [alertState, setAlertState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    variant: "error" | "success" | "warning";
+  }>({ isOpen: false, title: "", message: "", variant: "error" });
+
   // Knowledge categories modal state
   const [isKnowledgeModalOpen, setIsKnowledgeModalOpen] = useState(false);
   const [knowledgeCourse, setKnowledgeCourse] = useState<{
@@ -137,7 +146,12 @@ export default function CourseManagement() {
       );
     } catch (err) {
       console.error("Failed to update status:", err);
-      alert("ไม่สามารถอัปเดตสถานะได้");
+      setAlertState({
+        isOpen: true,
+        title: "เกิดข้อผิดพลาด",
+        message: "ไม่สามารถอัปเดตสถานะได้ กรุณาลองใหม่อีกครั้ง",
+        variant: "error",
+      });
     }
   };
 
@@ -286,7 +300,7 @@ export default function CourseManagement() {
                     หมวดหมู่ความรู้
                   </th>
                   <th className="px-4 py-3 text-left text-md font-light">
-                    ACTION
+                    แก้ไข
                   </th>
                 </tr>
               </thead>
@@ -393,10 +407,10 @@ export default function CourseManagement() {
                             className="px-2 py-2 text-sm font-medium bg-white text-[#484848] hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#B7A3E3] rounded"
                           >
                             <option value="ACTIVE" className="text-[#484848]">
-                              ACTIVE
+                              เปิดใช้งาน
                             </option>
                             <option value="INACTIVE" className="text-[#484848]">
-                              INACTIVE
+                              ปิดใช้งาน
                             </option>
                           </select>
 
@@ -407,7 +421,7 @@ export default function CourseManagement() {
                             }}
                             className="px-5 py-2 text-sm text-[#B7A3E3] border border-[#B7A3E3] rounded-xl hover:bg-purple-50 transition-colors cursor-pointer"
                           >
-                            เปิดรายวิชา
+                            เปิดสอบ
                           </button>
                         </div>
                       </td>
@@ -530,6 +544,14 @@ export default function CourseManagement() {
         cancelText="ยกเลิก"
         isLoading={isDeleting}
         variant={deleteError ? "warning" : "danger"}
+      />
+
+      <AlertModal
+        isOpen={alertState.isOpen}
+        onClose={() => setAlertState((prev) => ({ ...prev, isOpen: false }))}
+        title={alertState.title}
+        message={alertState.message}
+        variant={alertState.variant}
       />
     </Navbar>
   );

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { X } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import AlertModal from "@/components/ui/AlertModal";
 
 const MAX_KNOWLEDGE_LENGTH = 100;
 
@@ -30,6 +31,14 @@ export default function KnowledgeCategoriesModal({
   const [showDropdown, setShowDropdown] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Alert state
+  const [alertState, setAlertState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    variant: "error" | "success" | "warning";
+  }>({ isOpen: false, title: "", message: "", variant: "error" });
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -108,7 +117,12 @@ export default function KnowledgeCategoriesModal({
       onClose();
     } catch (err: any) {
       console.error(err);
-      alert("ERROR: " + (err?.message || err));
+      setAlertState({
+        isOpen: true,
+        title: "เกิดข้อผิดพลาด",
+        message: err?.message || "ไม่สามารถบันทึกหมวดหมู่ความรู้ได้ กรุณาลองใหม่อีกครั้ง",
+        variant: "error",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -259,6 +273,14 @@ export default function KnowledgeCategoriesModal({
           )}
         </div>
       </div>
+
+      <AlertModal
+        isOpen={alertState.isOpen}
+        onClose={() => setAlertState((prev) => ({ ...prev, isOpen: false }))}
+        title={alertState.title}
+        message={alertState.message}
+        variant={alertState.variant}
+      />
     </div>
   );
 }

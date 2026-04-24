@@ -2,12 +2,19 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { apiFetch } from "@/lib/api";
+import AlertModal from "@/components/ui/AlertModal";
 
 // ============================================================
 // CONFIGURATION CONSTANTS — Adjust limits here
 // ============================================================
 const COURSE_CODE_MAX_LENGTH = 10;
 const COURSE_NAME_MAX_LENGTH = 100;
+
+// ============================================================
+// LANGUAGE VALIDATION REGEX
+// ============================================================
+const THAI_REGEX = /^[\u0E00-\u0E7F0-9\s\.\,\-\(\)\/\u0026\u2013\u2014]+$/;
+const ENGLISH_REGEX = /^[A-Za-z0-9\s\.\,\-\(\)\/\u0026\u2013\u2014]+$/;
 
 // ============================================================
 // VALIDATION ERROR MESSAGES (Thai)
@@ -22,11 +29,13 @@ const ERROR_MESSAGES = {
     required: "กรุณากรอกชื่อรายวิชา (ภาษาไทย)",
     maxLength: `ชื่อรายวิชาไม่เกิน ${COURSE_NAME_MAX_LENGTH} ตัวอักษร`,
     duplicate: "ชื่อรายวิชานี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น",
+    invalidLanguage: "ชื่อรายวิชาภาษาไทยต้องกรอกเป็นภาษาไทยเท่านั้น",
   },
   course_name_en: {
     required: "กรุณากรอกชื่อรายวิชา (ภาษาอังกฤษ)",
     maxLength: `ชื่อรายวิชาไม่เกิน ${COURSE_NAME_MAX_LENGTH} ตัวอักษร`,
     duplicate: "ชื่อรายวิชานี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น",
+    invalidLanguage: "ชื่อรายวิชาภาษาอังกฤษต้องกรอกเป็นภาษาอังกฤษเท่านั้น",
   },
 };
 
@@ -91,6 +100,14 @@ export default function EditCourseModal({
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Alert state
+  const [alertState, setAlertState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    variant: "error" | "success" | "warning";
+  }>({ isOpen: false, title: "", message: "", variant: "error" });
+
   // ============================================================
   // INITIALIZATION
   // ============================================================
@@ -132,6 +149,15 @@ export default function EditCourseModal({
 
     if (trimmedValue.length > maxLength) {
       return ERROR_MESSAGES[field].maxLength;
+    }
+
+    // Language-specific validation
+    if (field === "course_name_th" && !THAI_REGEX.test(trimmedValue)) {
+      return ERROR_MESSAGES.course_name_th.invalidLanguage;
+    }
+
+    if (field === "course_name_en" && !ENGLISH_REGEX.test(trimmedValue)) {
+      return ERROR_MESSAGES.course_name_en.invalidLanguage;
     }
 
     return undefined;
@@ -192,13 +218,15 @@ export default function EditCourseModal({
 
     // Sync validation
     const codeError = validateFieldSync("course_code", formData.course_code);
-    const nameError = validateFieldSync("course_name_th", formData.course_name_th);
+    const nameThError = validateFieldSync("course_name_th", formData.course_name_th);
+    const nameEnError = validateFieldSync("course_name_en", formData.course_name_en);
 
     if (codeError) newErrors.course_code = codeError;
-    if (nameError) newErrors.course_name_th = nameError;
+    if (nameThError) newErrors.course_name_th = nameThError;
+    if (nameEnError) newErrors.course_name_en = nameEnError;
 
     // If sync validation failed, don't check duplicates
-    if (codeError || nameError) {
+    if (codeError || nameThError || nameEnError) {
       setErrors(newErrors);
       return false;
     }
@@ -289,7 +317,12 @@ export default function EditCourseModal({
       onClose();
     } catch (err: any) {
       console.error(err);
-      alert("ERROR: " + (err?.message || err));
+      setAlertState({
+        isOpen: true,
+        title: "เกิดข้อผิดพลาด",
+        message: err?.message || "ไม่สามารถบันทึกรายวิชาได้ กรุณาลองใหม่อีกครั้ง",
+        variant: "error",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -307,7 +340,7 @@ export default function EditCourseModal({
 
   const hasErrors = Object.values(errors).some((error) => !!error);
   const isFormEmpty =
-    !formData.course_code.trim() || !formData.course_name_th.trim();
+    !formData.course_code.trim() || !formData.course_name_th.trim() || !formData.course_name_en.trim();
   const isSubmitDisabled =
     hasErrors ||
     isFormEmpty ||
@@ -395,7 +428,7 @@ export default function EditCourseModal({
             {/* Course Name (English) */}
             <div>
               <label className="block text-[#000000] text-sm font-light mb-2">
-                Course Name (English) <span className="text-red-500">*</span>
+                ชื่อรายวิชา (ภาษาอังกฤษ) <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -442,6 +475,14 @@ export default function EditCourseModal({
           </div>
         </div>
       </div>
+
+      <AlertModal
+        isOpen={alertState.isOpen}
+        onClose={() => setAlertState((prev) => ({ ...prev, isOpen: false }))}
+        title={alertState.title}
+        message={alertState.message}
+        variant={alertState.variant}
+      />
     </div>
   );
 }

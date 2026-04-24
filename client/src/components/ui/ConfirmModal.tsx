@@ -21,8 +21,8 @@ export default function ConfirmModal({
   onConfirm,
   title,
   message,
-  confirmText = "Confirm",
-  cancelText = "Cancel",
+  confirmText = "ยืนยัน",
+  cancelText = "ยกเลิก",
   isLoading = false,
   variant = "danger",
 }: ConfirmModalProps) {
@@ -54,40 +54,40 @@ export default function ConfirmModal({
       }}
     >
       <div
-        className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 mx-4"
+        className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 mx-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Icon */}
-        <div className="flex justify-center mb-4">
-          <div className={`p-3 rounded-full ${styles.iconBg}`}>
-            <AlertTriangle size={28} className={styles.icon} />
+        <div className="flex justify-center mb-5">
+          <div className={`p-4 rounded-full ${styles.iconBg}`}>
+            <AlertTriangle size={36} className={styles.icon} />
           </div>
         </div>
 
         {/* Title */}
-        <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+        <h3 className="text-xl font-bold text-gray-900 text-center mb-3">
           {title}
         </h3>
 
         {/* Message */}
-        <p className="text-gray-600 text-center text-sm mb-6">{message}</p>
+        <p className="text-gray-700 text-center text-base mb-8 leading-relaxed">{message}</p>
 
         {/* Buttons */}
-        <div className="flex gap-3">
+        <div className="flex gap-4">
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-5 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-semibold text-base disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${styles.button}`}
+            className={`flex-1 px-5 py-3 text-white rounded-xl transition-colors font-semibold text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${styles.button}`}
           >
             {isLoading && (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             )}
             {confirmText}
           </button>

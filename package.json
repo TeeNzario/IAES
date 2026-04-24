@@ -1,6 +1,9 @@
 {
   "name": "iaes",
   "private": true,
+  "prisma": {
+  "seed": "ts-node prisma/seed.ts"
+},
   "scripts": {
     "dev": "concurrently \"npm run start:dev --prefix server\" \"npm run dev --prefix client\"",
     "teen": "tmux new-session -d -s iaes 'npm run start:dev --prefix server' \\; split-window -h 'npm run dev --prefix client' \\; attach",
@@ -10,4 +13,5 @@
   "devDependencies": {
     "concurrently": "^8.2.2"
   }
+  
 }

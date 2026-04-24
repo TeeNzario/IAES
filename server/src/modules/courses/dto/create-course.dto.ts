@@ -2,8 +2,8 @@ import { IsString, IsOptional, IsArray, MaxLength, IsNotEmpty } from 'class-vali
 
 export class CreateCourseDto {
   @IsString()
-  @IsNotEmpty()
-  course_name: string;
+  @IsOptional()
+  course_name?: string;
 
   @IsString()
   @IsNotEmpty()
