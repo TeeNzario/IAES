@@ -78,6 +78,15 @@ export class QuestionBankController {
     );
   }
 
+  @Get('collections/:collectionId')
+  getCollection(
+    @Req() req: AuthenticatedRequest,
+    @Param('offeringId') offeringId: string,
+    @Param('collectionId') collectionId: string,
+  ) {
+    return this.service.getCollection(offeringId, collectionId, staffActor(req));
+  }
+
   @Patch('collections/:collectionId')
   updateCollection(
     @Req() req: AuthenticatedRequest,

@@ -69,7 +69,9 @@ export const ModelName = {
   import_preview_rows: 'import_preview_rows',
   student_directory: 'student_directory',
   students: 'students',
-  exam_questions: 'exam_questions'
+  exam_questions: 'exam_questions',
+  question_bank_years: 'question_bank_years',
+  question_collections: 'question_collections'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -243,6 +245,7 @@ export const Question_bankScalarFieldEnum = {
   difficulty_param: 'difficulty_param',
   discrimination_param: 'discrimination_param',
   guessing_param: 'guessing_param',
+  question_collection_id: 'question_collection_id',
   created_by_staff_id: 'created_by_staff_id',
   is_active: 'is_active',
   created_at: 'created_at',
@@ -334,6 +337,33 @@ export const Exam_questionsScalarFieldEnum = {
 } as const
 
 export type Exam_questionsScalarFieldEnum = (typeof Exam_questionsScalarFieldEnum)[keyof typeof Exam_questionsScalarFieldEnum]
+
+
+export const Question_bank_yearsScalarFieldEnum = {
+  question_bank_year_id: 'question_bank_year_id',
+  courses_id: 'courses_id',
+  academic_year: 'academic_year',
+  created_by_staff_id: 'created_by_staff_id',
+  is_active: 'is_active',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Question_bank_yearsScalarFieldEnum = (typeof Question_bank_yearsScalarFieldEnum)[keyof typeof Question_bank_yearsScalarFieldEnum]
+
+
+export const Question_collectionsScalarFieldEnum = {
+  question_collection_id: 'question_collection_id',
+  question_bank_year_id: 'question_bank_year_id',
+  title: 'title',
+  description: 'description',
+  created_by_staff_id: 'created_by_staff_id',
+  is_active: 'is_active',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Question_collectionsScalarFieldEnum = (typeof Question_collectionsScalarFieldEnum)[keyof typeof Question_collectionsScalarFieldEnum]
 
 
 export const SortOrder = {

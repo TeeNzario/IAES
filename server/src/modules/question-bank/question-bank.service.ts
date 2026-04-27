@@ -137,6 +137,37 @@ export class QuestionBankService {
     return year;
   }
 
+  async getCollection(
+    offeringId: string,
+    collectionId: string,
+    actor: StaffActor,
+  ) {
+    const coursesId = await this.resolveCourseAndAuthorize(offeringId, actor);
+    const collection = await this.prisma.question_collections.findUnique({
+      where: { question_collection_id: BigInt(collectionId) },
+      select: {
+        question_collection_id: true,
+        title: true,
+        description: true,
+        is_active: true,
+        question_bank_years: {
+          select: {
+            question_bank_year_id: true,
+            academic_year: true,
+            courses_id: true,
+          },
+        },
+      },
+    });
+    if (!collection || !collection.is_active) {
+      throw new NotFoundException('Collection not found');
+    }
+    if (collection.question_bank_years.courses_id !== coursesId) {
+      throw new ForbiddenException('Collection does not belong to this course');
+    }
+    return serializeBigInt(collection);
+  }
+
   async listCollections(
     offeringId: string,
     academicYear: number,

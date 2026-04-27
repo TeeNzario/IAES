@@ -31,6 +31,7 @@ export type Question_bankAvgAggregateOutputType = {
   difficulty_param: number | null
   discrimination_param: number | null
   guessing_param: number | null
+  question_collection_id: number | null
   created_by_staff_id: number | null
 }
 
@@ -39,6 +40,7 @@ export type Question_bankSumAggregateOutputType = {
   difficulty_param: number | null
   discrimination_param: number | null
   guessing_param: number | null
+  question_collection_id: bigint | null
   created_by_staff_id: bigint | null
 }
 
@@ -49,6 +51,7 @@ export type Question_bankMinAggregateOutputType = {
   difficulty_param: number | null
   discrimination_param: number | null
   guessing_param: number | null
+  question_collection_id: bigint | null
   created_by_staff_id: bigint | null
   is_active: boolean | null
   created_at: Date | null
@@ -62,6 +65,7 @@ export type Question_bankMaxAggregateOutputType = {
   difficulty_param: number | null
   discrimination_param: number | null
   guessing_param: number | null
+  question_collection_id: bigint | null
   created_by_staff_id: bigint | null
   is_active: boolean | null
   created_at: Date | null
@@ -75,6 +79,7 @@ export type Question_bankCountAggregateOutputType = {
   difficulty_param: number
   discrimination_param: number
   guessing_param: number
+  question_collection_id: number
   created_by_staff_id: number
   is_active: number
   created_at: number
@@ -88,6 +93,7 @@ export type Question_bankAvgAggregateInputType = {
   difficulty_param?: true
   discrimination_param?: true
   guessing_param?: true
+  question_collection_id?: true
   created_by_staff_id?: true
 }
 
@@ -96,6 +102,7 @@ export type Question_bankSumAggregateInputType = {
   difficulty_param?: true
   discrimination_param?: true
   guessing_param?: true
+  question_collection_id?: true
   created_by_staff_id?: true
 }
 
@@ -106,6 +113,7 @@ export type Question_bankMinAggregateInputType = {
   difficulty_param?: true
   discrimination_param?: true
   guessing_param?: true
+  question_collection_id?: true
   created_by_staff_id?: true
   is_active?: true
   created_at?: true
@@ -119,6 +127,7 @@ export type Question_bankMaxAggregateInputType = {
   difficulty_param?: true
   discrimination_param?: true
   guessing_param?: true
+  question_collection_id?: true
   created_by_staff_id?: true
   is_active?: true
   created_at?: true
@@ -132,6 +141,7 @@ export type Question_bankCountAggregateInputType = {
   difficulty_param?: true
   discrimination_param?: true
   guessing_param?: true
+  question_collection_id?: true
   created_by_staff_id?: true
   is_active?: true
   created_at?: true
@@ -232,6 +242,7 @@ export type Question_bankGroupByOutputType = {
   difficulty_param: number | null
   discrimination_param: number | null
   guessing_param: number | null
+  question_collection_id: bigint | null
   created_by_staff_id: bigint
   is_active: boolean
   created_at: Date
@@ -268,6 +279,7 @@ export type question_bankWhereInput = {
   difficulty_param?: Prisma.FloatNullableFilter<"question_bank"> | number | null
   discrimination_param?: Prisma.FloatNullableFilter<"question_bank"> | number | null
   guessing_param?: Prisma.FloatNullableFilter<"question_bank"> | number | null
+  question_collection_id?: Prisma.BigIntNullableFilter<"question_bank"> | bigint | number | null
   created_by_staff_id?: Prisma.BigIntFilter<"question_bank"> | bigint | number
   is_active?: Prisma.BoolFilter<"question_bank"> | boolean
   created_at?: Prisma.DateTimeFilter<"question_bank"> | Date | string
@@ -276,6 +288,7 @@ export type question_bankWhereInput = {
   question_knowledge?: Prisma.Question_knowledgeListRelationFilter
   exam_questions?: Prisma.Exam_questionsListRelationFilter
   staff_users?: Prisma.XOR<Prisma.Staff_usersScalarRelationFilter, Prisma.staff_usersWhereInput>
+  question_collections?: Prisma.XOR<Prisma.Question_collectionsNullableScalarRelationFilter, Prisma.question_collectionsWhereInput> | null
   attemptItems?: Prisma.Attempt_itemsListRelationFilter
 }
 
@@ -286,6 +299,7 @@ export type question_bankOrderByWithRelationInput = {
   difficulty_param?: Prisma.SortOrderInput | Prisma.SortOrder
   discrimination_param?: Prisma.SortOrderInput | Prisma.SortOrder
   guessing_param?: Prisma.SortOrderInput | Prisma.SortOrder
+  question_collection_id?: Prisma.SortOrderInput | Prisma.SortOrder
   created_by_staff_id?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -294,6 +308,7 @@ export type question_bankOrderByWithRelationInput = {
   question_knowledge?: Prisma.question_knowledgeOrderByRelationAggregateInput
   exam_questions?: Prisma.exam_questionsOrderByRelationAggregateInput
   staff_users?: Prisma.staff_usersOrderByWithRelationInput
+  question_collections?: Prisma.question_collectionsOrderByWithRelationInput
   attemptItems?: Prisma.attempt_itemsOrderByRelationAggregateInput
 }
 
@@ -307,6 +322,7 @@ export type question_bankWhereUniqueInput = Prisma.AtLeast<{
   difficulty_param?: Prisma.FloatNullableFilter<"question_bank"> | number | null
   discrimination_param?: Prisma.FloatNullableFilter<"question_bank"> | number | null
   guessing_param?: Prisma.FloatNullableFilter<"question_bank"> | number | null
+  question_collection_id?: Prisma.BigIntNullableFilter<"question_bank"> | bigint | number | null
   created_by_staff_id?: Prisma.BigIntFilter<"question_bank"> | bigint | number
   is_active?: Prisma.BoolFilter<"question_bank"> | boolean
   created_at?: Prisma.DateTimeFilter<"question_bank"> | Date | string
@@ -315,6 +331,7 @@ export type question_bankWhereUniqueInput = Prisma.AtLeast<{
   question_knowledge?: Prisma.Question_knowledgeListRelationFilter
   exam_questions?: Prisma.Exam_questionsListRelationFilter
   staff_users?: Prisma.XOR<Prisma.Staff_usersScalarRelationFilter, Prisma.staff_usersWhereInput>
+  question_collections?: Prisma.XOR<Prisma.Question_collectionsNullableScalarRelationFilter, Prisma.question_collectionsWhereInput> | null
   attemptItems?: Prisma.Attempt_itemsListRelationFilter
 }, "question_id">
 
@@ -325,6 +342,7 @@ export type question_bankOrderByWithAggregationInput = {
   difficulty_param?: Prisma.SortOrderInput | Prisma.SortOrder
   discrimination_param?: Prisma.SortOrderInput | Prisma.SortOrder
   guessing_param?: Prisma.SortOrderInput | Prisma.SortOrder
+  question_collection_id?: Prisma.SortOrderInput | Prisma.SortOrder
   created_by_staff_id?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -346,6 +364,7 @@ export type question_bankScalarWhereWithAggregatesInput = {
   difficulty_param?: Prisma.FloatNullableWithAggregatesFilter<"question_bank"> | number | null
   discrimination_param?: Prisma.FloatNullableWithAggregatesFilter<"question_bank"> | number | null
   guessing_param?: Prisma.FloatNullableWithAggregatesFilter<"question_bank"> | number | null
+  question_collection_id?: Prisma.BigIntNullableWithAggregatesFilter<"question_bank"> | bigint | number | null
   created_by_staff_id?: Prisma.BigIntWithAggregatesFilter<"question_bank"> | bigint | number
   is_active?: Prisma.BoolWithAggregatesFilter<"question_bank"> | boolean
   created_at?: Prisma.DateTimeWithAggregatesFilter<"question_bank"> | Date | string
@@ -366,6 +385,7 @@ export type question_bankCreateInput = {
   question_knowledge?: Prisma.question_knowledgeCreateNestedManyWithoutQuestion_bankInput
   exam_questions?: Prisma.exam_questionsCreateNestedManyWithoutQuestion_bankInput
   staff_users: Prisma.staff_usersCreateNestedOneWithoutQuestionBanksInput
+  question_collections?: Prisma.question_collectionsCreateNestedOneWithoutQuestionsInput
   attemptItems?: Prisma.attempt_itemsCreateNestedManyWithoutQuestion_bankInput
 }
 
@@ -376,6 +396,7 @@ export type question_bankUncheckedCreateInput = {
   difficulty_param?: number | null
   discrimination_param?: number | null
   guessing_param?: number | null
+  question_collection_id?: bigint | number | null
   created_by_staff_id: bigint | number
   is_active?: boolean
   created_at?: Date | string
@@ -400,6 +421,7 @@ export type question_bankUpdateInput = {
   question_knowledge?: Prisma.question_knowledgeUpdateManyWithoutQuestion_bankNestedInput
   exam_questions?: Prisma.exam_questionsUpdateManyWithoutQuestion_bankNestedInput
   staff_users?: Prisma.staff_usersUpdateOneRequiredWithoutQuestionBanksNestedInput
+  question_collections?: Prisma.question_collectionsUpdateOneWithoutQuestionsNestedInput
   attemptItems?: Prisma.attempt_itemsUpdateManyWithoutQuestion_bankNestedInput
 }
 
@@ -410,6 +432,7 @@ export type question_bankUncheckedUpdateInput = {
   difficulty_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   discrimination_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   guessing_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  question_collection_id?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   created_by_staff_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -427,6 +450,7 @@ export type question_bankCreateManyInput = {
   difficulty_param?: number | null
   discrimination_param?: number | null
   guessing_param?: number | null
+  question_collection_id?: bigint | number | null
   created_by_staff_id: bigint | number
   is_active?: boolean
   created_at?: Date | string
@@ -452,6 +476,7 @@ export type question_bankUncheckedUpdateManyInput = {
   difficulty_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   discrimination_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   guessing_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  question_collection_id?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   created_by_staff_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -470,6 +495,7 @@ export type question_bankCountOrderByAggregateInput = {
   difficulty_param?: Prisma.SortOrder
   discrimination_param?: Prisma.SortOrder
   guessing_param?: Prisma.SortOrder
+  question_collection_id?: Prisma.SortOrder
   created_by_staff_id?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -481,6 +507,7 @@ export type question_bankAvgOrderByAggregateInput = {
   difficulty_param?: Prisma.SortOrder
   discrimination_param?: Prisma.SortOrder
   guessing_param?: Prisma.SortOrder
+  question_collection_id?: Prisma.SortOrder
   created_by_staff_id?: Prisma.SortOrder
 }
 
@@ -491,6 +518,7 @@ export type question_bankMaxOrderByAggregateInput = {
   difficulty_param?: Prisma.SortOrder
   discrimination_param?: Prisma.SortOrder
   guessing_param?: Prisma.SortOrder
+  question_collection_id?: Prisma.SortOrder
   created_by_staff_id?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -504,6 +532,7 @@ export type question_bankMinOrderByAggregateInput = {
   difficulty_param?: Prisma.SortOrder
   discrimination_param?: Prisma.SortOrder
   guessing_param?: Prisma.SortOrder
+  question_collection_id?: Prisma.SortOrder
   created_by_staff_id?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -515,6 +544,7 @@ export type question_bankSumOrderByAggregateInput = {
   difficulty_param?: Prisma.SortOrder
   discrimination_param?: Prisma.SortOrder
   guessing_param?: Prisma.SortOrder
+  question_collection_id?: Prisma.SortOrder
   created_by_staff_id?: Prisma.SortOrder
 }
 
@@ -630,6 +660,48 @@ export type question_bankUpdateOneRequiredWithoutExam_questionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.question_bankUpdateToOneWithWhereWithoutExam_questionsInput, Prisma.question_bankUpdateWithoutExam_questionsInput>, Prisma.question_bankUncheckedUpdateWithoutExam_questionsInput>
 }
 
+export type question_bankCreateNestedManyWithoutQuestion_collectionsInput = {
+  create?: Prisma.XOR<Prisma.question_bankCreateWithoutQuestion_collectionsInput, Prisma.question_bankUncheckedCreateWithoutQuestion_collectionsInput> | Prisma.question_bankCreateWithoutQuestion_collectionsInput[] | Prisma.question_bankUncheckedCreateWithoutQuestion_collectionsInput[]
+  connectOrCreate?: Prisma.question_bankCreateOrConnectWithoutQuestion_collectionsInput | Prisma.question_bankCreateOrConnectWithoutQuestion_collectionsInput[]
+  createMany?: Prisma.question_bankCreateManyQuestion_collectionsInputEnvelope
+  connect?: Prisma.question_bankWhereUniqueInput | Prisma.question_bankWhereUniqueInput[]
+}
+
+export type question_bankUncheckedCreateNestedManyWithoutQuestion_collectionsInput = {
+  create?: Prisma.XOR<Prisma.question_bankCreateWithoutQuestion_collectionsInput, Prisma.question_bankUncheckedCreateWithoutQuestion_collectionsInput> | Prisma.question_bankCreateWithoutQuestion_collectionsInput[] | Prisma.question_bankUncheckedCreateWithoutQuestion_collectionsInput[]
+  connectOrCreate?: Prisma.question_bankCreateOrConnectWithoutQuestion_collectionsInput | Prisma.question_bankCreateOrConnectWithoutQuestion_collectionsInput[]
+  createMany?: Prisma.question_bankCreateManyQuestion_collectionsInputEnvelope
+  connect?: Prisma.question_bankWhereUniqueInput | Prisma.question_bankWhereUniqueInput[]
+}
+
+export type question_bankUpdateManyWithoutQuestion_collectionsNestedInput = {
+  create?: Prisma.XOR<Prisma.question_bankCreateWithoutQuestion_collectionsInput, Prisma.question_bankUncheckedCreateWithoutQuestion_collectionsInput> | Prisma.question_bankCreateWithoutQuestion_collectionsInput[] | Prisma.question_bankUncheckedCreateWithoutQuestion_collectionsInput[]
+  connectOrCreate?: Prisma.question_bankCreateOrConnectWithoutQuestion_collectionsInput | Prisma.question_bankCreateOrConnectWithoutQuestion_collectionsInput[]
+  upsert?: Prisma.question_bankUpsertWithWhereUniqueWithoutQuestion_collectionsInput | Prisma.question_bankUpsertWithWhereUniqueWithoutQuestion_collectionsInput[]
+  createMany?: Prisma.question_bankCreateManyQuestion_collectionsInputEnvelope
+  set?: Prisma.question_bankWhereUniqueInput | Prisma.question_bankWhereUniqueInput[]
+  disconnect?: Prisma.question_bankWhereUniqueInput | Prisma.question_bankWhereUniqueInput[]
+  delete?: Prisma.question_bankWhereUniqueInput | Prisma.question_bankWhereUniqueInput[]
+  connect?: Prisma.question_bankWhereUniqueInput | Prisma.question_bankWhereUniqueInput[]
+  update?: Prisma.question_bankUpdateWithWhereUniqueWithoutQuestion_collectionsInput | Prisma.question_bankUpdateWithWhereUniqueWithoutQuestion_collectionsInput[]
+  updateMany?: Prisma.question_bankUpdateManyWithWhereWithoutQuestion_collectionsInput | Prisma.question_bankUpdateManyWithWhereWithoutQuestion_collectionsInput[]
+  deleteMany?: Prisma.question_bankScalarWhereInput | Prisma.question_bankScalarWhereInput[]
+}
+
+export type question_bankUncheckedUpdateManyWithoutQuestion_collectionsNestedInput = {
+  create?: Prisma.XOR<Prisma.question_bankCreateWithoutQuestion_collectionsInput, Prisma.question_bankUncheckedCreateWithoutQuestion_collectionsInput> | Prisma.question_bankCreateWithoutQuestion_collectionsInput[] | Prisma.question_bankUncheckedCreateWithoutQuestion_collectionsInput[]
+  connectOrCreate?: Prisma.question_bankCreateOrConnectWithoutQuestion_collectionsInput | Prisma.question_bankCreateOrConnectWithoutQuestion_collectionsInput[]
+  upsert?: Prisma.question_bankUpsertWithWhereUniqueWithoutQuestion_collectionsInput | Prisma.question_bankUpsertWithWhereUniqueWithoutQuestion_collectionsInput[]
+  createMany?: Prisma.question_bankCreateManyQuestion_collectionsInputEnvelope
+  set?: Prisma.question_bankWhereUniqueInput | Prisma.question_bankWhereUniqueInput[]
+  disconnect?: Prisma.question_bankWhereUniqueInput | Prisma.question_bankWhereUniqueInput[]
+  delete?: Prisma.question_bankWhereUniqueInput | Prisma.question_bankWhereUniqueInput[]
+  connect?: Prisma.question_bankWhereUniqueInput | Prisma.question_bankWhereUniqueInput[]
+  update?: Prisma.question_bankUpdateWithWhereUniqueWithoutQuestion_collectionsInput | Prisma.question_bankUpdateWithWhereUniqueWithoutQuestion_collectionsInput[]
+  updateMany?: Prisma.question_bankUpdateManyWithWhereWithoutQuestion_collectionsInput | Prisma.question_bankUpdateManyWithWhereWithoutQuestion_collectionsInput[]
+  deleteMany?: Prisma.question_bankScalarWhereInput | Prisma.question_bankScalarWhereInput[]
+}
+
 export type question_bankCreateWithoutAttemptItemsInput = {
   question_id?: bigint | number
   question_text: string
@@ -644,6 +716,7 @@ export type question_bankCreateWithoutAttemptItemsInput = {
   question_knowledge?: Prisma.question_knowledgeCreateNestedManyWithoutQuestion_bankInput
   exam_questions?: Prisma.exam_questionsCreateNestedManyWithoutQuestion_bankInput
   staff_users: Prisma.staff_usersCreateNestedOneWithoutQuestionBanksInput
+  question_collections?: Prisma.question_collectionsCreateNestedOneWithoutQuestionsInput
 }
 
 export type question_bankUncheckedCreateWithoutAttemptItemsInput = {
@@ -653,6 +726,7 @@ export type question_bankUncheckedCreateWithoutAttemptItemsInput = {
   difficulty_param?: number | null
   discrimination_param?: number | null
   guessing_param?: number | null
+  question_collection_id?: bigint | number | null
   created_by_staff_id: bigint | number
   is_active?: boolean
   created_at?: Date | string
@@ -692,6 +766,7 @@ export type question_bankUpdateWithoutAttemptItemsInput = {
   question_knowledge?: Prisma.question_knowledgeUpdateManyWithoutQuestion_bankNestedInput
   exam_questions?: Prisma.exam_questionsUpdateManyWithoutQuestion_bankNestedInput
   staff_users?: Prisma.staff_usersUpdateOneRequiredWithoutQuestionBanksNestedInput
+  question_collections?: Prisma.question_collectionsUpdateOneWithoutQuestionsNestedInput
 }
 
 export type question_bankUncheckedUpdateWithoutAttemptItemsInput = {
@@ -701,6 +776,7 @@ export type question_bankUncheckedUpdateWithoutAttemptItemsInput = {
   difficulty_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   discrimination_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   guessing_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  question_collection_id?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   created_by_staff_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -723,6 +799,7 @@ export type question_bankCreateWithoutQuestion_knowledgeInput = {
   choices?: Prisma.question_choicesCreateNestedManyWithoutQuestion_bankInput
   exam_questions?: Prisma.exam_questionsCreateNestedManyWithoutQuestion_bankInput
   staff_users: Prisma.staff_usersCreateNestedOneWithoutQuestionBanksInput
+  question_collections?: Prisma.question_collectionsCreateNestedOneWithoutQuestionsInput
   attemptItems?: Prisma.attempt_itemsCreateNestedManyWithoutQuestion_bankInput
 }
 
@@ -733,6 +810,7 @@ export type question_bankUncheckedCreateWithoutQuestion_knowledgeInput = {
   difficulty_param?: number | null
   discrimination_param?: number | null
   guessing_param?: number | null
+  question_collection_id?: bigint | number | null
   created_by_staff_id: bigint | number
   is_active?: boolean
   created_at?: Date | string
@@ -771,6 +849,7 @@ export type question_bankUpdateWithoutQuestion_knowledgeInput = {
   choices?: Prisma.question_choicesUpdateManyWithoutQuestion_bankNestedInput
   exam_questions?: Prisma.exam_questionsUpdateManyWithoutQuestion_bankNestedInput
   staff_users?: Prisma.staff_usersUpdateOneRequiredWithoutQuestionBanksNestedInput
+  question_collections?: Prisma.question_collectionsUpdateOneWithoutQuestionsNestedInput
   attemptItems?: Prisma.attempt_itemsUpdateManyWithoutQuestion_bankNestedInput
 }
 
@@ -781,6 +860,7 @@ export type question_bankUncheckedUpdateWithoutQuestion_knowledgeInput = {
   difficulty_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   discrimination_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   guessing_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  question_collection_id?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   created_by_staff_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -803,6 +883,7 @@ export type question_bankCreateWithoutChoicesInput = {
   question_knowledge?: Prisma.question_knowledgeCreateNestedManyWithoutQuestion_bankInput
   exam_questions?: Prisma.exam_questionsCreateNestedManyWithoutQuestion_bankInput
   staff_users: Prisma.staff_usersCreateNestedOneWithoutQuestionBanksInput
+  question_collections?: Prisma.question_collectionsCreateNestedOneWithoutQuestionsInput
   attemptItems?: Prisma.attempt_itemsCreateNestedManyWithoutQuestion_bankInput
 }
 
@@ -813,6 +894,7 @@ export type question_bankUncheckedCreateWithoutChoicesInput = {
   difficulty_param?: number | null
   discrimination_param?: number | null
   guessing_param?: number | null
+  question_collection_id?: bigint | number | null
   created_by_staff_id: bigint | number
   is_active?: boolean
   created_at?: Date | string
@@ -851,6 +933,7 @@ export type question_bankUpdateWithoutChoicesInput = {
   question_knowledge?: Prisma.question_knowledgeUpdateManyWithoutQuestion_bankNestedInput
   exam_questions?: Prisma.exam_questionsUpdateManyWithoutQuestion_bankNestedInput
   staff_users?: Prisma.staff_usersUpdateOneRequiredWithoutQuestionBanksNestedInput
+  question_collections?: Prisma.question_collectionsUpdateOneWithoutQuestionsNestedInput
   attemptItems?: Prisma.attempt_itemsUpdateManyWithoutQuestion_bankNestedInput
 }
 
@@ -861,6 +944,7 @@ export type question_bankUncheckedUpdateWithoutChoicesInput = {
   difficulty_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   discrimination_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   guessing_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  question_collection_id?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   created_by_staff_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -883,6 +967,7 @@ export type question_bankCreateWithoutStaff_usersInput = {
   choices?: Prisma.question_choicesCreateNestedManyWithoutQuestion_bankInput
   question_knowledge?: Prisma.question_knowledgeCreateNestedManyWithoutQuestion_bankInput
   exam_questions?: Prisma.exam_questionsCreateNestedManyWithoutQuestion_bankInput
+  question_collections?: Prisma.question_collectionsCreateNestedOneWithoutQuestionsInput
   attemptItems?: Prisma.attempt_itemsCreateNestedManyWithoutQuestion_bankInput
 }
 
@@ -893,6 +978,7 @@ export type question_bankUncheckedCreateWithoutStaff_usersInput = {
   difficulty_param?: number | null
   discrimination_param?: number | null
   guessing_param?: number | null
+  question_collection_id?: bigint | number | null
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
@@ -938,6 +1024,7 @@ export type question_bankScalarWhereInput = {
   difficulty_param?: Prisma.FloatNullableFilter<"question_bank"> | number | null
   discrimination_param?: Prisma.FloatNullableFilter<"question_bank"> | number | null
   guessing_param?: Prisma.FloatNullableFilter<"question_bank"> | number | null
+  question_collection_id?: Prisma.BigIntNullableFilter<"question_bank"> | bigint | number | null
   created_by_staff_id?: Prisma.BigIntFilter<"question_bank"> | bigint | number
   is_active?: Prisma.BoolFilter<"question_bank"> | boolean
   created_at?: Prisma.DateTimeFilter<"question_bank"> | Date | string
@@ -957,6 +1044,7 @@ export type question_bankCreateWithoutExam_questionsInput = {
   choices?: Prisma.question_choicesCreateNestedManyWithoutQuestion_bankInput
   question_knowledge?: Prisma.question_knowledgeCreateNestedManyWithoutQuestion_bankInput
   staff_users: Prisma.staff_usersCreateNestedOneWithoutQuestionBanksInput
+  question_collections?: Prisma.question_collectionsCreateNestedOneWithoutQuestionsInput
   attemptItems?: Prisma.attempt_itemsCreateNestedManyWithoutQuestion_bankInput
 }
 
@@ -967,6 +1055,7 @@ export type question_bankUncheckedCreateWithoutExam_questionsInput = {
   difficulty_param?: number | null
   discrimination_param?: number | null
   guessing_param?: number | null
+  question_collection_id?: bigint | number | null
   created_by_staff_id: bigint | number
   is_active?: boolean
   created_at?: Date | string
@@ -1005,6 +1094,7 @@ export type question_bankUpdateWithoutExam_questionsInput = {
   choices?: Prisma.question_choicesUpdateManyWithoutQuestion_bankNestedInput
   question_knowledge?: Prisma.question_knowledgeUpdateManyWithoutQuestion_bankNestedInput
   staff_users?: Prisma.staff_usersUpdateOneRequiredWithoutQuestionBanksNestedInput
+  question_collections?: Prisma.question_collectionsUpdateOneWithoutQuestionsNestedInput
   attemptItems?: Prisma.attempt_itemsUpdateManyWithoutQuestion_bankNestedInput
 }
 
@@ -1015,6 +1105,7 @@ export type question_bankUncheckedUpdateWithoutExam_questionsInput = {
   difficulty_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   discrimination_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   guessing_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  question_collection_id?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   created_by_staff_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1024,6 +1115,66 @@ export type question_bankUncheckedUpdateWithoutExam_questionsInput = {
   attemptItems?: Prisma.attempt_itemsUncheckedUpdateManyWithoutQuestion_bankNestedInput
 }
 
+export type question_bankCreateWithoutQuestion_collectionsInput = {
+  question_id?: bigint | number
+  question_text: string
+  question_type?: $Enums.question_type
+  difficulty_param?: number | null
+  discrimination_param?: number | null
+  guessing_param?: number | null
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  choices?: Prisma.question_choicesCreateNestedManyWithoutQuestion_bankInput
+  question_knowledge?: Prisma.question_knowledgeCreateNestedManyWithoutQuestion_bankInput
+  exam_questions?: Prisma.exam_questionsCreateNestedManyWithoutQuestion_bankInput
+  staff_users: Prisma.staff_usersCreateNestedOneWithoutQuestionBanksInput
+  attemptItems?: Prisma.attempt_itemsCreateNestedManyWithoutQuestion_bankInput
+}
+
+export type question_bankUncheckedCreateWithoutQuestion_collectionsInput = {
+  question_id?: bigint | number
+  question_text: string
+  question_type?: $Enums.question_type
+  difficulty_param?: number | null
+  discrimination_param?: number | null
+  guessing_param?: number | null
+  created_by_staff_id: bigint | number
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  choices?: Prisma.question_choicesUncheckedCreateNestedManyWithoutQuestion_bankInput
+  question_knowledge?: Prisma.question_knowledgeUncheckedCreateNestedManyWithoutQuestion_bankInput
+  exam_questions?: Prisma.exam_questionsUncheckedCreateNestedManyWithoutQuestion_bankInput
+  attemptItems?: Prisma.attempt_itemsUncheckedCreateNestedManyWithoutQuestion_bankInput
+}
+
+export type question_bankCreateOrConnectWithoutQuestion_collectionsInput = {
+  where: Prisma.question_bankWhereUniqueInput
+  create: Prisma.XOR<Prisma.question_bankCreateWithoutQuestion_collectionsInput, Prisma.question_bankUncheckedCreateWithoutQuestion_collectionsInput>
+}
+
+export type question_bankCreateManyQuestion_collectionsInputEnvelope = {
+  data: Prisma.question_bankCreateManyQuestion_collectionsInput | Prisma.question_bankCreateManyQuestion_collectionsInput[]
+  skipDuplicates?: boolean
+}
+
+export type question_bankUpsertWithWhereUniqueWithoutQuestion_collectionsInput = {
+  where: Prisma.question_bankWhereUniqueInput
+  update: Prisma.XOR<Prisma.question_bankUpdateWithoutQuestion_collectionsInput, Prisma.question_bankUncheckedUpdateWithoutQuestion_collectionsInput>
+  create: Prisma.XOR<Prisma.question_bankCreateWithoutQuestion_collectionsInput, Prisma.question_bankUncheckedCreateWithoutQuestion_collectionsInput>
+}
+
+export type question_bankUpdateWithWhereUniqueWithoutQuestion_collectionsInput = {
+  where: Prisma.question_bankWhereUniqueInput
+  data: Prisma.XOR<Prisma.question_bankUpdateWithoutQuestion_collectionsInput, Prisma.question_bankUncheckedUpdateWithoutQuestion_collectionsInput>
+}
+
+export type question_bankUpdateManyWithWhereWithoutQuestion_collectionsInput = {
+  where: Prisma.question_bankScalarWhereInput
+  data: Prisma.XOR<Prisma.question_bankUpdateManyMutationInput, Prisma.question_bankUncheckedUpdateManyWithoutQuestion_collectionsInput>
+}
+
 export type question_bankCreateManyStaff_usersInput = {
   question_id?: bigint | number
   question_text: string
@@ -1031,6 +1182,7 @@ export type question_bankCreateManyStaff_usersInput = {
   difficulty_param?: number | null
   discrimination_param?: number | null
   guessing_param?: number | null
+  question_collection_id?: bigint | number | null
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
@@ -1049,6 +1201,7 @@ export type question_bankUpdateWithoutStaff_usersInput = {
   choices?: Prisma.question_choicesUpdateManyWithoutQuestion_bankNestedInput
   question_knowledge?: Prisma.question_knowledgeUpdateManyWithoutQuestion_bankNestedInput
   exam_questions?: Prisma.exam_questionsUpdateManyWithoutQuestion_bankNestedInput
+  question_collections?: Prisma.question_collectionsUpdateOneWithoutQuestionsNestedInput
   attemptItems?: Prisma.attempt_itemsUpdateManyWithoutQuestion_bankNestedInput
 }
 
@@ -1059,6 +1212,7 @@ export type question_bankUncheckedUpdateWithoutStaff_usersInput = {
   difficulty_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   discrimination_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   guessing_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  question_collection_id?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1075,6 +1229,67 @@ export type question_bankUncheckedUpdateManyWithoutStaff_usersInput = {
   difficulty_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   discrimination_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   guessing_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  question_collection_id?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type question_bankCreateManyQuestion_collectionsInput = {
+  question_id?: bigint | number
+  question_text: string
+  question_type?: $Enums.question_type
+  difficulty_param?: number | null
+  discrimination_param?: number | null
+  guessing_param?: number | null
+  created_by_staff_id: bigint | number
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+}
+
+export type question_bankUpdateWithoutQuestion_collectionsInput = {
+  question_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  question_text?: Prisma.StringFieldUpdateOperationsInput | string
+  question_type?: Prisma.Enumquestion_typeFieldUpdateOperationsInput | $Enums.question_type
+  difficulty_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  discrimination_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guessing_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  choices?: Prisma.question_choicesUpdateManyWithoutQuestion_bankNestedInput
+  question_knowledge?: Prisma.question_knowledgeUpdateManyWithoutQuestion_bankNestedInput
+  exam_questions?: Prisma.exam_questionsUpdateManyWithoutQuestion_bankNestedInput
+  staff_users?: Prisma.staff_usersUpdateOneRequiredWithoutQuestionBanksNestedInput
+  attemptItems?: Prisma.attempt_itemsUpdateManyWithoutQuestion_bankNestedInput
+}
+
+export type question_bankUncheckedUpdateWithoutQuestion_collectionsInput = {
+  question_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  question_text?: Prisma.StringFieldUpdateOperationsInput | string
+  question_type?: Prisma.Enumquestion_typeFieldUpdateOperationsInput | $Enums.question_type
+  difficulty_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  discrimination_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guessing_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  created_by_staff_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  choices?: Prisma.question_choicesUncheckedUpdateManyWithoutQuestion_bankNestedInput
+  question_knowledge?: Prisma.question_knowledgeUncheckedUpdateManyWithoutQuestion_bankNestedInput
+  exam_questions?: Prisma.exam_questionsUncheckedUpdateManyWithoutQuestion_bankNestedInput
+  attemptItems?: Prisma.attempt_itemsUncheckedUpdateManyWithoutQuestion_bankNestedInput
+}
+
+export type question_bankUncheckedUpdateManyWithoutQuestion_collectionsInput = {
+  question_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  question_text?: Prisma.StringFieldUpdateOperationsInput | string
+  question_type?: Prisma.Enumquestion_typeFieldUpdateOperationsInput | $Enums.question_type
+  difficulty_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  discrimination_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  guessing_param?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  created_by_staff_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1145,6 +1360,7 @@ export type question_bankSelect<ExtArgs extends runtime.Types.Extensions.Interna
   difficulty_param?: boolean
   discrimination_param?: boolean
   guessing_param?: boolean
+  question_collection_id?: boolean
   created_by_staff_id?: boolean
   is_active?: boolean
   created_at?: boolean
@@ -1153,6 +1369,7 @@ export type question_bankSelect<ExtArgs extends runtime.Types.Extensions.Interna
   question_knowledge?: boolean | Prisma.question_bank$question_knowledgeArgs<ExtArgs>
   exam_questions?: boolean | Prisma.question_bank$exam_questionsArgs<ExtArgs>
   staff_users?: boolean | Prisma.staff_usersDefaultArgs<ExtArgs>
+  question_collections?: boolean | Prisma.question_bank$question_collectionsArgs<ExtArgs>
   attemptItems?: boolean | Prisma.question_bank$attemptItemsArgs<ExtArgs>
   _count?: boolean | Prisma.Question_bankCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["question_bank"]>
@@ -1164,11 +1381,13 @@ export type question_bankSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   difficulty_param?: boolean
   discrimination_param?: boolean
   guessing_param?: boolean
+  question_collection_id?: boolean
   created_by_staff_id?: boolean
   is_active?: boolean
   created_at?: boolean
   updated_at?: boolean
   staff_users?: boolean | Prisma.staff_usersDefaultArgs<ExtArgs>
+  question_collections?: boolean | Prisma.question_bank$question_collectionsArgs<ExtArgs>
 }, ExtArgs["result"]["question_bank"]>
 
 export type question_bankSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1178,11 +1397,13 @@ export type question_bankSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   difficulty_param?: boolean
   discrimination_param?: boolean
   guessing_param?: boolean
+  question_collection_id?: boolean
   created_by_staff_id?: boolean
   is_active?: boolean
   created_at?: boolean
   updated_at?: boolean
   staff_users?: boolean | Prisma.staff_usersDefaultArgs<ExtArgs>
+  question_collections?: boolean | Prisma.question_bank$question_collectionsArgs<ExtArgs>
 }, ExtArgs["result"]["question_bank"]>
 
 export type question_bankSelectScalar = {
@@ -1192,26 +1413,30 @@ export type question_bankSelectScalar = {
   difficulty_param?: boolean
   discrimination_param?: boolean
   guessing_param?: boolean
+  question_collection_id?: boolean
   created_by_staff_id?: boolean
   is_active?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type question_bankOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"question_id" | "question_text" | "question_type" | "difficulty_param" | "discrimination_param" | "guessing_param" | "created_by_staff_id" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["question_bank"]>
+export type question_bankOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"question_id" | "question_text" | "question_type" | "difficulty_param" | "discrimination_param" | "guessing_param" | "question_collection_id" | "created_by_staff_id" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["question_bank"]>
 export type question_bankInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   choices?: boolean | Prisma.question_bank$choicesArgs<ExtArgs>
   question_knowledge?: boolean | Prisma.question_bank$question_knowledgeArgs<ExtArgs>
   exam_questions?: boolean | Prisma.question_bank$exam_questionsArgs<ExtArgs>
   staff_users?: boolean | Prisma.staff_usersDefaultArgs<ExtArgs>
+  question_collections?: boolean | Prisma.question_bank$question_collectionsArgs<ExtArgs>
   attemptItems?: boolean | Prisma.question_bank$attemptItemsArgs<ExtArgs>
   _count?: boolean | Prisma.Question_bankCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type question_bankIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   staff_users?: boolean | Prisma.staff_usersDefaultArgs<ExtArgs>
+  question_collections?: boolean | Prisma.question_bank$question_collectionsArgs<ExtArgs>
 }
 export type question_bankIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   staff_users?: boolean | Prisma.staff_usersDefaultArgs<ExtArgs>
+  question_collections?: boolean | Prisma.question_bank$question_collectionsArgs<ExtArgs>
 }
 
 export type $question_bankPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1221,6 +1446,7 @@ export type $question_bankPayload<ExtArgs extends runtime.Types.Extensions.Inter
     question_knowledge: Prisma.$question_knowledgePayload<ExtArgs>[]
     exam_questions: Prisma.$exam_questionsPayload<ExtArgs>[]
     staff_users: Prisma.$staff_usersPayload<ExtArgs>
+    question_collections: Prisma.$question_collectionsPayload<ExtArgs> | null
     attemptItems: Prisma.$attempt_itemsPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1230,6 +1456,7 @@ export type $question_bankPayload<ExtArgs extends runtime.Types.Extensions.Inter
     difficulty_param: number | null
     discrimination_param: number | null
     guessing_param: number | null
+    question_collection_id: bigint | null
     created_by_staff_id: bigint
     is_active: boolean
     created_at: Date
@@ -1632,6 +1859,7 @@ export interface Prisma__question_bankClient<T, Null = never, ExtArgs extends ru
   question_knowledge<T extends Prisma.question_bank$question_knowledgeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.question_bank$question_knowledgeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$question_knowledgePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   exam_questions<T extends Prisma.question_bank$exam_questionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.question_bank$exam_questionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$exam_questionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   staff_users<T extends Prisma.staff_usersDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.staff_usersDefaultArgs<ExtArgs>>): Prisma.Prisma__staff_usersClient<runtime.Types.Result.GetResult<Prisma.$staff_usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  question_collections<T extends Prisma.question_bank$question_collectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.question_bank$question_collectionsArgs<ExtArgs>>): Prisma.Prisma__question_collectionsClient<runtime.Types.Result.GetResult<Prisma.$question_collectionsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   attemptItems<T extends Prisma.question_bank$attemptItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.question_bank$attemptItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$attempt_itemsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1668,6 +1896,7 @@ export interface question_bankFieldRefs {
   readonly difficulty_param: Prisma.FieldRef<"question_bank", 'Float'>
   readonly discrimination_param: Prisma.FieldRef<"question_bank", 'Float'>
   readonly guessing_param: Prisma.FieldRef<"question_bank", 'Float'>
+  readonly question_collection_id: Prisma.FieldRef<"question_bank", 'BigInt'>
   readonly created_by_staff_id: Prisma.FieldRef<"question_bank", 'BigInt'>
   readonly is_active: Prisma.FieldRef<"question_bank", 'Boolean'>
   readonly created_at: Prisma.FieldRef<"question_bank", 'DateTime'>
@@ -2137,6 +2366,25 @@ export type question_bank$exam_questionsArgs<ExtArgs extends runtime.Types.Exten
   take?: number
   skip?: number
   distinct?: Prisma.Exam_questionsScalarFieldEnum | Prisma.Exam_questionsScalarFieldEnum[]
+}
+
+/**
+ * question_bank.question_collections
+ */
+export type question_bank$question_collectionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the question_collections
+   */
+  select?: Prisma.question_collectionsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the question_collections
+   */
+  omit?: Prisma.question_collectionsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.question_collectionsInclude<ExtArgs> | null
+  where?: Prisma.question_collectionsWhereInput
 }
 
 /**

@@ -150,9 +150,11 @@ export default function QuestionBankYearPage() {
                   label="ชุดคำถาม"
                   title={c.title}
                   description={c.description}
-                  onClick={() => {
-                    /* TODO: navigate to collection detail (no-op for now) */
-                  }}
+                  onClick={() =>
+                    router.push(
+                      `/course/${offeringId}/question-bank/${year}/${c.question_collection_id}`,
+                    )
+                  }
                   onAction={() =>
                     setEditing({
                       id: c.question_collection_id,

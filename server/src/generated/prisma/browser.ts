@@ -112,3 +112,13 @@ export type students = Prisma.studentsModel
  * 
  */
 export type exam_questions = Prisma.exam_questionsModel
+/**
+ * Model question_bank_years
+ * Year folder under a course for organizing question collections (คลังคำถาม)
+ */
+export type question_bank_years = Prisma.question_bank_yearsModel
+/**
+ * Model question_collections
+ * A "ชุดคำถาม" inside a year folder.
+ */
+export type question_collections = Prisma.question_collectionsModel

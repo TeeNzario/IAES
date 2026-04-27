@@ -14,7 +14,7 @@ import type * as Prisma from "../internal/prismaNamespace.js"
 
 /**
  * Model question_collections
- * A "ชุดคำถาม" inside a year folder. Will hold questions via a future join table.
+ * A "ชุดคำถาม" inside a year folder.
  */
 export type question_collectionsModel = runtime.Types.Result.DefaultSelection<Prisma.$question_collectionsPayload>
 
@@ -250,6 +250,7 @@ export type question_collectionsWhereInput = {
   updated_at?: Prisma.DateTimeFilter<"question_collections"> | Date | string
   question_bank_years?: Prisma.XOR<Prisma.Question_bank_yearsScalarRelationFilter, Prisma.question_bank_yearsWhereInput>
   created_by?: Prisma.XOR<Prisma.Staff_usersScalarRelationFilter, Prisma.staff_usersWhereInput>
+  questions?: Prisma.Question_bankListRelationFilter
 }
 
 export type question_collectionsOrderByWithRelationInput = {
@@ -263,6 +264,7 @@ export type question_collectionsOrderByWithRelationInput = {
   updated_at?: Prisma.SortOrder
   question_bank_years?: Prisma.question_bank_yearsOrderByWithRelationInput
   created_by?: Prisma.staff_usersOrderByWithRelationInput
+  questions?: Prisma.question_bankOrderByRelationAggregateInput
 }
 
 export type question_collectionsWhereUniqueInput = Prisma.AtLeast<{
@@ -280,6 +282,7 @@ export type question_collectionsWhereUniqueInput = Prisma.AtLeast<{
   updated_at?: Prisma.DateTimeFilter<"question_collections"> | Date | string
   question_bank_years?: Prisma.XOR<Prisma.Question_bank_yearsScalarRelationFilter, Prisma.question_bank_yearsWhereInput>
   created_by?: Prisma.XOR<Prisma.Staff_usersScalarRelationFilter, Prisma.staff_usersWhereInput>
+  questions?: Prisma.Question_bankListRelationFilter
 }, "question_collection_id" | "question_bank_year_id_title">
 
 export type question_collectionsOrderByWithAggregationInput = {
@@ -321,6 +324,7 @@ export type question_collectionsCreateInput = {
   updated_at?: Date | string
   question_bank_years: Prisma.question_bank_yearsCreateNestedOneWithoutQuestion_collectionsInput
   created_by: Prisma.staff_usersCreateNestedOneWithoutQuestion_collectionsInput
+  questions?: Prisma.question_bankCreateNestedManyWithoutQuestion_collectionsInput
 }
 
 export type question_collectionsUncheckedCreateInput = {
@@ -332,6 +336,7 @@ export type question_collectionsUncheckedCreateInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
+  questions?: Prisma.question_bankUncheckedCreateNestedManyWithoutQuestion_collectionsInput
 }
 
 export type question_collectionsUpdateInput = {
@@ -343,6 +348,7 @@ export type question_collectionsUpdateInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   question_bank_years?: Prisma.question_bank_yearsUpdateOneRequiredWithoutQuestion_collectionsNestedInput
   created_by?: Prisma.staff_usersUpdateOneRequiredWithoutQuestion_collectionsNestedInput
+  questions?: Prisma.question_bankUpdateManyWithoutQuestion_collectionsNestedInput
 }
 
 export type question_collectionsUncheckedUpdateInput = {
@@ -354,6 +360,7 @@ export type question_collectionsUncheckedUpdateInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  questions?: Prisma.question_bankUncheckedUpdateManyWithoutQuestion_collectionsNestedInput
 }
 
 export type question_collectionsCreateManyInput = {
@@ -385,6 +392,11 @@ export type question_collectionsUncheckedUpdateManyInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type Question_collectionsNullableScalarRelationFilter = {
+  is?: Prisma.question_collectionsWhereInput | null
+  isNot?: Prisma.question_collectionsWhereInput | null
 }
 
 export type Question_collectionsListRelationFilter = {
@@ -445,6 +457,22 @@ export type question_collectionsSumOrderByAggregateInput = {
   question_collection_id?: Prisma.SortOrder
   question_bank_year_id?: Prisma.SortOrder
   created_by_staff_id?: Prisma.SortOrder
+}
+
+export type question_collectionsCreateNestedOneWithoutQuestionsInput = {
+  create?: Prisma.XOR<Prisma.question_collectionsCreateWithoutQuestionsInput, Prisma.question_collectionsUncheckedCreateWithoutQuestionsInput>
+  connectOrCreate?: Prisma.question_collectionsCreateOrConnectWithoutQuestionsInput
+  connect?: Prisma.question_collectionsWhereUniqueInput
+}
+
+export type question_collectionsUpdateOneWithoutQuestionsNestedInput = {
+  create?: Prisma.XOR<Prisma.question_collectionsCreateWithoutQuestionsInput, Prisma.question_collectionsUncheckedCreateWithoutQuestionsInput>
+  connectOrCreate?: Prisma.question_collectionsCreateOrConnectWithoutQuestionsInput
+  upsert?: Prisma.question_collectionsUpsertWithoutQuestionsInput
+  disconnect?: Prisma.question_collectionsWhereInput | boolean
+  delete?: Prisma.question_collectionsWhereInput | boolean
+  connect?: Prisma.question_collectionsWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.question_collectionsUpdateToOneWithWhereWithoutQuestionsInput, Prisma.question_collectionsUpdateWithoutQuestionsInput>, Prisma.question_collectionsUncheckedUpdateWithoutQuestionsInput>
 }
 
 export type question_collectionsCreateNestedManyWithoutCreated_byInput = {
@@ -531,6 +559,66 @@ export type question_collectionsUncheckedUpdateManyWithoutQuestion_bank_yearsNes
   deleteMany?: Prisma.question_collectionsScalarWhereInput | Prisma.question_collectionsScalarWhereInput[]
 }
 
+export type question_collectionsCreateWithoutQuestionsInput = {
+  question_collection_id?: bigint | number
+  title: string
+  description?: string | null
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  question_bank_years: Prisma.question_bank_yearsCreateNestedOneWithoutQuestion_collectionsInput
+  created_by: Prisma.staff_usersCreateNestedOneWithoutQuestion_collectionsInput
+}
+
+export type question_collectionsUncheckedCreateWithoutQuestionsInput = {
+  question_collection_id?: bigint | number
+  question_bank_year_id: bigint | number
+  title: string
+  description?: string | null
+  created_by_staff_id: bigint | number
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+}
+
+export type question_collectionsCreateOrConnectWithoutQuestionsInput = {
+  where: Prisma.question_collectionsWhereUniqueInput
+  create: Prisma.XOR<Prisma.question_collectionsCreateWithoutQuestionsInput, Prisma.question_collectionsUncheckedCreateWithoutQuestionsInput>
+}
+
+export type question_collectionsUpsertWithoutQuestionsInput = {
+  update: Prisma.XOR<Prisma.question_collectionsUpdateWithoutQuestionsInput, Prisma.question_collectionsUncheckedUpdateWithoutQuestionsInput>
+  create: Prisma.XOR<Prisma.question_collectionsCreateWithoutQuestionsInput, Prisma.question_collectionsUncheckedCreateWithoutQuestionsInput>
+  where?: Prisma.question_collectionsWhereInput
+}
+
+export type question_collectionsUpdateToOneWithWhereWithoutQuestionsInput = {
+  where?: Prisma.question_collectionsWhereInput
+  data: Prisma.XOR<Prisma.question_collectionsUpdateWithoutQuestionsInput, Prisma.question_collectionsUncheckedUpdateWithoutQuestionsInput>
+}
+
+export type question_collectionsUpdateWithoutQuestionsInput = {
+  question_collection_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  question_bank_years?: Prisma.question_bank_yearsUpdateOneRequiredWithoutQuestion_collectionsNestedInput
+  created_by?: Prisma.staff_usersUpdateOneRequiredWithoutQuestion_collectionsNestedInput
+}
+
+export type question_collectionsUncheckedUpdateWithoutQuestionsInput = {
+  question_collection_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  question_bank_year_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_staff_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type question_collectionsCreateWithoutCreated_byInput = {
   question_collection_id?: bigint | number
   title: string
@@ -539,6 +627,7 @@ export type question_collectionsCreateWithoutCreated_byInput = {
   created_at?: Date | string
   updated_at?: Date | string
   question_bank_years: Prisma.question_bank_yearsCreateNestedOneWithoutQuestion_collectionsInput
+  questions?: Prisma.question_bankCreateNestedManyWithoutQuestion_collectionsInput
 }
 
 export type question_collectionsUncheckedCreateWithoutCreated_byInput = {
@@ -549,6 +638,7 @@ export type question_collectionsUncheckedCreateWithoutCreated_byInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
+  questions?: Prisma.question_bankUncheckedCreateNestedManyWithoutQuestion_collectionsInput
 }
 
 export type question_collectionsCreateOrConnectWithoutCreated_byInput = {
@@ -599,6 +689,7 @@ export type question_collectionsCreateWithoutQuestion_bank_yearsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   created_by: Prisma.staff_usersCreateNestedOneWithoutQuestion_collectionsInput
+  questions?: Prisma.question_bankCreateNestedManyWithoutQuestion_collectionsInput
 }
 
 export type question_collectionsUncheckedCreateWithoutQuestion_bank_yearsInput = {
@@ -609,6 +700,7 @@ export type question_collectionsUncheckedCreateWithoutQuestion_bank_yearsInput =
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
+  questions?: Prisma.question_bankUncheckedCreateNestedManyWithoutQuestion_collectionsInput
 }
 
 export type question_collectionsCreateOrConnectWithoutQuestion_bank_yearsInput = {
@@ -655,6 +747,7 @@ export type question_collectionsUpdateWithoutCreated_byInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   question_bank_years?: Prisma.question_bank_yearsUpdateOneRequiredWithoutQuestion_collectionsNestedInput
+  questions?: Prisma.question_bankUpdateManyWithoutQuestion_collectionsNestedInput
 }
 
 export type question_collectionsUncheckedUpdateWithoutCreated_byInput = {
@@ -665,6 +758,7 @@ export type question_collectionsUncheckedUpdateWithoutCreated_byInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  questions?: Prisma.question_bankUncheckedUpdateManyWithoutQuestion_collectionsNestedInput
 }
 
 export type question_collectionsUncheckedUpdateManyWithoutCreated_byInput = {
@@ -695,6 +789,7 @@ export type question_collectionsUpdateWithoutQuestion_bank_yearsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_by?: Prisma.staff_usersUpdateOneRequiredWithoutQuestion_collectionsNestedInput
+  questions?: Prisma.question_bankUpdateManyWithoutQuestion_collectionsNestedInput
 }
 
 export type question_collectionsUncheckedUpdateWithoutQuestion_bank_yearsInput = {
@@ -705,6 +800,7 @@ export type question_collectionsUncheckedUpdateWithoutQuestion_bank_yearsInput =
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  questions?: Prisma.question_bankUncheckedUpdateManyWithoutQuestion_collectionsNestedInput
 }
 
 export type question_collectionsUncheckedUpdateManyWithoutQuestion_bank_yearsInput = {
@@ -718,6 +814,35 @@ export type question_collectionsUncheckedUpdateManyWithoutQuestion_bank_yearsInp
 }
 
 
+/**
+ * Count Type Question_collectionsCountOutputType
+ */
+
+export type Question_collectionsCountOutputType = {
+  questions: number
+}
+
+export type Question_collectionsCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  questions?: boolean | Question_collectionsCountOutputTypeCountQuestionsArgs
+}
+
+/**
+ * Question_collectionsCountOutputType without action
+ */
+export type Question_collectionsCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Question_collectionsCountOutputType
+   */
+  select?: Prisma.Question_collectionsCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * Question_collectionsCountOutputType without action
+ */
+export type Question_collectionsCountOutputTypeCountQuestionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.question_bankWhereInput
+}
+
 
 export type question_collectionsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   question_collection_id?: boolean
@@ -730,6 +855,8 @@ export type question_collectionsSelect<ExtArgs extends runtime.Types.Extensions.
   updated_at?: boolean
   question_bank_years?: boolean | Prisma.question_bank_yearsDefaultArgs<ExtArgs>
   created_by?: boolean | Prisma.staff_usersDefaultArgs<ExtArgs>
+  questions?: boolean | Prisma.question_collections$questionsArgs<ExtArgs>
+  _count?: boolean | Prisma.Question_collectionsCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["question_collections"]>
 
 export type question_collectionsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -773,6 +900,8 @@ export type question_collectionsOmit<ExtArgs extends runtime.Types.Extensions.In
 export type question_collectionsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   question_bank_years?: boolean | Prisma.question_bank_yearsDefaultArgs<ExtArgs>
   created_by?: boolean | Prisma.staff_usersDefaultArgs<ExtArgs>
+  questions?: boolean | Prisma.question_collections$questionsArgs<ExtArgs>
+  _count?: boolean | Prisma.Question_collectionsCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type question_collectionsIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   question_bank_years?: boolean | Prisma.question_bank_yearsDefaultArgs<ExtArgs>
@@ -788,6 +917,7 @@ export type $question_collectionsPayload<ExtArgs extends runtime.Types.Extension
   objects: {
     question_bank_years: Prisma.$question_bank_yearsPayload<ExtArgs>
     created_by: Prisma.$staff_usersPayload<ExtArgs>
+    questions: Prisma.$question_bankPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     question_collection_id: bigint
@@ -1194,6 +1324,7 @@ export interface Prisma__question_collectionsClient<T, Null = never, ExtArgs ext
   readonly [Symbol.toStringTag]: "PrismaPromise"
   question_bank_years<T extends Prisma.question_bank_yearsDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.question_bank_yearsDefaultArgs<ExtArgs>>): Prisma.Prisma__question_bank_yearsClient<runtime.Types.Result.GetResult<Prisma.$question_bank_yearsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   created_by<T extends Prisma.staff_usersDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.staff_usersDefaultArgs<ExtArgs>>): Prisma.Prisma__staff_usersClient<runtime.Types.Result.GetResult<Prisma.$staff_usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  questions<T extends Prisma.question_collections$questionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.question_collections$questionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$question_bankPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1624,6 +1755,30 @@ export type question_collectionsDeleteManyArgs<ExtArgs extends runtime.Types.Ext
    * Limit how many question_collections to delete.
    */
   limit?: number
+}
+
+/**
+ * question_collections.questions
+ */
+export type question_collections$questionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the question_bank
+   */
+  select?: Prisma.question_bankSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the question_bank
+   */
+  omit?: Prisma.question_bankOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.question_bankInclude<ExtArgs> | null
+  where?: Prisma.question_bankWhereInput
+  orderBy?: Prisma.question_bankOrderByWithRelationInput | Prisma.question_bankOrderByWithRelationInput[]
+  cursor?: Prisma.question_bankWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Question_bankScalarFieldEnum | Prisma.Question_bankScalarFieldEnum[]
 }
 
 /**

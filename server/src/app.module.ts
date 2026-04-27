@@ -12,6 +12,7 @@ import { CourseOfferingsService } from './modules/course-offerings/course-offeri
 import { CourseOfferingsController } from './modules/course-offerings/course-offerings.controller';
 import { CourseOfferingsModule } from './modules/course-offerings/course-offerings.module';
 import { KnowledgeCategoriesModule } from './modules/knowledge-categories/knowledge-categories.module';
+import { QuestionBankModule } from './modules/question-bank/question-bank.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { KnowledgeCategoriesModule } from './modules/knowledge-categories/knowle
     AuthModule,
     CourseOfferingsModule,
     KnowledgeCategoriesModule,
+    QuestionBankModule,
   ],
   controllers: [AppController, CourseOfferingsController],
   providers: [AppService, CourseOfferingsService],

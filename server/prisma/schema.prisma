@@ -89,6 +89,7 @@ model courses {
   course_offerings          course_offerings[]
   course_knowledge     course_knowledge[]
   question_knowledge   question_knowledge[]
+  question_bank_years  question_bank_years[]
 }
 
 model exam_attempts {
@@ -191,6 +192,8 @@ model question_bank {
   discrimination_param Float?
   guessing_param       Float?
 
+  question_collection_id BigInt?
+
   created_by_staff_id BigInt
   is_active           Boolean @default(true)
 
@@ -201,8 +204,11 @@ model question_bank {
   question_knowledge question_knowledge[]
   exam_questions          exam_questions[]
 
-  staff_users  staff_users     @relation(fields: [created_by_staff_id], references: [staff_users_id])
+  staff_users          staff_users           @relation(fields: [created_by_staff_id], references: [staff_users_id])
+  question_collections question_collections? @relation(fields: [question_collection_id], references: [question_collection_id], onDelete: SetNull)
   attemptItems attempt_items[]
+
+  @@index([question_collection_id], map: "idx_qbank_collection")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -220,6 +226,8 @@ model staff_users {
   course_instructors      course_instructors[]
   import_preview_sessions import_preview_sessions[]
   questionBanks           question_bank[]
+  question_bank_years     question_bank_years[]
+  question_collections    question_collections[]
 
   @@index([role], map: "idx_staff_users_role")
 }
@@ -316,4 +324,41 @@ enum question_type {
 enum user_role {
   INSTRUCTOR
   ADMIN
+}
+
+/// Year folder under a course for organizing question collections (คลังคำถาม)
+model question_bank_years {
+  question_bank_year_id BigInt   @id @default(autoincrement())
+  courses_id            BigInt
+  academic_year         Int
+  created_by_staff_id   BigInt
+  is_active             Boolean  @default(true)
+  created_at            DateTime @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime @default(now()) @db.Timestamptz(6)
+
+  courses              courses                @relation(fields: [courses_id], references: [courses_id], onDelete: Cascade)
+  created_by           staff_users            @relation(fields: [created_by_staff_id], references: [staff_users_id])
+  question_collections question_collections[]
+
+  @@unique([courses_id, academic_year])
+  @@index([courses_id], map: "idx_qb_years_course")
+}
+
+/// A "ชุดคำถาม" inside a year folder.
+model question_collections {
+  question_collection_id BigInt   @id @default(autoincrement())
+  question_bank_year_id  BigInt
+  title                  String   @db.VarChar(255)
+  description            String?
+  created_by_staff_id    BigInt
+  is_active              Boolean  @default(true)
+  created_at             DateTime @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime @default(now()) @db.Timestamptz(6)
+
+  question_bank_years question_bank_years @relation(fields: [question_bank_year_id], references: [question_bank_year_id], onDelete: Cascade)
+  created_by          staff_users         @relation(fields: [created_by_staff_id], references: [staff_users_id])
+  questions           question_bank[]
+
+  @@unique([question_bank_year_id, title])
+  @@index([question_bank_year_id], map: "idx_qcollections_year")
 }
