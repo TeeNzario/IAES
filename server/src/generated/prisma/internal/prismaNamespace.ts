@@ -402,7 +402,9 @@ export const ModelName = {
   import_preview_rows: 'import_preview_rows',
   student_directory: 'student_directory',
   students: 'students',
-  exam_questions: 'exam_questions'
+  exam_questions: 'exam_questions',
+  question_bank_years: 'question_bank_years',
+  question_collections: 'question_collections'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -418,7 +420,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "attempt_answers" | "attempt_items" | "course_enrollments" | "course_instructors" | "course_offerings" | "courses" | "exam_attempts" | "course_exams" | "knowledge_categories" | "course_knowledge" | "question_knowledge" | "question_choices" | "question_bank" | "staff_users" | "import_preview_sessions" | "import_preview_rows" | "student_directory" | "students" | "exam_questions"
+    modelProps: "attempt_answers" | "attempt_items" | "course_enrollments" | "course_instructors" | "course_offerings" | "courses" | "exam_attempts" | "course_exams" | "knowledge_categories" | "course_knowledge" | "question_knowledge" | "question_choices" | "question_bank" | "staff_users" | "import_preview_sessions" | "import_preview_rows" | "student_directory" | "students" | "exam_questions" | "question_bank_years" | "question_collections"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1828,6 +1830,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    question_bank_years: {
+      payload: Prisma.$question_bank_yearsPayload<ExtArgs>
+      fields: Prisma.question_bank_yearsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.question_bank_yearsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_bank_yearsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.question_bank_yearsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_bank_yearsPayload>
+        }
+        findFirst: {
+          args: Prisma.question_bank_yearsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_bank_yearsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.question_bank_yearsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_bank_yearsPayload>
+        }
+        findMany: {
+          args: Prisma.question_bank_yearsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_bank_yearsPayload>[]
+        }
+        create: {
+          args: Prisma.question_bank_yearsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_bank_yearsPayload>
+        }
+        createMany: {
+          args: Prisma.question_bank_yearsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.question_bank_yearsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_bank_yearsPayload>[]
+        }
+        delete: {
+          args: Prisma.question_bank_yearsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_bank_yearsPayload>
+        }
+        update: {
+          args: Prisma.question_bank_yearsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_bank_yearsPayload>
+        }
+        deleteMany: {
+          args: Prisma.question_bank_yearsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.question_bank_yearsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.question_bank_yearsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_bank_yearsPayload>[]
+        }
+        upsert: {
+          args: Prisma.question_bank_yearsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_bank_yearsPayload>
+        }
+        aggregate: {
+          args: Prisma.Question_bank_yearsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateQuestion_bank_years>
+        }
+        groupBy: {
+          args: Prisma.question_bank_yearsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Question_bank_yearsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.question_bank_yearsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Question_bank_yearsCountAggregateOutputType> | number
+        }
+      }
+    }
+    question_collections: {
+      payload: Prisma.$question_collectionsPayload<ExtArgs>
+      fields: Prisma.question_collectionsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.question_collectionsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_collectionsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.question_collectionsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_collectionsPayload>
+        }
+        findFirst: {
+          args: Prisma.question_collectionsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_collectionsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.question_collectionsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_collectionsPayload>
+        }
+        findMany: {
+          args: Prisma.question_collectionsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_collectionsPayload>[]
+        }
+        create: {
+          args: Prisma.question_collectionsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_collectionsPayload>
+        }
+        createMany: {
+          args: Prisma.question_collectionsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.question_collectionsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_collectionsPayload>[]
+        }
+        delete: {
+          args: Prisma.question_collectionsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_collectionsPayload>
+        }
+        update: {
+          args: Prisma.question_collectionsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_collectionsPayload>
+        }
+        deleteMany: {
+          args: Prisma.question_collectionsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.question_collectionsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.question_collectionsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_collectionsPayload>[]
+        }
+        upsert: {
+          args: Prisma.question_collectionsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$question_collectionsPayload>
+        }
+        aggregate: {
+          args: Prisma.Question_collectionsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateQuestion_collections>
+        }
+        groupBy: {
+          args: Prisma.question_collectionsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Question_collectionsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.question_collectionsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Question_collectionsCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2022,6 +2172,7 @@ export const Question_bankScalarFieldEnum = {
   difficulty_param: 'difficulty_param',
   discrimination_param: 'discrimination_param',
   guessing_param: 'guessing_param',
+  question_collection_id: 'question_collection_id',
   created_by_staff_id: 'created_by_staff_id',
   is_active: 'is_active',
   created_at: 'created_at',
@@ -2113,6 +2264,33 @@ export const Exam_questionsScalarFieldEnum = {
 } as const
 
 export type Exam_questionsScalarFieldEnum = (typeof Exam_questionsScalarFieldEnum)[keyof typeof Exam_questionsScalarFieldEnum]
+
+
+export const Question_bank_yearsScalarFieldEnum = {
+  question_bank_year_id: 'question_bank_year_id',
+  courses_id: 'courses_id',
+  academic_year: 'academic_year',
+  created_by_staff_id: 'created_by_staff_id',
+  is_active: 'is_active',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Question_bank_yearsScalarFieldEnum = (typeof Question_bank_yearsScalarFieldEnum)[keyof typeof Question_bank_yearsScalarFieldEnum]
+
+
+export const Question_collectionsScalarFieldEnum = {
+  question_collection_id: 'question_collection_id',
+  question_bank_year_id: 'question_bank_year_id',
+  title: 'title',
+  description: 'description',
+  created_by_staff_id: 'created_by_staff_id',
+  is_active: 'is_active',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Question_collectionsScalarFieldEnum = (typeof Question_collectionsScalarFieldEnum)[keyof typeof Question_collectionsScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2422,6 +2600,8 @@ export type GlobalOmitConfig = {
   student_directory?: Prisma.student_directoryOmit
   students?: Prisma.studentsOmit
   exam_questions?: Prisma.exam_questionsOmit
+  question_bank_years?: Prisma.question_bank_yearsOmit
+  question_collections?: Prisma.question_collectionsOmit
 }
 
 /* Types for Logging */

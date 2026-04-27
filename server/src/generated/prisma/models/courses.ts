@@ -271,6 +271,7 @@ export type coursesWhereInput = {
   course_offerings?: Prisma.Course_offeringsListRelationFilter
   course_knowledge?: Prisma.Course_knowledgeListRelationFilter
   question_knowledge?: Prisma.Question_knowledgeListRelationFilter
+  question_bank_years?: Prisma.Question_bank_yearsListRelationFilter
 }
 
 export type coursesOrderByWithRelationInput = {
@@ -288,6 +289,7 @@ export type coursesOrderByWithRelationInput = {
   course_offerings?: Prisma.course_offeringsOrderByRelationAggregateInput
   course_knowledge?: Prisma.course_knowledgeOrderByRelationAggregateInput
   question_knowledge?: Prisma.question_knowledgeOrderByRelationAggregateInput
+  question_bank_years?: Prisma.question_bank_yearsOrderByRelationAggregateInput
 }
 
 export type coursesWhereUniqueInput = Prisma.AtLeast<{
@@ -308,6 +310,7 @@ export type coursesWhereUniqueInput = Prisma.AtLeast<{
   course_offerings?: Prisma.Course_offeringsListRelationFilter
   course_knowledge?: Prisma.Course_knowledgeListRelationFilter
   question_knowledge?: Prisma.Question_knowledgeListRelationFilter
+  question_bank_years?: Prisma.Question_bank_yearsListRelationFilter
 }, "courses_id">
 
 export type coursesOrderByWithAggregationInput = {
@@ -361,6 +364,7 @@ export type coursesCreateInput = {
   course_offerings?: Prisma.course_offeringsCreateNestedManyWithoutCoursesInput
   course_knowledge?: Prisma.course_knowledgeCreateNestedManyWithoutCoursesInput
   question_knowledge?: Prisma.question_knowledgeCreateNestedManyWithoutCoursesInput
+  question_bank_years?: Prisma.question_bank_yearsCreateNestedManyWithoutCoursesInput
 }
 
 export type coursesUncheckedCreateInput = {
@@ -378,6 +382,7 @@ export type coursesUncheckedCreateInput = {
   course_offerings?: Prisma.course_offeringsUncheckedCreateNestedManyWithoutCoursesInput
   course_knowledge?: Prisma.course_knowledgeUncheckedCreateNestedManyWithoutCoursesInput
   question_knowledge?: Prisma.question_knowledgeUncheckedCreateNestedManyWithoutCoursesInput
+  question_bank_years?: Prisma.question_bank_yearsUncheckedCreateNestedManyWithoutCoursesInput
 }
 
 export type coursesUpdateInput = {
@@ -395,6 +400,7 @@ export type coursesUpdateInput = {
   course_offerings?: Prisma.course_offeringsUpdateManyWithoutCoursesNestedInput
   course_knowledge?: Prisma.course_knowledgeUpdateManyWithoutCoursesNestedInput
   question_knowledge?: Prisma.question_knowledgeUpdateManyWithoutCoursesNestedInput
+  question_bank_years?: Prisma.question_bank_yearsUpdateManyWithoutCoursesNestedInput
 }
 
 export type coursesUncheckedUpdateInput = {
@@ -412,6 +418,7 @@ export type coursesUncheckedUpdateInput = {
   course_offerings?: Prisma.course_offeringsUncheckedUpdateManyWithoutCoursesNestedInput
   course_knowledge?: Prisma.course_knowledgeUncheckedUpdateManyWithoutCoursesNestedInput
   question_knowledge?: Prisma.question_knowledgeUncheckedUpdateManyWithoutCoursesNestedInput
+  question_bank_years?: Prisma.question_bank_yearsUncheckedUpdateManyWithoutCoursesNestedInput
 }
 
 export type coursesCreateManyInput = {
@@ -555,6 +562,20 @@ export type coursesUpdateOneRequiredWithoutQuestion_knowledgeNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.coursesUpdateToOneWithWhereWithoutQuestion_knowledgeInput, Prisma.coursesUpdateWithoutQuestion_knowledgeInput>, Prisma.coursesUncheckedUpdateWithoutQuestion_knowledgeInput>
 }
 
+export type coursesCreateNestedOneWithoutQuestion_bank_yearsInput = {
+  create?: Prisma.XOR<Prisma.coursesCreateWithoutQuestion_bank_yearsInput, Prisma.coursesUncheckedCreateWithoutQuestion_bank_yearsInput>
+  connectOrCreate?: Prisma.coursesCreateOrConnectWithoutQuestion_bank_yearsInput
+  connect?: Prisma.coursesWhereUniqueInput
+}
+
+export type coursesUpdateOneRequiredWithoutQuestion_bank_yearsNestedInput = {
+  create?: Prisma.XOR<Prisma.coursesCreateWithoutQuestion_bank_yearsInput, Prisma.coursesUncheckedCreateWithoutQuestion_bank_yearsInput>
+  connectOrCreate?: Prisma.coursesCreateOrConnectWithoutQuestion_bank_yearsInput
+  upsert?: Prisma.coursesUpsertWithoutQuestion_bank_yearsInput
+  connect?: Prisma.coursesWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.coursesUpdateToOneWithWhereWithoutQuestion_bank_yearsInput, Prisma.coursesUpdateWithoutQuestion_bank_yearsInput>, Prisma.coursesUncheckedUpdateWithoutQuestion_bank_yearsInput>
+}
+
 export type coursesCreateWithoutCourse_offeringsInput = {
   courses_id?: bigint | number
   course_code: string
@@ -569,6 +590,7 @@ export type coursesCreateWithoutCourse_offeringsInput = {
   updated_at?: Date | string
   course_knowledge?: Prisma.course_knowledgeCreateNestedManyWithoutCoursesInput
   question_knowledge?: Prisma.question_knowledgeCreateNestedManyWithoutCoursesInput
+  question_bank_years?: Prisma.question_bank_yearsCreateNestedManyWithoutCoursesInput
 }
 
 export type coursesUncheckedCreateWithoutCourse_offeringsInput = {
@@ -585,6 +607,7 @@ export type coursesUncheckedCreateWithoutCourse_offeringsInput = {
   updated_at?: Date | string
   course_knowledge?: Prisma.course_knowledgeUncheckedCreateNestedManyWithoutCoursesInput
   question_knowledge?: Prisma.question_knowledgeUncheckedCreateNestedManyWithoutCoursesInput
+  question_bank_years?: Prisma.question_bank_yearsUncheckedCreateNestedManyWithoutCoursesInput
 }
 
 export type coursesCreateOrConnectWithoutCourse_offeringsInput = {
@@ -617,6 +640,7 @@ export type coursesUpdateWithoutCourse_offeringsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   course_knowledge?: Prisma.course_knowledgeUpdateManyWithoutCoursesNestedInput
   question_knowledge?: Prisma.question_knowledgeUpdateManyWithoutCoursesNestedInput
+  question_bank_years?: Prisma.question_bank_yearsUpdateManyWithoutCoursesNestedInput
 }
 
 export type coursesUncheckedUpdateWithoutCourse_offeringsInput = {
@@ -633,6 +657,7 @@ export type coursesUncheckedUpdateWithoutCourse_offeringsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   course_knowledge?: Prisma.course_knowledgeUncheckedUpdateManyWithoutCoursesNestedInput
   question_knowledge?: Prisma.question_knowledgeUncheckedUpdateManyWithoutCoursesNestedInput
+  question_bank_years?: Prisma.question_bank_yearsUncheckedUpdateManyWithoutCoursesNestedInput
 }
 
 export type coursesCreateWithoutCourse_knowledgeInput = {
@@ -649,6 +674,7 @@ export type coursesCreateWithoutCourse_knowledgeInput = {
   updated_at?: Date | string
   course_offerings?: Prisma.course_offeringsCreateNestedManyWithoutCoursesInput
   question_knowledge?: Prisma.question_knowledgeCreateNestedManyWithoutCoursesInput
+  question_bank_years?: Prisma.question_bank_yearsCreateNestedManyWithoutCoursesInput
 }
 
 export type coursesUncheckedCreateWithoutCourse_knowledgeInput = {
@@ -665,6 +691,7 @@ export type coursesUncheckedCreateWithoutCourse_knowledgeInput = {
   updated_at?: Date | string
   course_offerings?: Prisma.course_offeringsUncheckedCreateNestedManyWithoutCoursesInput
   question_knowledge?: Prisma.question_knowledgeUncheckedCreateNestedManyWithoutCoursesInput
+  question_bank_years?: Prisma.question_bank_yearsUncheckedCreateNestedManyWithoutCoursesInput
 }
 
 export type coursesCreateOrConnectWithoutCourse_knowledgeInput = {
@@ -697,6 +724,7 @@ export type coursesUpdateWithoutCourse_knowledgeInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   course_offerings?: Prisma.course_offeringsUpdateManyWithoutCoursesNestedInput
   question_knowledge?: Prisma.question_knowledgeUpdateManyWithoutCoursesNestedInput
+  question_bank_years?: Prisma.question_bank_yearsUpdateManyWithoutCoursesNestedInput
 }
 
 export type coursesUncheckedUpdateWithoutCourse_knowledgeInput = {
@@ -713,6 +741,7 @@ export type coursesUncheckedUpdateWithoutCourse_knowledgeInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   course_offerings?: Prisma.course_offeringsUncheckedUpdateManyWithoutCoursesNestedInput
   question_knowledge?: Prisma.question_knowledgeUncheckedUpdateManyWithoutCoursesNestedInput
+  question_bank_years?: Prisma.question_bank_yearsUncheckedUpdateManyWithoutCoursesNestedInput
 }
 
 export type coursesCreateWithoutQuestion_knowledgeInput = {
@@ -729,6 +758,7 @@ export type coursesCreateWithoutQuestion_knowledgeInput = {
   updated_at?: Date | string
   course_offerings?: Prisma.course_offeringsCreateNestedManyWithoutCoursesInput
   course_knowledge?: Prisma.course_knowledgeCreateNestedManyWithoutCoursesInput
+  question_bank_years?: Prisma.question_bank_yearsCreateNestedManyWithoutCoursesInput
 }
 
 export type coursesUncheckedCreateWithoutQuestion_knowledgeInput = {
@@ -745,6 +775,7 @@ export type coursesUncheckedCreateWithoutQuestion_knowledgeInput = {
   updated_at?: Date | string
   course_offerings?: Prisma.course_offeringsUncheckedCreateNestedManyWithoutCoursesInput
   course_knowledge?: Prisma.course_knowledgeUncheckedCreateNestedManyWithoutCoursesInput
+  question_bank_years?: Prisma.question_bank_yearsUncheckedCreateNestedManyWithoutCoursesInput
 }
 
 export type coursesCreateOrConnectWithoutQuestion_knowledgeInput = {
@@ -777,6 +808,7 @@ export type coursesUpdateWithoutQuestion_knowledgeInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   course_offerings?: Prisma.course_offeringsUpdateManyWithoutCoursesNestedInput
   course_knowledge?: Prisma.course_knowledgeUpdateManyWithoutCoursesNestedInput
+  question_bank_years?: Prisma.question_bank_yearsUpdateManyWithoutCoursesNestedInput
 }
 
 export type coursesUncheckedUpdateWithoutQuestion_knowledgeInput = {
@@ -793,6 +825,91 @@ export type coursesUncheckedUpdateWithoutQuestion_knowledgeInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   course_offerings?: Prisma.course_offeringsUncheckedUpdateManyWithoutCoursesNestedInput
   course_knowledge?: Prisma.course_knowledgeUncheckedUpdateManyWithoutCoursesNestedInput
+  question_bank_years?: Prisma.question_bank_yearsUncheckedUpdateManyWithoutCoursesNestedInput
+}
+
+export type coursesCreateWithoutQuestion_bank_yearsInput = {
+  courses_id?: bigint | number
+  course_code: string
+  course_name: string
+  course_name_th: string
+  course_name_en: string
+  description?: string | null
+  course_image?: string | null
+  is_active?: boolean
+  created_by_instructors_id: bigint | number
+  created_at?: Date | string
+  updated_at?: Date | string
+  course_offerings?: Prisma.course_offeringsCreateNestedManyWithoutCoursesInput
+  course_knowledge?: Prisma.course_knowledgeCreateNestedManyWithoutCoursesInput
+  question_knowledge?: Prisma.question_knowledgeCreateNestedManyWithoutCoursesInput
+}
+
+export type coursesUncheckedCreateWithoutQuestion_bank_yearsInput = {
+  courses_id?: bigint | number
+  course_code: string
+  course_name: string
+  course_name_th: string
+  course_name_en: string
+  description?: string | null
+  course_image?: string | null
+  is_active?: boolean
+  created_by_instructors_id: bigint | number
+  created_at?: Date | string
+  updated_at?: Date | string
+  course_offerings?: Prisma.course_offeringsUncheckedCreateNestedManyWithoutCoursesInput
+  course_knowledge?: Prisma.course_knowledgeUncheckedCreateNestedManyWithoutCoursesInput
+  question_knowledge?: Prisma.question_knowledgeUncheckedCreateNestedManyWithoutCoursesInput
+}
+
+export type coursesCreateOrConnectWithoutQuestion_bank_yearsInput = {
+  where: Prisma.coursesWhereUniqueInput
+  create: Prisma.XOR<Prisma.coursesCreateWithoutQuestion_bank_yearsInput, Prisma.coursesUncheckedCreateWithoutQuestion_bank_yearsInput>
+}
+
+export type coursesUpsertWithoutQuestion_bank_yearsInput = {
+  update: Prisma.XOR<Prisma.coursesUpdateWithoutQuestion_bank_yearsInput, Prisma.coursesUncheckedUpdateWithoutQuestion_bank_yearsInput>
+  create: Prisma.XOR<Prisma.coursesCreateWithoutQuestion_bank_yearsInput, Prisma.coursesUncheckedCreateWithoutQuestion_bank_yearsInput>
+  where?: Prisma.coursesWhereInput
+}
+
+export type coursesUpdateToOneWithWhereWithoutQuestion_bank_yearsInput = {
+  where?: Prisma.coursesWhereInput
+  data: Prisma.XOR<Prisma.coursesUpdateWithoutQuestion_bank_yearsInput, Prisma.coursesUncheckedUpdateWithoutQuestion_bank_yearsInput>
+}
+
+export type coursesUpdateWithoutQuestion_bank_yearsInput = {
+  courses_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  course_code?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_th?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_en?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  course_image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_by_instructors_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  course_offerings?: Prisma.course_offeringsUpdateManyWithoutCoursesNestedInput
+  course_knowledge?: Prisma.course_knowledgeUpdateManyWithoutCoursesNestedInput
+  question_knowledge?: Prisma.question_knowledgeUpdateManyWithoutCoursesNestedInput
+}
+
+export type coursesUncheckedUpdateWithoutQuestion_bank_yearsInput = {
+  courses_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  course_code?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_th?: Prisma.StringFieldUpdateOperationsInput | string
+  course_name_en?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  course_image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_by_instructors_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  course_offerings?: Prisma.course_offeringsUncheckedUpdateManyWithoutCoursesNestedInput
+  course_knowledge?: Prisma.course_knowledgeUncheckedUpdateManyWithoutCoursesNestedInput
+  question_knowledge?: Prisma.question_knowledgeUncheckedUpdateManyWithoutCoursesNestedInput
 }
 
 
@@ -804,12 +921,14 @@ export type CoursesCountOutputType = {
   course_offerings: number
   course_knowledge: number
   question_knowledge: number
+  question_bank_years: number
 }
 
 export type CoursesCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   course_offerings?: boolean | CoursesCountOutputTypeCountCourse_offeringsArgs
   course_knowledge?: boolean | CoursesCountOutputTypeCountCourse_knowledgeArgs
   question_knowledge?: boolean | CoursesCountOutputTypeCountQuestion_knowledgeArgs
+  question_bank_years?: boolean | CoursesCountOutputTypeCountQuestion_bank_yearsArgs
 }
 
 /**
@@ -843,6 +962,13 @@ export type CoursesCountOutputTypeCountQuestion_knowledgeArgs<ExtArgs extends ru
   where?: Prisma.question_knowledgeWhereInput
 }
 
+/**
+ * CoursesCountOutputType without action
+ */
+export type CoursesCountOutputTypeCountQuestion_bank_yearsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.question_bank_yearsWhereInput
+}
+
 
 export type coursesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   courses_id?: boolean
@@ -859,6 +985,7 @@ export type coursesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   course_offerings?: boolean | Prisma.courses$course_offeringsArgs<ExtArgs>
   course_knowledge?: boolean | Prisma.courses$course_knowledgeArgs<ExtArgs>
   question_knowledge?: boolean | Prisma.courses$question_knowledgeArgs<ExtArgs>
+  question_bank_years?: boolean | Prisma.courses$question_bank_yearsArgs<ExtArgs>
   _count?: boolean | Prisma.CoursesCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["courses"]>
 
@@ -909,6 +1036,7 @@ export type coursesInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   course_offerings?: boolean | Prisma.courses$course_offeringsArgs<ExtArgs>
   course_knowledge?: boolean | Prisma.courses$course_knowledgeArgs<ExtArgs>
   question_knowledge?: boolean | Prisma.courses$question_knowledgeArgs<ExtArgs>
+  question_bank_years?: boolean | Prisma.courses$question_bank_yearsArgs<ExtArgs>
   _count?: boolean | Prisma.CoursesCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type coursesIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -920,6 +1048,7 @@ export type $coursesPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     course_offerings: Prisma.$course_offeringsPayload<ExtArgs>[]
     course_knowledge: Prisma.$course_knowledgePayload<ExtArgs>[]
     question_knowledge: Prisma.$question_knowledgePayload<ExtArgs>[]
+    question_bank_years: Prisma.$question_bank_yearsPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     courses_id: bigint
@@ -1330,6 +1459,7 @@ export interface Prisma__coursesClient<T, Null = never, ExtArgs extends runtime.
   course_offerings<T extends Prisma.courses$course_offeringsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.courses$course_offeringsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$course_offeringsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   course_knowledge<T extends Prisma.courses$course_knowledgeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.courses$course_knowledgeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$course_knowledgePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   question_knowledge<T extends Prisma.courses$question_knowledgeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.courses$question_knowledgeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$question_knowledgePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  question_bank_years<T extends Prisma.courses$question_bank_yearsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.courses$question_bank_yearsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$question_bank_yearsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1827,6 +1957,30 @@ export type courses$question_knowledgeArgs<ExtArgs extends runtime.Types.Extensi
   take?: number
   skip?: number
   distinct?: Prisma.Question_knowledgeScalarFieldEnum | Prisma.Question_knowledgeScalarFieldEnum[]
+}
+
+/**
+ * courses.question_bank_years
+ */
+export type courses$question_bank_yearsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the question_bank_years
+   */
+  select?: Prisma.question_bank_yearsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the question_bank_years
+   */
+  omit?: Prisma.question_bank_yearsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.question_bank_yearsInclude<ExtArgs> | null
+  where?: Prisma.question_bank_yearsWhereInput
+  orderBy?: Prisma.question_bank_yearsOrderByWithRelationInput | Prisma.question_bank_yearsOrderByWithRelationInput[]
+  cursor?: Prisma.question_bank_yearsWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Question_bank_yearsScalarFieldEnum | Prisma.Question_bank_yearsScalarFieldEnum[]
 }
 
 /**
