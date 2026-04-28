@@ -190,6 +190,7 @@ export const Course_examsScalarFieldEnum = {
   start_time: 'start_time',
   end_time: 'end_time',
   show_results_immediately: 'show_results_immediately',
+  is_active: 'is_active',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const

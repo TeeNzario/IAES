@@ -55,6 +55,30 @@ export class QuestionsController {
     );
   }
 
+  /**
+   * List ALL questions in a course (not scoped to a single collection).
+   * Used by the exam question-picker modal. Filters: year, collection_id,
+   * search. Paginated.
+   */
+  @Get('question-bank/questions')
+  listAllInCourse(
+    @Req() req: AuthenticatedRequest,
+    @Param('offeringId') offeringId: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('year') year?: string,
+    @Query('collection_id') collectionId?: string,
+  ) {
+    return this.service.listAllInCourse(offeringId, staffActor(req), {
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      search,
+      year: year ? parseInt(year, 10) : undefined,
+      collection_id: collectionId,
+    });
+  }
+
   /** Bulk-save multiple questions at once ("บันทึก"). */
   @Post('question-bank/collections/:collectionId/questions/bulk')
   bulkCreate(

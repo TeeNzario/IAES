@@ -44,6 +44,7 @@ export type Course_examsMinAggregateOutputType = {
   start_time: Date | null
   end_time: Date | null
   show_results_immediately: boolean | null
+  is_active: boolean | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -56,6 +57,7 @@ export type Course_examsMaxAggregateOutputType = {
   start_time: Date | null
   end_time: Date | null
   show_results_immediately: boolean | null
+  is_active: boolean | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -68,6 +70,7 @@ export type Course_examsCountAggregateOutputType = {
   start_time: number
   end_time: number
   show_results_immediately: number
+  is_active: number
   created_at: number
   updated_at: number
   _all: number
@@ -92,6 +95,7 @@ export type Course_examsMinAggregateInputType = {
   start_time?: true
   end_time?: true
   show_results_immediately?: true
+  is_active?: true
   created_at?: true
   updated_at?: true
 }
@@ -104,6 +108,7 @@ export type Course_examsMaxAggregateInputType = {
   start_time?: true
   end_time?: true
   show_results_immediately?: true
+  is_active?: true
   created_at?: true
   updated_at?: true
 }
@@ -116,6 +121,7 @@ export type Course_examsCountAggregateInputType = {
   start_time?: true
   end_time?: true
   show_results_immediately?: true
+  is_active?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -215,6 +221,7 @@ export type Course_examsGroupByOutputType = {
   start_time: Date
   end_time: Date
   show_results_immediately: boolean
+  is_active: boolean
   created_at: Date
   updated_at: Date
   _count: Course_examsCountAggregateOutputType | null
@@ -250,6 +257,7 @@ export type course_examsWhereInput = {
   start_time?: Prisma.DateTimeFilter<"course_exams"> | Date | string
   end_time?: Prisma.DateTimeFilter<"course_exams"> | Date | string
   show_results_immediately?: Prisma.BoolFilter<"course_exams"> | boolean
+  is_active?: Prisma.BoolFilter<"course_exams"> | boolean
   created_at?: Prisma.DateTimeFilter<"course_exams"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"course_exams"> | Date | string
   exam_attempts?: Prisma.Exam_attemptsListRelationFilter
@@ -265,6 +273,7 @@ export type course_examsOrderByWithRelationInput = {
   start_time?: Prisma.SortOrder
   end_time?: Prisma.SortOrder
   show_results_immediately?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   exam_attempts?: Prisma.exam_attemptsOrderByRelationAggregateInput
@@ -283,6 +292,7 @@ export type course_examsWhereUniqueInput = Prisma.AtLeast<{
   start_time?: Prisma.DateTimeFilter<"course_exams"> | Date | string
   end_time?: Prisma.DateTimeFilter<"course_exams"> | Date | string
   show_results_immediately?: Prisma.BoolFilter<"course_exams"> | boolean
+  is_active?: Prisma.BoolFilter<"course_exams"> | boolean
   created_at?: Prisma.DateTimeFilter<"course_exams"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"course_exams"> | Date | string
   exam_attempts?: Prisma.Exam_attemptsListRelationFilter
@@ -298,6 +308,7 @@ export type course_examsOrderByWithAggregationInput = {
   start_time?: Prisma.SortOrder
   end_time?: Prisma.SortOrder
   show_results_immediately?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.course_examsCountOrderByAggregateInput
@@ -318,6 +329,7 @@ export type course_examsScalarWhereWithAggregatesInput = {
   start_time?: Prisma.DateTimeWithAggregatesFilter<"course_exams"> | Date | string
   end_time?: Prisma.DateTimeWithAggregatesFilter<"course_exams"> | Date | string
   show_results_immediately?: Prisma.BoolWithAggregatesFilter<"course_exams"> | boolean
+  is_active?: Prisma.BoolWithAggregatesFilter<"course_exams"> | boolean
   created_at?: Prisma.DateTimeWithAggregatesFilter<"course_exams"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"course_exams"> | Date | string
 }
@@ -329,6 +341,7 @@ export type course_examsCreateInput = {
   start_time: Date | string
   end_time: Date | string
   show_results_immediately?: boolean
+  is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   exam_attempts?: Prisma.exam_attemptsCreateNestedManyWithoutCourse_examsInput
@@ -344,6 +357,7 @@ export type course_examsUncheckedCreateInput = {
   start_time: Date | string
   end_time: Date | string
   show_results_immediately?: boolean
+  is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   exam_attempts?: Prisma.exam_attemptsUncheckedCreateNestedManyWithoutCourse_examsInput
@@ -357,6 +371,7 @@ export type course_examsUpdateInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   show_results_immediately?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   exam_attempts?: Prisma.exam_attemptsUpdateManyWithoutCourse_examsNestedInput
@@ -372,6 +387,7 @@ export type course_examsUncheckedUpdateInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   show_results_immediately?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   exam_attempts?: Prisma.exam_attemptsUncheckedUpdateManyWithoutCourse_examsNestedInput
@@ -386,6 +402,7 @@ export type course_examsCreateManyInput = {
   start_time: Date | string
   end_time: Date | string
   show_results_immediately?: boolean
+  is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -397,6 +414,7 @@ export type course_examsUpdateManyMutationInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   show_results_immediately?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -409,6 +427,7 @@ export type course_examsUncheckedUpdateManyInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   show_results_immediately?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -436,6 +455,7 @@ export type course_examsCountOrderByAggregateInput = {
   start_time?: Prisma.SortOrder
   end_time?: Prisma.SortOrder
   show_results_immediately?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -453,6 +473,7 @@ export type course_examsMaxOrderByAggregateInput = {
   start_time?: Prisma.SortOrder
   end_time?: Prisma.SortOrder
   show_results_immediately?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -465,6 +486,7 @@ export type course_examsMinOrderByAggregateInput = {
   start_time?: Prisma.SortOrder
   end_time?: Prisma.SortOrder
   show_results_immediately?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -551,6 +573,7 @@ export type course_examsCreateWithoutCourse_offeringsInput = {
   start_time: Date | string
   end_time: Date | string
   show_results_immediately?: boolean
+  is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   exam_attempts?: Prisma.exam_attemptsCreateNestedManyWithoutCourse_examsInput
@@ -564,6 +587,7 @@ export type course_examsUncheckedCreateWithoutCourse_offeringsInput = {
   start_time: Date | string
   end_time: Date | string
   show_results_immediately?: boolean
+  is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   exam_attempts?: Prisma.exam_attemptsUncheckedCreateNestedManyWithoutCourse_examsInput
@@ -607,6 +631,7 @@ export type course_examsScalarWhereInput = {
   start_time?: Prisma.DateTimeFilter<"course_exams"> | Date | string
   end_time?: Prisma.DateTimeFilter<"course_exams"> | Date | string
   show_results_immediately?: Prisma.BoolFilter<"course_exams"> | boolean
+  is_active?: Prisma.BoolFilter<"course_exams"> | boolean
   created_at?: Prisma.DateTimeFilter<"course_exams"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"course_exams"> | Date | string
 }
@@ -618,6 +643,7 @@ export type course_examsCreateWithoutExam_attemptsInput = {
   start_time: Date | string
   end_time: Date | string
   show_results_immediately?: boolean
+  is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   exam_questions?: Prisma.exam_questionsCreateNestedManyWithoutCourse_examsInput
@@ -632,6 +658,7 @@ export type course_examsUncheckedCreateWithoutExam_attemptsInput = {
   start_time: Date | string
   end_time: Date | string
   show_results_immediately?: boolean
+  is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   exam_questions?: Prisma.exam_questionsUncheckedCreateNestedManyWithoutCourse_examsInput
@@ -660,6 +687,7 @@ export type course_examsUpdateWithoutExam_attemptsInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   show_results_immediately?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   exam_questions?: Prisma.exam_questionsUpdateManyWithoutCourse_examsNestedInput
@@ -674,6 +702,7 @@ export type course_examsUncheckedUpdateWithoutExam_attemptsInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   show_results_immediately?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   exam_questions?: Prisma.exam_questionsUncheckedUpdateManyWithoutCourse_examsNestedInput
@@ -686,6 +715,7 @@ export type course_examsCreateWithoutExam_questionsInput = {
   start_time: Date | string
   end_time: Date | string
   show_results_immediately?: boolean
+  is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   exam_attempts?: Prisma.exam_attemptsCreateNestedManyWithoutCourse_examsInput
@@ -700,6 +730,7 @@ export type course_examsUncheckedCreateWithoutExam_questionsInput = {
   start_time: Date | string
   end_time: Date | string
   show_results_immediately?: boolean
+  is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
   exam_attempts?: Prisma.exam_attemptsUncheckedCreateNestedManyWithoutCourse_examsInput
@@ -728,6 +759,7 @@ export type course_examsUpdateWithoutExam_questionsInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   show_results_immediately?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   exam_attempts?: Prisma.exam_attemptsUpdateManyWithoutCourse_examsNestedInput
@@ -742,6 +774,7 @@ export type course_examsUncheckedUpdateWithoutExam_questionsInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   show_results_immediately?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   exam_attempts?: Prisma.exam_attemptsUncheckedUpdateManyWithoutCourse_examsNestedInput
@@ -754,6 +787,7 @@ export type course_examsCreateManyCourse_offeringsInput = {
   start_time: Date | string
   end_time: Date | string
   show_results_immediately?: boolean
+  is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -765,6 +799,7 @@ export type course_examsUpdateWithoutCourse_offeringsInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   show_results_immediately?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   exam_attempts?: Prisma.exam_attemptsUpdateManyWithoutCourse_examsNestedInput
@@ -778,6 +813,7 @@ export type course_examsUncheckedUpdateWithoutCourse_offeringsInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   show_results_immediately?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   exam_attempts?: Prisma.exam_attemptsUncheckedUpdateManyWithoutCourse_examsNestedInput
@@ -791,6 +827,7 @@ export type course_examsUncheckedUpdateManyWithoutCourse_offeringsInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   show_results_immediately?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -843,6 +880,7 @@ export type course_examsSelect<ExtArgs extends runtime.Types.Extensions.Internal
   start_time?: boolean
   end_time?: boolean
   show_results_immediately?: boolean
+  is_active?: boolean
   created_at?: boolean
   updated_at?: boolean
   exam_attempts?: boolean | Prisma.course_exams$exam_attemptsArgs<ExtArgs>
@@ -859,6 +897,7 @@ export type course_examsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   start_time?: boolean
   end_time?: boolean
   show_results_immediately?: boolean
+  is_active?: boolean
   created_at?: boolean
   updated_at?: boolean
   course_offerings?: boolean | Prisma.course_offeringsDefaultArgs<ExtArgs>
@@ -872,6 +911,7 @@ export type course_examsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   start_time?: boolean
   end_time?: boolean
   show_results_immediately?: boolean
+  is_active?: boolean
   created_at?: boolean
   updated_at?: boolean
   course_offerings?: boolean | Prisma.course_offeringsDefaultArgs<ExtArgs>
@@ -885,11 +925,12 @@ export type course_examsSelectScalar = {
   start_time?: boolean
   end_time?: boolean
   show_results_immediately?: boolean
+  is_active?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type course_examsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"course_exams_id" | "course_offerings_id" | "title" | "description" | "start_time" | "end_time" | "show_results_immediately" | "created_at" | "updated_at", ExtArgs["result"]["course_exams"]>
+export type course_examsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"course_exams_id" | "course_offerings_id" | "title" | "description" | "start_time" | "end_time" | "show_results_immediately" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["course_exams"]>
 export type course_examsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   exam_attempts?: boolean | Prisma.course_exams$exam_attemptsArgs<ExtArgs>
   exam_questions?: boolean | Prisma.course_exams$exam_questionsArgs<ExtArgs>
@@ -918,6 +959,7 @@ export type $course_examsPayload<ExtArgs extends runtime.Types.Extensions.Intern
     start_time: Date
     end_time: Date
     show_results_immediately: boolean
+    is_active: boolean
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["course_exams"]>
@@ -1353,6 +1395,7 @@ export interface course_examsFieldRefs {
   readonly start_time: Prisma.FieldRef<"course_exams", 'DateTime'>
   readonly end_time: Prisma.FieldRef<"course_exams", 'DateTime'>
   readonly show_results_immediately: Prisma.FieldRef<"course_exams", 'Boolean'>
+  readonly is_active: Prisma.FieldRef<"course_exams", 'Boolean'>
   readonly created_at: Prisma.FieldRef<"course_exams", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"course_exams", 'DateTime'>
 }

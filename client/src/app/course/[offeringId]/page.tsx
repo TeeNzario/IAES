@@ -9,6 +9,7 @@ import { useParams } from "next/navigation";
 import { formatInstructorName } from "@/utils/formatName";
 import { formatCourseName } from "@/utils/formatCourseName";
 import { AuthUser } from "@/types/auth";
+import { Pencil } from "lucide-react";
 
 export default function CoursePage() {
   const router = useRouter();
@@ -38,23 +39,59 @@ export default function CoursePage() {
     fetchCourseOffering();
   }, [offeringId]);
 
-  const exam = [
-    {
-      title: "Database Focus Attention Part I",
-      date: "เริ่มวันที่ 28 ธันวาคม 2568",
-      type: "video",
-    },
-    {
-      title: "Database Focus Attention Part II",
-      date: "เริ่มวันที่ 31 ธันวาคม 2568",
-      type: "video",
-    },
-    {
-      title: "MySQL for Beginner",
-      date: "เริ่มวันที่ 5 มกราคม 2568",
-      type: "video",
-    },
-  ];
+  interface ExamListItem {
+    course_exams_id: string;
+    title: string;
+    description: string | null;
+    start_time: string;
+    end_time: string;
+    show_results_immediately: boolean;
+    question_count: number;
+    status: "UPCOMING" | "ONGOING" | "ENDED";
+  }
+  const [exams, setExams] = useState<ExamListItem[]>([]);
+
+  useEffect(() => {
+    if (!offeringId) return;
+    apiFetch<ExamListItem[]>(`/course-offerings/${offeringId}/exams`)
+      .then(setExams)
+      .catch(() => setExams([]));
+  }, [offeringId]);
+
+  const formatExamDate = (iso: string) => {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "-";
+    // Thai Buddhist year + short month.
+    const thYear = d.getFullYear() + 543;
+    const months = [
+      "ม.ค.",
+      "ก.พ.",
+      "มี.ค.",
+      "เม.ย.",
+      "พ.ค.",
+      "มิ.ย.",
+      "ก.ค.",
+      "ส.ค.",
+      "ก.ย.",
+      "ต.ค.",
+      "พ.ย.",
+      "ธ.ค.",
+    ];
+    return `เริ่มวันที่ ${d.getDate()} ${months[d.getMonth()]} ${thYear}`;
+  };
+
+  const statusLabel = (s: ExamListItem["status"]) =>
+    s === "UPCOMING"
+      ? "ยังไม่เริ่ม"
+      : s === "ONGOING"
+      ? "กำลังสอบ"
+      : "เสร็จสิ้น";
+  const statusClass = (s: ExamListItem["status"]) =>
+    s === "UPCOMING"
+      ? "bg-amber-100 text-amber-700"
+      : s === "ONGOING"
+      ? "bg-emerald-100 text-emerald-700"
+      : "bg-gray-200 text-gray-500";
 
   // ฟังก์ชันสำหรับเปลี่ยนหน้า
   const handleNavigateToStudents = () => {
@@ -147,12 +184,8 @@ const isInstructor = user?.staff_role === "INSTRUCTOR" || user?.role === "INSTRU
           <div className="flex flex-col gap-4 w-full lg:w-48 flex-shrink-0">
             {!isStudent && (
             <button
-              onClick={() => setActiveTab("learn")}
-              className={`px-4 lg:px-6 py-3 lg:py-6 rounded-2xl font-light transition-all duration-200 text-center text-sm lg:text-base cursor-pointer ${
-                activeTab === "learn"
-                  ? "bg-[#B7A3E3] text-white "
-                  : "bg-white text-gray-500 hover:bg-gray-50 border border-purple-200"
-              }`}
+              onClick={() => router.push(`/course/${offeringId}/exam/create`)}
+              className="px-4 lg:px-6 py-3 lg:py-6 rounded-2xl font-light transition-all duration-200 text-center text-sm lg:text-base cursor-pointer bg-[#B7A3E3] text-white hover:bg-[#A48FD6]"
             >
               สร้างการสอบ
             </button>
@@ -196,26 +229,56 @@ const isInstructor = user?.staff_role === "INSTRUCTOR" || user?.role === "INSTRU
 
           {/* Main Content Area */}
           <div className="flex-1 space-y-6">
-            {/* Course Cards */}
-            {exam.map((course, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-xl lg:rounded-2xl hover:bg-[#E0DFDF] transition-all duration-300 overflow-hidden"
-              >
-                <div className="p-4 lg:p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-medium text-[#575757] text-sm lg:text-base mb-2 lg:mb-3">
-                        {exam.title}
-                      </h3>
-                      <div className="inline-flex items-center bg-purple-100 text-purple-600 px-2.5 lg:px-3 py-1 rounded-full text-xs font-medium">
-                        {exam.date}
+            {/* Exam Cards */}
+            {exams.length === 0 ? (
+              <div className="rounded-xl bg-white p-6 text-center text-sm font-light text-gray-400">
+                ยังไม่มีข้อสอบ
+              </div>
+            ) : (
+              exams.map((e) => (
+                <div
+                  key={e.course_exams_id}
+                  className="bg-white rounded-xl lg:rounded-2xl hover:bg-[#E0DFDF] transition-all duration-300 overflow-hidden"
+                >
+                  <div className="p-4 lg:p-6">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <h3 className="font-medium text-[#575757] text-sm lg:text-base mb-2 lg:mb-3">
+                          {e.title}
+                        </h3>
+                        <div className="inline-flex items-center bg-purple-100 text-purple-600 px-2.5 lg:px-3 py-1 rounded-full text-xs font-medium">
+                          {formatExamDate(e.start_time)}
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span
+                          className={`rounded-full px-3 py-0.5 text-xs ${statusClass(
+                            e.status,
+                          )}`}
+                        >
+                          {statusLabel(e.status)}
+                        </span>
+                        {isInstructor && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              router.push(
+                                `/course/${offeringId}/exams/${e.course_exams_id}/edit`,
+                              )
+                            }
+                            className="flex h-7 w-7 items-center justify-center rounded-md border border-[#B7A3E3] text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
+                            aria-label="แก้ไข"
+                            title="แก้ไขชุดข้อสอบ"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </main>
