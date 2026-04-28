@@ -218,6 +218,131 @@ export class QuestionsService {
     });
   }
 
+  /**
+   * Course-wide question listing for the exam-picker modal.
+   * Scopes strictly to questions that belong to this course (via their
+   * collection's year folder). Optional filters: academic year + collection.
+   */
+  async listAllInCourse(
+    offeringId: string,
+    actor: StaffActor,
+    opts: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      year?: number;
+      collection_id?: string;
+    } = {},
+  ) {
+    const coursesId = await this.resolveCourseAndAuthorize(offeringId, actor);
+
+    const page = Math.max(1, opts.page ?? 1);
+    const limit = Math.min(100, Math.max(1, opts.limit ?? 20));
+    const skip = (page - 1) * limit;
+    const search = opts.search?.trim();
+
+    // Build nested filter: question -> collection -> year -> course.
+    const where = {
+      is_active: true,
+      question_collections: {
+        is: {
+          is_active: true,
+          ...(opts.collection_id
+            ? { question_collection_id: BigInt(opts.collection_id) }
+            : {}),
+          question_bank_years: {
+            is: {
+              courses_id: coursesId,
+              ...(opts.year ? { academic_year: opts.year } : {}),
+            },
+          },
+        },
+      },
+      ...(search
+        ? { question_text: { contains: search, mode: 'insensitive' as const } }
+        : {}),
+    };
+
+    const [items, total] = await Promise.all([
+      this.prisma.question_bank.findMany({
+        where,
+        orderBy: { created_at: 'asc' },
+        skip,
+        take: limit,
+        select: {
+          question_id: true,
+          question_text: true,
+          question_type: true,
+          difficulty_param: true,
+          discrimination_param: true,
+          guessing_param: true,
+          created_at: true,
+          updated_at: true,
+          question_collections: {
+            select: {
+              question_collection_id: true,
+              title: true,
+              question_bank_years: {
+                select: { academic_year: true },
+              },
+            },
+          },
+          choices: {
+            orderBy: { display_order: 'asc' },
+            select: {
+              choice_id: true,
+              choice_text: true,
+              is_correct: true,
+              display_order: true,
+            },
+          },
+          question_knowledge: {
+            select: {
+              knowledge_categories: {
+                select: { knowledge_category_id: true, name: true },
+              },
+            },
+          },
+        },
+      }),
+      this.prisma.question_bank.count({ where }),
+    ]);
+
+    const data = items.map((q) => ({
+      question_id: q.question_id,
+      question_text: q.question_text,
+      question_type: q.question_type,
+      difficulty_param: q.difficulty_param,
+      discrimination_param: q.discrimination_param,
+      guessing_param: q.guessing_param,
+      created_at: q.created_at,
+      updated_at: q.updated_at,
+      collection: q.question_collections
+        ? {
+            question_collection_id:
+              q.question_collections.question_collection_id,
+            title: q.question_collections.title,
+            academic_year:
+              q.question_collections.question_bank_years.academic_year,
+          }
+        : null,
+      choices: q.choices,
+      knowledge_categories: q.question_knowledge.map(
+        (k) => k.knowledge_categories,
+      ),
+    }));
+
+    return serializeBigInt({
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  }
+
   // ======================== BULK CREATE ========================
 
   async bulkCreate(
