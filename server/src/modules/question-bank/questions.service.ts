@@ -311,12 +311,25 @@ export class QuestionsService {
   ) {
     const coursesId = await this.resolveCourseAndAuthorize(offeringId, actor);
 
+    // Load existing row WITH choices + tags so we can validate the post-merge
+    // state and never let the row become invalid.
     const existing = await this.prisma.question_bank.findUnique({
       where: { question_id: BigInt(questionId) },
       select: {
         question_id: true,
+        question_text: true,
         question_collection_id: true,
         is_active: true,
+        difficulty_param: true,
+        discrimination_param: true,
+        guessing_param: true,
+        choices: {
+          orderBy: { display_order: 'asc' },
+          select: { choice_text: true, is_correct: true },
+        },
+        question_knowledge: {
+          select: { knowledge_category_id: true },
+        },
         question_collections: {
           select: {
             question_bank_years: { select: { courses_id: true } },
@@ -334,9 +347,7 @@ export class QuestionsService {
       throw new ForbiddenException('Question does not belong to this course');
     }
 
-    if (dto.choices) {
-      this.enforceSingleCorrect(dto.choices, 'Question');
-    }
+    // Per-field structural checks (cheap, before merge).
     for (const [key, val] of [
       ['difficulty_param', dto.difficulty_param],
       ['discrimination_param', dto.discrimination_param],
@@ -345,6 +356,49 @@ export class QuestionsService {
       if (val !== undefined && (typeof val !== 'number' || !Number.isFinite(val))) {
         throw new BadRequestException(`${key} must be a finite number`);
       }
+    }
+
+    // ---- POST-MERGE FULL VALIDATION (Q2: strict) ----
+    const mergedText =
+      dto.question_text !== undefined
+        ? dto.question_text.trim()
+        : existing.question_text;
+    const mergedChoices = dto.choices ?? existing.choices;
+    const mergedDifficulty =
+      dto.difficulty_param !== undefined
+        ? dto.difficulty_param
+        : existing.difficulty_param;
+    const mergedDiscrimination =
+      dto.discrimination_param !== undefined
+        ? dto.discrimination_param
+        : existing.discrimination_param;
+    const mergedGuessing =
+      dto.guessing_param !== undefined
+        ? dto.guessing_param
+        : existing.guessing_param;
+    const mergedTagIds =
+      dto.knowledge_category_ids ??
+      existing.question_knowledge.map((k) =>
+        k.knowledge_category_id.toString(),
+      );
+
+    if (!mergedText || !mergedText.trim()) {
+      throw new BadRequestException('Question: question text is required');
+    }
+    this.enforceSingleCorrect(mergedChoices, 'Question');
+    for (const [key, val] of [
+      ['difficulty_param', mergedDifficulty],
+      ['discrimination_param', mergedDiscrimination],
+      ['guessing_param', mergedGuessing],
+    ] as const) {
+      if (typeof val !== 'number' || !Number.isFinite(val)) {
+        throw new BadRequestException(`Question: ${key} is required`);
+      }
+    }
+    if (!Array.isArray(mergedTagIds) || mergedTagIds.length < 1) {
+      throw new BadRequestException(
+        'Question: at least 1 knowledge tag is required',
+      );
     }
 
     let validatedTagIds: bigint[] | undefined;
