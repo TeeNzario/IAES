@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import TagSelect, { KnowledgeTag } from "./TagSelect";
-import type { Choice, QuestionType } from "./types";
+import type { Choice, Question, QuestionType } from "./types";
 
 export interface DraftQuestion {
   /** Local-only id; not sent to the backend. */
@@ -30,6 +30,35 @@ export function makeEmptyDraft(): DraftQuestion {
     discrimination_param: "",
     guessing_param: "",
     knowledge_category_ids: [],
+  };
+}
+
+/**
+ * Build a fresh DraftQuestion from an existing Question row.
+ * Used by the list-page inline edit dropdown.
+ */
+export function draftFromQuestion(q: Question): DraftQuestion {
+  return {
+    draft_id: `q_${q.question_id}`,
+    question_text: q.question_text,
+    question_type: "MCQ_SINGLE",
+    choices: q.choices.map((c) => ({
+      choice_id: c.choice_id,
+      choice_text: c.choice_text,
+      is_correct: c.is_correct,
+      display_order: c.display_order,
+    })),
+    difficulty_param:
+      typeof q.difficulty_param === "number" ? q.difficulty_param : "",
+    discrimination_param:
+      typeof q.discrimination_param === "number"
+        ? q.discrimination_param
+        : "",
+    guessing_param:
+      typeof q.guessing_param === "number" ? q.guessing_param : "",
+    knowledge_category_ids: q.knowledge_categories.map(
+      (t) => t.knowledge_category_id,
+    ),
   };
 }
 
@@ -83,8 +112,16 @@ interface Props {
   tags: KnowledgeTag[];
   /** Whether this card starts in edit mode. New cards default to edit. */
   initialEditing?: boolean;
+  /** Hide the card-level header (number + edit/delete icons). */
+  hideHeader?: boolean;
+  /** Whether the ยืนยัน button is currently submitting (shows spinner-ish state). */
+  saving?: boolean;
   onChange: (next: DraftQuestion) => void;
   onDelete: () => void;
+  /** If provided, ยืนยัน calls this instead of just flipping local edit state. */
+  onConfirm?: (draft: DraftQuestion) => Promise<void> | void;
+  /** If provided, ยกเลิก calls this in addition to reverting local state. */
+  onCancel?: () => void;
 }
 
 export default function QuestionEditorCard({
@@ -92,8 +129,12 @@ export default function QuestionEditorCard({
   draft,
   tags,
   initialEditing = true,
+  hideHeader = false,
+  saving = false,
   onChange,
   onDelete,
+  onConfirm,
+  onCancel,
 }: Props) {
   const [editing, setEditing] = useState(initialEditing);
   // Snapshot for cancel.
@@ -137,40 +178,48 @@ export default function QuestionEditorCard({
   const cancelEdit = () => {
     onChange(snapshot);
     setEditing(false);
+    onCancel?.();
   };
 
-  const confirmEdit = () => {
+  const confirmEdit = async () => {
+    if (onConfirm) {
+      // Caller is responsible for closing/refreshing on success.
+      await onConfirm(draft);
+      return;
+    }
     setSnapshot(draft);
     setEditing(false);
   };
 
   return (
     <div className="rounded-2xl bg-white p-5 shadow-sm">
-      <div className="mb-3 flex items-start justify-between">
-        <h3 className="text-base font-medium text-[#575757]">
-          คำถามข้อ {index + 1}
-        </h3>
-        <div className="flex items-center gap-1">
-          {!editing && (
+      {!hideHeader && (
+        <div className="mb-3 flex items-start justify-between">
+          <h3 className="text-base font-medium text-[#575757]">
+            คำถามข้อ {index + 1}
+          </h3>
+          <div className="flex items-center gap-1">
+            {!editing && (
+              <button
+                type="button"
+                onClick={startEdit}
+                className="flex h-7 w-7 items-center justify-center rounded-md border border-[#B7A3E3] text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
+                aria-label="แก้ไข"
+              >
+                <Pencil size={14} />
+              </button>
+            )}
             <button
               type="button"
-              onClick={startEdit}
+              onClick={onDelete}
               className="flex h-7 w-7 items-center justify-center rounded-md border border-[#B7A3E3] text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
-              aria-label="แก้ไข"
+              aria-label="ลบ"
             >
-              <Pencil size={14} />
+              <Trash2 size={14} />
             </button>
-          )}
-          <button
-            type="button"
-            onClick={onDelete}
-            className="flex h-7 w-7 items-center justify-center rounded-md border border-[#B7A3E3] text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
-            aria-label="ลบ"
-          >
-            <Trash2 size={14} />
-          </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Question text */}
       {editing ? (
@@ -312,15 +361,15 @@ export default function QuestionEditorCard({
                 <button
                   type="button"
                   onClick={confirmEdit}
-                  disabled={!valid}
-                  aria-disabled={!valid}
+                  disabled={!valid || saving}
+                  aria-disabled={!valid || saving}
                   className={`rounded-md px-4 py-1 text-sm text-white ${
-                    valid
+                    valid && !saving
                       ? "bg-[#B7A3E3] hover:bg-[#A48FD6] cursor-pointer"
                       : "bg-[#B7A3E3] opacity-50 cursor-not-allowed"
                   }`}
                 >
-                  ยืนยัน
+                  {saving ? "กำลังบันทึก..." : "ยืนยัน"}
                 </button>
               </>
             );

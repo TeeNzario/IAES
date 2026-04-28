@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   Eye,
   Inbox,
+  Pencil,
   Search,
   Trash2,
 } from "lucide-react";
@@ -14,6 +15,11 @@ import Navbar from "@/components/layout/NavBar";
 import { apiFetch } from "@/lib/api";
 import Pagination from "@/components/questionBank/Pagination";
 import { difficultyLabel, Question } from "@/components/questionBank/types";
+import QuestionEditorCard, {
+  DraftQuestion,
+  draftFromQuestion,
+} from "@/components/questionBank/QuestionEditorCard";
+import type { KnowledgeTag } from "@/components/questionBank/TagSelect";
 
 interface CollectionInfo {
   question_collection_id: string;
@@ -44,13 +50,17 @@ export default function QuestionListPage() {
 
   const [collection, setCollection] = useState<CollectionInfo | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [tags, setTags] = useState<KnowledgeTag[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<string | null>(null);
+  /** Either eye-view or pencil-edit dropdown can be open for one row at a time. */
+  const [expanded, setExpanded] = useState<
+    { id: string; mode: "view" | "edit" } | null
+  >(null);
 
   // Debounce search.
   useEffect(() => {
@@ -66,10 +76,16 @@ export default function QuestionListPage() {
   const loadCollection = useCallback(async () => {
     if (!offeringId || !collectionId) return;
     try {
-      const data = await apiFetch<CollectionInfo>(
-        `/course-offerings/${offeringId}/question-bank/collections/${collectionId}`,
-      );
-      setCollection(data);
+      const [col, tagList] = await Promise.all([
+        apiFetch<CollectionInfo>(
+          `/course-offerings/${offeringId}/question-bank/collections/${collectionId}`,
+        ),
+        apiFetch<KnowledgeTag[]>(
+          `/course-offerings/${offeringId}/knowledge-categories`,
+        ),
+      ]);
+      setCollection(col);
+      setTags(tagList);
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data
@@ -207,10 +223,12 @@ export default function QuestionListPage() {
               <ul className="divide-y divide-[#F4EFFF]">
                 {questions.map((q, idx) => {
                   const diff = difficultyLabel(q.difficulty_param);
-                  const isOpen = expanded === q.question_id;
-                  const tags = q.knowledge_categories;
-                  const visibleTags = tags.slice(0, 2);
-                  const remaining = tags.length - visibleTags.length;
+                  const isOpen = expanded?.id === q.question_id;
+                  const isViewOpen = isOpen && expanded?.mode === "view";
+                  const isEditOpen = isOpen && expanded?.mode === "edit";
+                  const rowTags = q.knowledge_categories;
+                  const visibleTags = rowTags.slice(0, 2);
+                  const remaining = rowTags.length - visibleTags.length;
                   return (
                     <li key={q.question_id}>
                       <div className="grid grid-cols-[60px_1fr_240px_140px_120px] items-center px-6 py-3 text-sm font-light text-[#575757] hover:bg-[#F4EFFF]/40">
@@ -230,7 +248,7 @@ export default function QuestionListPage() {
                               +{remaining}
                             </span>
                           )}
-                          {tags.length === 0 && (
+                          {rowTags.length === 0 && (
                             <span className="text-xs text-gray-400">-</span>
                           )}
                         </div>
@@ -245,16 +263,38 @@ export default function QuestionListPage() {
                           <button
                             type="button"
                             onClick={() =>
-                              setExpanded(isOpen ? null : q.question_id)
+                              setExpanded(
+                                isViewOpen
+                                  ? null
+                                  : { id: q.question_id, mode: "view" },
+                              )
                             }
                             className="flex h-7 w-7 items-center justify-center rounded-md bg-[#B7A3E3] text-white hover:bg-[#A48FD6] cursor-pointer"
                             aria-label="ดูรายละเอียด"
                           >
-                            {isOpen ? (
+                            {isViewOpen ? (
                               <ChevronDown size={14} />
                             ) : (
                               <Eye size={14} />
                             )}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setExpanded(
+                                isEditOpen
+                                  ? null
+                                  : { id: q.question_id, mode: "edit" },
+                              )
+                            }
+                            className={`flex h-7 w-7 items-center justify-center rounded-md cursor-pointer ${
+                              isEditOpen
+                                ? "bg-[#B7A3E3] text-white hover:bg-[#A48FD6]"
+                                : "border border-[#B7A3E3] text-[#B7A3E3] hover:bg-[#F4EFFF]"
+                            }`}
+                            aria-label="แก้ไข"
+                          >
+                            <Pencil size={14} />
                           </button>
                           <button
                             type="button"
@@ -267,8 +307,18 @@ export default function QuestionListPage() {
                         </div>
                       </div>
 
-                      {isOpen && (
-                        <ExpandedRow question={q} />
+                      {isViewOpen && <ExpandedRow question={q} />}
+                      {isEditOpen && (
+                        <EditQuestionRow
+                          question={q}
+                          tags={tags}
+                          offeringId={offeringId}
+                          onCancel={() => setExpanded(null)}
+                          onSaved={() => {
+                            setExpanded(null);
+                            loadQuestions();
+                          }}
+                        />
                       )}
                     </li>
                   );
@@ -359,6 +409,86 @@ function ExpandedRow({ question }: { question: Question }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Inline edit dropdown — reuses QuestionEditorCard from the create page.
+ * Holds local draft state, validates via the card's own logic, and PATCHes
+ * the single question on ยืนยัน.
+ */
+function EditQuestionRow({
+  question,
+  tags,
+  offeringId,
+  onCancel,
+  onSaved,
+}: {
+  question: Question;
+  tags: KnowledgeTag[];
+  offeringId: string;
+  onCancel: () => void;
+  onSaved: () => void;
+}) {
+  const [draft, setDraft] = useState<DraftQuestion>(() =>
+    draftFromQuestion(question),
+  );
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleConfirm = async (d: DraftQuestion) => {
+    setSaving(true);
+    setError(null);
+    try {
+      await apiFetch(
+        `/course-offerings/${offeringId}/question-bank/questions/${question.question_id}`,
+        {
+          method: "PATCH",
+          data: {
+            question_text: d.question_text.trim(),
+            question_type: "MCQ_SINGLE",
+            choices: d.choices.map((c, idx) => ({
+              choice_text: c.choice_text.trim(),
+              is_correct: c.is_correct,
+              display_order: idx,
+            })),
+            difficulty_param: Number(d.difficulty_param),
+            discrimination_param: Number(d.discrimination_param),
+            guessing_param: Number(d.guessing_param),
+            knowledge_category_ids: d.knowledge_category_ids,
+          },
+        },
+      );
+      onSaved();
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string | string[] } } })
+          ?.response?.data?.message ?? "บันทึกไม่สำเร็จ";
+      setError(Array.isArray(msg) ? msg.join("; ") : msg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="border-t border-[#F4EFFF] bg-[#FBF8FF] px-6 py-4">
+      {error && (
+        <p className="mb-3 rounded-md bg-rose-100 px-3 py-2 text-sm text-rose-700">
+          {error}
+        </p>
+      )}
+      <QuestionEditorCard
+        index={0}
+        draft={draft}
+        tags={tags}
+        hideHeader
+        saving={saving}
+        onChange={setDraft}
+        onConfirm={handleConfirm}
+        onCancel={onCancel}
+        onDelete={onCancel}
+      />
     </div>
   );
 }
