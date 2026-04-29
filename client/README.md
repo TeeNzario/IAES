@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# IAES Client
 
-## Getting Started
+Next.js frontend for IAES (Intelligent Adaptive Examination System).
 
-First, run the development server:
+## Tech Stack
+
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- Axios
+- Lucide React
+
+## Prerequisites
+
+- Node.js v20.19.0 or later
+- npm
+- IAES backend running on `http://localhost:3002`
+
+## Environment Setup
+
+Create `client/.env.local`.
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3002
+```
+
+`NEXT_PUBLIC_API_URL` must point to the NestJS backend.
+
+## Install Dependencies
+
+From `client/`:
+
+```bash
+npm install
+```
+
+Or from the repository root:
+
+```bash
+npm install --prefix client
+```
+
+## Run Development Server
+
+From `client/`:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Or from the repository root:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run dev:client
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open:
 
-## Learn More
+```text
+http://localhost:3000
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Build and Start Production Bundle
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run build
+npm run start
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Lint
 
-## Deploy on Vercel
+```bash
+npm run lint
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Auth and Routing Notes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Login page: `/login`
+- Staff login route redirects to the unified login page: `/staff/login`
+- Auth data is stored in both `localStorage` and cookies
+- Middleware protects authenticated routes and checks role access
+- Static public assets, such as `/IAES_logo.png`, are allowed through middleware
+
+## Important Paths
+
+```text
+src/app/                 Next.js App Router pages
+src/middleware.ts        Route protection and role access
+src/lib/api.ts           Axios instance and API helpers
+src/lib/auth.ts          Client auth storage helpers
+src/components/          Shared UI and layout components
+src/features/            Domain-specific API and UI modules
+public/IAES_logo.png     Login/logo asset
+```
+
+## Troubleshooting
+
+### Frontend Cannot Reach Backend
+
+Check that the backend is running and `client/.env.local` points to the correct API URL.
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3002
+```
+
+Restart the frontend after changing `.env.local`.
+
+### Logo or Public Asset Does Not Load
+
+Public files live in `client/public/` and should be referenced from the root path:
+
+```tsx
+<Image src="/IAES_logo.png" alt="Logo" width={100} height={100} />
+```
+
+If a public file returns HTML instead of the asset, check `src/middleware.ts` and make sure static file paths are excluded from auth middleware.
+
+### PowerShell Blocks npm
+
+Use `npm.cmd` instead:
+
+```powershell
+npm.cmd run dev
+```

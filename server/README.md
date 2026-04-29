@@ -1,98 +1,208 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# IAES Server
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS backend for IAES (Intelligent Adaptive Examination System).
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Tech Stack
 
-## Description
+- NestJS 11
+- TypeScript
+- PostgreSQL
+- Prisma 7
+- Passport JWT authentication
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Prerequisites
 
-## Project setup
+- Node.js v20.19.0 or later
+- npm
+- PostgreSQL database
 
-```bash
-$ npm install
+## Environment Setup
+
+Create `server/.env`.
+
+```env
+PORT=3002
+DATABASE_URL="postgresql://user:password@localhost:5432/iaes_db"
+JWT_SECRET="local-dev-jwt-secret-change-me-2026-iaes-64-characters-minimum"
 ```
 
-## Compile and run the project
+Keep `DATABASE_URL` in quotes if the password contains special characters such as `!`, `@`, or `#`.
 
-```bash
-# development
-$ npm run start
+`JWT_SECRET` signs login tokens. Use a long private value for shared or production environments.
 
-# watch mode
-$ npm run start:dev
+Generate a random secret with PowerShell:
 
-# production mode
-$ npm run start:prod
+```powershell
+[Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
 ```
 
-## Run tests
+## Install Dependencies
+
+From `server/`:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm install
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Or from the repository root:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm install --prefix server
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Database Setup
 
-## Resources
+### Fresh Empty Database
 
-Check out a few resources that may come in handy when working with NestJS:
+Use `prisma db push` for local development.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+npx prisma db push
+npx prisma generate
+npm run seed
+```
 
-## Support
+The seed script is idempotent and can be run more than once. It creates demo staff users, demo students, one course, one course offering, and enrollments.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Demo login accounts:
 
-## Stay in touch
+```text
+Admin:      admin@iaes.local / 1234
+Instructor: instructor@iaes.local / 1234
+Student:    66131319 / 1234
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Existing Database With Data
 
-## License
+If schema and data already exist, do not reset the database.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```bash
+npx prisma generate
+```
+
+Run `npx prisma db push` only when `prisma/schema.prisma` changes and the database must be updated. Do not use `--force-reset` on a database with important data.
+
+### Reset Local Development Database
+
+Use this only for a local throwaway database.
+
+```bash
+npx prisma db push --force-reset
+npm run seed
+```
+
+## Run The Server
+
+Development watch mode:
+
+```bash
+npm run start:dev
+```
+
+Production build:
+
+```bash
+npm run build
+npm run start:prod
+```
+
+The backend runs on:
+
+```text
+http://localhost:3002
+```
+
+## Useful Commands
+
+Generate Prisma client:
+
+```bash
+npx prisma generate
+```
+
+Open Prisma Studio:
+
+```bash
+npx prisma studio
+```
+
+Run seed:
+
+```bash
+npm run seed
+```
+
+Run unit tests:
+
+```bash
+npm run test
+```
+
+Run e2e tests:
+
+```bash
+npm run test:e2e
+```
+
+Build:
+
+```bash
+npm run build
+```
+
+## Important Paths
+
+```text
+src/main.ts                  App bootstrap, global validation, CORS
+src/app.module.ts            Root Nest module
+src/auth/                    JWT auth, guards, strategies, login logic
+src/modules/staff/           Staff CRUD
+src/modules/students/        Student CRUD and student enrollments
+src/modules/courses/         Course management
+src/modules/course-offerings/ Course offerings, enrollments, CSV preview
+src/modules/question-bank/   Question bank years, collections, questions
+src/modules/course-exams/    Course exam management
+src/prisma/                  Prisma service module
+src/generated/prisma/        Generated Prisma client
+prisma/schema.prisma         Database schema
+prisma/seed.ts               Demo data seed
+```
+
+## Troubleshooting
+
+### PowerShell Blocks npm
+
+Use `npm.cmd` instead:
+
+```powershell
+npm.cmd run start:dev
+```
+
+### `permission denied for schema public`
+
+The database user in `DATABASE_URL` needs create access on the target database and schema.
+
+Connect as a database owner or superuser to the target database first, then run:
+
+```sql
+\c iaes_db
+
+GRANT CREATE ON DATABASE iaes_db TO iaes;
+GRANT USAGE, CREATE ON SCHEMA public TO iaes;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO iaes;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO iaes;
+```
+
+Verify:
+
+```sql
+SELECT
+  has_database_privilege('iaes', 'iaes_db', 'CREATE') AS database_create,
+  has_schema_privilege('iaes', 'public', 'CREATE') AS public_schema_create;
+```
+
+Both values must be `true`.
+
+### Port Already In Use
+
+If `3002` is already in use, stop the existing process or change `PORT` in `server/.env`.
