@@ -58,15 +58,18 @@ npx prisma studio                       # Open Prisma GUI
 
 ### Backend (NestJS)
 
-The server follows a modular NestJS architecture:
+The server follows a modular NestJS architecture. Modules wired in [server/src/app.module.ts](server/src/app.module.ts):
 
-- **Auth Module** (`server/src/auth/`) - JWT-based authentication using Passport. Tokens expire in 1 day. Two user types: STAFF (with roles ADMIN/INSTRUCTOR) and STUDENT.
-- **Staff Module** (`server/src/modules/staff/`) - CRUD for staff users (instructors and admins).
-- **Students Module** (`server/src/modules/students/`) - CRUD for students.
-- **Courses Module** (`server/src/modules/courses/`) - Course management with knowledge categories.
-- **Course Offerings Module** (`server/src/modules/course-offerings/`) - Course offerings per academic year/semester, student enrollment, CSV bulk upload with preview.
-- **Knowledge Categories Module** (`server/src/modules/knowledge-categories/`) - Categorization system linking courses and questions.
-- **Prisma Module** (`server/src/prisma/`) - Global Prisma service provider.
+- **Auth Module** ([server/src/auth/](server/src/auth/)) - JWT-based authentication using Passport (strategies, guards, decorators, DTOs, types under this folder). Tokens expire in 1 day. Two user types: STAFF (with roles ADMIN/INSTRUCTOR) and STUDENT.
+- **Staff Module** ([server/src/modules/staff/](server/src/modules/staff/)) - CRUD for staff users (instructors and admins).
+- **Students Module** ([server/src/modules/students/](server/src/modules/students/)) - CRUD for students.
+- **Courses Module** ([server/src/modules/courses/](server/src/modules/courses/)) - Course management with knowledge categories.
+- **Course Offerings Module** ([server/src/modules/course-offerings/](server/src/modules/course-offerings/)) - Course offerings per academic year/semester, student enrollment, CSV bulk upload with preview.
+- **Knowledge Categories Module** ([server/src/modules/knowledge-categories/](server/src/modules/knowledge-categories/)) - Categorization system linking courses and questions.
+- **Question Bank Module** ([server/src/modules/question-bank/](server/src/modules/question-bank/)) - Question CRUD with choices and knowledge tagging. Exposes both `question-bank` and `questions` controllers/services.
+- **Course Exams Module** ([server/src/modules/course-exams/](server/src/modules/course-exams/)) - Exam set creation/management bound to a course offering, including exam questions composition.
+- **Prisma Module** ([server/src/prisma/](server/src/prisma/)) - Global Prisma service provider.
+- **Shared lib** ([server/src/lib/](server/src/lib/)) - Cross-module helpers: `faculty-map.ts` (faculty/department lookup) and `prisma.ts`.
 
 Key patterns:
 - Controllers use `@Auth()` decorator for JWT protection
@@ -76,12 +79,14 @@ Key patterns:
 
 ### Frontend (Next.js App Router)
 
-- Uses Next.js 16 App Router with React 19
-- **Middleware** (`client/src/middleware.ts`) - Edge runtime middleware that checks auth cookies (`access_token`, `user`) and enforces role-based route access. Redirects unauthenticated users to `/login`, sends ADMIN to `/admin/manage-users` instead of `/`.
-- **Auth** (`client/src/lib/auth.ts`) - Client-side auth service storing tokens in both localStorage and cookies.
-- **API** (`client/src/lib/api.ts`) - Axios instance with automatic Bearer token injection and 401 handling.
-- **Feature-based organization** - Components organized by domain under `client/src/features/` and `client/src/components/`.
-- **Types** - Shared TypeScript types in `client/src/types/`.
+- Uses Next.js 16 App Router with React 19, Tailwind CSS 4, and the React Compiler (`babel-plugin-react-compiler`).
+- **Middleware** ([client/src/middleware.ts](client/src/middleware.ts)) - Edge runtime middleware that checks auth cookies (`access_token`, `user`) and enforces role-based route access. Redirects unauthenticated users to `/login`, sends ADMIN to `/admin/manage-users` instead of `/`.
+- **App routes** ([client/src/app/](client/src/app/)) - `login`, `register`, `forbidden`, `admin/manage-users`, `staff/login`, `course/[offeringId]`, `exam-bank`, `results`.
+- **Auth** ([client/src/lib/auth.ts](client/src/lib/auth.ts)) - Client-side auth service storing tokens in both localStorage and cookies. Permission helpers in [client/src/lib/auth.permissions.ts](client/src/lib/auth.permissions.ts).
+- **API** ([client/src/lib/api.ts](client/src/lib/api.ts)) - Axios instance with automatic Bearer token injection and 401 handling.
+- **Feature-based organization** - Domain logic under [client/src/features/](client/src/features/) (`admin`, `auth`, `courseOffering`, `staff`, `student`); reusable UI under [client/src/components/](client/src/components/) (`course`, `courseOffering`, `exam`, `layout`, `questionBank`, `ui`).
+- **Types & utils** - Shared TypeScript types in [client/src/types/](client/src/types/); helpers in [client/src/utils/](client/src/utils/).
+- **Shared lib** - `faculty-map.ts` mirrors the server-side faculty/department mapping.
 
 ### Database Schema (Prisma)
 
