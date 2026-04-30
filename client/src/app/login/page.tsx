@@ -205,9 +205,6 @@ const LoginPage = () => {
             )}
             {isLoading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
           </button>
-          <p className="text-center text-sm text-gray-500">
-            ใช้ฟอร์มเดียวสำหรับทั้ง Staff และ Student
-          </p>
         </div>
       </div>
     </div>
