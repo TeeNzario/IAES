@@ -23,18 +23,16 @@ const ERROR_MESSAGES = {
   course_code: {
     required: "กรุณากรอกรหัสวิชา",
     maxLength: `รหัสวิชาไม่เกิน ${COURSE_CODE_MAX_LENGTH} ตัวอักษร`,
-    duplicate: "รหัสวิชานี้ถูกใช้แล้ว กรุณาใช้รหัสอื่น",
+    duplicate: "รหัสวิชาซ้ำ",
   },
   course_name_th: {
     required: "กรุณากรอกชื่อรายวิชา (ภาษาไทย)",
     maxLength: `ชื่อรายวิชาไม่เกิน ${COURSE_NAME_MAX_LENGTH} ตัวอักษร`,
-    duplicate: "ชื่อรายวิชานี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น",
     invalidLanguage: "ชื่อรายวิชาภาษาไทยต้องกรอกเป็นภาษาไทยเท่านั้น",
   },
   course_name_en: {
     required: "กรุณากรอกชื่อรายวิชา (ภาษาอังกฤษ)",
     maxLength: `ชื่อรายวิชาไม่เกิน ${COURSE_NAME_MAX_LENGTH} ตัวอักษร`,
-    duplicate: "ชื่อรายวิชานี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น",
     invalidLanguage: "ชื่อรายวิชาภาษาอังกฤษต้องกรอกเป็นภาษาอังกฤษเท่านั้น",
   },
 };
@@ -74,9 +72,8 @@ export default function CreateCourseForm({
   // Validation errors state
   const [errors, setErrors] = useState<FormErrors>({});
 
-  // Duplicate check loading states (for UX feedback)
+  // Duplicate check loading state (course_code only)
   const [isCheckingCode, setIsCheckingCode] = useState(false);
-  const [isCheckingName, setIsCheckingName] = useState(false);
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -149,29 +146,6 @@ export default function CreateCourseForm({
   );
 
   /**
-   * Checks if a course name already exists in the database
-   */
-  const checkNameDuplicate = useCallback(
-    async (name: string): Promise<boolean> => {
-      if (!name.trim()) return false;
-
-      try {
-        setIsCheckingName(true);
-        const response = await apiFetch<DuplicateCheckResponse>(
-          `/courses/check-name?name=${encodeURIComponent(name.trim())}`,
-        );
-        return response.exists;
-      } catch (err) {
-        console.error("Failed to check name duplicate:", err);
-        return false; // Allow submission if check fails
-      } finally {
-        setIsCheckingName(false);
-      }
-    },
-    [],
-  );
-
-  /**
    * Validates all fields including async duplicate checks
    * Returns true if form is valid
    */
@@ -193,18 +167,11 @@ export default function CreateCourseForm({
       return false;
     }
 
-    // Async duplicate checks (run in parallel for speed)
-    const [codeExists, nameExists] = await Promise.all([
-      checkCodeDuplicate(formData.course_code),
-      checkNameDuplicate(formData.course_name_th),
-    ]);
+    // Async duplicate check (only course_code; duplicate names are allowed)
+    const codeExists = await checkCodeDuplicate(formData.course_code);
 
     if (codeExists) {
       newErrors.course_code = ERROR_MESSAGES.course_code.duplicate;
-    }
-
-    if (nameExists) {
-      newErrors.course_name_th = ERROR_MESSAGES.course_name_th.duplicate;
     }
 
     setErrors(newErrors);
@@ -306,8 +273,7 @@ export default function CreateCourseForm({
     hasErrors ||
     isFormEmpty ||
     isSubmitting ||
-    isCheckingCode ||
-    isCheckingName;
+    isCheckingCode;
 
   // ============================================================
   // RENDER
@@ -425,7 +391,7 @@ export default function CreateCourseForm({
             disabled={isSubmitDisabled}
             className="flex-1 bg-[#9264F5] text-white font-medium py-2 rounded-2xl hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
           >
-            {(isSubmitting || isCheckingCode || isCheckingName) && (
+            {(isSubmitting || isCheckingCode) && (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             )}
             ยืนยัน
