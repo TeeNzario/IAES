@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { X } from "lucide-react";
+import React, { useMemo, useRef, useState } from "react";
+import { ChevronDown, X } from "lucide-react";
 
 export interface KnowledgeTag {
   knowledge_category_id: string;
@@ -19,18 +19,19 @@ interface TagSelectProps {
 }
 
 /**
- * Searchable, multi-select tag picker. Read-only against existing course tags
- * (cannot create new tags). Tags not in the dropdown cannot be added.
+ * Searchable, multi-select dropdown for knowledge categories.
+ * Read-only against existing course tags (cannot create new tags).
  */
 export default function TagSelect({
   options,
   value,
   onChange,
-  placeholder = "ค้นหาและเลือกหมวดหมู่ความรู้",
+  placeholder = "เลือกหมวดหมู่ความรู้",
   disabled,
 }: TagSelectProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const selectedTags = useMemo(
     () =>
@@ -45,66 +46,86 @@ export default function TagSelect({
     return options
       .filter((o) => !value.includes(o.knowledge_category_id))
       .filter((o) => (q ? o.name.toLowerCase().includes(q) : true))
-      .slice(0, 30);
+      .slice(0, 50);
   }, [options, value, query]);
 
   const add = (id: string) => {
     onChange([...value, id]);
     setQuery("");
+    inputRef.current?.focus();
   };
-  const remove = (id: string) =>
-    onChange(value.filter((v) => v !== id));
+  const remove = (id: string) => onChange(value.filter((v) => v !== id));
 
   return (
     <div className="relative">
-      <div className="flex flex-wrap items-center gap-1.5 rounded-lg bg-white px-2 py-1.5 shadow-sm">
+      <div
+        onClick={() => {
+          if (disabled) return;
+          setOpen(true);
+          inputRef.current?.focus();
+        }}
+        className={`flex flex-wrap items-center gap-2 rounded-2xl border border-[#E0D6F5] bg-white px-4 py-3 shadow-sm transition-colors ${
+          open ? "ring-2 ring-[#B7A3E3]" : "hover:border-[#B7A3E3]"
+        } ${disabled ? "cursor-not-allowed opacity-60" : "cursor-text"}`}
+      >
         {selectedTags.map((t) => (
           <span
             key={t.knowledge_category_id}
-            className="inline-flex items-center gap-1 rounded-full bg-[#B7A3E3] px-2.5 py-0.5 text-xs text-white"
+            className="inline-flex items-center gap-1.5 rounded-full bg-[#B7A3E3] px-3 py-1 text-sm text-white"
           >
             {t.name}
             <button
               type="button"
               disabled={disabled}
-              onClick={() => remove(t.knowledge_category_id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                remove(t.knowledge_category_id);
+              }}
               className="ml-0.5 hover:opacity-80"
               aria-label={`ลบ ${t.name}`}
             >
-              <X size={12} />
+              <X size={14} />
             </button>
           </span>
         ))}
         <input
+          ref={inputRef}
           type="text"
           value={query}
           disabled={disabled}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setOpen(true)}
-          onBlur={() => setTimeout(() => setOpen(false), 120)}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
           placeholder={selectedTags.length ? "" : placeholder}
-          className="min-w-[120px] flex-1 bg-transparent px-1 py-1 text-sm font-light text-[#575757] placeholder-gray-400 outline-none"
+          className="min-w-40 flex-1 bg-transparent px-1 py-1 text-base font-light text-[#575757] placeholder-gray-400 outline-none"
+        />
+        <ChevronDown
+          size={20}
+          className={`shrink-0 text-gray-400 transition-transform ${
+            open ? "rotate-180" : ""
+          }`}
         />
       </div>
 
-      {open && filtered.length > 0 && (
-        <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-56 overflow-auto rounded-lg bg-white py-1 shadow-lg ring-1 ring-black/5">
-          {filtered.map((t) => (
-            <button
-              key={t.knowledge_category_id}
-              type="button"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => add(t.knowledge_category_id)}
-              className="block w-full cursor-pointer px-3 py-1.5 text-left text-sm font-light text-[#575757] hover:bg-[#F4EFFF]"
-            >
-              {t.name}
-            </button>
-          ))}
-        </div>
-      )}
-      {open && query && filtered.length === 0 && (
-        <div className="absolute left-0 right-0 top-full z-20 mt-1 rounded-lg bg-white px-3 py-2 text-xs text-gray-400 shadow-lg ring-1 ring-black/5">
-          ไม่พบหมวดหมู่
+      {open && (
+        <div className="absolute left-0 right-0 top-full z-20 mt-2 max-h-72 overflow-auto rounded-2xl bg-white py-2 shadow-lg ring-1 ring-black/5">
+          {filtered.length > 0 ? (
+            filtered.map((t) => (
+              <button
+                key={t.knowledge_category_id}
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => add(t.knowledge_category_id)}
+                className="block w-full cursor-pointer px-5 py-2.5 text-left text-base font-light text-[#575757] hover:bg-[#F4EFFF]"
+              >
+                {t.name}
+              </button>
+            ))
+          ) : (
+            <div className="px-5 py-3 text-sm text-gray-400">
+              {query ? "ไม่พบหมวดหมู่" : "ไม่มีหมวดหมู่ให้เลือก"}
+            </div>
+          )}
         </div>
       )}
     </div>
