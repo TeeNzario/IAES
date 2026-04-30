@@ -58,6 +58,7 @@ function isAllowed(pathname: string, role: ResolvedRole): boolean {
 }
 
 const FORBIDDEN_PATH = "/forbidden";
+const PUBLIC_FILE = /\.(.*)$/;
 
 // ============================================================
 // Middleware
@@ -73,6 +74,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/register") ||
     pathname === "/forbidden" ||
     pathname === "/favicon.ico" ||
+    PUBLIC_FILE.test(pathname) ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api")
   ) {
@@ -114,6 +116,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon\\.ico|login|staff/login|register|api|forbidden).*)",
+    "/((?!_next/static|_next/image|favicon\\.ico|.*\\..*|login|staff/login|register|api|forbidden).*)",
   ],
 };
