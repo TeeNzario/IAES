@@ -28,8 +28,9 @@ export class CreateExamDto {
   @IsISO8601()
   end_time!: string;
 
+  @IsOptional()
   @IsBoolean()
-  show_results_immediately!: boolean;
+  show_results_immediately?: boolean;
 
   /** question_bank.question_id values. All must belong to this course. */
   @IsArray()
