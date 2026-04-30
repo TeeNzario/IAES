@@ -442,8 +442,8 @@ function QuestionPreviewCard({
 
       <div className="mb-2 grid grid-cols-3 gap-3 text-xs font-light text-[#575757]">
         <ReadOnly label="ความยาก" value={question.difficulty_param} />
-        <ReadOnly label="การแจกแจง" value={question.discrimination_param} />
-        <ReadOnly label="การเดา" value={question.guessing_param} />
+        <ReadOnly label="อำนาจการจำแนก" value={question.discrimination_param} />
+        <ReadOnly label="โอกาสการเดา" value={question.guessing_param} />
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
