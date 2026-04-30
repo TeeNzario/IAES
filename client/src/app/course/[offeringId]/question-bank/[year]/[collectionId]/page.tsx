@@ -388,11 +388,11 @@ function ExpandedRow({ question }: { question: Question }) {
           {question.difficulty_param ?? "-"}
         </div>
         <div>
-          <span className="text-[11px] text-gray-400">การแจกแจง: </span>
+          <span className="text-[11px] text-gray-400">อำนาจการจำแนก: </span>
           {question.discrimination_param ?? "-"}
         </div>
         <div>
-          <span className="text-[11px] text-gray-400">การเดา: </span>
+          <span className="text-[11px] text-gray-400">โอกาสการเดา: </span>
           {question.guessing_param ?? "-"}
         </div>
       </div>
