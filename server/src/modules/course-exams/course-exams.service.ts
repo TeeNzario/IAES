@@ -139,7 +139,7 @@ export class CourseExamsService {
           description: dto.description?.trim() || null,
           start_time: start,
           end_time: end,
-          show_results_immediately: dto.show_results_immediately,
+          show_results_immediately: dto.show_results_immediately ?? false,
         },
         select: { course_exams_id: true },
       });
@@ -342,7 +342,9 @@ export class CourseExamsService {
           description: dto.description?.trim() || null,
           start_time: start,
           end_time: end,
-          show_results_immediately: dto.show_results_immediately,
+          ...(dto.show_results_immediately !== undefined
+            ? { show_results_immediately: dto.show_results_immediately }
+            : {}),
         },
       });
       await tx.exam_questions.deleteMany({
