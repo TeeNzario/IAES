@@ -32,8 +32,9 @@ export class UpdateExamDto {
   @IsISO8601()
   end_time!: string;
 
+  @IsOptional()
   @IsBoolean()
-  show_results_immediately!: boolean;
+  show_results_immediately?: boolean;
 
   @IsArray()
   @ArrayNotEmpty()

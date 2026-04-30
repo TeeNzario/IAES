@@ -15,7 +15,6 @@ export interface ExamConfigDraft {
   description: string;
   start_time: string; // "yyyy-MM-ddTHH:mm" (local tz)
   end_time: string;
-  show_results_immediately: boolean;
 }
 
 export function makeEmptyConfig(): ExamConfigDraft {
@@ -24,7 +23,6 @@ export function makeEmptyConfig(): ExamConfigDraft {
     description: "",
     start_time: "",
     end_time: "",
-    show_results_immediately: false,
   };
 }
 
@@ -53,18 +51,20 @@ export function isoToLocalInput(iso: string): string {
 export function validate(
   cfg: ExamConfigDraft,
   questions: Question[],
-  opts: { mode: "create" | "edit" },
+  opts: { mode: "create" | "edit"; hideSchedule?: boolean },
 ): string | null {
   if (!cfg.title.trim()) return "ต้องกรอกชื่อข้อสอบ";
-  if (!cfg.start_time) return "ต้องกรอกเวลาเริ่ม";
-  if (!cfg.end_time) return "ต้องกรอกเวลาสิ้นสุด";
-  const start = new Date(cfg.start_time);
-  const end = new Date(cfg.end_time);
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()))
-    return "รูปแบบเวลาไม่ถูกต้อง";
-  if (start >= end) return "เวลาเริ่มต้องก่อนเวลาสิ้นสุด";
-  if (opts.mode === "create" && start.getTime() < Date.now() - 60_000)
-    return "เวลาเริ่มต้องไม่ใช่เวลาในอดีต";
+  if (!opts.hideSchedule) {
+    if (!cfg.start_time) return "ต้องกรอกเวลาเริ่ม";
+    if (!cfg.end_time) return "ต้องกรอกเวลาสิ้นสุด";
+    const start = new Date(cfg.start_time);
+    const end = new Date(cfg.end_time);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()))
+      return "รูปแบบเวลาไม่ถูกต้อง";
+    if (start >= end) return "เวลาเริ่มต้องก่อนเวลาสิ้นสุด";
+    if (opts.mode === "create" && start.getTime() < Date.now() - 60_000)
+      return "เวลาเริ่มต้องไม่ใช่เวลาในอดีต";
+  }
   if (questions.length < 1) return "ต้องเลือกคำถามอย่างน้อย 1 ข้อ";
   return null;
 }
@@ -77,7 +77,6 @@ export interface ExamSubmitPayload {
   description?: string;
   start_time: string; // ISO
   end_time: string;
-  show_results_immediately: boolean;
   question_ids: string[];
 }
 
@@ -87,6 +86,15 @@ interface Props {
   /** Initial state for hydration (edit page passes the loaded exam). */
   initialConfig?: ExamConfigDraft;
   initialQuestions?: Question[];
+  /**
+   * When true, hides the schedule (start_time / end_time) UI and skips
+   * its validation. Used by the exam-bank "create exam set" flow where
+   * scheduling is deferred to the "เปิดการสอบ" page. Placeholder dates
+   * are sent on submit so the backend POST stays valid.
+   */
+  hideSchedule?: boolean;
+  /** Optional override for the "back" button target. Defaults to course page. */
+  backHref?: string;
   /** Save handler: parent decides POST vs PATCH and where to redirect. */
   onSubmit: (payload: ExamSubmitPayload) => Promise<void>;
   /** Optional delete handler (only edit mode passes this). */
@@ -103,6 +111,8 @@ export default function ExamEditor({
   mode,
   initialConfig,
   initialQuestions,
+  hideSchedule = false,
+  backHref,
   onSubmit,
   onDelete,
 }: Props) {
@@ -120,12 +130,13 @@ export default function ExamEditor({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const validationError = validate(config, selected, { mode });
+  const validationError = validate(config, selected, { mode, hideSchedule });
   const canSave = validationError === null && !saving;
 
   // Real-time date-field errors (independent from "save-disabled" reason).
   const dateErrors = useMemo(() => {
     const out: { start?: string; end?: string } = {};
+    if (hideSchedule) return out;
     if (!config.start_time) {
       out.start = "กรุณาเลือกวันและเวลาเริ่มสอบ";
     } else {
@@ -150,7 +161,7 @@ export default function ExamEditor({
       }
     }
     return out;
-  }, [config.start_time, config.end_time, mode]);
+  }, [config.start_time, config.end_time, mode, hideSchedule]);
 
   // Aggregate stats for the selected questions panel.
   const stats = useMemo(() => {
@@ -225,12 +236,34 @@ export default function ExamEditor({
     setSaving(true);
     setError(null);
     try {
+      // When the schedule UI is hidden (exam-bank "set" creation flow),
+      // we still need ISO dates for the backend. Use a far-future placeholder
+      // so the row stays UPCOMING until the instructor schedules it via the
+      // "เปิดการสอบ" page.
+      const PLACEHOLDER_START = () => {
+        const d = new Date();
+        d.setFullYear(d.getFullYear() + 10);
+        return d.toISOString();
+      };
+      const PLACEHOLDER_END = () => {
+        const d = new Date();
+        d.setFullYear(d.getFullYear() + 10);
+        d.setHours(d.getHours() + 2);
+        return d.toISOString();
+      };
+      const startIso =
+        hideSchedule && !config.start_time
+          ? PLACEHOLDER_START()
+          : new Date(config.start_time).toISOString();
+      const endIso =
+        hideSchedule && !config.end_time
+          ? PLACEHOLDER_END()
+          : new Date(config.end_time).toISOString();
       await onSubmit({
         title: config.title.trim(),
         description: config.description.trim() || undefined,
-        start_time: new Date(config.start_time).toISOString(),
-        end_time: new Date(config.end_time).toISOString(),
-        show_results_immediately: config.show_results_immediately,
+        start_time: startIso,
+        end_time: endIso,
         question_ids: selected.map((q) => q.question_id),
       });
     } catch (err: unknown) {
@@ -266,7 +299,7 @@ export default function ExamEditor({
         <div className="mb-4 flex items-center justify-between gap-2">
           <button
             type="button"
-            onClick={() => router.push(`/course/${offeringId}`)}
+            onClick={() => router.push(backHref ?? `/course/${offeringId}`)}
             className="flex items-center gap-1 rounded-md border border-[#B7A3E3] bg-white px-4 py-1.5 text-sm font-light text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
           >
             <ChevronLeft size={14} /> ย้อนกลับ
@@ -349,71 +382,57 @@ export default function ExamEditor({
           </p>
         )}
 
-        {/* Config — time + show results */}
-        <div className="mt-5 grid grid-cols-1 gap-4 rounded-2xl bg-white p-5 shadow-sm md:grid-cols-3">
-          <div>
-            <label className="mb-1 block text-xs font-light text-[#575757]">
-              เริ่มสอบ
-            </label>
-            <input
-              type="datetime-local"
-              value={config.start_time}
-              onChange={(e) =>
-                setConfig({ ...config, start_time: e.target.value })
-              }
-              className={`w-full rounded-md bg-[#F4EFFF] px-3 py-1.5 text-sm font-light text-[#575757] outline-none focus:ring-2 ${
-                dateErrors.start
-                  ? "ring-2 ring-rose-300 focus:ring-rose-400"
-                  : "focus:ring-[#B7A3E3]"
-              }`}
-            />
-            {dateErrors.start && (
-              <p className="mt-1 flex items-center gap-1 text-[11px] text-rose-500">
-                <AlertCircle size={12} />
-                {dateErrors.start}
-              </p>
-            )}
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-light text-[#575757]">
-              สิ้นสุดสอบ
-            </label>
-            <input
-              type="datetime-local"
-              value={config.end_time}
-              onChange={(e) =>
-                setConfig({ ...config, end_time: e.target.value })
-              }
-              className={`w-full rounded-md bg-[#F4EFFF] px-3 py-1.5 text-sm font-light text-[#575757] outline-none focus:ring-2 ${
-                dateErrors.end
-                  ? "ring-2 ring-rose-300 focus:ring-rose-400"
-                  : "focus:ring-[#B7A3E3]"
-              }`}
-            />
-            {dateErrors.end && (
-              <p className="mt-1 flex items-center gap-1 text-[11px] text-rose-500">
-                <AlertCircle size={12} />
-                {dateErrors.end}
-              </p>
-            )}
-          </div>
-          <div className="flex items-end">
-            <label className="flex cursor-pointer items-center gap-2 text-sm font-light text-[#575757]">
+        {/* Config — schedule (hidden in set-creation flow) */}
+        {!hideSchedule && (
+          <div className="mt-5 grid grid-cols-1 gap-4 rounded-2xl bg-white p-5 shadow-sm md:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs font-light text-[#575757]">
+                เริ่มสอบ
+              </label>
               <input
-                type="checkbox"
-                checked={config.show_results_immediately}
+                type="datetime-local"
+                value={config.start_time}
                 onChange={(e) =>
-                  setConfig({
-                    ...config,
-                    show_results_immediately: e.target.checked,
-                  })
+                  setConfig({ ...config, start_time: e.target.value })
                 }
-                className="accent-[#B7A3E3]"
+                className={`w-full rounded-md bg-[#F4EFFF] px-3 py-1.5 text-sm font-light text-[#575757] outline-none focus:ring-2 ${
+                  dateErrors.start
+                    ? "ring-2 ring-rose-300 focus:ring-rose-400"
+                    : "focus:ring-[#B7A3E3]"
+                }`}
               />
-              แสดงผลทันทีหลังสอบ
-            </label>
+              {dateErrors.start && (
+                <p className="mt-1 flex items-center gap-1 text-[11px] text-rose-500">
+                  <AlertCircle size={12} />
+                  {dateErrors.start}
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-light text-[#575757]">
+                สิ้นสุดสอบ
+              </label>
+              <input
+                type="datetime-local"
+                value={config.end_time}
+                onChange={(e) =>
+                  setConfig({ ...config, end_time: e.target.value })
+                }
+                className={`w-full rounded-md bg-[#F4EFFF] px-3 py-1.5 text-sm font-light text-[#575757] outline-none focus:ring-2 ${
+                  dateErrors.end
+                    ? "ring-2 ring-rose-300 focus:ring-rose-400"
+                    : "focus:ring-[#B7A3E3]"
+                }`}
+              />
+              {dateErrors.end && (
+                <p className="mt-1 flex items-center gap-1 text-[11px] text-rose-500">
+                  <AlertCircle size={12} />
+                  {dateErrors.end}
+                </p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Stats panel — overview of currently selected questions */}
         <ExamStatsPanel stats={stats} />

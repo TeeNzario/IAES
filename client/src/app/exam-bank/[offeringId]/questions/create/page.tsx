@@ -12,38 +12,65 @@ import QuestionEditorCard, {
 } from "@/components/questionBank/QuestionEditorCard";
 import type { KnowledgeTag } from "@/components/questionBank/TagSelect";
 
-interface CollectionInfo {
-  question_collection_id: string;
-  title: string;
-  description: string | null;
+interface Year {
+  question_bank_year_id: string;
+  academic_year: number;
 }
 
-export default function CreateQuestionsPage() {
-  const router = useRouter();
-  const { offeringId, year, collectionId } = useParams<{
-    offeringId: string;
-    year: string;
-    collectionId: string;
-  }>();
+interface Collection {
+  question_collection_id: string;
+  title: string;
+}
 
-  const [collection, setCollection] = useState<CollectionInfo | null>(null);
+const DEFAULT_COLLECTION_TITLE = "คำถามทั่วไป";
+
+/**
+ * Resolve (creating if necessary) a default question collection for this
+ * course-offering so the flat "create question" flow doesn't expose the
+ * year / collection concept to the user.
+ */
+async function resolveDefaultCollectionId(
+  offeringId: string,
+): Promise<string> {
+  const years = await apiFetch<Year[]>(
+    `/course-offerings/${offeringId}/question-bank/years`,
+  );
+  let yearRow = years.length > 0 ? years[0] : null;
+  if (!yearRow) {
+    const currentYear = new Date().getFullYear();
+    yearRow = await apiFetch<Year>(
+      `/course-offerings/${offeringId}/question-bank/years`,
+      { method: "POST", data: { academic_year: currentYear } },
+    );
+  }
+  const collections = await apiFetch<Collection[]>(
+    `/course-offerings/${offeringId}/question-bank/years/${yearRow.academic_year}/collections`,
+  );
+  const existing = collections.find((c) => c.title === DEFAULT_COLLECTION_TITLE);
+  if (existing) return existing.question_collection_id;
+  if (collections.length > 0) return collections[0].question_collection_id;
+  const created = await apiFetch<Collection>(
+    `/course-offerings/${offeringId}/question-bank/years/${yearRow.academic_year}/collections`,
+    { method: "POST", data: { title: DEFAULT_COLLECTION_TITLE } },
+  );
+  return created.question_collection_id;
+}
+
+export default function CreateFlatQuestionsPage() {
+  const router = useRouter();
+  const { offeringId } = useParams<{ offeringId: string }>();
+
   const [tags, setTags] = useState<KnowledgeTag[]>([]);
   const [drafts, setDrafts] = useState<DraftQuestion[]>([makeEmptyDraft()]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadInit = useCallback(async () => {
-    if (!offeringId || !collectionId) return;
+    if (!offeringId) return;
     try {
-      const [col, tagList] = await Promise.all([
-        apiFetch<CollectionInfo>(
-          `/course-offerings/${offeringId}/question-bank/collections/${collectionId}`,
-        ),
-        apiFetch<KnowledgeTag[]>(
-          `/course-offerings/${offeringId}/knowledge-categories`,
-        ),
-      ]);
-      setCollection(col);
+      const tagList = await apiFetch<KnowledgeTag[]>(
+        `/course-offerings/${offeringId}/knowledge-categories`,
+      );
       setTags(tagList);
     } catch (err: unknown) {
       const msg =
@@ -51,7 +78,7 @@ export default function CreateQuestionsPage() {
           ?.message ?? "โหลดข้อมูลไม่สำเร็จ";
       setError(msg);
     }
-  }, [offeringId, collectionId]);
+  }, [offeringId]);
 
   useEffect(() => {
     loadInit();
@@ -67,27 +94,19 @@ export default function CreateQuestionsPage() {
 
   const addDraft = () => setDrafts((prev) => [...prev, makeEmptyDraft()]);
 
-  /** Find first failing draft index + reason, or null if all valid. */
-  const validate = (): string | null => {
-    for (const [i, d] of drafts.entries()) {
-      if (!isDraftValid(d)) {
-        return `คำถามข้อ ${i + 1}: ข้อมูลยังไม่ครบถ้วน`;
-      }
-    }
-    return null;
-  };
-
   const allValid = drafts.every(isDraftValid);
 
   const handleSave = async () => {
-    const err = validate();
-    if (err) {
-      setError(err);
-      return;
+    for (const [i, d] of drafts.entries()) {
+      if (!isDraftValid(d)) {
+        setError(`คำถามข้อ ${i + 1}: ข้อมูลยังไม่ครบถ้วน`);
+        return;
+      }
     }
     setError(null);
     setSaving(true);
     try {
+      const collectionId = await resolveDefaultCollectionId(offeringId);
       await apiFetch(
         `/course-offerings/${offeringId}/question-bank/collections/${collectionId}/questions/bulk`,
         {
@@ -109,13 +128,11 @@ export default function CreateQuestionsPage() {
           },
         },
       );
-      router.push(
-        `/course/${offeringId}/question-bank/${year}/${collectionId}`,
-      );
+      router.push(`/exam-bank/${offeringId}/questions`);
     } catch (err: unknown) {
       const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "บันทึกไม่สำเร็จ";
+        (err as { response?: { data?: { message?: string | string[] } } })
+          ?.response?.data?.message ?? "บันทึกไม่สำเร็จ";
       setError(Array.isArray(msg) ? msg.join("; ") : msg);
     } finally {
       setSaving(false);
@@ -126,15 +143,10 @@ export default function CreateQuestionsPage() {
     <Navbar>
       <div className="min-h-screen w-full bg-[#F4EFFF]">
         <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-          {/* Top bar with back + save */}
           <div className="mb-4 flex items-center justify-between">
             <button
               type="button"
-              onClick={() =>
-                router.push(
-                  `/course/${offeringId}/question-bank/${year}/${collectionId}`,
-                )
-              }
+              onClick={() => router.push(`/exam-bank/${offeringId}/questions`)}
               className="flex h-8 w-8 items-center justify-center rounded-full text-[#575757] hover:bg-white cursor-pointer"
               aria-label="กลับ"
             >
@@ -160,21 +172,16 @@ export default function CreateQuestionsPage() {
             </button>
           </div>
 
-          {/* Heading card */}
           <div className="relative">
             <div className="rounded-2xl bg-[#B7A3E3] px-7 py-7 text-white shadow-sm">
               <h1 className="text-2xl font-light">สร้างคำถาม</h1>
               <p className="mt-1 text-sm font-light opacity-90">
-                {collection?.title
-                  ? `${collection.title}${
-                      collection.description ? ` — ${collection.description}` : ""
-                    }`
-                  : "คำอธิบายของข้อสอบ"}
+                เพิ่มคำถามใหม่เข้าคลังคำถามของรายวิชานี้
               </p>
             </div>
 
-            {/* Floating side toolbar (matches the mock's right rail) */}
-            <div className="absolute right-[-56px] top-2 hidden flex-col gap-2 lg:flex">
+            {/* Floating side toolbar */}
+            <div className="absolute -right-14 top-2 hidden flex-col gap-2 lg:flex">
               <button
                 type="button"
                 onClick={addDraft}
@@ -186,8 +193,9 @@ export default function CreateQuestionsPage() {
               <button
                 type="button"
                 disabled
-                title="อัปโหลด (เร็วๆ นี้)"
-                className="flex h-10 w-10 items-center justify-center rounded-md bg-white text-[#B7A3E3] shadow-sm opacity-60"
+                title="นำเข้าคำถาม (เร็วๆ นี้)"
+                className="flex h-10 w-10 items-center justify-center rounded-md bg-white text-[#B7A3E3] shadow-sm opacity-60 cursor-not-allowed"
+                aria-label="นำเข้าคำถาม"
               >
                 <Upload size={16} />
               </button>
@@ -200,7 +208,6 @@ export default function CreateQuestionsPage() {
             </p>
           )}
 
-          {/* Question cards */}
           <div className="mt-5 space-y-5">
             {drafts.map((d, i) => (
               <QuestionEditorCard
@@ -214,7 +221,6 @@ export default function CreateQuestionsPage() {
             ))}
           </div>
 
-          {/* Big "+" add button at the bottom */}
           <button
             type="button"
             onClick={addDraft}
