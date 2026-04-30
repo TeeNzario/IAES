@@ -232,6 +232,7 @@ export class QuestionsService {
       search?: string;
       year?: number;
       collection_id?: string;
+      category_ids?: string[];
     } = {},
   ) {
     const coursesId = await this.resolveCourseAndAuthorize(offeringId, actor);
@@ -240,6 +241,7 @@ export class QuestionsService {
     const limit = Math.min(100, Math.max(1, opts.limit ?? 20));
     const skip = (page - 1) * limit;
     const search = opts.search?.trim();
+    const categoryIds = opts.category_ids?.filter(Boolean) ?? [];
 
     // Build nested filter: question -> collection -> year -> course.
     const where = {
@@ -260,6 +262,17 @@ export class QuestionsService {
       },
       ...(search
         ? { question_text: { contains: search, mode: 'insensitive' as const } }
+        : {}),
+      ...(categoryIds.length > 0
+        ? {
+            question_knowledge: {
+              some: {
+                knowledge_category_id: {
+                  in: categoryIds.map((id) => BigInt(id)),
+                },
+              },
+            },
+          }
         : {}),
     };
 

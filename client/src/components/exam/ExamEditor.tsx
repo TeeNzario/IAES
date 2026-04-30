@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Plus, Trash2, Upload } from "lucide-react";
+import { AlertCircle, ChevronLeft, Plus, Trash2, Upload } from "lucide-react";
 import ExamQuestionPickerModal from "@/components/exam/ExamQuestionPickerModal";
 import {
   difficultyLabel,
@@ -122,6 +122,81 @@ export default function ExamEditor({
 
   const validationError = validate(config, selected, { mode });
   const canSave = validationError === null && !saving;
+
+  // Real-time date-field errors (independent from "save-disabled" reason).
+  const dateErrors = useMemo(() => {
+    const out: { start?: string; end?: string } = {};
+    if (!config.start_time) {
+      out.start = "กรุณาเลือกวันและเวลาเริ่มสอบ";
+    } else {
+      const s = new Date(config.start_time);
+      if (Number.isNaN(s.getTime())) {
+        out.start = "รูปแบบวันที่ไม่ถูกต้อง";
+      } else if (mode === "create" && s.getTime() < Date.now() - 60_000) {
+        out.start = "วันสอบต้องไม่ใช่เวลาในอดีต";
+      }
+    }
+    if (!config.end_time) {
+      out.end = "กรุณาเลือกวันและเวลาสิ้นสุด";
+    } else {
+      const e = new Date(config.end_time);
+      if (Number.isNaN(e.getTime())) {
+        out.end = "รูปแบบวันที่ไม่ถูกต้อง";
+      } else if (config.start_time) {
+        const s = new Date(config.start_time);
+        if (!Number.isNaN(s.getTime()) && s >= e) {
+          out.end = "วันสิ้นสุดต้องอยู่หลังวันเริ่ม";
+        }
+      }
+    }
+    return out;
+  }, [config.start_time, config.end_time, mode]);
+
+  // Aggregate stats for the selected questions panel.
+  const stats = useMemo(() => {
+    const total = selected.length;
+    let easy = 0;
+    let medium = 0;
+    let hard = 0;
+    let untagged = 0;
+    let diffSum = 0;
+    let diffCount = 0;
+    const byCategory = new Map<string, { name: string; count: number }>();
+
+    for (const q of selected) {
+      const d = q.difficulty_param;
+      if (typeof d === "number" && Number.isFinite(d)) {
+        diffSum += d;
+        diffCount += 1;
+        if (d < 0) easy += 1;
+        else if (d === 0) medium += 1;
+        else hard += 1;
+      } else {
+        untagged += 1;
+      }
+      for (const t of q.knowledge_categories ?? []) {
+        const cur = byCategory.get(t.knowledge_category_id);
+        if (cur) cur.count += 1;
+        else
+          byCategory.set(t.knowledge_category_id, {
+            name: t.name,
+            count: 1,
+          });
+      }
+    }
+    const avgDifficulty = diffCount > 0 ? diffSum / diffCount : null;
+    return {
+      total,
+      easy,
+      medium,
+      hard,
+      untagged,
+      avgDifficulty,
+      categories: Array.from(byCategory.values()).sort(
+        (a, b) => b.count - a.count,
+      ),
+    };
+  }, [selected]);
 
   const handlePickerConfirm = (picks: Question[]) => {
     // Preserve the order of items the user kept; append newly added ones.
@@ -286,8 +361,18 @@ export default function ExamEditor({
               onChange={(e) =>
                 setConfig({ ...config, start_time: e.target.value })
               }
-              className="w-full rounded-md bg-[#F4EFFF] px-3 py-1.5 text-sm font-light text-[#575757] outline-none focus:ring-2 focus:ring-[#B7A3E3]"
+              className={`w-full rounded-md bg-[#F4EFFF] px-3 py-1.5 text-sm font-light text-[#575757] outline-none focus:ring-2 ${
+                dateErrors.start
+                  ? "ring-2 ring-rose-300 focus:ring-rose-400"
+                  : "focus:ring-[#B7A3E3]"
+              }`}
             />
+            {dateErrors.start && (
+              <p className="mt-1 flex items-center gap-1 text-[11px] text-rose-500">
+                <AlertCircle size={12} />
+                {dateErrors.start}
+              </p>
+            )}
           </div>
           <div>
             <label className="mb-1 block text-xs font-light text-[#575757]">
@@ -299,8 +384,18 @@ export default function ExamEditor({
               onChange={(e) =>
                 setConfig({ ...config, end_time: e.target.value })
               }
-              className="w-full rounded-md bg-[#F4EFFF] px-3 py-1.5 text-sm font-light text-[#575757] outline-none focus:ring-2 focus:ring-[#B7A3E3]"
+              className={`w-full rounded-md bg-[#F4EFFF] px-3 py-1.5 text-sm font-light text-[#575757] outline-none focus:ring-2 ${
+                dateErrors.end
+                  ? "ring-2 ring-rose-300 focus:ring-rose-400"
+                  : "focus:ring-[#B7A3E3]"
+              }`}
             />
+            {dateErrors.end && (
+              <p className="mt-1 flex items-center gap-1 text-[11px] text-rose-500">
+                <AlertCircle size={12} />
+                {dateErrors.end}
+              </p>
+            )}
           </div>
           <div className="flex items-end">
             <label className="flex cursor-pointer items-center gap-2 text-sm font-light text-[#575757]">
@@ -319,6 +414,9 @@ export default function ExamEditor({
             </label>
           </div>
         </div>
+
+        {/* Stats panel — overview of currently selected questions */}
+        <ExamStatsPanel stats={stats} />
 
         {/* Selected questions preview */}
         <div className="mt-5 space-y-4">
@@ -478,6 +576,162 @@ function ReadOnly({
       <div className="rounded-md bg-[#F4EFFF] px-3 py-1.5 text-sm text-[#575757]">
         {value ?? "-"}
       </div>
+    </div>
+  );
+}
+
+interface ExamStats {
+  total: number;
+  easy: number;
+  medium: number;
+  hard: number;
+  untagged: number;
+  avgDifficulty: number | null;
+  categories: { name: string; count: number }[];
+}
+
+function ExamStatsPanel({ stats }: { stats: ExamStats }) {
+  const { total, easy, medium, hard, untagged, avgDifficulty, categories } =
+    stats;
+
+  if (total === 0) return null;
+
+  const pct = (n: number) => (total > 0 ? Math.round((n / total) * 100) : 0);
+  const maxCat = categories.reduce((m, c) => Math.max(m, c.count), 0);
+
+  return (
+    <section className="mt-5 rounded-2xl bg-white p-5 shadow-sm">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-sm font-medium text-[#575757]">
+          สถิติชุดข้อสอบ
+        </h3>
+        <span className="rounded-full bg-[#F4EFFF] px-3 py-0.5 text-xs font-medium text-[#B7A3E3]">
+          ทั้งหมด {total} ข้อ
+        </span>
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatCard
+          label="ง่าย"
+          value={easy}
+          sub={`${pct(easy)}%`}
+          tone="emerald"
+        />
+        <StatCard
+          label="กลาง"
+          value={medium}
+          sub={`${pct(medium)}%`}
+          tone="amber"
+        />
+        <StatCard
+          label="ยาก"
+          value={hard}
+          sub={`${pct(hard)}%`}
+          tone="rose"
+        />
+        <StatCard
+          label="ความยากเฉลี่ย"
+          value={avgDifficulty === null ? "-" : avgDifficulty.toFixed(2)}
+          sub={avgDifficulty === null ? "ไม่มีข้อมูล" : "ค่า θ"}
+          tone="purple"
+        />
+      </div>
+
+      {/* Difficulty distribution bar */}
+      <div className="mt-5">
+        <div className="mb-1.5 flex items-center justify-between text-[11px] text-gray-500">
+          <span>การกระจายระดับความยาก</span>
+          {untagged > 0 && (
+            <span className="text-amber-600">
+              {untagged} ข้อยังไม่มีระดับความยาก
+            </span>
+          )}
+        </div>
+        <div className="flex h-3 w-full overflow-hidden rounded-full bg-gray-100">
+          {easy > 0 && (
+            <div
+              style={{ width: `${pct(easy)}%` }}
+              className="bg-emerald-400"
+              title={`ง่าย ${easy} ข้อ`}
+            />
+          )}
+          {medium > 0 && (
+            <div
+              style={{ width: `${pct(medium)}%` }}
+              className="bg-amber-400"
+              title={`กลาง ${medium} ข้อ`}
+            />
+          )}
+          {hard > 0 && (
+            <div
+              style={{ width: `${pct(hard)}%` }}
+              className="bg-rose-400"
+              title={`ยาก ${hard} ข้อ`}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Category breakdown */}
+      <div className="mt-5">
+        <div className="mb-2 text-[11px] text-gray-500">
+          จำนวนข้อตามหมวดหมู่ความรู้
+        </div>
+        {categories.length === 0 ? (
+          <p className="text-xs text-gray-400">— ไม่มีหมวดหมู่ที่กำหนด —</p>
+        ) : (
+          <ul className="space-y-2">
+            {categories.map((c) => (
+              <li
+                key={c.name}
+                className="grid grid-cols-[140px_1fr_40px] items-center gap-3 text-xs text-[#575757]"
+              >
+                <span className="truncate" title={c.name}>
+                  {c.name}
+                </span>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-[#F4EFFF]">
+                  <div
+                    className="h-full rounded-full bg-[#B7A3E3]"
+                    style={{
+                      width: `${maxCat > 0 ? (c.count / maxCat) * 100 : 0}%`,
+                    }}
+                  />
+                </div>
+                <span className="text-right font-medium">{c.count}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  sub,
+  tone,
+}: {
+  label: string;
+  value: number | string;
+  sub?: string;
+  tone: "emerald" | "amber" | "rose" | "purple";
+}) {
+  const tones = {
+    emerald: "bg-emerald-50 text-emerald-700",
+    amber: "bg-amber-50 text-amber-700",
+    rose: "bg-rose-50 text-rose-700",
+    purple: "bg-[#F4EFFF] text-[#7C5BD9]",
+  } as const;
+  return (
+    <div className={`rounded-xl px-4 py-3 ${tones[tone]}`}>
+      <div className="text-[11px] font-light opacity-80">{label}</div>
+      <div className="mt-1 text-xl font-semibold leading-none">{value}</div>
+      {sub && (
+        <div className="mt-1 text-[11px] font-light opacity-70">{sub}</div>
+      )}
     </div>
   );
 }
