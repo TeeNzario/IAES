@@ -1,7 +1,7 @@
 export const FACULTY_MAP: Record<number, string> = {
-  1: "คณะวิศวกรรมศาสตร์",
-  2: "คณะวิทยาศาสตร์",
-  3: "คณะบริหารธุรกิจ",
+  1: "วิศวกรรมศาสตร์",
+  2: "วิทยาศาสตร์",
+  3: "บริหารธุรกิจ",
 };
 
 export function getFacultyName(code: number): string {

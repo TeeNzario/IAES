@@ -625,9 +625,11 @@ export default function ManageUserPage() {
             <table className="w-full min-w-[640px] hidden sm:table">
               <thead>
                 <tr className="bg-[#B7A3E3] text-white">
-                  <th className="px-6 py-4 text-left font-light">ไอดี</th>
+                  <th className="px-6 py-4 text-left font-light">
+                    {roleFilter === "STUDENT" ? "รหัสนักศึกษา" : ""}
+                  </th>
                   <th className="px-6 py-4 text-left font-light">ชื่อ-นามสกุล</th>
-                  <th className="px-6 py-4 text-left font-light">คณะ</th>
+                  <th className="px-6 py-4 text-left font-light">สำนักวิชา</th>
                   <th className="px-6 py-4 text-left font-light">สถานะ</th>
                   <th className="px-6 py-4 text-left font-light">แก้ไข</th>
                 </tr>
@@ -635,7 +637,9 @@ export default function ManageUserPage() {
               <tbody>
                 {paginatedUsers.map((user) => (
                   <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-50">
-                    <td className="px-6 py-4 text-gray-700">{user.id}</td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {user.role === "STUDENT" ? user.id : ""}
+                    </td>
                     <td className="px-6 py-4 text-gray-700">{`${user.first_name} ${user.last_name}`}</td>
                     <td className="px-6 py-4 text-gray-700">{getFacultyName(user.facultyCode ?? 1)}</td>
                     <td className="px-6 py-4">
@@ -682,7 +686,9 @@ export default function ManageUserPage() {
                   className="p-4 border-b flex justify-between items-start gap-4"
                 >
                   <div className="flex-1">
-                    <div className="text-sm text-gray-500">ID: {user.id}</div>
+                    <div className="text-sm text-gray-500">
+                      {user.role === "STUDENT" ? `รหัสนักศึกษา: ${user.id}` : ""}
+                    </div>
                     <div className="font-medium text-gray-800">{`${user.first_name} ${user.last_name}`}</div>
                     <span
                       className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${user.is_active
@@ -840,7 +846,7 @@ export default function ManageUserPage() {
               {/* Faculty Dropdown */}
               <div className="mb-5">
                 <label className="block text-sm font-medium text-black mb-2">
-                  คณะ / สังกัด
+                  สำนักวิชา
                 </label>
                 <div className="relative">
                   <select
@@ -1012,7 +1018,7 @@ export default function ManageUserPage() {
               {/* Faculty Dropdown */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-black mb-2">
-                  คณะ <span className="text-red-500">*</span>
+                  สำนักวิชา <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <select
@@ -1181,7 +1187,7 @@ export default function ManageUserPage() {
               {/* Faculty Dropdown */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-black mb-2">
-                  คณะ / สังกัด
+                  สำนักวิชา
                 </label>
                 <div className="relative">
                   <select
