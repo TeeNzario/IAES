@@ -45,7 +45,6 @@ export default function CoursePage() {
     description: string | null;
     start_time: string;
     end_time: string;
-    show_results_immediately: boolean;
     question_count: number;
     status: "UPCOMING" | "ONGOING" | "ENDED";
   }
@@ -190,14 +189,6 @@ const isInstructor = user?.staff_role === "INSTRUCTOR" || user?.role === "INSTRU
               สร้างการสอบ
             </button>
             )}
-            {isInstructor && (
-            <button
-              onClick={() => router.push(`/course/${offeringId}/question-bank`)}
-              className="px-4 lg:px-6 py-3 lg:py-6 rounded-2xl font-light transition-all duration-200 text-center text-sm lg:text-base cursor-pointer bg-white text-[#B7A3E3] hover:bg-gray-50 border border-purple-200"
-            >
-              คลังข้อสอบ
-            </button>
-            )}
             {!isStudent && (
             <button
               onClick={() => setActiveTab("assignments")}
@@ -263,7 +254,7 @@ const isInstructor = user?.staff_role === "INSTRUCTOR" || user?.role === "INSTRU
                             type="button"
                             onClick={() =>
                               router.push(
-                                `/course/${offeringId}/exams/${e.course_exams_id}/edit`,
+                                `/exam-bank/${offeringId}/exam-sets/${e.course_exams_id}/edit`,
                               )
                             }
                             className="flex h-7 w-7 items-center justify-center rounded-md border border-[#B7A3E3] text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
