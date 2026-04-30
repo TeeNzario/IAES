@@ -100,7 +100,7 @@ export function firstInvalidReason(d: DraftQuestion): string | null {
     typeof d.discrimination_param !== "number" ||
     typeof d.guessing_param !== "number"
   )
-    return "ต้องกรอกความยาก / การแจกแจง / การเดา";
+    return "ต้องกรอกความยาก / อำนาจการจำแนก / โอกาสการเดา";
   if (d.knowledge_category_ids.length < 1)
     return "ต้องเลือกหมวดหมู่ความรู้อย่างน้อย 1 รายการ";
   return null;
@@ -192,30 +192,30 @@ export default function QuestionEditorCard({
   };
 
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-sm">
+    <div className="rounded-3xl bg-white p-7 sm:p-8 shadow-sm">
       {!hideHeader && (
-        <div className="mb-3 flex items-start justify-between">
-          <h3 className="text-base font-medium text-[#575757]">
+        <div className="mb-5 flex items-start justify-between">
+          <h3 className="text-xl font-medium text-[#575757]">
             คำถามข้อ {index + 1}
           </h3>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             {!editing && (
               <button
                 type="button"
                 onClick={startEdit}
-                className="flex h-7 w-7 items-center justify-center rounded-md border border-[#B7A3E3] text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
+                className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#B7A3E3] text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
                 aria-label="แก้ไข"
               >
-                <Pencil size={14} />
+                <Pencil size={18} />
               </button>
             )}
             <button
               type="button"
               onClick={onDelete}
-              className="flex h-7 w-7 items-center justify-center rounded-md border border-[#B7A3E3] text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#B7A3E3] text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
               aria-label="ลบ"
             >
-              <Trash2 size={14} />
+              <Trash2 size={18} />
             </button>
           </div>
         </div>
@@ -226,27 +226,27 @@ export default function QuestionEditorCard({
         <textarea
           value={draft.question_text}
           onChange={(e) => update({ question_text: e.target.value })}
-          rows={2}
-          placeholder="ข้อความคำถาม"
-          className="mb-3 w-full resize-none rounded-lg bg-[#F4EFFF] px-3 py-2 text-sm font-light text-[#575757] outline-none focus:ring-2 focus:ring-[#B7A3E3]"
+          rows={6}
+          placeholder="พิมพ์ข้อความคำถามที่นี่..."
+          className="mb-6 w-full min-h-40 resize-y rounded-2xl bg-[#F4EFFF] px-5 py-4 text-base font-light leading-relaxed text-[#575757] outline-none focus:ring-2 focus:ring-[#B7A3E3]"
         />
       ) : (
-        <p className="mb-3 whitespace-pre-wrap text-sm font-light text-[#575757]">
+        <p className="mb-6 whitespace-pre-wrap text-base font-light leading-relaxed text-[#575757]">
           {draft.question_text || "(ไม่มีข้อความ)"}
         </p>
       )}
 
       {/* Choices (single-correct MCQ only) */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         {draft.choices.map((c, i) => (
-          <div key={i} className="flex items-center gap-2">
+          <div key={i} className="flex items-center gap-3">
             <input
               type="radio"
               checked={c.is_correct}
               disabled={!editing}
               onChange={() => toggleCorrect(i)}
               name={`correct-${draft.draft_id}`}
-              className="accent-[#B7A3E3]"
+              className="h-5 w-5 accent-[#B7A3E3]"
             />
             {editing ? (
               <input
@@ -254,10 +254,10 @@ export default function QuestionEditorCard({
                 value={c.choice_text}
                 onChange={(e) => setChoice(i, { choice_text: e.target.value })}
                 placeholder={`ตัวเลือก ${i + 1}`}
-                className="flex-1 rounded-md bg-[#F4EFFF] px-3 py-1.5 text-sm font-light text-[#575757] outline-none focus:ring-2 focus:ring-[#B7A3E3]"
+                className="flex-1 rounded-xl bg-[#F4EFFF] px-4 py-3 text-base font-light text-[#575757] outline-none focus:ring-2 focus:ring-[#B7A3E3]"
               />
             ) : (
-              <span className="flex-1 text-sm font-light text-[#575757]">
+              <span className="flex-1 text-base font-light text-[#575757]">
                 {c.choice_text || `ตัวเลือก ${i + 1}`}
               </span>
             )}
@@ -268,7 +268,7 @@ export default function QuestionEditorCard({
                 className="text-gray-400 hover:text-rose-500 cursor-pointer"
                 aria-label="ลบตัวเลือก"
               >
-                <Trash2 size={14} />
+                <Trash2 size={18} />
               </button>
             )}
           </div>
@@ -279,14 +279,14 @@ export default function QuestionEditorCard({
         <button
           type="button"
           onClick={addChoice}
-          className="mt-3 inline-flex items-center gap-1 rounded-md bg-[#B7A3E3] px-3 py-1 text-xs text-white hover:bg-[#A48FD6] cursor-pointer"
+          className="mt-5 inline-flex items-center gap-1.5 rounded-lg bg-[#B7A3E3] px-4 py-2 text-sm font-medium text-white hover:bg-[#A48FD6] cursor-pointer"
         >
-          <Plus size={12} /> เพิ่มตัวเลือก
+          <Plus size={16} /> เพิ่มตัวเลือก
         </button>
       )}
 
       {/* IRT params */}
-      <div className="mt-4 grid grid-cols-3 gap-3">
+      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <NumberField
           label="ความยาก"
           value={draft.difficulty_param}
@@ -294,13 +294,13 @@ export default function QuestionEditorCard({
           onChange={(v) => update({ difficulty_param: v })}
         />
         <NumberField
-          label="การแจกแจง"
+          label="อำนาจการจำแนก"
           value={draft.discrimination_param}
           editing={editing}
           onChange={(v) => update({ discrimination_param: v })}
         />
         <NumberField
-          label="การเดา"
+          label="โอกาสการเดา"
           value={draft.guessing_param}
           editing={editing}
           onChange={(v) => update({ guessing_param: v })}
@@ -308,8 +308,8 @@ export default function QuestionEditorCard({
       </div>
 
       {/* Tags */}
-      <div className="mt-4">
-        <label className="mb-1 block text-xs font-light text-[#575757]">
+      <div className="mt-8">
+        <label className="mb-2 block text-sm font-medium text-[#575757]">
           หมวดหมู่ความรู้
         </label>
         {editing ? (
@@ -319,16 +319,16 @@ export default function QuestionEditorCard({
             onChange={(ids) => update({ knowledge_category_ids: ids })}
           />
         ) : (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {draft.knowledge_category_ids.length === 0 ? (
-              <span className="text-xs text-gray-400">-</span>
+              <span className="text-sm text-gray-400">-</span>
             ) : (
               draft.knowledge_category_ids.map((id) => {
                 const t = tags.find((tg) => tg.knowledge_category_id === id);
                 return (
                   <span
                     key={id}
-                    className="rounded-full bg-[#B7A3E3] px-2.5 py-0.5 text-xs text-white"
+                    className="rounded-full bg-[#B7A3E3] px-3 py-1 text-sm text-white"
                   >
                     {t?.name ?? id}
                   </span>
@@ -340,21 +340,21 @@ export default function QuestionEditorCard({
       </div>
 
       {editing && (
-        <div className="mt-4 flex items-center justify-end gap-2">
+        <div className="mt-8 flex flex-wrap items-center justify-end gap-3">
           {(() => {
             const reason = firstInvalidReason(draft);
             const valid = reason === null;
             return (
               <>
                 {!valid && (
-                  <span className="mr-2 text-xs font-light text-rose-500">
+                  <span className="mr-2 text-sm font-light text-rose-500">
                     {reason}
                   </span>
                 )}
                 <button
                   type="button"
                   onClick={cancelEdit}
-                  className="rounded-md border border-[#B7A3E3] px-4 py-1 text-sm text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
+                  className="rounded-xl border border-[#B7A3E3] px-6 py-2.5 text-base font-medium text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
                 >
                   ยกเลิก
                 </button>
@@ -363,7 +363,7 @@ export default function QuestionEditorCard({
                   onClick={confirmEdit}
                   disabled={!valid || saving}
                   aria-disabled={!valid || saving}
-                  className={`rounded-md px-4 py-1 text-sm text-white ${
+                  className={`rounded-xl px-6 py-2.5 text-base font-medium text-white ${
                     valid && !saving
                       ? "bg-[#B7A3E3] hover:bg-[#A48FD6] cursor-pointer"
                       : "bg-[#B7A3E3] opacity-50 cursor-not-allowed"
@@ -393,7 +393,7 @@ function NumberField({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-light text-[#575757]">
+      <label className="mb-2 block text-sm font-medium text-[#575757]">
         {label}
       </label>
       <input
@@ -405,7 +405,7 @@ function NumberField({
           const raw = e.target.value;
           onChange(raw === "" ? "" : Number(raw));
         }}
-        className="w-full rounded-md bg-[#F4EFFF] px-3 py-1.5 text-sm font-light text-[#575757] outline-none focus:ring-2 focus:ring-[#B7A3E3] read-only:bg-gray-100"
+        className="w-full rounded-xl bg-[#F4EFFF] px-4 py-3 text-base font-light text-[#575757] outline-none focus:ring-2 focus:ring-[#B7A3E3] read-only:bg-gray-100"
       />
     </div>
   );
