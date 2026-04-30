@@ -6,12 +6,13 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuthTypeGuard } from './guards/auth-type.guard';
 import { RolesGuard } from './guards/roles.guard';
+import { DEFAULT_JWT_SECRET } from './constants';
 
 @Module({
   imports: [
     PassportModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'secret123',
+      secret: process.env.JWT_SECRET || DEFAULT_JWT_SECRET,
       signOptions: { expiresIn: '1d' },
     }),
   ],
