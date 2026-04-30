@@ -276,20 +276,24 @@ export default function EditCourseOfferingModal({
           <label className="block text-sm font-medium text-gray-700 mb-2">
             สถานะ
           </label>
-          <div className="flex gap-3">
+          <div className="flex gap-6">
             {statuses.map((stat) => (
-              <button
+              <label
                 key={stat}
-                type="button"
-                onClick={() => setStatus(stat)}
-                className={`px-8 py-2 rounded-2xl font-medium transition-colors ${
-                  status === stat
-                    ? "bg-purple-400 text-white"
-                    : "border-2 border-purple-300 text-gray-700 bg-white hover:bg-purple-50"
-                }`}
+                className="flex items-center gap-2 cursor-pointer"
               >
-                {stat === "Active" ? "เปิดใช้งาน" : "ปิดใช้งาน"}
-              </button>
+                <input
+                  type="radio"
+                  name="edit-offering-status"
+                  value={stat}
+                  checked={status === stat}
+                  onChange={() => setStatus(stat)}
+                  className="w-4 h-4 accent-purple-600 cursor-pointer"
+                />
+                <span className="text-gray-700 font-medium">
+                  {stat === "Active" ? "เปิดใช้งาน" : "ปิดใช้งาน"}
+                </span>
+              </label>
             ))}
           </div>
         </div>
