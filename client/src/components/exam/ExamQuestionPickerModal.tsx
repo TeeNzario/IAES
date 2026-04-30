@@ -8,6 +8,8 @@ import {
   difficultyLabel,
   Question,
 } from "@/components/questionBank/types";
+import type { KnowledgeTag } from "@/components/questionBank/TagSelect";
+import TagSelect from "@/components/questionBank/TagSelect";
 
 interface YearOption {
   question_bank_year_id: string;
@@ -35,8 +37,8 @@ interface Props {
 
 /**
  * Modal: "เลือกคำถาม". Course-wide searchable question list with filter
- * (academic year + collection), multi-select, per-row eye-expand preview,
- * and pagination. Matches the UI mocks.
+ * (academic year + collection + knowledge categories), multi-select,
+ * per-row eye-expand preview, and pagination.
  */
 export default function ExamQuestionPickerModal({
   offeringId,
@@ -50,10 +52,12 @@ export default function ExamQuestionPickerModal({
   const [collectionFilter, setCollectionFilter] = useState<string | "all">(
     "all",
   );
+  const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
 
   // Filter option lists.
   const [years, setYears] = useState<YearOption[]>([]);
   const [collections, setCollections] = useState<CollectionOption[]>([]);
+  const [categories, setCategories] = useState<KnowledgeTag[]>([]);
 
   // Data.
   const [search, setSearch] = useState("");
@@ -67,8 +71,6 @@ export default function ExamQuestionPickerModal({
 
   /**
    * Master selection map keyed by question_id. Survives pagination/filtering.
-   * Seeded with the FULL Question objects passed by the parent so we never
-   * return skeleton rows on confirm.
    */
   const [selected, setSelected] = useState<Map<string, Question>>(() => {
     const m = new Map<string, Question>();
@@ -76,13 +78,18 @@ export default function ExamQuestionPickerModal({
     return m;
   });
 
-  // Load years (filter dropdown 1).
+  // Load years + categories.
   useEffect(() => {
     apiFetch<YearOption[]>(
       `/course-offerings/${offeringId}/question-bank/years`,
     )
       .then(setYears)
       .catch(() => setYears([]));
+    apiFetch<KnowledgeTag[]>(
+      `/course-offerings/${offeringId}/knowledge-categories`,
+    )
+      .then(setCategories)
+      .catch(() => setCategories([]));
   }, [offeringId]);
 
   // Load collections whenever year filter changes.
@@ -106,7 +113,10 @@ export default function ExamQuestionPickerModal({
     return () => clearTimeout(t);
   }, [search]);
 
-  useEffect(() => setPage(1), [debouncedSearch, yearFilter, collectionFilter]);
+  useEffect(
+    () => setPage(1),
+    [debouncedSearch, yearFilter, collectionFilter, categoryFilter],
+  );
 
   const loadQuestions = useCallback(async () => {
     setLoading(true);
@@ -120,6 +130,8 @@ export default function ExamQuestionPickerModal({
       if (yearFilter !== "all") params.set("year", String(yearFilter));
       if (collectionFilter !== "all")
         params.set("collection_id", collectionFilter);
+      if (categoryFilter.length > 0)
+        params.set("category_ids", categoryFilter.join(","));
       const data = await apiFetch<ListResponse>(
         `/course-offerings/${offeringId}/question-bank/questions?${params}`,
       );
@@ -133,7 +145,7 @@ export default function ExamQuestionPickerModal({
     } finally {
       setLoading(false);
     }
-  }, [offeringId, page, debouncedSearch, yearFilter, collectionFilter]);
+  }, [offeringId, page, debouncedSearch, yearFilter, collectionFilter, categoryFilter]);
 
   useEffect(() => {
     loadQuestions();
@@ -157,9 +169,14 @@ export default function ExamQuestionPickerModal({
   const clearFilters = () => {
     setYearFilter("all");
     setCollectionFilter("all");
+    setCategoryFilter([]);
   };
 
-  const filterActive = yearFilter !== "all" || collectionFilter !== "all";
+  const filterActive =
+    yearFilter !== "all" ||
+    collectionFilter !== "all" ||
+    categoryFilter.length > 0;
+
   const activeChipLabel = useMemo(() => {
     if (!filterActive) return "ทั้งหมด";
     const parts: string[] = [];
@@ -170,8 +187,11 @@ export default function ExamQuestionPickerModal({
       );
       if (c) parts.push(c.title);
     }
+    if (categoryFilter.length > 0) {
+      parts.push(`${categoryFilter.length} หมวดหมู่`);
+    }
     return parts.join(" · ");
-  }, [filterActive, yearFilter, collectionFilter, collections]);
+  }, [filterActive, yearFilter, collectionFilter, categoryFilter, collections]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -213,34 +233,58 @@ export default function ExamQuestionPickerModal({
             </button>
 
             {filterOpen && (
-              <div className="absolute left-0 top-full z-10 mt-2 flex w-[320px] gap-0 rounded-lg border border-gray-200 bg-white p-0 shadow-lg">
-                <FilterColumn
-                  title="ปีการศึกษา"
-                  options={[
-                    { value: "all", label: "ทั้งหมด" },
-                    ...years.map((y) => ({
-                      value: String(y.academic_year),
-                      label: String(y.academic_year),
-                    })),
-                  ]}
-                  value={yearFilter === "all" ? "all" : String(yearFilter)}
-                  onSelect={(v) =>
-                    setYearFilter(v === "all" ? "all" : Number(v))
-                  }
-                />
-                <FilterColumn
-                  title="ชุดที่"
-                  disabled={yearFilter === "all"}
-                  options={[
-                    { value: "all", label: "ทั้งหมด" },
-                    ...collections.map((c) => ({
-                      value: c.question_collection_id,
-                      label: c.title,
-                    })),
-                  ]}
-                  value={collectionFilter}
-                  onSelect={(v) => setCollectionFilter(v)}
-                />
+              <div className="absolute left-0 top-full z-10 mt-2 w-[420px] max-w-[92vw] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
+                <div className="flex">
+                  <FilterColumn
+                    title="ปีการศึกษา"
+                    options={[
+                      { value: "all", label: "ทั้งหมด" },
+                      ...years.map((y) => ({
+                        value: String(y.academic_year),
+                        label: String(y.academic_year),
+                      })),
+                    ]}
+                    value={yearFilter === "all" ? "all" : String(yearFilter)}
+                    onSelect={(v) =>
+                      setYearFilter(v === "all" ? "all" : Number(v))
+                    }
+                  />
+                  <FilterColumn
+                    title="ชุดที่"
+                    disabled={yearFilter === "all"}
+                    options={[
+                      { value: "all", label: "ทั้งหมด" },
+                      ...collections.map((c) => ({
+                        value: c.question_collection_id,
+                        label: c.title,
+                      })),
+                    ]}
+                    value={collectionFilter}
+                    onSelect={(v) => setCollectionFilter(v)}
+                  />
+                </div>
+                <div className="border-t border-gray-200 px-3 py-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-xs font-medium text-[#575757]">
+                      หมวดหมู่ความรู้
+                    </span>
+                    {categoryFilter.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setCategoryFilter([])}
+                        className="text-xs text-[#B7A3E3] hover:underline"
+                      >
+                        ล้าง
+                      </button>
+                    )}
+                  </div>
+                  <TagSelect
+                    options={categories}
+                    value={categoryFilter}
+                    onChange={setCategoryFilter}
+                    placeholder="เลือกหมวดหมู่ (เลือกได้หลายรายการ)"
+                  />
+                </div>
               </div>
             )}
           </div>
