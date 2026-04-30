@@ -110,7 +110,7 @@ export default function ManageUserPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   // Default to STUDENT (no "all" option per requirement)
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("STUDENT");
-  const itemsPerPage = 9;
+  const [itemsPerPage, setItemsPerPage] = useState<number>(50);
 
   // Edit modal states
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -599,7 +599,24 @@ export default function ManageUserPage() {
               )}
           </div>
 
-          <div className="w-full sm:w-auto">
+          <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-2 sm:items-center">
+            <div className="relative">
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="w-full sm:w-auto px-4 py-2 pr-9 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-400 appearance-none bg-white text-gray-700"
+                title="จำนวนต่อหน้า"
+              >
+                <option value={50}>แสดง 50 คน</option>
+                <option value={100}>แสดง 100 คน</option>
+                <option value={150}>แสดง 150 คน</option>
+                <option value={200}>แสดง 200 คน</option>
+              </select>
+              <ChevronDown className="absolute right-2 top-2.5 text-gray-400 pointer-events-none" size={18} />
+            </div>
             <div className="relative w-full sm:w-64">
               <input
                 type="text"
@@ -771,7 +788,7 @@ export default function ManageUserPage() {
               {/* ID Field */}
               <div className="mb-5">
                 <label className="block text-sm font-medium text-black mb-2">
-                  ID
+                  {editingUser.role === "STUDENT" ? "รหัสนักศึกษา" : "ID"}
                 </label>
                 <input
                   type="text"
@@ -870,25 +887,29 @@ export default function ManageUserPage() {
                   <label className="block text-sm font-medium text-black mb-3">
                     สถานะ
                   </label>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setEditActive("ACTIVE")}
-                      className={`flex-1 px-6 py-3 rounded-2xl font-medium transition-all ${editActive === "ACTIVE"
-                        ? "bg-[#B7A3E3] text-white shadow-md"
-                        : "bg-white text-black border-2 border-[#B7A3E3] hover:border-gray-300"
-                        }`}
-                    >
-                      เปิดใช้งาน
-                    </button>
-                    <button
-                      onClick={() => setEditActive("INACTIVE")}
-                      className={`flex-1 px-6 py-3 rounded-2xl font-medium transition-all ${editActive === "INACTIVE"
-                        ? "bg-[#B7A3E3] text-white shadow-md"
-                        : "bg-white text-black border-2 border-[#B7A3E3] hover:border-gray-300"
-                        }`}
-                    >
-                      ปิดใช้งาน
-                    </button>
+                  <div className="flex gap-6">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="edit-user-status"
+                        value="ACTIVE"
+                        checked={editActive === "ACTIVE"}
+                        onChange={() => setEditActive("ACTIVE")}
+                        className="w-4 h-4 accent-[#7C3AED] cursor-pointer"
+                      />
+                      <span className="text-black font-medium">เปิดใช้งาน</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="edit-user-status"
+                        value="INACTIVE"
+                        checked={editActive === "INACTIVE"}
+                        onChange={() => setEditActive("INACTIVE")}
+                        className="w-4 h-4 accent-[#7C3AED] cursor-pointer"
+                      />
+                      <span className="text-black font-medium">ปิดใช้งาน</span>
+                    </label>
                   </div>
                 </div>
               )}
