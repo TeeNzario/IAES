@@ -395,35 +395,24 @@ export default function CourseManagement() {
                             <Trash2 size={18} />
                           </button>
 
-                          {/* Status Radio */}
-                          <div className="flex items-center gap-3 px-2">
-                            <label className="flex items-center gap-1 cursor-pointer text-sm text-[#484848]">
-                              <input
-                                type="radio"
-                                name={`course-status-${course.courses_id}`}
-                                value="ACTIVE"
-                                checked={course.is_active}
-                                onChange={() =>
-                                  handleStatusChange(course.courses_id, true)
-                                }
-                                className="w-4 h-4 accent-[#B7A3E3] cursor-pointer"
-                              />
+                          {/* Status Dropdown */}
+                          <select
+                            value={course.is_active ? "ACTIVE" : "INACTIVE"}
+                            onChange={(e) =>
+                              handleStatusChange(
+                                course.courses_id,
+                                e.target.value === "ACTIVE",
+                              )
+                            }
+                            className="px-2 py-2 text-sm font-medium bg-white text-[#484848] hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#B7A3E3] rounded"
+                          >
+                            <option value="ACTIVE" className="text-[#484848]">
                               เปิดใช้งาน
-                            </label>
-                            <label className="flex items-center gap-1 cursor-pointer text-sm text-[#484848]">
-                              <input
-                                type="radio"
-                                name={`course-status-${course.courses_id}`}
-                                value="INACTIVE"
-                                checked={!course.is_active}
-                                onChange={() =>
-                                  handleStatusChange(course.courses_id, false)
-                                }
-                                className="w-4 h-4 accent-[#B7A3E3] cursor-pointer"
-                              />
+                            </option>
+                            <option value="INACTIVE" className="text-[#484848]">
                               ปิดใช้งาน
-                            </label>
-                          </div>
+                            </option>
+                          </select>
 
                           <button
                             onClick={() => {
