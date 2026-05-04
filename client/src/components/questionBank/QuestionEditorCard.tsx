@@ -17,6 +17,11 @@ export interface DraftQuestion {
   knowledge_category_ids: string[];
 }
 
+export interface DifficultyOption {
+  label: string;
+  value: number;
+}
+
 export function makeEmptyDraft(): DraftQuestion {
   return {
     draft_id: `d_${Math.random().toString(36).slice(2, 10)}`,
@@ -25,10 +30,12 @@ export function makeEmptyDraft(): DraftQuestion {
     choices: [
       { choice_text: "", is_correct: false },
       { choice_text: "", is_correct: false },
+      { choice_text: "", is_correct: false },
+      { choice_text: "", is_correct: false },
     ],
     difficulty_param: "",
     discrimination_param: "",
-    guessing_param: "",
+    guessing_param: 0.25,
     knowledge_category_ids: [],
   };
 }
@@ -88,8 +95,13 @@ export function isDraftValid(d: DraftQuestion): boolean {
 }
 
 /** First human-readable reason a draft is invalid, or null if valid. */
-export function firstInvalidReason(d: DraftQuestion): string | null {
+export function firstInvalidReason(
+  d: DraftQuestion,
+  fixedChoiceCount?: number,
+): string | null {
   if (!d.question_text.trim()) return "ต้องกรอกข้อความคำถาม";
+  if (fixedChoiceCount != null && d.choices.length !== fixedChoiceCount)
+    return `ต้องมี ${fixedChoiceCount} ตัวเลือก`;
   if (d.choices.length < 2) return "ต้องมีอย่างน้อย 2 ตัวเลือก";
   if (d.choices.some((c) => !c.choice_text.trim()))
     return "ตัวเลือกต้องไม่ว่าง";
@@ -122,6 +134,12 @@ interface Props {
   onConfirm?: (draft: DraftQuestion) => Promise<void> | void;
   /** If provided, ยกเลิก calls this in addition to reverting local state. */
   onCancel?: () => void;
+  /** Lock choices to an exact count (e.g. 4). */
+  fixedChoiceCount?: number;
+  /** Use dropdown for difficulty instead of free number input. */
+  difficultyOptions?: DifficultyOption[];
+  /** Knowledge categories visual style in both edit and view mode. */
+  knowledgeDisplayMode?: "badge" | "list";
 }
 
 export default function QuestionEditorCard({
@@ -135,10 +153,15 @@ export default function QuestionEditorCard({
   onDelete,
   onConfirm,
   onCancel,
+  fixedChoiceCount,
+  difficultyOptions,
+  knowledgeDisplayMode = "badge",
 }: Props) {
   const [editing, setEditing] = useState(initialEditing);
   // Snapshot for cancel.
   const [snapshot, setSnapshot] = useState<DraftQuestion>(draft);
+  const [showAddKnowledgeDropdown, setShowAddKnowledgeDropdown] =
+    useState(false);
 
   const update = (patch: Partial<DraftQuestion>) =>
     onChange({ ...draft, ...patch });
@@ -166,8 +189,31 @@ export default function QuestionEditorCard({
     });
 
   const removeChoice = (i: number) => {
+    if (fixedChoiceCount != null) return;
     if (draft.choices.length <= 2) return;
     update({ choices: draft.choices.filter((_, idx) => idx !== i) });
+  };
+
+  const selectedKnowledgeTags = draft.knowledge_category_ids
+    .map((id) => tags.find((tg) => tg.knowledge_category_id === id))
+    .filter((t): t is KnowledgeTag => Boolean(t));
+
+  const availableKnowledgeTags = tags.filter(
+    (tg) => !draft.knowledge_category_ids.includes(tg.knowledge_category_id),
+  );
+
+  const addKnowledgeCategory = (id: string) => {
+    if (!id) return;
+    if (draft.knowledge_category_ids.includes(id)) return;
+    update({ knowledge_category_ids: [...draft.knowledge_category_ids, id] });
+  };
+
+  const removeKnowledgeCategory = (id: string) => {
+    update({
+      knowledge_category_ids: draft.knowledge_category_ids.filter(
+        (item) => item !== id,
+      ),
+    });
   };
 
   const startEdit = () => {
@@ -249,19 +295,19 @@ export default function QuestionEditorCard({
               className="h-5 w-5 accent-[#B7A3E3]"
             />
             {editing ? (
-              <input
-                type="text"
+              <textarea
                 value={c.choice_text}
                 onChange={(e) => setChoice(i, { choice_text: e.target.value })}
+                rows={2}
                 placeholder={`ตัวเลือก ${i + 1}`}
-                className="flex-1 rounded-xl bg-[#F4EFFF] px-4 py-3 text-base font-light text-[#575757] outline-none focus:ring-2 focus:ring-[#B7A3E3]"
+                className="flex-1 min-h-16 rounded-xl bg-[#F4EFFF] px-4 py-3 text-base font-light leading-relaxed text-[#575757] outline-none focus:ring-2 focus:ring-[#B7A3E3]"
               />
             ) : (
               <span className="flex-1 text-base font-light text-[#575757]">
                 {c.choice_text || `ตัวเลือก ${i + 1}`}
               </span>
             )}
-            {editing && draft.choices.length > 2 && (
+            {editing && fixedChoiceCount == null && draft.choices.length > 2 && (
               <button
                 type="button"
                 onClick={() => removeChoice(i)}
@@ -275,7 +321,7 @@ export default function QuestionEditorCard({
         ))}
       </div>
 
-      {editing && (
+      {editing && fixedChoiceCount == null && (
         <button
           type="button"
           onClick={addChoice}
@@ -287,12 +333,22 @@ export default function QuestionEditorCard({
 
       {/* IRT params */}
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <NumberField
-          label="ความยาก"
-          value={draft.difficulty_param}
-          editing={editing}
-          onChange={(v) => update({ difficulty_param: v })}
-        />
+        {difficultyOptions && difficultyOptions.length > 0 ? (
+          <DifficultySelectField
+            label="ความยาก"
+            value={draft.difficulty_param}
+            editing={editing}
+            options={difficultyOptions}
+            onChange={(v) => update({ difficulty_param: v })}
+          />
+        ) : (
+          <NumberField
+            label="ความยาก"
+            value={draft.difficulty_param}
+            editing={editing}
+            onChange={(v) => update({ difficulty_param: v })}
+          />
+        )}
         <NumberField
           label="อำนาจการจำแนก"
           value={draft.discrimination_param}
@@ -312,37 +368,85 @@ export default function QuestionEditorCard({
         <label className="mb-2 block text-sm font-medium text-[#575757]">
           หมวดหมู่ความรู้
         </label>
-        {editing ? (
+        {editing && knowledgeDisplayMode === "badge" ? (
           <TagSelect
             options={tags}
             value={draft.knowledge_category_ids}
             onChange={(ids) => update({ knowledge_category_ids: ids })}
           />
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {draft.knowledge_category_ids.length === 0 ? (
+          <>
+            {selectedKnowledgeTags.length === 0 ? (
               <span className="text-sm text-gray-400">-</span>
             ) : (
-              draft.knowledge_category_ids.map((id) => {
-                const t = tags.find((tg) => tg.knowledge_category_id === id);
-                return (
-                  <span
-                    key={id}
-                    className="rounded-full bg-[#B7A3E3] px-3 py-1 text-sm text-white"
+              <ul className="space-y-2">
+                {selectedKnowledgeTags.map((t) => (
+                  <li
+                    key={t.knowledge_category_id}
+                    className="flex items-center justify-between gap-3 rounded-xl bg-[#F4EFFF] px-4 py-2.5 text-sm text-[#575757]"
                   >
-                    {t?.name ?? id}
-                  </span>
-                );
-              })
+                    <span>{t.name}</span>
+                    {editing && knowledgeDisplayMode === "list" && (
+                      <button
+                        type="button"
+                        onClick={() => removeKnowledgeCategory(t.knowledge_category_id)}
+                        className="text-gray-400 hover:text-rose-500 cursor-pointer"
+                        aria-label={`ลบ ${t.name}`}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
             )}
-          </div>
+
+            {editing && knowledgeDisplayMode === "list" && (
+              <div className="mt-3 space-y-2">
+                {!showAddKnowledgeDropdown ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowAddKnowledgeDropdown(true)}
+                    disabled={availableKnowledgeTags.length === 0}
+                    className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium ${
+                      availableKnowledgeTags.length > 0
+                        ? "bg-[#B7A3E3] text-white hover:bg-[#A48FD6] cursor-pointer"
+                        : "bg-[#B7A3E3] text-white opacity-50 cursor-not-allowed"
+                    }`}
+                  >
+                    <Plus size={16} /> เพิ่มหมวดหมู่ความรู้
+                  </button>
+                ) : (
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      const id = e.target.value;
+                      if (id) addKnowledgeCategory(id);
+                      setShowAddKnowledgeDropdown(false);
+                    }}
+                    className="w-full rounded-xl bg-[#F4EFFF] px-4 py-3 text-base font-light text-[#575757] outline-none focus:ring-2 focus:ring-[#B7A3E3]"
+                  >
+                    <option value="">เลือกหมวดหมู่ความรู้</option>
+                    {availableKnowledgeTags.map((t) => (
+                      <option
+                        key={t.knowledge_category_id}
+                        value={t.knowledge_category_id}
+                      >
+                        {t.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
 
       {editing && (
         <div className="mt-8 flex flex-wrap items-center justify-end gap-3">
           {(() => {
-            const reason = firstInvalidReason(draft);
+            const reason = firstInvalidReason(draft, fixedChoiceCount);
             const valid = reason === null;
             return (
               <>
@@ -374,6 +478,52 @@ export default function QuestionEditorCard({
               </>
             );
           })()}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DifficultySelectField({
+  label,
+  value,
+  editing,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: number | "";
+  editing: boolean;
+  options: DifficultyOption[];
+  onChange: (v: number | "") => void;
+}) {
+  const selected =
+    typeof value === "number" ? options.find((op) => op.value === value) : null;
+
+  return (
+    <div>
+      <label className="mb-2 block text-sm font-medium text-[#575757]">
+        {label}
+      </label>
+      {editing ? (
+        <select
+          value={typeof value === "number" ? String(value) : ""}
+          onChange={(e) => {
+            const raw = e.target.value;
+            onChange(raw === "" ? "" : Number(raw));
+          }}
+          className="w-full rounded-xl bg-[#F4EFFF] px-4 py-3 text-base font-light text-[#575757] outline-none focus:ring-2 focus:ring-[#B7A3E3]"
+        >
+          <option value="">เลือกระดับความยาก</option>
+          {options.map((op) => (
+            <option key={op.label} value={op.value}>
+              {op.label}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <div className="w-full rounded-xl bg-gray-100 px-4 py-3 text-base font-light text-[#575757]">
+          {selected?.label ?? "-"}
         </div>
       )}
     </div>

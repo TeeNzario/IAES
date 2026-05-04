@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { X } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Plus, X } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import AlertModal from "@/components/ui/AlertModal";
 
@@ -29,6 +29,7 @@ export default function KnowledgeCategoriesModal({
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<KnowledgeCategory[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showAddInput, setShowAddInput] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -65,6 +66,7 @@ export default function KnowledgeCategoriesModal({
     setSearchQuery("");
     setSuggestions([]);
     setShowDropdown(false);
+    setShowAddInput(false);
   }, [isOpen, course.courses_id]);
 
   const addCategory = (name: string) => {
@@ -85,7 +87,7 @@ export default function KnowledgeCategoriesModal({
     setCategories((prev) => prev.filter((cat) => cat !== name));
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
       addCategory(searchQuery);
@@ -191,57 +193,74 @@ export default function KnowledgeCategoriesModal({
             </div>
           ) : (
             <>
-              {categories.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-2">
+              {categories.length === 0 ? (
+                <p className="rounded-xl bg-[#F8F5FF] px-4 py-3 text-sm text-gray-500">
+                  ยังไม่มีหมวดหมู่ความรู้
+                </p>
+              ) : (
+                <ul className="space-y-2">
                   {categories.map((cat) => (
-                    <span
+                    <li
                       key={cat}
-                      className="inline-flex items-center bg-[#B7A3E3] text-white px-3 py-2 rounded-lg text-sm"
+                      className="flex items-center justify-between gap-3 rounded-xl bg-[#F4EFFF] px-4 py-2.5 text-sm text-[#575757]"
                     >
-                      {cat}
+                      <span>{cat}</span>
                       <button
                         type="button"
                         onClick={() => removeCategory(cat)}
-                        className="ml-2 hover:text-red-200 transition-colors"
+                        className="text-gray-400 hover:text-rose-500 transition-colors"
+                        aria-label={`ลบ ${cat}`}
                       >
                         <X size={14} />
                       </button>
-                    </span>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
 
-              {/* Search input */}
-              <div className="relative">
-                <textarea
-                  ref={inputRef as any}
-                  value={searchQuery}
-                  onChange={(e) => {
-                    if (e.target.value.length <= MAX_KNOWLEDGE_LENGTH) {
-                      setSearchQuery(e.target.value);
-                    }
-                  }}
-                  onKeyDown={handleKeyDown}
-                  rows={3}
-                  className="w-full bg-white text-black px-4 py-3 rounded-xl border border-[#B7A3E3] focus:outline-none focus:ring-2 focus:ring-purple-600 resize-none min-h-[80px]"
-                  placeholder="พิมพ์แล้วกด Enter เพื่อเพิ่ม"
-                />
-                {/* Suggestions dropdown */}
-                {showDropdown && suggestions.length > 0 && (
-                  <div
-                    ref={dropdownRef}
-                    className="absolute z-10 w-full mt-1 bg-white border border-[#B7A3E3] rounded-xl shadow-lg max-h-48 overflow-y-auto"
+              <div className="space-y-2">
+                {!showAddInput ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddInput(true);
+                      setTimeout(() => inputRef.current?.focus(), 0);
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-[#B7A3E3] px-4 py-2 text-sm font-medium text-white hover:bg-[#A48FD6]"
                   >
-                    {suggestions.map((s) => (
-                      <button
-                        key={s.knowledge_category_id}
-                        type="button"
-                        onClick={() => handleSuggestionClick(s.name)}
-                        className="w-full text-left px-4 py-2 hover:bg-purple-50 transition-colors text-black first:rounded-t-xl last:rounded-b-xl"
+                    <Plus size={16} /> เพิ่มหมวดหมู่ความรู้
+                  </button>
+                ) : (
+                  <div className="relative">
+                    <input
+                      ref={inputRef}
+                      value={searchQuery}
+                      onChange={(e) => {
+                        if (e.target.value.length <= MAX_KNOWLEDGE_LENGTH) {
+                          setSearchQuery(e.target.value);
+                        }
+                      }}
+                      onKeyDown={handleKeyDown}
+                      className="w-full bg-white text-black px-4 py-3 rounded-xl border border-[#B7A3E3] focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      placeholder="พิมพ์ชื่อหมวดหมู่ความรู้"
+                    />
+                    {showDropdown && suggestions.length > 0 && (
+                      <div
+                        ref={dropdownRef}
+                        className="absolute z-10 w-full mt-1 bg-white border border-[#B7A3E3] rounded-xl shadow-lg max-h-48 overflow-y-auto"
                       >
-                        {s.name}
-                      </button>
-                    ))}
+                        {suggestions.map((s) => (
+                          <button
+                            key={s.knowledge_category_id}
+                            type="button"
+                            onClick={() => handleSuggestionClick(s.name)}
+                            className="w-full text-left px-4 py-2 hover:bg-purple-50 transition-colors text-black first:rounded-t-xl last:rounded-b-xl"
+                          >
+                            {s.name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

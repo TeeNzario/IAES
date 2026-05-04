@@ -2,14 +2,17 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ChevronLeft, Plus, Upload } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import Navbar from "@/components/layout/NavBar";
 import { apiFetch } from "@/lib/api";
 import QuestionEditorCard, {
   DraftQuestion,
-  isDraftValid,
   makeEmptyDraft,
 } from "@/components/questionBank/QuestionEditorCard";
+import {
+  DIFFICULTY_LEVEL_CONFIG,
+  FIXED_CHOICE_COUNT,
+} from "@/components/questionBank/questionEditorConfig";
 import type { KnowledgeTag } from "@/components/questionBank/TagSelect";
 
 interface Year {
@@ -37,7 +40,7 @@ async function resolveDefaultCollectionId(
   );
   let yearRow = years.length > 0 ? years[0] : null;
   if (!yearRow) {
-    const currentYear = new Date().getFullYear();
+    const currentYear = new Date().getFullYear() + 543;
     yearRow = await apiFetch<Year>(
       `/course-offerings/${offeringId}/question-bank/years`,
       { method: "POST", data: { academic_year: currentYear } },
@@ -61,7 +64,7 @@ export default function CreateFlatQuestionsPage() {
   const { offeringId } = useParams<{ offeringId: string }>();
 
   const [tags, setTags] = useState<KnowledgeTag[]>([]);
-  const [drafts, setDrafts] = useState<DraftQuestion[]>([makeEmptyDraft()]);
+  const [draft, setDraft] = useState<DraftQuestion>(makeEmptyDraft());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -84,25 +87,7 @@ export default function CreateFlatQuestionsPage() {
     loadInit();
   }, [loadInit]);
 
-  const updateDraft = (id: string, next: DraftQuestion) =>
-    setDrafts((prev) => prev.map((d) => (d.draft_id === id ? next : d)));
-
-  const removeDraft = (id: string) =>
-    setDrafts((prev) =>
-      prev.length === 1 ? prev : prev.filter((d) => d.draft_id !== id),
-    );
-
-  const addDraft = () => setDrafts((prev) => [...prev, makeEmptyDraft()]);
-
-  const allValid = drafts.every(isDraftValid);
-
-  const handleSave = async () => {
-    for (const [i, d] of drafts.entries()) {
-      if (!isDraftValid(d)) {
-        setError(`คำถามข้อ ${i + 1}: ข้อมูลยังไม่ครบถ้วน`);
-        return;
-      }
-    }
+  const handleConfirmDraft = async (confirmedDraft: DraftQuestion) => {
     setError(null);
     setSaving(true);
     try {
@@ -112,23 +97,27 @@ export default function CreateFlatQuestionsPage() {
         {
           method: "POST",
           data: {
-            questions: drafts.map((d) => ({
-              question_text: d.question_text.trim(),
-              question_type: "MCQ_SINGLE",
-              choices: d.choices.map((c, idx) => ({
-                choice_text: c.choice_text.trim(),
-                is_correct: c.is_correct,
-                display_order: idx,
-              })),
-              difficulty_param: Number(d.difficulty_param),
-              discrimination_param: Number(d.discrimination_param),
-              guessing_param: Number(d.guessing_param),
-              knowledge_category_ids: d.knowledge_category_ids,
-            })),
+            questions: [
+              {
+                question_text: confirmedDraft.question_text.trim(),
+                question_type: "MCQ_SINGLE",
+                choices: confirmedDraft.choices.map((c, idx) => ({
+                  choice_text: c.choice_text.trim(),
+                  is_correct: c.is_correct,
+                  display_order: idx,
+                })),
+                difficulty_param: Number(confirmedDraft.difficulty_param),
+                discrimination_param: Number(
+                  confirmedDraft.discrimination_param,
+                ),
+                guessing_param: Number(confirmedDraft.guessing_param),
+                knowledge_category_ids: confirmedDraft.knowledge_category_ids,
+              },
+            ],
           },
         },
       );
-      router.push(`/exam-bank/${offeringId}/questions`);
+      setDraft(makeEmptyDraft());
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string | string[] } } })
@@ -152,24 +141,6 @@ export default function CreateFlatQuestionsPage() {
             >
               <ChevronLeft size={18} />
             </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={saving || !allValid}
-              aria-disabled={saving || !allValid}
-              title={
-                !allValid
-                  ? "ทุกคำถามต้องกรอกข้อมูลให้ครบก่อนบันทึก"
-                  : undefined
-              }
-              className={`rounded-md bg-white px-5 py-1.5 text-sm font-light text-[#575757] shadow-sm ${
-                saving || !allValid
-                  ? "opacity-50 cursor-not-allowed"
-                  : "hover:bg-[#F4EFFF] cursor-pointer"
-              }`}
-            >
-              {saving ? "กำลังบันทึก..." : "บันทึก"}
-            </button>
           </div>
 
           <div className="relative">
@@ -178,27 +149,6 @@ export default function CreateFlatQuestionsPage() {
               <p className="mt-1 text-sm font-light opacity-90">
                 เพิ่มคำถามใหม่เข้าคลังคำถามของรายวิชานี้
               </p>
-            </div>
-
-            {/* Floating side toolbar */}
-            <div className="absolute -right-14 top-2 hidden flex-col gap-2 lg:flex">
-              <button
-                type="button"
-                onClick={addDraft}
-                className="flex h-10 w-10 items-center justify-center rounded-md bg-white text-[#B7A3E3] shadow-sm hover:bg-[#F4EFFF] cursor-pointer"
-                aria-label="เพิ่มคำถาม"
-              >
-                <Plus size={16} />
-              </button>
-              <button
-                type="button"
-                disabled
-                title="นำเข้าคำถาม (เร็วๆ นี้)"
-                className="flex h-10 w-10 items-center justify-center rounded-md bg-white text-[#B7A3E3] shadow-sm opacity-60 cursor-not-allowed"
-                aria-label="นำเข้าคำถาม"
-              >
-                <Upload size={16} />
-              </button>
             </div>
           </div>
 
@@ -209,26 +159,20 @@ export default function CreateFlatQuestionsPage() {
           )}
 
           <div className="mt-5 space-y-5">
-            {drafts.map((d, i) => (
-              <QuestionEditorCard
-                key={d.draft_id}
-                index={i}
-                draft={d}
-                tags={tags}
-                onChange={(next) => updateDraft(d.draft_id, next)}
-                onDelete={() => removeDraft(d.draft_id)}
-              />
-            ))}
+            <QuestionEditorCard
+              key={draft.draft_id}
+              index={0}
+              draft={draft}
+              tags={tags}
+              fixedChoiceCount={FIXED_CHOICE_COUNT}
+              difficultyOptions={DIFFICULTY_LEVEL_CONFIG}
+              knowledgeDisplayMode="list"
+              saving={saving}
+              onChange={setDraft}
+              onConfirm={handleConfirmDraft}
+              onDelete={() => setDraft(makeEmptyDraft())}
+            />
           </div>
-
-          <button
-            type="button"
-            onClick={addDraft}
-            className="mt-5 flex w-full items-center justify-center rounded-2xl bg-[#B7A3E3] py-7 text-white shadow-sm hover:bg-[#A48FD6] cursor-pointer"
-            aria-label="เพิ่มคำถาม"
-          >
-            <Plus size={32} strokeWidth={1.5} />
-          </button>
         </main>
       </div>
     </Navbar>
