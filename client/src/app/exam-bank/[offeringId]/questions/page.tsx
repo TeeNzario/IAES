@@ -20,6 +20,10 @@ import QuestionEditorCard, {
   DraftQuestion,
   draftFromQuestion,
 } from "@/components/questionBank/QuestionEditorCard";
+import {
+  DIFFICULTY_LEVEL_CONFIG,
+  FIXED_CHOICE_COUNT,
+} from "@/components/questionBank/questionEditorConfig";
 import type { KnowledgeTag } from "@/components/questionBank/TagSelect";
 
 interface ListResponse {
@@ -462,8 +466,22 @@ function EditQuestionRow({
   onCancel: () => void;
   onSaved: () => void;
 }) {
+  const normalizeDraftChoices = (input: DraftQuestion): DraftQuestion => {
+    const nextChoices = [...input.choices];
+
+    if (nextChoices.length > FIXED_CHOICE_COUNT) {
+      nextChoices.splice(FIXED_CHOICE_COUNT);
+    }
+
+    while (nextChoices.length < FIXED_CHOICE_COUNT) {
+      nextChoices.push({ choice_text: "", is_correct: false });
+    }
+
+    return { ...input, choices: nextChoices };
+  };
+
   const [draft, setDraft] = useState<DraftQuestion>(() =>
-    draftFromQuestion(question),
+    normalizeDraftChoices(draftFromQuestion(question)),
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -514,6 +532,8 @@ function EditQuestionRow({
         draft={draft}
         tags={tags}
         hideHeader
+        fixedChoiceCount={FIXED_CHOICE_COUNT}
+        difficultyOptions={DIFFICULTY_LEVEL_CONFIG}
         saving={saving}
         onChange={setDraft}
         onConfirm={handleConfirm}
