@@ -57,7 +57,6 @@ export const getUserById = async (id: string): Promise<User> => {
 export interface CreateStudentPayload {
   student_code: string;
   email: string;
-  password?: string;
   facultyCode: number;
   first_name: string;
   last_name: string;
@@ -70,7 +69,10 @@ export const createStudent = async (
     const response = await api.post(`/students`, payload);
     return response.data;
   } catch (error) {
-    console.error("Error creating student:", error);
+    const e = error as {
+      response?: { status?: number; data?: unknown };
+    };
+    console.error("Error creating student:", e.response?.status, e.response?.data);
     throw error;
   }
 };

@@ -1,4 +1,5 @@
-import { IsInt, IsNotEmpty, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateStudentDto {
   @IsString()
@@ -9,8 +10,11 @@ export class CreateStudentDto {
   @IsNotEmpty()
   email: string;
 
+  @IsOptional()
+  @IsString()
   password_hash?: string;
 
+  @Type(() => Number)
   @IsInt()
   @IsNotEmpty()
   facultyCode: number;
