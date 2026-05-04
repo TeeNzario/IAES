@@ -181,7 +181,7 @@ export default function ManageUserPage() {
 
   // Filter out current user from list
   const filteredUsers = useMemo(() => {
-    return users.filter((user) => {
+    const list = users.filter((user) => {
       // Exclude current logged-in user
       if (currentUser) {
         const currentId =
@@ -203,6 +203,23 @@ export default function ManageUserPage() {
 
       return matchesSearch && matchesStatus;
     });
+
+    const collator = new Intl.Collator(["th", "en"], {
+      sensitivity: "base",
+      numeric: true,
+    });
+
+    list.sort((a, b) => {
+      const aName = `${a.first_name} ${a.last_name}`.trim();
+      const bName = `${b.first_name} ${b.last_name}`.trim();
+
+      const nameCmp = collator.compare(aName, bName);
+      if (nameCmp !== 0) return nameCmp;
+
+      return collator.compare(a.id, b.id);
+    });
+
+    return list;
   }, [users, searchTerm, statusFilter, currentUser]);
 
   const totalPages = Math.max(
@@ -449,15 +466,17 @@ export default function ManageUserPage() {
       errors.student_code = "กรุณาระบุรหัสนักศึกษา";
     }
 
-    if (!createFirstName.trim()) {
+    if (!studentFirstName.trim()) {
       errors.first_name = ERROR_MESSAGES.firstName.required;
-    } else if (createFirstName.length > USER_VALIDATION_CONFIG.firstName.max) {
+    } else if (
+      studentFirstName.length > USER_VALIDATION_CONFIG.firstName.max
+    ) {
       errors.first_name = ERROR_MESSAGES.firstName.maxLength;
     }
 
-    if (!createLastName.trim()) {
+    if (!studentLastName.trim()) {
       errors.last_name = ERROR_MESSAGES.lastName.required;
-    } else if (createLastName.length > USER_VALIDATION_CONFIG.lastName.max) {
+    } else if (studentLastName.length > USER_VALIDATION_CONFIG.lastName.max) {
       errors.last_name = ERROR_MESSAGES.lastName.maxLength;
     }
 
@@ -495,7 +514,6 @@ export default function ManageUserPage() {
         facultyCode: studentFacultyCode,
         first_name: studentFirstName,
         last_name: studentLastName,
-        password: studentCode,
       });
 
       setRoleFilter("STUDENT");
