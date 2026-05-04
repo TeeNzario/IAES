@@ -211,7 +211,7 @@ export class PreviewImportService {
           student_code: row.student_code,
           email: row.email,
           status: 'skipped',
-          note: 'Missing required fields',
+          note: 'ข้อมูลที่จำเป็นไม่ครบ',
         });
         continue;
       }
@@ -293,7 +293,7 @@ export class PreviewImportService {
           student_code: row.student_code,
           email: row.email,
           status: 'failed',
-          note: error instanceof Error ? error.message : 'Unknown error',
+          note: error instanceof Error ? error.message : 'ข้อผิดพลาดที่ไม่ทราบสาเหตุ',
         });
       }
     }
@@ -330,17 +330,20 @@ export class PreviewImportService {
   ): Promise<{ status: PreviewRowStatus; note?: string }> {
     // 1. Check required fields
     if (!studentCode || !email || !firstName || !lastName) {
-      return { status: 'MISSING', note: 'Required fields missing' };
+      return { status: 'MISSING', note: 'ข้อมูลที่จำเป็นไม่ครบ' };
     }
 
     // 1b. Validate email format
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return { status: 'MISSING', note: 'Email format invalid' };
+      return { status: 'MISSING', note: 'รูปแบบอีเมลไม่ถูกต้อง' };
     }
 
     // 2. Check required facultyCode
     if (facultyCode == null || isNaN(Number(facultyCode)) || !Number.isInteger(Number(facultyCode))) {
-      return { status: 'MISSING', note: 'facultyCode is required and must be a valid integer' };
+      return {
+        status: 'MISSING',
+        note: 'จำเป็นต้องระบุรหัสสำนักวิชาเป็นจำนวนเต็มที่ถูกต้อง',
+      };
     }
 
     // 2. Check if already enrolled in this offering
@@ -375,7 +378,7 @@ export class PreviewImportService {
       ) {
         return {
           status: 'DUPLICATE_IDENTITY',
-          note: `Code matches ${directoryByCode.email}, email matches ${directoryByEmail.student_code}`,
+          note: `รหัสนักศึกษาตรงกับ ${directoryByCode.email} แต่อีเมลตรงกับ ${directoryByEmail.student_code}`,
         };
       }
       // Same record - check if name matches
@@ -385,7 +388,7 @@ export class PreviewImportService {
       ) {
         return {
           status: 'EXISTS_NOT_ENROLLED',
-          note: `Name differs: ${directoryByCode.first_name} ${directoryByCode.last_name}`,
+          note: `ชื่อ-นามสกุลไม่ตรงกับข้อมูลเดิม: ${directoryByCode.first_name} ${directoryByCode.last_name}`,
         };
       }
       return { status: 'EXISTS_NOT_ENROLLED' };
@@ -396,7 +399,7 @@ export class PreviewImportService {
       if (directoryByCode.email !== email) {
         return {
           status: 'DUPLICATE_IDENTITY',
-          note: `Student code exists with different email: ${directoryByCode.email}`,
+          note: `รหัสนักศึกษานี้มีอยู่แล้วด้วยอีเมลอื่น: ${directoryByCode.email}`,
         };
       }
     }
@@ -406,7 +409,7 @@ export class PreviewImportService {
       if (directoryByEmail.student_code !== studentCode) {
         return {
           status: 'DUPLICATE_IDENTITY',
-          note: `Email exists with different code: ${directoryByEmail.student_code}`,
+          note: `อีเมลนี้มีอยู่แล้วด้วยรหัสนักศึกษาอื่น: ${directoryByEmail.student_code}`,
         };
       }
     }
@@ -420,7 +423,7 @@ export class PreviewImportService {
       if (student.email !== email) {
         return {
           status: 'DUPLICATE_IDENTITY',
-          note: `Student exists with different email: ${student.email}`,
+          note: `นักศึกษานี้มีอยู่แล้วด้วยอีเมลอื่น: ${student.email}`,
         };
       }
       return { status: 'EXISTS_NOT_ENROLLED' };

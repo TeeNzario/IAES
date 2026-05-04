@@ -437,7 +437,7 @@ export default function BulkUploadModal({
                       : "border-gray-300 text-gray-600 hover:border-[#B7A3E3]"
                   }`}
                 >
-                  ใหม่ ({getStatusCount("new")})
+                  นำเข้าใหม่ ({getStatusCount("new")})
                 </button>
                 <button
                   onClick={() => setFilterStatus("enrolled")}
@@ -447,7 +447,7 @@ export default function BulkUploadModal({
                       : "border-gray-300 text-gray-600 hover:border-[#B7A3E3]"
                   }`}
                 >
-                  ลงทะเบียนแล้ว ({getStatusCount("enrolled")})
+                  เคยลงทะเบียนแล้ว ({getStatusCount("enrolled")})
                 </button>
                 <button
                   onClick={() => setFilterStatus("error")}
@@ -457,7 +457,7 @@ export default function BulkUploadModal({
                       : "border-gray-300 text-gray-600 hover:border-[#B7A3E3]"
                   }`}
                 >
-                  ผิดพลาด ({getStatusCount("error")})
+                  ข้อมูลไม่ครบ ({getStatusCount("error")})
                 </button>
               </div>
             </div>
