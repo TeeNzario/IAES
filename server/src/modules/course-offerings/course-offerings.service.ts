@@ -38,6 +38,8 @@ const courseOfferingSelect = {
         select: {
           first_name: true,
           last_name: true,
+          facultyCode: true,
+          curriculumId: true,
         },
       },
     },
@@ -277,6 +279,8 @@ export class CourseOfferingsService {
             first_name: true,
             last_name: true,
             email: true,
+            facultyCode: true,
+            curriculumId: true,
           },
         },
       },
@@ -290,6 +294,8 @@ export class CourseOfferingsService {
       first_name: e.students.first_name,
       last_name: e.students.last_name,
       email: e.students.email,
+      facultyCode: e.students.facultyCode,
+      curriculumId: e.students.curriculumId,
     }));
   }
 

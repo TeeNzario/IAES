@@ -13,7 +13,8 @@ import BulkUploadModal from "@/features/courseOffering/components/BulkUploadStud
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import AlertModal from "@/components/ui/AlertModal";
 import { AuthUser } from "@/types/auth";
-import { FACULTY_MAP } from "@/lib/faculty-map";
+import { FACULTY_MAP, getFacultyName } from "@/lib/faculty-map";
+import { CURRICULUMS, getCurriculumName } from "@/config/curriculums";
 
 // ============================================================
 // CONFIGURATION CONSTANTS — Adjust limits here
@@ -81,6 +82,7 @@ export default function SimpleShowUsers() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [addFacultyCode, setAddFacultyCode] = useState<number>(1);
+  const [addCurriculumId, setAddCurriculumId] = useState<number>(1);
 
   // Validation errors state
   const [errors, setErrors] = useState<FormErrors>({});
@@ -331,6 +333,7 @@ export default function SimpleShowUsers() {
     setFirstName("");
     setLastName("");
     setAddFacultyCode(1);
+    setAddCurriculumId(1);
     setErrors({}); // Clear errors when closing modal
   };
 
@@ -351,6 +354,7 @@ export default function SimpleShowUsers() {
           student_code: studentId.trim(),
           email: email.trim(),
           facultyCode: addFacultyCode,
+          curriculumId: addCurriculumId,
           first_name: firstName.trim(),
           last_name: lastName.trim(),
         },
@@ -493,9 +497,16 @@ const isStudent = user?.userType === "STUDENT";
                         {offering.course_instructors.map((ci) => (
                           <div
                             key={ci.staff_users_id}
-                            className="text-base text-[#575757]"
+                            className="flex flex-col"
                           >
-                            {formatInstructorName(ci.staff_users)}
+                            <span className="text-base text-[#575757]">
+                              {formatInstructorName(ci.staff_users)}
+                            </span>
+                            <span className="text-xs text-gray-400">
+                              {getFacultyName(ci.staff_users.facultyCode ?? 1)}
+                              {" · "}
+                              {getCurriculumName(ci.staff_users.curriculumId)}
+                            </span>
                           </div>
                         ))}
                       </div>
@@ -524,10 +535,19 @@ const isStudent = user?.userType === "STUDENT";
                       key={student.student_code}
                       className={`px-5 py-4 hover:bg-gray-50 transition-colors cursor-pointer flex items-center justify-between group`}
                     >
-                      <div className="flex items-center gap-3">
-                        {student.student_code}
-                        <span className="text-base text-[#575757]">
-                          {student.first_name} {student.last_name}
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-3">
+                          <span className="text-base text-[#575757]">
+                            {student.student_code}
+                          </span>
+                          <span className="text-base text-[#575757]">
+                            {student.first_name} {student.last_name}
+                          </span>
+                        </div>
+                        <span className="text-xs text-gray-400 mt-0.5">
+                          {getFacultyName(student.facultyCode ?? 1)}
+                          {" · "}
+                          {getCurriculumName(student.curriculumId)}
                         </span>
                       </div>
                       {/* Delete button - visible on hover */}
@@ -737,6 +757,27 @@ const isStudent = user?.userType === "STUDENT";
                       {Object.entries(FACULTY_MAP).map(([code, name]) => (
                         <option key={code} value={code}>
                           {name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-3.5 text-gray-400 pointer-events-none" size={18} />
+                  </div>
+                </div>
+
+                {/* หลักสูตร */}
+                <div>
+                  <label className="block text-base font-normal text-gray-900 mb-2">
+                    หลักสูตร <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={addCurriculumId}
+                      onChange={(e) => setAddCurriculumId(Number(e.target.value))}
+                      className="w-full px-4 py-3.5 border border-[#B7A3E3] rounded-xl focus:outline-none focus:border-purple-500 transition-colors text-base appearance-none bg-white"
+                    >
+                      {CURRICULUMS.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
                         </option>
                       ))}
                     </select>

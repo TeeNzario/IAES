@@ -5,6 +5,7 @@ import NavBar from "@/components/layout/NavBar";
 import { useState, useMemo, useEffect } from "react";
 import { Search, ChevronLeft, ChevronRight, Plus, Loader2, ChevronDown } from "lucide-react";
 import { FACULTY_MAP, getFacultyName } from "@/lib/faculty-map";
+import { CURRICULUMS, getCurriculumName } from "@/config/curriculums";
 import {
   getUsers,
   updateUser as apiUpdateUser,
@@ -62,6 +63,7 @@ interface User {
   role: RoleFilter;
   email?: string;
   facultyCode: number;
+  curriculumId?: number;
 }
 
 interface FormErrors {
@@ -81,6 +83,7 @@ function mapStudentToUser(student: any): User {
     role: "STUDENT",
     email: student.email,
     facultyCode: student.facultyCode ?? 1,
+    curriculumId: student.curriculumId ?? 1,
   };
 }
 
@@ -93,6 +96,7 @@ function mapStaffToUser(staff: any): User {
     role: staff.role === "ADMIN" ? "ADMINISTRATOR" : (staff.role as RoleFilter),
     email: staff.email,
     facultyCode: staff.facultyCode ?? 1,
+    curriculumId: staff.curriculumId ?? 1,
   };
 }
 
@@ -118,6 +122,7 @@ export default function ManageUserPage() {
   const [editFirstName, setEditFirstName] = useState("");
   const [editLastName, setEditLastName] = useState("");
   const [editFacultyCode, setEditFacultyCode] = useState<number>(1);
+  const [editCurriculumId, setEditCurriculumId] = useState<number>(1);
   const [editActive, setEditActive] = useState<"ACTIVE" | "INACTIVE">("ACTIVE");
   const [editErrors, setEditErrors] = useState<FormErrors>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -131,6 +136,7 @@ export default function ManageUserPage() {
   const [createPassword, setCreatePassword] = useState("");
   const [createConfirmPassword, setCreateConfirmPassword] = useState("");
   const [createFacultyCode, setCreateFacultyCode] = useState<number>(1);
+  const [createCurriculumId, setCreateCurriculumId] = useState<number>(1);
   const [createFirstName, setCreateFirstName] = useState("");
   const [createLastName, setCreateLastName] = useState("");
   const [createErrors, setCreateErrors] = useState<FormErrors>({});
@@ -143,6 +149,7 @@ export default function ManageUserPage() {
   const [studentFirstName, setStudentFirstName] = useState("");
   const [studentLastName, setStudentLastName] = useState("");
   const [studentFacultyCode, setStudentFacultyCode] = useState<number>(1);
+  const [studentCurriculumId, setStudentCurriculumId] = useState<number>(1);
   const [studentErrors, setStudentErrors] = useState<FormErrors & { student_code?: string; facultyCode?: string }>({});
   const [isCreatingStudent, setIsCreatingStudent] = useState(false);
 
@@ -246,6 +253,7 @@ export default function ManageUserPage() {
     setEditFirstName(user.first_name);
     setEditLastName(user.last_name);
     setEditFacultyCode(user.facultyCode ?? 1);
+    setEditCurriculumId(user.curriculumId ?? 1);
     setEditActive(user.is_active ? "ACTIVE" : "INACTIVE");
     setEditErrors({});
   }
@@ -296,6 +304,7 @@ export default function ManageUserPage() {
             first_name: editFirstName,
             last_name: editLastName,
             facultyCode: editFacultyCode,
+            curriculumId: editCurriculumId,
             // Don't update is_active for ADMIN
             is_active: isAdminUser ? u.is_active : editActive === "ACTIVE",
           }
@@ -309,6 +318,7 @@ export default function ManageUserPage() {
           first_name: editFirstName,
           last_name: editLastName,
           facultyCode: editFacultyCode,
+          curriculumId: editCurriculumId,
           is_active: editActive === "ACTIVE",
         });
       } else {
@@ -317,6 +327,7 @@ export default function ManageUserPage() {
           first_name: editFirstName,
           last_name: editLastName,
           facultyCode: editFacultyCode,
+          curriculumId: editCurriculumId,
         };
         if (!isAdminUser) {
           updatePayload.is_active = editActive === "ACTIVE";
@@ -340,6 +351,7 @@ export default function ManageUserPage() {
     setCreatePassword("");
     setCreateConfirmPassword("");
     setCreateFacultyCode(1);
+    setCreateCurriculumId(1);
     setCreateFirstName("");
     setCreateLastName("");
     setCreateErrors({});
@@ -419,6 +431,7 @@ export default function ManageUserPage() {
         email: createEmail,
         password: createPassword,
         facultyCode: createFacultyCode,
+        curriculumId: createCurriculumId,
         first_name: createFirstName,
         last_name: createLastName,
         role: createRole,
@@ -454,6 +467,7 @@ export default function ManageUserPage() {
     setStudentFirstName("");
     setStudentLastName("");
     setStudentFacultyCode(1);
+    setStudentCurriculumId(1);
     setStudentErrors({});
     setShowCreateStudentModal(true);
   }
@@ -512,6 +526,7 @@ export default function ManageUserPage() {
         student_code: studentCode,
         email: studentEmail,
         facultyCode: studentFacultyCode,
+        curriculumId: studentCurriculumId,
         first_name: studentFirstName,
         last_name: studentLastName,
       });
@@ -593,7 +608,7 @@ export default function ManageUserPage() {
             {roleFilter === "STUDENT" && (
               <button
                 onClick={openCreateStudentModal}
-                className="p-2 bg-[#7C3AED] text-white rounded-full hover:bg-[#6D28D9] transition-colors"
+                className="p-2 bg-[#B7A3E3] text-white rounded-full hover:bg-[#9264F5] transition-colors"
                 title="เพิ่มนักเรียน"
               >
                 <Plus size={20} />
@@ -609,7 +624,7 @@ export default function ManageUserPage() {
                       roleFilter === "ADMINISTRATOR" ? "ADMIN" : "INSTRUCTOR",
                     )
                   }
-                  className="p-2 bg-[#7C3AED] text-white rounded-full hover:bg-[#6D28D9] transition-colors"
+                  className="p-2 bg-[#B7A3E3] text-white rounded-full hover:bg-[#9264F5] transition-colors"
                   title={`เพิ่ม${roleFilter === "INSTRUCTOR" ? "อาจารย์" : "ผู้ดูแลระบบ"}`}
                 >
                   <Plus size={20} />
@@ -628,10 +643,11 @@ export default function ManageUserPage() {
                 className="w-full sm:w-auto px-4 py-2 pr-9 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-400 appearance-none bg-white text-gray-700"
                 title="จำนวนต่อหน้า"
               >
+                <option value={25}>แสดง 25 คน</option>
                 <option value={50}>แสดง 50 คน</option>
                 <option value={100}>แสดง 100 คน</option>
-                <option value={150}>แสดง 150 คน</option>
                 <option value={200}>แสดง 200 คน</option>
+                <option value={500}>แสดง 500 คน</option>
               </select>
               <ChevronDown className="absolute right-2 top-2.5 text-gray-400 pointer-events-none" size={18} />
             </div>
@@ -656,41 +672,43 @@ export default function ManageUserPage() {
 
         {/* Table for desktop */}
         <div className="bg-white rounded-lg shadow overflow-hidden w-full">
-          <div className="overflow-x-auto">
+          <div className="overflow-auto max-h-[calc(100vh-280px)]">
             <table className="w-full min-w-[640px] hidden sm:table">
-              <thead>
+              <thead className="sticky top-0 z-10">
                 <tr className="bg-[#B7A3E3] text-white">
-                  <th className="px-6 py-4 text-left font-light">
+                  <th className="px-4 py-2.5 text-left font-light text-sm">
                     {roleFilter === "STUDENT" ? "รหัสนักศึกษา" : ""}
                   </th>
-                  <th className="px-6 py-4 text-left font-light">ชื่อ-นามสกุล</th>
-                  <th className="px-6 py-4 text-left font-light">สำนักวิชา</th>
-                  <th className="px-6 py-4 text-left font-light">สถานะ</th>
-                  <th className="px-6 py-4 text-left font-light">แก้ไข</th>
+                  <th className="px-4 py-2.5 text-left font-light text-sm">ชื่อ-นามสกุล</th>
+                  <th className="px-4 py-2.5 text-left font-light text-sm">สำนักวิชา</th>
+                  <th className="px-4 py-2.5 text-left font-light text-sm">หลักสูตร</th>
+                  <th className="px-4 py-2.5 text-left font-light text-sm">สถานะ</th>
+                  <th className="px-4 py-2.5 text-left font-light text-sm">แก้ไข</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedUsers.map((user) => (
-                  <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-50">
-                    <td className="px-6 py-4 text-gray-700">
+                  <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-50 text-sm">
+                    <td className="px-4 py-2 text-gray-700">
                       {user.role === "STUDENT" ? user.id : ""}
                     </td>
-                    <td className="px-6 py-4 text-gray-700">{`${user.first_name} ${user.last_name}`}</td>
-                    <td className="px-6 py-4 text-gray-700">{getFacultyName(user.facultyCode ?? 1)}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-2 text-gray-700">{`${user.first_name} ${user.last_name}`}</td>
+                    <td className="px-4 py-2 text-gray-700">{getFacultyName(user.facultyCode ?? 1)}</td>
+                    <td className="px-4 py-2 text-gray-700">{getCurriculumName(user.curriculumId)}</td>
+                    <td className="px-4 py-2">
                       <span
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${user.is_active
+                        className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${user.is_active
                           ? "bg-[#B7A3E3] text-white"
-                          : "bg-white text-[#B7A3E3]"
+                          : "bg-white text-[#B7A3E3] border border-[#B7A3E3]"
                           }`}
                       >
                         {user.is_active ? "เปิดใช้งาน" : "ปิดใช้งาน"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-gray-700">
+                    <td className="px-4 py-2 text-gray-700">
                       <button
                         onClick={() => openEdit(user)}
-                        className="p-2 text-purple-400 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors"
+                        className="p-1.5 text-purple-400 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -764,38 +782,58 @@ export default function ManageUserPage() {
         {/* Pagination */}
         <div className="flex flex-wrap justify-center items-center gap-2 mt-6">
           <button
-            className="p-2 hover:bg-gray-200 rounded-lg disabled:opacity-50"
+            className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#B7A3E3] text-white shadow-md hover:bg-[#9264F5] transition-colors disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed"
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            title="หน้าก่อนหน้า"
+            aria-label="หน้าก่อนหน้า"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={22} strokeWidth={2.5} />
           </button>
-          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => (
-            <button
-              key={i + 1}
-              onClick={() => setCurrentPage(i + 1)}
-              className={`w-8 h-8 rounded-lg font-semibold ${currentPage === i + 1 ? "bg-[#B7A3E3] text-white" : "border border-gray-300 text-gray-700 hover:bg-gray-100"}`}
-            >
-              {i + 1}
-            </button>
-          ))}
-          {totalPages > 5 && (
-            <span className="text-gray-500 hidden sm:inline">...</span>
-          )}
-          {totalPages > 5 && (
-            <button
-              className="w-8 h-8 rounded-lg border border-gray-300 font-semibold hover:bg-gray-100"
-              onClick={() => setCurrentPage(totalPages)}
-            >
-              {totalPages}
-            </button>
-          )}
+          {(() => {
+            const pages: (number | "...")[] = [];
+            const win = 1;
+            const push = (v: number | "...") => {
+              if (v === "..." && pages[pages.length - 1] === "...") return;
+              pages.push(v);
+            };
+            for (let i = 1; i <= totalPages; i++) {
+              if (
+                i === 1 ||
+                i === totalPages ||
+                (i >= currentPage - win && i <= currentPage + win)
+              ) {
+                push(i);
+              } else {
+                push("...");
+              }
+            }
+            return pages.map((pg, idx) =>
+              pg === "..." ? (
+                <span key={`e-${idx}`} className="px-1 text-gray-400 select-none">…</span>
+              ) : (
+                <button
+                  key={pg}
+                  onClick={() => setCurrentPage(pg)}
+                  className={`w-10 h-10 rounded-lg font-semibold transition-colors ${
+                    currentPage === pg
+                      ? "bg-[#B7A3E3] text-white shadow-md"
+                      : "border-2 border-[#B7A3E3] text-[#B7A3E3] bg-white hover:bg-purple-50"
+                  }`}
+                >
+                  {pg}
+                </button>
+              ),
+            );
+          })()}
           <button
-            className="p-2 hover:bg-gray-200 rounded-lg disabled:opacity-50"
+            className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#B7A3E3] text-white shadow-md hover:bg-[#9264F5] transition-colors disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed"
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            title="หน้าถัดไป"
+            aria-label="หน้าถัดไป"
           >
-            <ChevronRight size={18} />
+            <ChevronRight size={22} strokeWidth={2.5} />
           </button>
         </div>
 
@@ -899,6 +937,27 @@ export default function ManageUserPage() {
                 </div>
               </div>
 
+              {/* Curriculum Dropdown */}
+              <div className="mb-5">
+                <label className="block text-sm font-medium text-black mb-2">
+                  หลักสูตร
+                </label>
+                <div className="relative">
+                  <select
+                    value={editCurriculumId}
+                    onChange={(e) => setEditCurriculumId(Number(e.target.value))}
+                    className="w-full px-4 py-3 border-2 border-[#9264F5] rounded-2xl focus:outline-none focus:border-[#B7A3E3] transition-colors text-black appearance-none bg-white"
+                  >
+                    {CURRICULUMS.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                </div>
+              </div>
+
               {/* Status Toggle - Hidden for ADMIN users */}
               {editingUser.role !== "ADMINISTRATOR" && (
                 <div className="mb-8">
@@ -913,7 +972,7 @@ export default function ManageUserPage() {
                         value="ACTIVE"
                         checked={editActive === "ACTIVE"}
                         onChange={() => setEditActive("ACTIVE")}
-                        className="w-4 h-4 accent-[#7C3AED] cursor-pointer"
+                        className="w-4 h-4 accent-[#B7A3E3] cursor-pointer"
                       />
                       <span className="text-black font-medium">เปิดใช้งาน</span>
                     </label>
@@ -924,7 +983,7 @@ export default function ManageUserPage() {
                         value="INACTIVE"
                         checked={editActive === "INACTIVE"}
                         onChange={() => setEditActive("INACTIVE")}
-                        className="w-4 h-4 accent-[#7C3AED] cursor-pointer"
+                        className="w-4 h-4 accent-[#B7A3E3] cursor-pointer"
                       />
                       <span className="text-black font-medium">ปิดใช้งาน</span>
                     </label>
@@ -953,7 +1012,7 @@ export default function ManageUserPage() {
                 <button
                   onClick={saveEdit}
                   disabled={isSaving}
-                  className="flex-1 px-6 py-3 rounded-2xl font-medium bg-[#7C3AED] text-white hover:bg-[#6D28D9] transition-colors shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 px-6 py-3 rounded-2xl font-medium bg-[#B7A3E3] text-white hover:bg-[#9264F5] transition-colors shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isSaving && <Loader2 size={18} className="animate-spin" />}
                   บันทึก
@@ -1075,6 +1134,27 @@ export default function ManageUserPage() {
                 </div>
               </div>
 
+              {/* Curriculum Dropdown */}
+              <div className="mb-5">
+                <label className="block text-sm font-medium text-black mb-2">
+                  หลักสูตร
+                </label>
+                <div className="relative">
+                  <select
+                    value={studentCurriculumId}
+                    onChange={(e) => setStudentCurriculumId(Number(e.target.value))}
+                    className="w-full px-4 py-3 border-2 border-[#9264F5] rounded-2xl focus:outline-none focus:border-[#B7A3E3] transition-colors text-black appearance-none bg-white"
+                  >
+                    {CURRICULUMS.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                </div>
+              </div>
+
               {/* Email Field */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-black mb-2">
@@ -1114,7 +1194,7 @@ export default function ManageUserPage() {
                 <button
                   onClick={handleCreateStudent}
                   disabled={isCreatingStudent}
-                  className="flex-1 px-6 py-3 rounded-2xl font-medium bg-[#7C3AED] text-white hover:bg-[#6D28D9] transition-colors shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 px-6 py-3 rounded-2xl font-medium bg-[#B7A3E3] text-white hover:bg-[#9264F5] transition-colors shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isCreatingStudent && <Loader2 size={18} className="animate-spin" />}
                   สร้าง
@@ -1244,6 +1324,27 @@ export default function ManageUserPage() {
                 </div>
               </div>
 
+              {/* Curriculum Dropdown */}
+              <div className="mb-5">
+                <label className="block text-sm font-medium text-black mb-2">
+                  หลักสูตร
+                </label>
+                <div className="relative">
+                  <select
+                    value={createCurriculumId}
+                    onChange={(e) => setCreateCurriculumId(Number(e.target.value))}
+                    className="w-full px-4 py-3 border-2 border-[#9264F5] rounded-2xl focus:outline-none focus:border-[#B7A3E3] transition-colors text-black appearance-none bg-white"
+                  >
+                    {CURRICULUMS.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                </div>
+              </div>
+
               {/* Password Field */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-black mb-2">
@@ -1312,7 +1413,7 @@ export default function ManageUserPage() {
                 <button
                   onClick={handleCreateStaff}
                   disabled={isCreating}
-                  className="flex-1 px-6 py-3 rounded-2xl font-medium bg-[#7C3AED] text-white hover:bg-[#6D28D9] transition-colors shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 px-6 py-3 rounded-2xl font-medium bg-[#B7A3E3] text-white hover:bg-[#9264F5] transition-colors shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isCreating && <Loader2 size={18} className="animate-spin" />}
                   สร้าง
