@@ -221,8 +221,8 @@ model staff_users {
   password_hash           String
   role                    user_role
   facultyCode             Int                       @map("faculty_code")
-  title                   String?                   @db.VarChar(50)
-  curriculumId            Int?                      @map("curriculum_id")
+  title                   String                   @db.VarChar(50)
+  curriculumId            Int                      @map("curriculum_id")
   first_name              String                    @db.VarChar(100)
   last_name               String                    @db.VarChar(100)
   is_active               Boolean                   @default(true)
@@ -293,8 +293,8 @@ model students {
   email              String               @unique @db.VarChar(255)
   password_hash      String
   facultyCode        Int                  @map("faculty_code")
-  title              String?              @db.VarChar(50)
-  curriculumId       Int?                 @map("curriculum_id")
+  title              String               @db.VarChar(50)
+  curriculumId       Int                 @map("curriculum_id")
   first_name         String               @db.VarChar(100)
   last_name          String               @db.VarChar(100)
   is_active          Boolean              @default(true)
