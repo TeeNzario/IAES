@@ -258,6 +258,8 @@ export class PreviewImportService {
               email: row.email,
               password_hash: '12345678', // Placeholder
               facultyCode: row.facultyCode ?? 0,
+              title: '',
+              curriculumId: 1,
               first_name: row.first_name ?? '',
               last_name: row.last_name ?? '',
             },

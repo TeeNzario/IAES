@@ -49,9 +49,11 @@ npm run seed         # Seed database (tsx prisma/seed.ts)
 
 ### Database (run from `server/`)
 ```bash
-npx prisma migrate dev --name <name>   # Create and apply migration
-npx prisma generate                     # Regenerate Prisma client
-npx prisma studio                       # Open Prisma GUI
+npx prisma migrate dev --name <name>   # Create and apply a new migration after editing schema.prisma
+npx prisma migrate deploy              # Apply pending migrations (safe for existing DB, no data loss)
+npx prisma migrate reset               # ⚠️ Drop schema, re-apply migrations, run seed (local dev only)
+npx prisma generate                    # Regenerate Prisma client to src/generated/prisma
+npx prisma studio                      # Open Prisma GUI
 ```
 
 ## Architecture
@@ -86,12 +88,14 @@ Key patterns:
 ### Database Schema (Prisma)
 
 Key models:
-- `staff_users` - Staff accounts with role enum (INSTRUCTOR/ADMIN)
-- `students` / `student_directory` - Student accounts and directory
+- `staff_users` - Staff accounts with role enum (INSTRUCTOR/ADMIN). Required: `title` (VARCHAR(50)), `curriculumId` (INTEGER), `facultyCode` (INTEGER), name, email.
+- `students` / `student_directory` - Student accounts and directory. `students` requires the same `title` + `curriculumId` + `facultyCode` columns as staff.
 - `courses` / `course_offerings` / `course_enrollments` / `course_instructors` - Course management
 - `question_bank` / `question_choices` / `knowledge_categories` / `question_knowledge` / `course_knowledge` - Question bank with knowledge categorization
 - `course_exams` / `exam_questions` / `exam_attempts` / `attempt_items` / `attempt_answers` - Exam and attempt tracking
 - `import_preview_sessions` / `import_preview_rows` - Ephemeral tables for CSV import preview
+
+Curriculum IDs are defined in `client/src/config/curriculums.ts` (single source of truth). When inserting `staff_users` or `students`, every code path must supply `title` and `curriculumId` — service layers fall back to `title: ''` and `curriculumId: 1` when the DTO does not include them.
 
 ## Environment Variables
 
