@@ -34,6 +34,8 @@ export class StaffService {
         email: createStaffDto.email,
         password_hash: createStaffDto.password, // Plain text per requirement
         facultyCode: createStaffDto.facultyCode,
+        title: createStaffDto.title ?? '',
+        curriculumId: createStaffDto.curriculumId ?? 1,
         first_name: createStaffDto.first_name,
         last_name: createStaffDto.last_name,
         role: createStaffDto.role,

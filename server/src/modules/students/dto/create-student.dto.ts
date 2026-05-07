@@ -26,4 +26,13 @@ export class CreateStudentDto {
   @IsString()
   @IsNotEmpty()
   last_name: string;
+
+  @IsString()
+  @IsOptional()
+  title?: string;
+
+  @Type(() => Number)
+  @IsInt()
+  @IsOptional()
+  curriculumId?: number;
 }

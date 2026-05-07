@@ -70,7 +70,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3002
 
 ## Database Setup Options
 
-Choose the workflow that matches your database state.
+This project uses **Prisma Migrate** (migration history under `server/prisma/migrations/`). Prefer `prisma migrate` over `db push` so migration history stays consistent across environments. Choose the workflow that matches your database state.
 
 ### Option A: Fresh Empty Database
 
@@ -88,18 +88,25 @@ Or with `psql`:
 psql -U postgres -c "CREATE DATABASE iaes_db;"
 ```
 
-Push the Prisma schema, generate the Prisma client, and insert demo data:
+Apply all migrations, generate the Prisma client, and insert demo data:
 
 ```bash
 cd server
-npx prisma db push
+npx prisma migrate deploy
 npx prisma generate
 npm run seed
 ```
 
-The seed is safe to run more than once. It creates demo staff users, demo students, one course, one course offering, and enrollments.
+The seed is idempotent (uses `upsert` / `skipDuplicates`) and can be re-run safely. It creates:
 
-Demo login accounts:
+- 1 admin staff (`admin@iaes.local`)
+- 1 instructor staff (`instructor@iaes.local`)
+- 5 students (4 active, 1 inactive)
+- 1 course (`IAES101`) + 1 course offering (year 2026 / semester 1)
+- 2 knowledge categories linked to the course
+- Enrollments for the 4 active students
+
+Demo login accounts (password `1234`):
 
 ```text
 Admin:      admin@iaes.local / 1234
@@ -109,38 +116,50 @@ Student:    66131319 / 1234
 
 ### Option B: Database Already Has Schema and Data
 
-Use this when the database already has IAES tables and existing data.
+Use this when migrations are already applied and you only need to refresh the typed Prisma client (e.g. after pulling code with no schema change):
 
 ```bash
 cd server
 npx prisma generate
 ```
 
-Then run the app. Do not run `npx prisma db push --force-reset` because it will reset data. Run `npm run seed` only if you intentionally want the demo accounts/data inserted or refreshed.
+Do not run the seed unless you intentionally want demo accounts/data inserted or refreshed.
 
-### Option C: Schema Changed After Pulling New Code
+### Option C: New Migrations Pulled From Upstream
 
-Use this when `server/prisma/schema.prisma` changed and the database must be updated.
+Use this when `git pull` brought new files under `server/prisma/migrations/` but no schema-only edits.
 
 ```bash
 cd server
-npx prisma db push
+npx prisma migrate deploy
 npx prisma generate
 ```
 
-For a shared or production-like database, back up the database first and read any Prisma warning before continuing. Do not use `--force-reset` on a database with important data.
+`migrate deploy` only applies migrations that have not yet been recorded in the `_prisma_migrations` table — it never destroys data.
 
-### Option D: Reset Local Development Database
+For a shared or production-like database, back up the database first.
 
-Use this only for a local throwaway database.
+### Option D: You Edited `schema.prisma` Locally
+
+When you change `server/prisma/schema.prisma` and need a new migration:
 
 ```bash
 cd server
-npx prisma db push --force-reset
-npm run seed
+npx prisma migrate dev --name <short_descriptive_name>
 ```
 
-This resets the schema and data, then recreates the demo data.
+This creates a new SQL file under `prisma/migrations/`, applies it to your local DB, and regenerates the client.
+
+### Option E: Reset Local Development Database
+
+Use this only for a local throwaway database. **Destructive — drops all data.**
+
+```bash
+cd server
+npx prisma migrate reset
+```
+
+`migrate reset` drops the schema, re-applies every migration in order, then automatically runs the seed configured in `prisma.config.ts` (`tsx prisma/seed.ts`). Never run this against a shared or production database.
 
 ## Run The Project
 
@@ -198,6 +217,27 @@ cd server
 npx prisma generate
 ```
 
+Apply pending migrations (existing DB):
+
+```bash
+cd server
+npx prisma migrate deploy
+```
+
+Create a new migration after editing `schema.prisma`:
+
+```bash
+cd server
+npx prisma migrate dev --name <short_descriptive_name>
+```
+
+Reset local DB (drops data, re-applies migrations, runs seed):
+
+```bash
+cd server
+npx prisma migrate reset
+```
+
 Open Prisma Studio:
 
 ```bash
@@ -239,7 +279,7 @@ npm.cmd run dev
 
 ### PostgreSQL Schema Permission Error
 
-If `npx prisma db push` fails with `permission denied for schema public`, the PostgreSQL user in `DATABASE_URL` does not have schema privileges. Ask a database owner or superuser to connect to the target database first, then grant access:
+If `npx prisma migrate deploy` fails with `permission denied for schema public`, the PostgreSQL user in `DATABASE_URL` does not have schema privileges. Ask a database owner or superuser to connect to the target database first, then grant access:
 
 ```sql
 \c iaes_db

@@ -24,6 +24,8 @@ export class StudentsService {
         email: createStudentDto.email,
         password_hash: createStudentDto.password_hash ?? createStudentDto.student_code,
         facultyCode: createStudentDto.facultyCode,
+        title: createStudentDto.title ?? '',
+        curriculumId: createStudentDto.curriculumId ?? 1,
         first_name: createStudentDto.first_name,
         last_name: createStudentDto.last_name,
         is_active: true,
