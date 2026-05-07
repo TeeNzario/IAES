@@ -4,4 +4,5 @@ export interface Student {
   last_name: string;
   email: string;
   facultyCode: number;
+  curriculumId?: number;
 }

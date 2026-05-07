@@ -5,6 +5,7 @@ import { Edit2, Trash2, Loader2, Save, X } from "lucide-react";
 import Papa from "papaparse";
 import { apiFetch } from "@/lib/api";
 import { FACULTY_MAP, getFacultyName } from "@/lib/faculty-map";
+import { CURRICULUMS, getCurriculumName } from "@/config/curriculums";
 
 // Row data from preview session
 interface PreviewRow {
@@ -13,6 +14,7 @@ interface PreviewRow {
   student_code: string;
   email: string;
   facultyCode: number;
+  curriculumId?: number;
   first_name: string;
   last_name: string;
   status:
@@ -89,6 +91,7 @@ export default function BulkUploadModal({
     student_code: "",
     email: "",
     facultyCode: 1,
+    curriculumId: 1,
     first_name: "",
     last_name: "",
   });
@@ -184,6 +187,7 @@ export default function BulkUploadModal({
             ).trim(),
             email: (row.email || row.อีเมล || "").trim(),
             facultyCode: row.facultyCode ? Number(row.facultyCode) : (row.คณะ ? Number(row.คณะ) : undefined),
+            curriculumId: row.curriculumId ? Number(row.curriculumId) : (row.หลักสูตร ? Number(row.หลักสูตร) : undefined),
             first_name: (
               row.firstName ||
               row.first_name ||
@@ -235,6 +239,7 @@ export default function BulkUploadModal({
       student_code: row.student_code,
       email: row.email,
       facultyCode: row.facultyCode ?? 1,
+      curriculumId: row.curriculumId ?? 1,
       first_name: row.first_name,
       last_name: row.last_name,
     });
@@ -399,7 +404,7 @@ export default function BulkUploadModal({
                 <>
                   <p className="text-purple-400 text-lg">อัพโหลดไฟล์ CSV</p>
                   <p className="text-gray-400 text-sm mt-2">
-                    คอลัมน์: student_code, email, first_name, last_name
+                    คอลัมน์: student_code, email, first_name, last_name, facultyCode, curriculumId
                   </p>
                 </>
               )}
@@ -475,6 +480,7 @@ export default function BulkUploadModal({
                       <th className="py-3 px-4 text-left font-light text-sm">นามสกุล</th>
                       <th className="py-3 px-4 text-left font-light text-sm">อีเมล</th>
                       <th className="py-3 px-4 text-left font-light text-sm">คณะ</th>
+                      <th className="py-3 px-4 text-left font-light text-sm">หลักสูตร</th>
                       <th className="py-3 px-4 text-left font-light text-sm">สถานะ</th>
                       <th className="py-3 px-4 text-left font-light text-sm">หมายเหตุ</th>
                       <th className="py-3 px-4 text-center font-light text-sm rounded-tr-lg w-24">
@@ -569,6 +575,24 @@ export default function BulkUploadModal({
                                 ))}
                               </select>
                             </td>
+                            <td className="py-2 px-4">
+                              <select
+                                value={editForm.curriculumId}
+                                onChange={(e) =>
+                                  setEditForm((f) => ({
+                                    ...f,
+                                    curriculumId: Number(e.target.value),
+                                  }))
+                                }
+                                className="w-full px-2 py-1 border rounded text-sm"
+                              >
+                                {CURRICULUMS.map((c) => (
+                                  <option key={c.id} value={c.id}>
+                                    {c.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
                             <td className="py-2 px-4 text-gray-400 text-sm italic">
                               (บันทึกเพื่อตรวจสอบ)
                             </td>
@@ -608,6 +632,9 @@ export default function BulkUploadModal({
                             </td>
                             <td className="py-3 px-4 text-gray-700 text-sm">
                               {row.facultyCode != null ? getFacultyName(row.facultyCode) : "-"}
+                            </td>
+                            <td className="py-3 px-4 text-gray-700 text-sm">
+                              {row.curriculumId != null ? getCurriculumName(row.curriculumId) : "-"}
                             </td>
                             <td className="py-3 px-4">
                               <span

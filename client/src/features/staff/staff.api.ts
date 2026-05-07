@@ -12,6 +12,7 @@ export interface Staff {
   email?: string;
   is_active: boolean;
   facultyCode: number;
+  curriculumId?: number;
 }
 
 export interface GetStaffsParams {
@@ -66,6 +67,7 @@ export interface CreateStaffPayload {
   last_name: string;
   role: "INSTRUCTOR" | "ADMIN";
   is_active?: boolean;
+  curriculumId?: number;
 }
 
 export const createStaff = async (

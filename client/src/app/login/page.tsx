@@ -49,7 +49,7 @@ function getLoginErrorMessage(error: unknown): string {
   };
 
   if (apiError.response?.status === 400) {
-    return "รูปแบบบัญชีไม่ถูกต้อง กรุณาใช้อีเมล (staff) หรือรหัสนักศึกษา 8 หลัก";
+    return "รูปแบบบัญชีไม่ถูกต้อง กรุณาใช้รหัสนักศึกษา 8 หลัก หรืออีเมล (บุคลากร)";
   }
 
   if (apiError.response?.status === 401) {
@@ -94,7 +94,7 @@ const LoginPage = () => {
     }
 
     if (!isValidIdentifier(trimmedIdentifier)) {
-      setError("กรุณาใช้อีเมล (staff) หรือรหัสนักศึกษา 8 หลัก");
+      setError("กรุณาใช้รหัสนักศึกษา 8 หลัก หรืออีเมล (บุคลากร)");
       return;
     }
 
@@ -158,7 +158,7 @@ const LoginPage = () => {
           {/* Username Field */}
           <div>
             <label className="block text-gray-700 text-sm font-medium mb-2">
-              อีเมล (บุคลากร) หรือ รหัสนักศึกษา
+              รหัสนักศึกษา หรือ อีเมล (บุคลากร)
             </label>
             <input
               type="text"
@@ -166,7 +166,7 @@ const LoginPage = () => {
               onChange={handleInputChange(setIdentifier)}
               onKeyDown={handleKeyDown}
               className="w-full text-black px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition"
-              placeholder="example@university.ac.th หรือ 65123456"
+              placeholder="65123456 หรือ example@university.ac.th"
               disabled={isLoading}
             />
           </div>

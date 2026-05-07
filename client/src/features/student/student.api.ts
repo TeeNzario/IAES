@@ -60,6 +60,7 @@ export interface CreateStudentPayload {
   facultyCode: number;
   first_name: string;
   last_name: string;
+  curriculumId?: number;
 }
 
 export const createStudent = async (
@@ -94,6 +95,7 @@ export interface UpdateUserPayload {
   last_name?: string;
   is_active?: boolean;
   facultyCode?: number;
+  curriculumId?: number;
 }
 
 export const updateUser = async (
