@@ -28,10 +28,12 @@ export type AggregateStudents = {
 
 export type StudentsAvgAggregateOutputType = {
   facultyCode: number | null
+  curriculumId: number | null
 }
 
 export type StudentsSumAggregateOutputType = {
   facultyCode: number | null
+  curriculumId: number | null
 }
 
 export type StudentsMinAggregateOutputType = {
@@ -39,6 +41,8 @@ export type StudentsMinAggregateOutputType = {
   email: string | null
   password_hash: string | null
   facultyCode: number | null
+  title: string | null
+  curriculumId: number | null
   first_name: string | null
   last_name: string | null
   is_active: boolean | null
@@ -51,6 +55,8 @@ export type StudentsMaxAggregateOutputType = {
   email: string | null
   password_hash: string | null
   facultyCode: number | null
+  title: string | null
+  curriculumId: number | null
   first_name: string | null
   last_name: string | null
   is_active: boolean | null
@@ -63,6 +69,8 @@ export type StudentsCountAggregateOutputType = {
   email: number
   password_hash: number
   facultyCode: number
+  title: number
+  curriculumId: number
   first_name: number
   last_name: number
   is_active: number
@@ -74,10 +82,12 @@ export type StudentsCountAggregateOutputType = {
 
 export type StudentsAvgAggregateInputType = {
   facultyCode?: true
+  curriculumId?: true
 }
 
 export type StudentsSumAggregateInputType = {
   facultyCode?: true
+  curriculumId?: true
 }
 
 export type StudentsMinAggregateInputType = {
@@ -85,6 +95,8 @@ export type StudentsMinAggregateInputType = {
   email?: true
   password_hash?: true
   facultyCode?: true
+  title?: true
+  curriculumId?: true
   first_name?: true
   last_name?: true
   is_active?: true
@@ -97,6 +109,8 @@ export type StudentsMaxAggregateInputType = {
   email?: true
   password_hash?: true
   facultyCode?: true
+  title?: true
+  curriculumId?: true
   first_name?: true
   last_name?: true
   is_active?: true
@@ -109,6 +123,8 @@ export type StudentsCountAggregateInputType = {
   email?: true
   password_hash?: true
   facultyCode?: true
+  title?: true
+  curriculumId?: true
   first_name?: true
   last_name?: true
   is_active?: true
@@ -208,6 +224,8 @@ export type StudentsGroupByOutputType = {
   email: string
   password_hash: string
   facultyCode: number
+  title: string
+  curriculumId: number
   first_name: string
   last_name: string
   is_active: boolean
@@ -243,6 +261,8 @@ export type studentsWhereInput = {
   email?: Prisma.StringFilter<"students"> | string
   password_hash?: Prisma.StringFilter<"students"> | string
   facultyCode?: Prisma.IntFilter<"students"> | number
+  title?: Prisma.StringFilter<"students"> | string
+  curriculumId?: Prisma.IntFilter<"students"> | number
   first_name?: Prisma.StringFilter<"students"> | string
   last_name?: Prisma.StringFilter<"students"> | string
   is_active?: Prisma.BoolFilter<"students"> | boolean
@@ -257,6 +277,8 @@ export type studentsOrderByWithRelationInput = {
   email?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
   facultyCode?: Prisma.SortOrder
+  title?: Prisma.SortOrder
+  curriculumId?: Prisma.SortOrder
   first_name?: Prisma.SortOrder
   last_name?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -274,6 +296,8 @@ export type studentsWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.studentsWhereInput | Prisma.studentsWhereInput[]
   password_hash?: Prisma.StringFilter<"students"> | string
   facultyCode?: Prisma.IntFilter<"students"> | number
+  title?: Prisma.StringFilter<"students"> | string
+  curriculumId?: Prisma.IntFilter<"students"> | number
   first_name?: Prisma.StringFilter<"students"> | string
   last_name?: Prisma.StringFilter<"students"> | string
   is_active?: Prisma.BoolFilter<"students"> | boolean
@@ -288,6 +312,8 @@ export type studentsOrderByWithAggregationInput = {
   email?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
   facultyCode?: Prisma.SortOrder
+  title?: Prisma.SortOrder
+  curriculumId?: Prisma.SortOrder
   first_name?: Prisma.SortOrder
   last_name?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -308,6 +334,8 @@ export type studentsScalarWhereWithAggregatesInput = {
   email?: Prisma.StringWithAggregatesFilter<"students"> | string
   password_hash?: Prisma.StringWithAggregatesFilter<"students"> | string
   facultyCode?: Prisma.IntWithAggregatesFilter<"students"> | number
+  title?: Prisma.StringWithAggregatesFilter<"students"> | string
+  curriculumId?: Prisma.IntWithAggregatesFilter<"students"> | number
   first_name?: Prisma.StringWithAggregatesFilter<"students"> | string
   last_name?: Prisma.StringWithAggregatesFilter<"students"> | string
   is_active?: Prisma.BoolWithAggregatesFilter<"students"> | boolean
@@ -320,6 +348,8 @@ export type studentsCreateInput = {
   email: string
   password_hash: string
   facultyCode: number
+  title: string
+  curriculumId: number
   first_name: string
   last_name: string
   is_active?: boolean
@@ -334,6 +364,8 @@ export type studentsUncheckedCreateInput = {
   email: string
   password_hash: string
   facultyCode: number
+  title: string
+  curriculumId: number
   first_name: string
   last_name: string
   is_active?: boolean
@@ -348,6 +380,8 @@ export type studentsUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
   facultyCode?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  curriculumId?: Prisma.IntFieldUpdateOperationsInput | number
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -362,6 +396,8 @@ export type studentsUncheckedUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
   facultyCode?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  curriculumId?: Prisma.IntFieldUpdateOperationsInput | number
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -376,6 +412,8 @@ export type studentsCreateManyInput = {
   email: string
   password_hash: string
   facultyCode: number
+  title: string
+  curriculumId: number
   first_name: string
   last_name: string
   is_active?: boolean
@@ -388,6 +426,8 @@ export type studentsUpdateManyMutationInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
   facultyCode?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  curriculumId?: Prisma.IntFieldUpdateOperationsInput | number
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -400,6 +440,8 @@ export type studentsUncheckedUpdateManyInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
   facultyCode?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  curriculumId?: Prisma.IntFieldUpdateOperationsInput | number
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -417,6 +459,8 @@ export type studentsCountOrderByAggregateInput = {
   email?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
   facultyCode?: Prisma.SortOrder
+  title?: Prisma.SortOrder
+  curriculumId?: Prisma.SortOrder
   first_name?: Prisma.SortOrder
   last_name?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -426,6 +470,7 @@ export type studentsCountOrderByAggregateInput = {
 
 export type studentsAvgOrderByAggregateInput = {
   facultyCode?: Prisma.SortOrder
+  curriculumId?: Prisma.SortOrder
 }
 
 export type studentsMaxOrderByAggregateInput = {
@@ -433,6 +478,8 @@ export type studentsMaxOrderByAggregateInput = {
   email?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
   facultyCode?: Prisma.SortOrder
+  title?: Prisma.SortOrder
+  curriculumId?: Prisma.SortOrder
   first_name?: Prisma.SortOrder
   last_name?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -445,6 +492,8 @@ export type studentsMinOrderByAggregateInput = {
   email?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
   facultyCode?: Prisma.SortOrder
+  title?: Prisma.SortOrder
+  curriculumId?: Prisma.SortOrder
   first_name?: Prisma.SortOrder
   last_name?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -454,6 +503,7 @@ export type studentsMinOrderByAggregateInput = {
 
 export type studentsSumOrderByAggregateInput = {
   facultyCode?: Prisma.SortOrder
+  curriculumId?: Prisma.SortOrder
 }
 
 export type studentsCreateNestedOneWithoutCourse_enrollmentsInput = {
@@ -489,6 +539,8 @@ export type studentsCreateWithoutCourse_enrollmentsInput = {
   email: string
   password_hash: string
   facultyCode: number
+  title: string
+  curriculumId: number
   first_name: string
   last_name: string
   is_active?: boolean
@@ -502,6 +554,8 @@ export type studentsUncheckedCreateWithoutCourse_enrollmentsInput = {
   email: string
   password_hash: string
   facultyCode: number
+  title: string
+  curriculumId: number
   first_name: string
   last_name: string
   is_active?: boolean
@@ -531,6 +585,8 @@ export type studentsUpdateWithoutCourse_enrollmentsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
   facultyCode?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  curriculumId?: Prisma.IntFieldUpdateOperationsInput | number
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -544,6 +600,8 @@ export type studentsUncheckedUpdateWithoutCourse_enrollmentsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
   facultyCode?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  curriculumId?: Prisma.IntFieldUpdateOperationsInput | number
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -557,6 +615,8 @@ export type studentsCreateWithoutExam_attemptsInput = {
   email: string
   password_hash: string
   facultyCode: number
+  title: string
+  curriculumId: number
   first_name: string
   last_name: string
   is_active?: boolean
@@ -570,6 +630,8 @@ export type studentsUncheckedCreateWithoutExam_attemptsInput = {
   email: string
   password_hash: string
   facultyCode: number
+  title: string
+  curriculumId: number
   first_name: string
   last_name: string
   is_active?: boolean
@@ -599,6 +661,8 @@ export type studentsUpdateWithoutExam_attemptsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
   facultyCode?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  curriculumId?: Prisma.IntFieldUpdateOperationsInput | number
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -612,6 +676,8 @@ export type studentsUncheckedUpdateWithoutExam_attemptsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password_hash?: Prisma.StringFieldUpdateOperationsInput | string
   facultyCode?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  curriculumId?: Prisma.IntFieldUpdateOperationsInput | number
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -665,6 +731,8 @@ export type studentsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   email?: boolean
   password_hash?: boolean
   facultyCode?: boolean
+  title?: boolean
+  curriculumId?: boolean
   first_name?: boolean
   last_name?: boolean
   is_active?: boolean
@@ -680,6 +748,8 @@ export type studentsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   email?: boolean
   password_hash?: boolean
   facultyCode?: boolean
+  title?: boolean
+  curriculumId?: boolean
   first_name?: boolean
   last_name?: boolean
   is_active?: boolean
@@ -692,6 +762,8 @@ export type studentsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   email?: boolean
   password_hash?: boolean
   facultyCode?: boolean
+  title?: boolean
+  curriculumId?: boolean
   first_name?: boolean
   last_name?: boolean
   is_active?: boolean
@@ -704,6 +776,8 @@ export type studentsSelectScalar = {
   email?: boolean
   password_hash?: boolean
   facultyCode?: boolean
+  title?: boolean
+  curriculumId?: boolean
   first_name?: boolean
   last_name?: boolean
   is_active?: boolean
@@ -711,7 +785,7 @@ export type studentsSelectScalar = {
   updated_at?: boolean
 }
 
-export type studentsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"student_code" | "email" | "password_hash" | "facultyCode" | "first_name" | "last_name" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["students"]>
+export type studentsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"student_code" | "email" | "password_hash" | "facultyCode" | "title" | "curriculumId" | "first_name" | "last_name" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["students"]>
 export type studentsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   course_enrollments?: boolean | Prisma.students$course_enrollmentsArgs<ExtArgs>
   exam_attempts?: boolean | Prisma.students$exam_attemptsArgs<ExtArgs>
@@ -731,6 +805,8 @@ export type $studentsPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     email: string
     password_hash: string
     facultyCode: number
+    title: string
+    curriculumId: number
     first_name: string
     last_name: string
     is_active: boolean
@@ -1165,6 +1241,8 @@ export interface studentsFieldRefs {
   readonly email: Prisma.FieldRef<"students", 'String'>
   readonly password_hash: Prisma.FieldRef<"students", 'String'>
   readonly facultyCode: Prisma.FieldRef<"students", 'Int'>
+  readonly title: Prisma.FieldRef<"students", 'String'>
+  readonly curriculumId: Prisma.FieldRef<"students", 'Int'>
   readonly first_name: Prisma.FieldRef<"students", 'String'>
   readonly last_name: Prisma.FieldRef<"students", 'String'>
   readonly is_active: Prisma.FieldRef<"students", 'Boolean'>

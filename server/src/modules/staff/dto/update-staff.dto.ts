@@ -19,5 +19,14 @@ export class UpdateStaffDto {
   @IsOptional()
   is_active?: boolean;
 
+  @IsString()
+  @IsOptional()
+  @MaxLength(50)
+  title?: string;
+
+  @IsInt()
+  @IsOptional()
+  curriculumId?: number;
+
   // Note: role is intentionally excluded - cannot be changed after creation
 }

@@ -20,4 +20,12 @@ export class UpdateStudentDto {
   @IsBoolean()
   @IsOptional()
   is_active?: boolean;
+
+  @IsString()
+  @IsOptional()
+  title?: string;
+
+  @IsInt()
+  @IsOptional()
+  curriculumId?: number;
 }

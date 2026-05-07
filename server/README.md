@@ -52,19 +52,28 @@ npm install --prefix server
 
 ## Database Setup
 
+This project uses **Prisma Migrate** (migration history under `prisma/migrations/`). Prefer `prisma migrate` over `db push` so migration history stays consistent across environments.
+
 ### Fresh Empty Database
 
-Use `prisma db push` for local development.
-
 ```bash
-npx prisma db push
+npx prisma migrate deploy
 npx prisma generate
 npm run seed
 ```
 
-The seed script is idempotent and can be run more than once. It creates demo staff users, demo students, one course, one course offering, and enrollments.
+`migrate deploy` applies all existing migrations in order. Then `generate` refreshes the typed Prisma client at `src/generated/prisma`. Finally `seed` populates demo data.
 
-Demo login accounts:
+The seed script is idempotent (uses `upsert` / `skipDuplicates`) and can be re-run safely. It creates:
+
+- 1 admin staff (`admin@iaes.local`)
+- 1 instructor staff (`instructor@iaes.local`)
+- 5 students (4 active, 1 inactive)
+- 1 course (`IAES101`) + 1 course offering (year 2026 / semester 1)
+- 2 knowledge categories linked to the course
+- Enrollments for the 4 active students
+
+Demo login accounts (password `1234`):
 
 ```text
 Admin:      admin@iaes.local / 1234
@@ -74,22 +83,42 @@ Student:    66131319 / 1234
 
 ### Existing Database With Data
 
-If schema and data already exist, do not reset the database.
+If migrations are already applied and you only changed code or regenerated the client:
 
 ```bash
 npx prisma generate
 ```
 
-Run `npx prisma db push` only when `prisma/schema.prisma` changes and the database must be updated. Do not use `--force-reset` on a database with important data.
+If new migration files were pulled from upstream:
+
+```bash
+npx prisma migrate deploy
+npx prisma generate
+```
+
+`migrate deploy` only applies migrations that have not yet been recorded in the `_prisma_migrations` table. It will not destroy data.
+
+### Creating A New Migration
+
+When you change `prisma/schema.prisma` locally:
+
+```bash
+npx prisma migrate dev --name <short_descriptive_name>
+```
+
+This creates a new SQL file under `prisma/migrations/`, applies it to your local DB, and regenerates the client.
 
 ### Reset Local Development Database
 
-Use this only for a local throwaway database.
+⚠️ **Destructive — local dev only. This drops all data.**
 
 ```bash
-npx prisma db push --force-reset
-npm run seed
+npx prisma migrate reset
 ```
+
+`migrate reset` drops the schema, re-applies every migration in order, then automatically runs the seed configured in `prisma.config.ts` (`tsx prisma/seed.ts`). If seed does not run automatically, run `npm run seed` after.
+
+Never run `migrate reset` against a shared or production database.
 
 ## Run The Server
 
@@ -118,6 +147,24 @@ Generate Prisma client:
 
 ```bash
 npx prisma generate
+```
+
+Apply pending migrations (existing DB):
+
+```bash
+npx prisma migrate deploy
+```
+
+Create a new migration after editing `schema.prisma`:
+
+```bash
+npx prisma migrate dev --name <short_descriptive_name>
+```
+
+Reset local DB (drops data, re-applies migrations, runs seed):
+
+```bash
+npx prisma migrate reset
 ```
 
 Open Prisma Studio:
