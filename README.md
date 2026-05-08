@@ -1,22 +1,22 @@
 # IAES
 
-IAES (Intelligent Adaptive Examination System) is a web application for adaptive examination management.
+IAES (Intelligent Adaptive Examination System) is a web application for adaptive examination management. The repository is a monorepo with a Next.js frontend, a NestJS backend, PostgreSQL, and Prisma.
 
 ## Features
 
-- Create and manage courses
-- Create and manage students
-- Create and manage staff users
-- Create course offerings and enroll students
-- Create exams and question banks
+- Manage staff users, students, courses, course offerings, and enrollments
+- Import students through CSV preview and confirm workflow
+- Manage question banks, knowledge categories, exam sets, and attempts
+- JWT authentication with httpOnly cookies
+- Role-based access for ADMIN, INSTRUCTOR, and STUDENT users
+- Audit logging for sensitive user and enrollment changes
 
 ## Tech Stack
 
-- Frontend: Next.js
-- Backend: NestJS
+- Frontend: Next.js 16, React 19, Tailwind CSS 4, TypeScript
+- Backend: NestJS 11, Passport JWT, Prisma 7
 - Database: PostgreSQL
-- ORM: Prisma
-- Authentication: Passport JWT
+- Authentication: httpOnly cookie JWT flow
 
 ## Prerequisites
 
@@ -24,89 +24,70 @@ IAES (Intelligent Adaptive Examination System) is a web application for adaptive
 - npm
 - PostgreSQL
 
-## Install Dependencies
+## Quick Start
 
-Install dependencies for the root workspace, backend, and frontend.
+1. Install dependencies.
 
 ```bash
 npm install
-
-cd server
-npm install
-
-cd ../client
-npm install
+npm install --prefix server
+npm install --prefix client
 ```
 
-## Environment Files
-
-### Backend
-
-Create `server/.env`.
+2. Create backend environment file at `server/.env`.
 
 ```env
-PORT=3002
-DATABASE_URL="postgresql://postgres:your_password@localhost:5432/iaes_db"
-JWT_SECRET="local-dev-jwt-secret-change-me-2026-iaes-64-characters-minimum"
+PORT="3002"
+DATABASE_URL="postgresql://user:password@localhost:5432/iaes_db"
+JWT_SECRET="replace-this-with-a-random-secret-at-least-32-characters"
+BCRYPT_COST="10"
 ```
 
-Change `postgres`, `your_password`, and `iaes_db` to match your PostgreSQL setup. Keep the `DATABASE_URL` in quotes if your password contains special characters such as `!`, `@`, or `#`.
+`JWT_SECRET` must be at least 32 characters. Production refuses missing, short, or known placeholder secrets. `BCRYPT_COST` must be an integer from `10` to `31`.
 
-`JWT_SECRET` is used to sign login tokens. For production, replace the example with a long random value and keep it private.
-
-Generate a random secret with PowerShell:
+Generate a random JWT secret with PowerShell:
 
 ```powershell
 [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
 ```
 
-### Frontend
-
-Create `client/.env.local`.
+3. Create frontend environment file at `client/.env.local`.
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3002
 ```
 
-## Database Setup Options
-
-This project uses **Prisma Migrate** (migration history under `server/prisma/migrations/`). Prefer `prisma migrate` over `db push` so migration history stays consistent across environments. Choose the workflow that matches your database state.
-
-### Option A: Fresh Empty Database
-
-Use this when the database exists but has no IAES tables/data yet.
-
-Create a database if needed:
-
-```bash
-createdb iaes_db
-```
-
-Or with `psql`:
-
-```bash
-psql -U postgres -c "CREATE DATABASE iaes_db;"
-```
-
-Apply all migrations, generate the Prisma client, and insert demo data:
+4. Apply database migrations and generate the Prisma client.
 
 ```bash
 cd server
 npx prisma migrate deploy
 npx prisma generate
+```
+
+5. Optional: seed demo data.
+
+```bash
+cd server
 npm run seed
 ```
 
-The seed is idempotent (uses `upsert` / `skipDuplicates`) and can be re-run safely. It creates:
+6. Run backend and frontend together from the repository root.
 
-- 1 admin staff (`admin@iaes.local`)
-- 1 instructor staff (`instructor@iaes.local`)
-- 5 students (4 active, 1 inactive)
-- 1 course (`IAES101`) + 1 course offering (year 2026 / semester 1)
-- 2 knowledge categories linked to the course
-- Enrollments for the 4 active students
+```bash
+npm run dev
+```
 
-Demo login accounts (password `1234`):
+Open:
+
+```text
+Frontend: http://localhost:3000
+Backend:  http://localhost:3002
+```
+
+## Demo Accounts
+
+The seed script creates these demo accounts with password `1234`:
 
 ```text
 Admin:      admin@iaes.local / 1234
@@ -114,128 +95,98 @@ Instructor: instructor@iaes.local / 1234
 Student:    66131319 / 1234
 ```
 
-### Option B: Database Already Has Schema and Data
+## Database Workflows
 
-Use this when migrations are already applied and you only need to refresh the typed Prisma client (e.g. after pulling code with no schema change):
+Run database commands from `server/`.
+
+### Fresh Empty Database
 
 ```bash
-cd server
+npx prisma migrate deploy
 npx prisma generate
+npm run seed
 ```
 
-Do not run the seed unless you intentionally want demo accounts/data inserted or refreshed.
+### Existing Database After Pulling Latest Code
 
-### Option C: New Migrations Pulled From Upstream
-
-Use this when `git pull` brought new files under `server/prisma/migrations/` but no schema-only edits.
+If new migration files were pulled:
 
 ```bash
-cd server
 npx prisma migrate deploy
 npx prisma generate
 ```
 
-`migrate deploy` only applies migrations that have not yet been recorded in the `_prisma_migrations` table — it never destroys data.
-
-For a shared or production-like database, back up the database first.
-
-### Option D: You Edited `schema.prisma` Locally
-
-When you change `server/prisma/schema.prisma` and need a new migration:
+If no schema or migration files changed:
 
 ```bash
-cd server
+npx prisma generate
+```
+
+### Create A New Migration
+
+After editing `server/prisma/schema.prisma`:
+
+```bash
 npx prisma migrate dev --name <short_descriptive_name>
 ```
 
-This creates a new SQL file under `prisma/migrations/`, applies it to your local DB, and regenerates the client.
+### Reset Local Development Database
 
-### Option E: Reset Local Development Database
-
-Use this only for a local throwaway database. **Destructive — drops all data.**
+Danger: this drops all local data.
 
 ```bash
-cd server
 npx prisma migrate reset
 ```
 
-`migrate reset` drops the schema, re-applies every migration in order, then automatically runs the seed configured in `prisma.config.ts` (`tsx prisma/seed.ts`). Never run this against a shared or production database.
+Never run `migrate reset` against shared or production databases.
 
-## Run The Project
+## Security And Auth Notes
 
-### Run Backend and Frontend Together
+- Login endpoints are throttled at 5 attempts per minute for the configured `short` throttler.
+- JWTs are set by the API in httpOnly `access_token` cookies.
+- The frontend stores only non-sensitive user profile data in `localStorage`; it does not store the access token.
+- Axios sends cookies with `withCredentials: true`.
+- Next.js middleware reads `access_token` and `user` cookies to protect routes and enforce role access.
+- Password changes update `password_changed_at`; older JWTs are rejected after a password change.
+- Student API responses use explicit selects so `password_hash` is not returned by list/detail endpoints.
+- Audit logs are written to `audit_logs` for sensitive user and enrollment actions.
 
-From the repository root:
+## Useful Commands
+
+Run both apps:
 
 ```bash
 npm run dev
 ```
 
-The app will be available at:
-
-```text
-Frontend: http://localhost:3000
-Backend:  http://localhost:3002
-```
-
-### Run Frontend Only
-
-From the repository root:
+Run only the client:
 
 ```bash
 npm run dev:client
 ```
 
-Or from `client/`:
-
-```bash
-cd client
-npm run dev
-```
-
-### Run Backend Only
-
-From the repository root:
+Run only the server:
 
 ```bash
 npm run dev:server
 ```
 
-Or from `server/`:
+Build server:
 
 ```bash
-cd server
-npm run start:dev
+npm run build --prefix server
 ```
 
-## Useful Commands
-
-Generate Prisma client:
+Run server tests:
 
 ```bash
-cd server
-npx prisma generate
+npm run test --prefix server -- --runInBand
 ```
 
-Apply pending migrations (existing DB):
+Build client:
 
 ```bash
-cd server
-npx prisma migrate deploy
-```
-
-Create a new migration after editing `schema.prisma`:
-
-```bash
-cd server
-npx prisma migrate dev --name <short_descriptive_name>
-```
-
-Reset local DB (drops data, re-applies migrations, runs seed):
-
-```bash
-cd server
-npx prisma migrate reset
+npm run build --prefix client
 ```
 
 Open Prisma Studio:
@@ -245,41 +196,40 @@ cd server
 npx prisma studio
 ```
 
-Run backend tests:
+Rehash existing plaintext or lower-cost passwords after changing `BCRYPT_COST`:
 
 ```bash
 cd server
-npm run test
-```
-
-Build backend:
-
-```bash
-cd server
-npm run build
-```
-
-Build frontend:
-
-```bash
-cd client
-npm run build
+npm run rehash-passwords
 ```
 
 ## Troubleshooting
 
 ### PowerShell Blocks npm
 
-If PowerShell blocks `npm` with an execution policy error, use `npm.cmd` instead:
+Use `npm.cmd`:
 
 ```powershell
 npm.cmd install
 npm.cmd run dev
 ```
 
+### JWT_SECRET Boot Error
+
+Set `JWT_SECRET` in `server/.env` to a value with at least 32 characters. In production, do not use example placeholders from documentation or `.env.example`.
+
+### Frontend Cannot Stay Logged In
+
+Check that:
+
+- Backend is running on `NEXT_PUBLIC_API_URL`
+- Backend CORS allows the frontend origin
+- API requests use credentials
+- Browser cookies for `localhost` are not blocked
+
 ### PostgreSQL Schema Permission Error
 
-If `npx prisma migrate deploy` fails with `permission denied for schema public`, the PostgreSQL user in `DATABASE_URL` does not have schema privileges. Ask a database owner or superuser to connect to the target database first, then grant access:
+If `npx prisma migrate deploy` fails with `permission denied for schema public`, grant privileges from a database owner or superuser:
 
 ```sql
 \c iaes_db
@@ -290,7 +240,7 @@ GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO iaes;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO iaes;
 ```
 
-Confirm privileges from the application user:
+Verify:
 
 ```sql
 SELECT

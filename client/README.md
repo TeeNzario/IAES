@@ -77,10 +77,14 @@ npm run lint
 ## Auth and Routing Notes
 
 - Login page: `/login`
-- Staff login route redirects to the unified login page: `/staff/login`
-- Auth data is stored in both `localStorage` and cookies
-- Middleware protects authenticated routes and checks role access
-- Static public assets, such as `/IAES_logo.png`, are allowed through middleware
+- Staff login route redirects through the unified login page: `/staff/login`
+- The API sets JWTs in httpOnly cookies; the frontend does not store access tokens in `localStorage`.
+- `client/src/lib/auth.ts` stores only non-sensitive user profile data for UI rendering.
+- `client/src/lib/api.ts` uses Axios with `withCredentials: true` so cookies are sent to the backend.
+- `clearAuth()` calls `POST /auth/logout` and clears legacy client-written cookies.
+- Middleware protects authenticated routes and checks role access from the auth cookies.
+- ADMIN users visiting `/` are redirected to `/admin/manage-users`.
+- Static public assets, such as `/IAES_logo.png`, are allowed through middleware.
 
 ## Important Paths
 
@@ -88,10 +92,29 @@ npm run lint
 src/app/                 Next.js App Router pages
 src/middleware.ts        Route protection and role access
 src/lib/api.ts           Axios instance and API helpers
-src/lib/auth.ts          Client auth storage helpers
+src/lib/auth.ts          Client auth profile helpers
+src/lib/auth.permissions.ts Permission helpers
 src/components/          Shared UI and layout components
 src/features/            Domain-specific API and UI modules
+src/types/               Shared frontend TypeScript types
+src/config/curriculums.ts Curriculum definitions
 public/IAES_logo.png     Login/logo asset
+```
+
+## Verification
+
+Run from `client/`:
+
+```bash
+npm run build
+npm run lint
+```
+
+Or from the repository root:
+
+```bash
+npm run build --prefix client
+npm run lint --prefix client
 ```
 
 ## Troubleshooting
@@ -106,6 +129,15 @@ NEXT_PUBLIC_API_URL=http://localhost:3002
 
 Restart the frontend after changing `.env.local`.
 
+### Login Succeeds But Routes Redirect Back To Login
+
+Check that:
+
+- Backend CORS allows the frontend origin
+- Browser cookies for `localhost` are not blocked
+- Requests are sent to the same backend URL configured in `NEXT_PUBLIC_API_URL`
+- API requests use `withCredentials: true`
+
 ### Logo or Public Asset Does Not Load
 
 Public files live in `client/public/` and should be referenced from the root path:
@@ -118,7 +150,7 @@ If a public file returns HTML instead of the asset, check `src/middleware.ts` an
 
 ### PowerShell Blocks npm
 
-Use `npm.cmd` instead:
+Use `npm.cmd`:
 
 ```powershell
 npm.cmd run dev
