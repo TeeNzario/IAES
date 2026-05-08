@@ -1,4 +1,5 @@
 import { prisma } from '../src/lib/prisma';
+import { hashPassword } from '../src/lib/password';
 
 const DEMO_PASSWORD = '1234';
 const FACULTY = {
@@ -127,10 +128,12 @@ async function findOrCreateDemoOffering(courseId: bigint) {
 }
 
 async function main() {
+  const passwordHash = await hashPassword(DEMO_PASSWORD);
+
   const admin = await prisma.staff_users.upsert({
     where: { email: 'admin@iaes.local' },
     update: {
-      password_hash: DEMO_PASSWORD,
+      password_hash: passwordHash,
       role: 'ADMIN',
       facultyCode: FACULTY.INFORMATION_SCIENCE,
       title: 'อาจารย์',
@@ -141,7 +144,7 @@ async function main() {
     },
     create: {
       email: 'admin@iaes.local',
-      password_hash: DEMO_PASSWORD,
+      password_hash: passwordHash,
       role: 'ADMIN',
       facultyCode: FACULTY.INFORMATION_SCIENCE,
       title: 'อาจารย์',
@@ -155,7 +158,7 @@ async function main() {
   const instructor = await prisma.staff_users.upsert({
     where: { email: 'instructor@iaes.local' },
     update: {
-      password_hash: DEMO_PASSWORD,
+      password_hash: passwordHash,
       role: 'INSTRUCTOR',
       facultyCode: FACULTY.INFORMATION_SCIENCE,
       title: 'ดร.',
@@ -166,7 +169,7 @@ async function main() {
     },
     create: {
       email: 'instructor@iaes.local',
-      password_hash: DEMO_PASSWORD,
+      password_hash: passwordHash,
       role: 'INSTRUCTOR',
       facultyCode: FACULTY.INFORMATION_SCIENCE,
       title: 'ดร.',
@@ -181,7 +184,7 @@ async function main() {
     {
       student_code: '66131319',
       email: 'thanakrit.jaidee@example.com',
-      password_hash: DEMO_PASSWORD,
+      password_hash: passwordHash,
       facultyCode: FACULTY.INFORMATION_SCIENCE,
       title: 'นาย',
       curriculumId: CURRICULUM.IT_DIGITAL_INNOVATION,
@@ -192,7 +195,7 @@ async function main() {
     {
       student_code: '66112233',
       email: 'papada.kaewmanee@example.com',
-      password_hash: DEMO_PASSWORD,
+      password_hash: passwordHash,
       facultyCode: FACULTY.ACCOUNTING_FINANCE,
       title: 'นางสาว',
       curriculumId: CURRICULUM.ACCOUNTING,
@@ -203,7 +206,7 @@ async function main() {
     {
       student_code: '66554433',
       email: 'chayaphon.tangjai@example.com',
-      password_hash: DEMO_PASSWORD,
+      password_hash: passwordHash,
       facultyCode: FACULTY.ENGINEERING_TECH,
       title: 'นาย',
       curriculumId: CURRICULUM.COMPUTER_AI,
@@ -214,7 +217,7 @@ async function main() {
     {
       student_code: '66121212',
       email: 'kanpitcha.srisuk@example.com',
-      password_hash: DEMO_PASSWORD,
+      password_hash: passwordHash,
       facultyCode: FACULTY.SCIENCE,
       title: 'นางสาว',
       curriculumId: CURRICULUM.CHEMISTRY,
@@ -225,7 +228,7 @@ async function main() {
     {
       student_code: '66131313',
       email: 'phakhin.logistics@example.com',
-      password_hash: DEMO_PASSWORD,
+      password_hash: passwordHash,
       facultyCode: FACULTY.MANAGEMENT,
       title: 'นาย',
       curriculumId: CURRICULUM.LOGISTICS,
