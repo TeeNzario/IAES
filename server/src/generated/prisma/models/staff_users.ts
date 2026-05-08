@@ -370,8 +370,8 @@ export type staff_usersCreateInput = {
   password_hash: string
   role: $Enums.user_role
   facultyCode: number
-  curriculumId: string
-  title: string
+  curriculumId?: string
+  title?: string
   first_name: string
   last_name: string
   is_active?: boolean
@@ -390,8 +390,8 @@ export type staff_usersUncheckedCreateInput = {
   password_hash: string
   role: $Enums.user_role
   facultyCode: number
-  curriculumId: string
-  title: string
+  curriculumId?: string
+  title?: string
   first_name: string
   last_name: string
   is_active?: boolean
@@ -450,8 +450,8 @@ export type staff_usersCreateManyInput = {
   password_hash: string
   role: $Enums.user_role
   facultyCode: number
-  curriculumId: string
-  title: string
+  curriculumId?: string
+  title?: string
   first_name: string
   last_name: string
   is_active?: boolean
@@ -629,8 +629,8 @@ export type staff_usersCreateWithoutCourse_instructorsInput = {
   password_hash: string
   role: $Enums.user_role
   facultyCode: number
-  curriculumId: string
-  title: string
+  curriculumId?: string
+  title?: string
   first_name: string
   last_name: string
   is_active?: boolean
@@ -648,8 +648,8 @@ export type staff_usersUncheckedCreateWithoutCourse_instructorsInput = {
   password_hash: string
   role: $Enums.user_role
   facultyCode: number
-  curriculumId: string
-  title: string
+  curriculumId?: string
+  title?: string
   first_name: string
   last_name: string
   is_active?: boolean
@@ -721,8 +721,8 @@ export type staff_usersCreateWithoutQuestionBanksInput = {
   password_hash: string
   role: $Enums.user_role
   facultyCode: number
-  curriculumId: string
-  title: string
+  curriculumId?: string
+  title?: string
   first_name: string
   last_name: string
   is_active?: boolean
@@ -740,8 +740,8 @@ export type staff_usersUncheckedCreateWithoutQuestionBanksInput = {
   password_hash: string
   role: $Enums.user_role
   facultyCode: number
-  curriculumId: string
-  title: string
+  curriculumId?: string
+  title?: string
   first_name: string
   last_name: string
   is_active?: boolean
@@ -813,8 +813,8 @@ export type staff_usersCreateWithoutImport_preview_sessionsInput = {
   password_hash: string
   role: $Enums.user_role
   facultyCode: number
-  curriculumId: string
-  title: string
+  curriculumId?: string
+  title?: string
   first_name: string
   last_name: string
   is_active?: boolean
@@ -832,8 +832,8 @@ export type staff_usersUncheckedCreateWithoutImport_preview_sessionsInput = {
   password_hash: string
   role: $Enums.user_role
   facultyCode: number
-  curriculumId: string
-  title: string
+  curriculumId?: string
+  title?: string
   first_name: string
   last_name: string
   is_active?: boolean
@@ -905,8 +905,8 @@ export type staff_usersCreateWithoutQuestion_bank_yearsInput = {
   password_hash: string
   role: $Enums.user_role
   facultyCode: number
-  curriculumId: string
-  title: string
+  curriculumId?: string
+  title?: string
   first_name: string
   last_name: string
   is_active?: boolean
@@ -924,8 +924,8 @@ export type staff_usersUncheckedCreateWithoutQuestion_bank_yearsInput = {
   password_hash: string
   role: $Enums.user_role
   facultyCode: number
-  curriculumId: string
-  title: string
+  curriculumId?: string
+  title?: string
   first_name: string
   last_name: string
   is_active?: boolean
@@ -997,8 +997,8 @@ export type staff_usersCreateWithoutQuestion_collectionsInput = {
   password_hash: string
   role: $Enums.user_role
   facultyCode: number
-  curriculumId: string
-  title: string
+  curriculumId?: string
+  title?: string
   first_name: string
   last_name: string
   is_active?: boolean
@@ -1016,8 +1016,8 @@ export type staff_usersUncheckedCreateWithoutQuestion_collectionsInput = {
   password_hash: string
   role: $Enums.user_role
   facultyCode: number
-  curriculumId: string
-  title: string
+  curriculumId?: string
+  title?: string
   first_name: string
   last_name: string
   is_active?: boolean

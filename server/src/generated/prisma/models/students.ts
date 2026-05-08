@@ -344,8 +344,8 @@ export type studentsCreateInput = {
   email: string
   password_hash: string
   facultyCode: number
-  curriculumId: string
-  title: string
+  curriculumId?: string
+  title?: string
   first_name: string
   last_name: string
   is_active?: boolean
@@ -360,8 +360,8 @@ export type studentsUncheckedCreateInput = {
   email: string
   password_hash: string
   facultyCode: number
-  curriculumId: string
-  title: string
+  curriculumId?: string
+  title?: string
   first_name: string
   last_name: string
   is_active?: boolean
@@ -408,8 +408,8 @@ export type studentsCreateManyInput = {
   email: string
   password_hash: string
   facultyCode: number
-  curriculumId: string
-  title: string
+  curriculumId?: string
+  title?: string
   first_name: string
   last_name: string
   is_active?: boolean
@@ -533,8 +533,8 @@ export type studentsCreateWithoutCourse_enrollmentsInput = {
   email: string
   password_hash: string
   facultyCode: number
-  curriculumId: string
-  title: string
+  curriculumId?: string
+  title?: string
   first_name: string
   last_name: string
   is_active?: boolean
@@ -548,8 +548,8 @@ export type studentsUncheckedCreateWithoutCourse_enrollmentsInput = {
   email: string
   password_hash: string
   facultyCode: number
-  curriculumId: string
-  title: string
+  curriculumId?: string
+  title?: string
   first_name: string
   last_name: string
   is_active?: boolean
@@ -609,8 +609,8 @@ export type studentsCreateWithoutExam_attemptsInput = {
   email: string
   password_hash: string
   facultyCode: number
-  curriculumId: string
-  title: string
+  curriculumId?: string
+  title?: string
   first_name: string
   last_name: string
   is_active?: boolean
@@ -624,8 +624,8 @@ export type studentsUncheckedCreateWithoutExam_attemptsInput = {
   email: string
   password_hash: string
   facultyCode: number
-  curriculumId: string
-  title: string
+  curriculumId?: string
+  title?: string
   first_name: string
   last_name: string
   is_active?: boolean
