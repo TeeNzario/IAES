@@ -159,22 +159,41 @@ export default function CreateExamSchedulePage() {
     if (!endDate) out.endDate = "กรุณาเลือกวันปิดสอบ";
     if (!endTime) out.endTime = "กรุณาเลือกเวลาปิดสอบ";
 
+    const dateOnly = (d: Date) =>
+      new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+
     if (startDate && startTime) {
       const start = new Date(`${startDate}T${startTime}`);
       if (Number.isNaN(start.getTime())) {
-        out.startDate = "รูปแบบวันที่/เวลาไม่ถูกต้อง";
-      } else if (start.getTime() < Date.now() - 60_000) {
-        out.startDate = "วันเปิดสอบต้องไม่ใช่เวลาในอดีต";
+        out.startDate = "รูปแบบวันที่ไม่ถูกต้อง";
+        out.startTime = "รูปแบบเวลาไม่ถูกต้อง";
+      } else {
+        const now = new Date();
+        if (dateOnly(start) < dateOnly(now)) {
+          out.startDate = "วันเปิดสอบต้องไม่ใช่วันในอดีต";
+        } else if (start.getTime() < now.getTime() - 60_000) {
+          out.startTime = "เวลาเปิดสอบต้องไม่ใช่เวลาในอดีต";
+        }
       }
     }
 
-    if (startDate && startTime && endDate && endTime && !out.startDate) {
+    if (
+      startDate &&
+      startTime &&
+      endDate &&
+      endTime &&
+      !out.startDate &&
+      !out.startTime
+    ) {
       const start = new Date(`${startDate}T${startTime}`);
       const end = new Date(`${endDate}T${endTime}`);
       if (Number.isNaN(end.getTime())) {
-        out.endDate = "รูปแบบวันที่/เวลาไม่ถูกต้อง";
-      } else if (end <= start) {
-        out.endDate = "วันปิดสอบต้องอยู่หลังวันเปิดสอบ";
+        out.endDate = "รูปแบบวันที่ไม่ถูกต้อง";
+        out.endTime = "รูปแบบเวลาไม่ถูกต้อง";
+      } else if (dateOnly(end) < dateOnly(start)) {
+        out.endDate = "วันปิดสอบต้องไม่อยู่ก่อนวันเปิดสอบ";
+      } else if (end.getTime() <= start.getTime()) {
+        out.endTime = "เวลาปิดสอบต้องอยู่หลังเวลาเปิดสอบ";
       }
     }
     return out;
