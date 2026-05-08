@@ -180,4 +180,4 @@ npm run build --prefix client
 - Auth token storage is cookie-based. Do not reintroduce access tokens in `localStorage`.
 - Keep `.env` and `.env.local` out of commits.
 - The CSV bulk enrollment flow uses preview, edit/delete rows, and confirm.
-- Existing generated Prisma output is part of the current repository layout; regenerate it after schema changes.
+- Generated Prisma client (`server/src/generated/prisma`) is gitignored. It is regenerated automatically by the `postinstall` hook on `npm install`. Re-run `npx prisma generate` after editing `schema.prisma`.
