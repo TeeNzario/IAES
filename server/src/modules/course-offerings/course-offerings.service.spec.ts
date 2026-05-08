@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CourseOfferingsService } from './course-offerings.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { AuditService } from '../audit/audit.service';
 
 describe('CourseOfferingsService', () => {
   let service: CourseOfferingsService;
@@ -12,6 +13,10 @@ describe('CourseOfferingsService', () => {
         {
           provide: PrismaService,
           useValue: {},
+        },
+        {
+          provide: AuditService,
+          useValue: { record: jest.fn() },
         },
       ],
     }).compile();

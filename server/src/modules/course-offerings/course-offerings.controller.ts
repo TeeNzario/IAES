@@ -177,9 +177,13 @@ export class CourseOfferingsController {
   @Roles('INSTRUCTOR')
   bulkEnroll(
     @Param('offeringId') offeringId: string,
+    @Req() req: AuthenticatedRequest,
     @Body() dto: BulkEnrollStudentDto,
   ) {
-    return this.courseOfferingsService.bulkEnrollStudents(offeringId, dto);
+    return this.courseOfferingsService.bulkEnrollStudents(offeringId, dto, {
+      type: req.user.type,
+      id: req.user.sub,
+    });
   }
 
   // =============== Preview Import Endpoints ===============
@@ -239,7 +243,11 @@ export class CourseOfferingsController {
   confirmImport(
     @Param('offeringId') offeringId: string,
     @Param('sessionId') sessionId: string,
+    @Req() req: AuthenticatedRequest,
   ) {
-    return this.previewImportService.confirmSession(offeringId, sessionId);
+    return this.previewImportService.confirmSession(offeringId, sessionId, {
+      type: req.user.type,
+      id: req.user.sub,
+    });
   }
 }

@@ -21,6 +21,7 @@ import {
 } from './dto/bulk-enroll-student.dto';
 import { Prisma } from 'src/generated/prisma/client';
 import { hashPassword } from '../../lib/password';
+import { AuditActor, AuditService } from '../audit/audit.service';
 
 const courseOfferingSelect = {
   course_offerings_id: true,
@@ -63,7 +64,10 @@ function serializeBigInt(data: any) {
 
 @Injectable()
 export class CourseOfferingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
 
   async create(dto: CreateCourseOfferingDto, creatorId: string) {
     // Prepend creator ID to instructor list (creator is always first)
@@ -318,6 +322,7 @@ export class CourseOfferingsService {
   async bulkEnrollStudents(
     offeringId: string,
     dto: BulkEnrollStudentDto,
+    actor?: AuditActor,
   ): Promise<BulkEnrollResponse> {
     const offeringBigInt = BigInt(offeringId);
     const results: BulkEnrollRowResult[] = [];
@@ -342,7 +347,7 @@ export class CourseOfferingsService {
       }
     }
 
-    return {
+    const response = {
       results,
       summary: {
         total: results.length,
@@ -354,6 +359,16 @@ export class CourseOfferingsService {
         failed: results.filter((r) => r.enrollmentStatus === 'failed').length,
       },
     };
+
+    await this.audit.record({
+      actor,
+      action: 'course_offering.bulk_enroll',
+      entityType: 'course_offering',
+      entityId: offeringId,
+      metadata: response.summary,
+    });
+
+    return response;
   }
 
   /**
