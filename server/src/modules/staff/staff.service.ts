@@ -7,6 +7,7 @@ import {
   DEFAULT_TITLE,
 } from 'src/lib/academic-defaults';
 import { hashPassword } from '../../lib/password';
+import { AuditActor, AuditService } from '../audit/audit.service';
 
 function serializeBigInt(data: any) {
   return JSON.parse(
@@ -18,7 +19,10 @@ function serializeBigInt(data: any) {
 
 @Injectable()
 export class StaffService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
 
   /**
    * Create a new staff user
@@ -133,47 +137,115 @@ export class StaffService {
     return `This action returns a #${id} staff`;
   }
 
-  async update(id: bigint, updateStaffDto: UpdateStaffDto) {
+  async update(
+    id: bigint,
+    updateStaffDto: UpdateStaffDto,
+    actor?: AuditActor,
+  ) {
+    const { password, ...rest } = updateStaffDto;
+    const updateData: any = { ...rest };
+    let previousActive: boolean | undefined;
+
     // ADMIN protection: Cannot change is_active status for ADMIN users
-    if (updateStaffDto.is_active !== undefined) {
+    if (updateData.is_active !== undefined) {
       const existingStaff = await this.prisma.staff_users.findUnique({
         where: { staff_users_id: id },
-        select: { role: true },
+        select: { role: true, is_active: true },
       });
+
+      previousActive = existingStaff?.is_active;
 
       if (existingStaff?.role === 'ADMIN') {
         // Remove is_active from update data for ADMIN users
-        delete updateStaffDto.is_active;
+        delete updateData.is_active;
       }
     }
 
-    const { password, ...rest } = updateStaffDto;
     const data = password
-      ? { ...rest, password_hash: await hashPassword(password) }
-      : rest;
+      ? { ...updateData, password_hash: await hashPassword(password) }
+      : updateData;
 
-    const updated = await this.prisma.staff_users.update({
-      where: { staff_users_id: id },
-      data,
-      select: {
-        staff_users_id: true,
-        email: true,
-        facultyCode: true,
-        title: true,
-        curriculumId: true,
-        first_name: true,
-        last_name: true,
-        role: true,
-        is_active: true,
-      },
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const result = await tx.staff_users.update({
+        where: { staff_users_id: id },
+        data,
+        select: {
+          staff_users_id: true,
+          email: true,
+          facultyCode: true,
+          title: true,
+          curriculumId: true,
+          first_name: true,
+          last_name: true,
+          role: true,
+          is_active: true,
+        },
+      });
+
+      if (password) {
+        await this.audit.record(
+          {
+            actor,
+            action: 'staff.password_changed',
+            entityType: 'staff_user',
+            entityId: id.toString(),
+          },
+          tx,
+        );
+      }
+
+      if (
+        updateData.is_active !== undefined &&
+        previousActive !== undefined &&
+        previousActive !== updateData.is_active
+      ) {
+        await this.audit.record(
+          {
+            actor,
+            action: updateData.is_active
+              ? 'staff.activated'
+              : 'staff.deactivated',
+            entityType: 'staff_user',
+            entityId: id.toString(),
+            metadata: {
+              previousActive,
+              nextActive: updateData.is_active,
+            },
+          },
+          tx,
+        );
+      }
+
+      return result;
     });
+
     return serializeBigInt(updated);
   }
 
-  async remove(id: bigint) {
-    await this.prisma.staff_users.delete({
-      where: { staff_users_id: id },
+  async remove(id: bigint, actor?: AuditActor) {
+    await this.prisma.$transaction(async (tx) => {
+      const deleted = await tx.staff_users.delete({
+        where: { staff_users_id: id },
+        select: {
+          staff_users_id: true,
+          email: true,
+          role: true,
+          is_active: true,
+        },
+      });
+
+      await this.audit.record(
+        {
+          actor,
+          action: 'staff.deleted',
+          entityType: 'staff_user',
+          entityId: id.toString(),
+          metadata: serializeBigInt(deleted),
+        },
+        tx,
+      );
     });
+
     return { success: true };
   }
 

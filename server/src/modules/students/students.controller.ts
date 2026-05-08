@@ -62,7 +62,10 @@ export class StudentsController {
   @Auth()
   @AuthType('student')
   updateMe(@Req() req: AuthenticatedRequest, @Body() dto: UpdateStudentDto) {
-    return this.studentsService.updateByStudentCode(req.user.sub, dto);
+    return this.studentsService.updateByStudentCode(req.user.sub, dto, {
+      type: req.user.type,
+      id: req.user.sub,
+    });
   }
 
   @Get('me/enrollments')
@@ -89,13 +92,19 @@ export class StudentsController {
       throw new ForbiddenException('Only admin staff can update students');
     }
 
-    return this.studentsService.update(id, updateStudentDto);
+    return this.studentsService.update(id, updateStudentDto, {
+      type: req.user.type,
+      id: req.user.sub,
+    });
   }
 
   @Delete(':id')
   @Auth()
   @Roles('ADMIN')
-  remove(@Param('id') id: string) {
-    return this.studentsService.remove(id);
+  remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    return this.studentsService.remove(id, {
+      type: req.user.type,
+      id: req.user.sub,
+    });
   }
 }

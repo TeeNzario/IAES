@@ -68,14 +68,24 @@ export class StaffController {
   @Patch(':id')
   @Auth()
   @Roles('ADMIN')
-  update(@Param('id') id: string, @Body() updateStaffDto: UpdateStaffDto) {
-    return this.staffService.update(BigInt(id), updateStaffDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateStaffDto: UpdateStaffDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.staffService.update(BigInt(id), updateStaffDto, {
+      type: req.user.type,
+      id: req.user.sub,
+    });
   }
 
   @Delete(':id')
   @Auth()
   @Roles('ADMIN')
-  remove(@Param('id') id: string) {
-    return this.staffService.remove(BigInt(id));
+  remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    return this.staffService.remove(BigInt(id), {
+      type: req.user.type,
+      id: req.user.sub,
+    });
   }
 }

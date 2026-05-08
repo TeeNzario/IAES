@@ -20,12 +20,16 @@ import {
   ConfirmResult,
 } from './dto/preview-import.dto';
 import { hashPassword } from '../../lib/password';
+import { AuditActor, AuditService } from '../audit/audit.service';
 
 const THAI_NAME_REGEX = /^[ก-๙\s]+$/;
 
 @Injectable()
 export class PreviewImportService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
 
   /**
    * Create a preview session from CSV data
@@ -196,6 +200,7 @@ export class PreviewImportService {
   async confirmSession(
     offeringId: string,
     sessionId: string,
+    actor?: AuditActor,
   ): Promise<ConfirmResponse> {
     const offeringBigInt = BigInt(offeringId);
 
@@ -327,7 +332,7 @@ export class PreviewImportService {
       where: { id: sessionId },
     });
 
-    return {
+    const response = {
       results,
       summary: {
         total: results.length,
@@ -338,6 +343,19 @@ export class PreviewImportService {
         skipped: results.filter((r) => r.status === 'skipped').length,
       },
     };
+
+    await this.audit.record({
+      actor,
+      action: 'course_offering.import_confirmed',
+      entityType: 'course_offering',
+      entityId: offeringId,
+      metadata: {
+        sessionId,
+        ...response.summary,
+      },
+    });
+
+    return response;
   }
 
   /**
