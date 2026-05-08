@@ -147,9 +147,14 @@ export class StaffService {
       }
     }
 
+    const { password, ...rest } = updateStaffDto;
+    const data = password
+      ? { ...rest, password_hash: await hashPassword(password) }
+      : rest;
+
     const updated = await this.prisma.staff_users.update({
       where: { staff_users_id: id },
-      data: updateStaffDto,
+      data,
       select: {
         staff_users_id: true,
         email: true,

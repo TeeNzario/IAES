@@ -1,4 +1,11 @@
-import { IsString, IsOptional, IsBoolean, MaxLength, IsInt } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  MaxLength,
+  MinLength,
+  IsInt,
+} from 'class-validator';
 
 export class UpdateStaffDto {
   @IsString()
@@ -27,6 +34,11 @@ export class UpdateStaffDto {
   @IsString()
   @IsOptional()
   curriculumId?: string;
+
+  @IsString()
+  @IsOptional()
+  @MinLength(8)
+  password?: string;
 
   // Note: role is intentionally excluded - cannot be changed after creation
 }

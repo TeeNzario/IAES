@@ -91,17 +91,25 @@ export class StudentsService {
   }
 
   async updateByStudentCode(student_code: string, dto: UpdateStudentDto) {
+    const { password, ...rest } = dto;
+    const data = password
+      ? { ...rest, password_hash: await hashPassword(password) }
+      : rest;
     return this.prisma.students.update({
       where: { student_code },
-      data: dto,
+      data,
     });
   }
 
   async update(id: string, updateStudentDto: UpdateStudentDto) {
+    const { password, ...rest } = updateStudentDto;
+    const data = password
+      ? { ...rest, password_hash: await hashPassword(password) }
+      : rest;
     return this.prisma.students.update({
       where: { student_code: id },
       data: {
-        ...updateStudentDto,
+        ...data,
         updated_at: new Date(),
       },
       select: {
