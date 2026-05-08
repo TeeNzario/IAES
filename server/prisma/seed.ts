@@ -67,6 +67,39 @@ async function findOrCreateDemoCourse(instructorId: bigint) {
   });
 }
 
+async function findOrCreateCourse(
+  courseCode: string,
+  courseName: string,
+  instructorId: bigint,
+) {
+  const existing = await prisma.courses.findFirst({
+    where: { course_code: courseCode },
+  });
+
+  if (existing) {
+    return prisma.courses.update({
+      where: { courses_id: existing.courses_id },
+      data: {
+        course_name: courseName,
+        course_name_th: courseName,
+        course_name_en: courseName,
+        is_active: true,
+      },
+    });
+  }
+
+  return prisma.courses.create({
+    data: {
+      course_code: courseCode,
+      course_name: courseName,
+      course_name_th: courseName,
+      course_name_en: courseName,
+      created_by_instructors_id: instructorId,
+      is_active: true,
+    },
+  });
+}
+
 async function findOrCreateDemoOffering(courseId: bigint) {
   const existing = await prisma.course_offerings.findFirst({
     where: {
@@ -252,10 +285,31 @@ async function main() {
     skipDuplicates: true,
   });
 
+  const realCourses: Array<readonly [string, string]> = [
+    ['COE64-233', 'Mobile Device Application Development'],
+    ['COE64-305', 'Introduction to Signals and System'],
+    ['COE64-325', 'Data Communication and Computer Network'],
+    ['COE64-335', 'Machine Learning'],
+    ['COE64-344', 'Data warehousing and data mining'],
+    ['COE64-361', 'Convolutional Neural Networks'],
+    ['COE64-367', 'Special Topics in Data Analytics II'],
+    ['COE64-371', 'Front End Programming'],
+    ['COE64-372', 'Back End Programming'],
+    ['GED65-130', 'Introduction to Sociology'],
+    ['STD-001', 'Standard Test (English)'],
+    ['STD-002', 'Standard Test (IT)'],
+    ['STD-003', 'Standard Test (Thai)'],
+  ];
+
+  for (const [code, name] of realCourses) {
+    await findOrCreateCourse(code, name, instructor.staff_users_id);
+  }
+
   console.log('Seed completed');
   console.log(`Admin: ${admin.email} / ${DEMO_PASSWORD}`);
   console.log(`Instructor: ${instructor.email} / ${DEMO_PASSWORD}`);
   console.log(`Student: ${students[0].student_code} / ${DEMO_PASSWORD}`);
+  console.log(`Real courses seeded: ${realCourses.length}`);
 }
 
 main()
