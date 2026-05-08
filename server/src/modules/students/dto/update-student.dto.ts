@@ -25,7 +25,7 @@ export class UpdateStudentDto {
   @IsOptional()
   title?: string;
 
-  @IsInt()
+  @IsString()
   @IsOptional()
-  curriculumId?: number;
+  curriculumId?: string;
 }

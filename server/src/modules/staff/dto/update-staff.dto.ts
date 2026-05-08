@@ -24,9 +24,9 @@ export class UpdateStaffDto {
   @MaxLength(50)
   title?: string;
 
-  @IsInt()
+  @IsString()
   @IsOptional()
-  curriculumId?: number;
+  curriculumId?: string;
 
   // Note: role is intentionally excluded - cannot be changed after creation
 }

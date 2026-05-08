@@ -5,6 +5,11 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
+  DEFAULT_CURRICULUM_ID,
+  DEFAULT_FACULTY_CODE,
+  DEFAULT_TITLE,
+} from 'src/lib/academic-defaults';
+import {
   CreatePreviewSessionDto,
   EditPreviewRowDto,
   PreviewRowResponse,
@@ -13,6 +18,8 @@ import {
   ConfirmResponse,
   ConfirmResult,
 } from './dto/preview-import.dto';
+
+const THAI_NAME_REGEX = /^[ก-๙\s]+$/;
 
 @Injectable()
 export class PreviewImportService {
@@ -49,6 +56,8 @@ export class PreviewImportService {
             const n = Number(row.facultyCode);
             return Number.isInteger(n) ? n : undefined;
           })();
+          const title = String(row.title ?? '').trim();
+          const curriculumId = String(row.curriculumId ?? '').trim();
 
           const { status, note } = await this.validateRow(
             tx,
@@ -56,6 +65,8 @@ export class PreviewImportService {
             row.student_code ?? '',
             row.email ?? '',
             facultyCodeNum,
+            title,
+            curriculumId,
             row.first_name ?? '',
             row.last_name ?? '',
           );
@@ -66,6 +77,8 @@ export class PreviewImportService {
             student_code: row.student_code || '',
             email: row.email || '',
             facultyCode: facultyCodeNum,
+            title,
+            curriculumId,
             first_name: row.first_name || '',
             last_name: row.last_name || '',
             status,
@@ -121,6 +134,8 @@ export class PreviewImportService {
       student_code: dto.student_code ?? row.student_code,
       email: dto.email ?? row.email,
       facultyCode: dto.facultyCode ?? row.facultyCode,
+      title: dto.title ?? row.title ?? '',
+      curriculumId: dto.curriculumId ?? row.curriculumId ?? '',
       first_name: dto.first_name ?? row.first_name ?? '',
       last_name: dto.last_name ?? row.last_name ?? '',
     };
@@ -132,6 +147,8 @@ export class PreviewImportService {
       updatedData.student_code,
       updatedData.email,
       updatedData.facultyCode ?? undefined,
+      updatedData.title,
+      updatedData.curriculumId,
       updatedData.first_name,
       updatedData.last_name,
     );
@@ -252,14 +269,16 @@ export class PreviewImportService {
               ...(row.first_name != null && { first_name: row.first_name }),
               ...(row.last_name != null && { last_name: row.last_name }),
               ...(row.facultyCode != null && { facultyCode: row.facultyCode }),
+              title: row.title || DEFAULT_TITLE,
+              curriculumId: row.curriculumId || DEFAULT_CURRICULUM_ID,
             },
             create: {
               student_code: row.student_code,
               email: row.email,
               password_hash: '12345678', // Placeholder
-              facultyCode: row.facultyCode ?? 0,
-              title: '',
-              curriculumId: 1,
+              facultyCode: row.facultyCode ?? DEFAULT_FACULTY_CODE,
+              title: row.title || DEFAULT_TITLE,
+              curriculumId: row.curriculumId || DEFAULT_CURRICULUM_ID,
               first_name: row.first_name ?? '',
               last_name: row.last_name ?? '',
             },
@@ -327,12 +346,26 @@ export class PreviewImportService {
     studentCode: string,
     email: string,
     facultyCode: number | string | undefined,
+    title: string,
+    curriculumId: string,
     firstName: string,
     lastName: string,
   ): Promise<{ status: PreviewRowStatus; note?: string }> {
     // 1. Check required fields
     if (!studentCode || !email || !firstName || !lastName) {
       return { status: 'MISSING', note: 'ข้อมูลที่จำเป็นไม่ครบ' };
+    }
+
+    if (!title) {
+      return { status: 'MISSING', note: 'จำเป็นต้องระบุคำนำหน้า' };
+    }
+
+    if (!curriculumId) {
+      return { status: 'MISSING', note: 'จำเป็นต้องระบุหลักสูตร' };
+    }
+
+    if (!THAI_NAME_REGEX.test(firstName) || !THAI_NAME_REGEX.test(lastName)) {
+      return { status: 'MISSING', note: 'ชื่อและนามสกุลต้องเป็นภาษาไทย' };
     }
 
     // 1b. Validate email format
@@ -480,6 +513,8 @@ export class PreviewImportService {
       student_code: row.student_code,
       email: row.email,
       facultyCode: row.facultyCode,
+      title: row.title,
+      curriculumId: row.curriculumId,
       first_name: row.first_name,
       last_name: row.last_name,
       status: row.status as PreviewRowStatus,

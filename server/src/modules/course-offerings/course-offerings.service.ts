@@ -5,6 +5,10 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import {
+  DEFAULT_CURRICULUM_ID,
+  DEFAULT_TITLE,
+} from 'src/lib/academic-defaults';
 import { CreateCourseOfferingDto } from './dto/create-course-offerings.dto';
 import { UpdateCourseOfferingDto } from './dto/update-course-offering.dto';
 import { AddStudentDto } from './dto/add-student.dto';
@@ -39,6 +43,7 @@ const courseOfferingSelect = {
           first_name: true,
           last_name: true,
           facultyCode: true,
+          title: true,
           curriculumId: true,
         },
       },
@@ -235,6 +240,9 @@ export class CourseOfferingsService {
         where: { student_code: dto.student_code },
         update: {
           email: dto.email,
+          title: dto.title ?? DEFAULT_TITLE,
+          facultyCode: dto.facultyCode,
+          curriculumId: dto.curriculumId ?? DEFAULT_CURRICULUM_ID,
           first_name: dto.first_name,
           last_name: dto.last_name,
         },
@@ -243,8 +251,8 @@ export class CourseOfferingsService {
           email: dto.email,
           password_hash: '12345678', // 🔒 replace later with invite flow
           facultyCode: dto.facultyCode,
-          title: dto.title ?? '',
-          curriculumId: dto.curriculumId ?? 1,
+          title: dto.title ?? DEFAULT_TITLE,
+          curriculumId: dto.curriculumId ?? DEFAULT_CURRICULUM_ID,
           first_name: dto.first_name,
           last_name: dto.last_name,
         },
@@ -280,6 +288,7 @@ export class CourseOfferingsService {
             last_name: true,
             email: true,
             facultyCode: true,
+            title: true,
             curriculumId: true,
           },
         },
@@ -295,6 +304,7 @@ export class CourseOfferingsService {
       last_name: e.students.last_name,
       email: e.students.email,
       facultyCode: e.students.facultyCode,
+      title: e.students.title,
       curriculumId: e.students.curriculumId,
     }));
   }
@@ -389,6 +399,9 @@ export class CourseOfferingsService {
         where: { student_code: row.student_code },
         update: {
           email: row.email,
+          title: row.title ?? DEFAULT_TITLE,
+          facultyCode: row.facultyCode,
+          curriculumId: row.curriculumId ?? DEFAULT_CURRICULUM_ID,
           first_name: row.first_name,
           last_name: row.last_name,
         },
@@ -397,8 +410,8 @@ export class CourseOfferingsService {
           email: row.email,
           password_hash: '12345678', // Placeholder for invite flow
           facultyCode: row.facultyCode,
-          title: row.title ?? '',
-          curriculumId: row.curriculumId ?? 1,
+          title: row.title ?? DEFAULT_TITLE,
+          curriculumId: row.curriculumId ?? DEFAULT_CURRICULUM_ID,
           first_name: row.first_name,
           last_name: row.last_name,
         },

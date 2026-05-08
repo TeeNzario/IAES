@@ -6,13 +6,14 @@ export type StaffRole = "STUDENT" | "INSTRUCTOR" | "ADMINISTRATOR";
 
 export interface Staff {
   staff_users_id: string;
+  title?: string;
   first_name?: string;
   last_name?: string;
   role: StaffRole;
   email?: string;
   is_active: boolean;
   facultyCode: number;
-  curriculumId?: number;
+  curriculumId?: string;
 }
 
 export interface GetStaffsParams {
@@ -63,11 +64,12 @@ export interface CreateStaffPayload {
   email: string;
   password: string;
   facultyCode: number;
+  title: string;
   first_name: string;
   last_name: string;
   role: "INSTRUCTOR" | "ADMIN";
   is_active?: boolean;
-  curriculumId?: number;
+  curriculumId?: string;
 }
 
 export const createStaff = async (

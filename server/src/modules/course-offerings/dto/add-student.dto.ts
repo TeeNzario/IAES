@@ -23,7 +23,7 @@ export class AddStudentDto {
   @IsOptional()
   title?: string;
 
-  @IsInt()
+  @IsString()
   @IsOptional()
-  curriculumId?: number;
+  curriculumId?: string;
 }
