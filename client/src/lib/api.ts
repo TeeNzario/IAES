@@ -1,27 +1,15 @@
 import axios from "axios";
+import { clearAuth } from "@/lib/auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 export const api = axios.create({
   baseURL: API_URL,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
-
-// Request interceptor - automatically attach Bearer token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("access_token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  },
-);
 
 // Response interceptor - handle 401 unauthorized errors
 api.interceptors.response.use(
@@ -36,14 +24,7 @@ api.interceptors.response.use(
 
       // Only clear auth and redirect if NOT on login page
       if (!isOnLoginPage) {
-        // Clear auth data and redirect to login
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("user");
-        // Also clear cookies
-        document.cookie =
-          "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        document.cookie =
-          "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        clearAuth();
 
         // Redirect to login page (only in browser)
         if (typeof window !== "undefined") {

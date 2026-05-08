@@ -8,10 +8,31 @@ import {
   DEFAULT_TITLE,
 } from 'src/lib/academic-defaults';
 import { hashPassword } from '../../lib/password';
+import { AuditActor, AuditService } from '../audit/audit.service';
+
+const studentPublicSelect = {
+  student_code: true,
+  email: true,
+  facultyCode: true,
+  title: true,
+  curriculumId: true,
+  first_name: true,
+  last_name: true,
+  is_active: true,
+};
+
+const studentPublicTimestampSelect = {
+  ...studentPublicSelect,
+  created_at: true,
+  updated_at: true,
+};
 
 @Injectable()
 export class StudentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
 
   async create(createStudentDto: CreateStudentDto) {
     // Check for duplicate student_code
@@ -37,16 +58,7 @@ export class StudentsService {
         last_name: createStudentDto.last_name,
         is_active: true,
       },
-      select: {
-        student_code: true,
-        email: true,
-        facultyCode: true,
-        title: true,
-        curriculumId: true,
-        first_name: true,
-        last_name: true,
-        is_active: true,
-      },
+      select: studentPublicSelect,
     });
 
     return student;
@@ -54,18 +66,7 @@ export class StudentsService {
 
   findAll() {
     return this.prisma.students.findMany({
-      select: {
-        student_code: true,
-        email: true,
-        facultyCode: true,
-        title: true,
-        curriculumId: true,
-        first_name: true,
-        last_name: true,
-        is_active: true,
-        created_at: true,
-        updated_at: true,
-      },
+      select: studentPublicTimestampSelect,
       orderBy: { student_code: 'asc' },
     });
   }
@@ -90,46 +91,166 @@ export class StudentsService {
     });
   }
 
-  async updateByStudentCode(student_code: string, dto: UpdateStudentDto) {
+  private async recordStudentUpdateAudit(
+    tx: any,
+    actor: AuditActor | undefined,
+    studentCode: string,
+    passwordChanged: boolean,
+    previousActive: boolean | undefined,
+    nextActive: boolean | undefined,
+  ) {
+    if (passwordChanged) {
+      await this.audit.record(
+        {
+          actor,
+          action: 'student.password_changed',
+          entityType: 'student',
+          entityId: studentCode,
+        },
+        tx,
+      );
+    }
+
+    if (
+      nextActive !== undefined &&
+      previousActive !== undefined &&
+      previousActive !== nextActive
+    ) {
+      await this.audit.record(
+        {
+          actor,
+          action: nextActive ? 'student.activated' : 'student.deactivated',
+          entityType: 'student',
+          entityId: studentCode,
+          metadata: {
+            previousActive,
+            nextActive,
+          },
+        },
+        tx,
+      );
+    }
+  }
+
+  async updateByStudentCode(
+    student_code: string,
+    dto: UpdateStudentDto,
+    actor?: AuditActor,
+  ) {
     const { password, ...rest } = dto;
+    let previousActive: boolean | undefined;
+
+    if (rest.is_active !== undefined) {
+      const existing = await this.prisma.students.findUnique({
+        where: { student_code },
+        select: { is_active: true },
+      });
+      previousActive = existing?.is_active;
+    }
+
     const data = password
       ? { ...rest, password_hash: await hashPassword(password) }
       : rest;
-    return this.prisma.students.update({
-      where: { student_code },
-      data,
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.students.update({
+        where: { student_code },
+        data,
+        select: studentPublicTimestampSelect,
+      });
+
+      if (password) {
+        await tx.$executeRaw`
+          UPDATE "students"
+          SET "password_changed_at" = CURRENT_TIMESTAMP
+          WHERE "student_code" = ${student_code}
+        `;
+      }
+
+      await this.recordStudentUpdateAudit(
+        tx,
+        actor,
+        student_code,
+        Boolean(password),
+        previousActive,
+        rest.is_active,
+      );
+
+      return updated;
     });
   }
 
-  async update(id: string, updateStudentDto: UpdateStudentDto) {
+  async update(
+    id: string,
+    updateStudentDto: UpdateStudentDto,
+    actor?: AuditActor,
+  ) {
     const { password, ...rest } = updateStudentDto;
+    let previousActive: boolean | undefined;
+
+    if (rest.is_active !== undefined) {
+      const existing = await this.prisma.students.findUnique({
+        where: { student_code: id },
+        select: { is_active: true },
+      });
+      previousActive = existing?.is_active;
+    }
+
     const data = password
       ? { ...rest, password_hash: await hashPassword(password) }
       : rest;
-    return this.prisma.students.update({
-      where: { student_code: id },
-      data: {
-        ...data,
-        updated_at: new Date(),
-      },
-      select: {
-        student_code: true,
-        email: true,
-        facultyCode: true,
-        title: true,
-        curriculumId: true,
-        first_name: true,
-        last_name: true,
-        is_active: true,
-        created_at: true,
-        updated_at: true,
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.students.update({
+        where: { student_code: id },
+        data: {
+          ...data,
+          updated_at: new Date(),
+        },
+        select: studentPublicTimestampSelect,
+      });
+
+      if (password) {
+        await tx.$executeRaw`
+          UPDATE "students"
+          SET "password_changed_at" = CURRENT_TIMESTAMP
+          WHERE "student_code" = ${id}
+        `;
+      }
+
+      await this.recordStudentUpdateAudit(
+        tx,
+        actor,
+        id,
+        Boolean(password),
+        previousActive,
+        rest.is_active,
+      );
+
+      return updated;
     });
   }
 
-  remove(id: string) {
-    return this.prisma.students.delete({
-      where: { student_code: id },
+  remove(id: string, actor?: AuditActor) {
+    return this.prisma.$transaction(async (tx) => {
+      const deleted = await tx.students.delete({
+        where: { student_code: id },
+        select: studentPublicSelect,
+      });
+
+      await this.audit.record(
+        {
+          actor,
+          action: 'student.deleted',
+          entityType: 'student',
+          entityId: id,
+          metadata: {
+            email: deleted.email,
+            is_active: deleted.is_active,
+          },
+        },
+        tx,
+      );
+
+      return deleted;
     });
   }
 

@@ -6,6 +6,8 @@ export type StaffRole = 'INSTRUCTOR' | 'ADMIN';
 interface BaseJwtPayload {
   sub: string;
   type: AuthUserType;
+  iat?: number;
+  exp?: number;
 }
 
 export interface StaffJwtPayload extends BaseJwtPayload {
