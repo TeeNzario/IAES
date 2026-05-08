@@ -60,26 +60,6 @@ export default function ExamBankHubPage() {
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <Link
-              href={`/exam-bank/${offeringId}/exam-sets`}
-              className="group flex flex-col gap-4 rounded-3xl bg-white p-8 transition-all hover:shadow-xl hover:-translate-y-0.5"
-            >
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#B7A3E3] text-white">
-                <ClipboardList size={32} strokeWidth={1.5} />
-              </div>
-              <div>
-                <h3 className="text-2xl font-light text-[#575757] group-hover:text-[#B7A3E3]">
-                  ชุดข้อสอบ
-                </h3>
-                <p className="mt-2 text-sm font-light text-gray-500">
-                  สร้าง แก้ไข และจัดการชุดข้อสอบที่พร้อมใช้งานในรายวิชานี้
-                </p>
-              </div>
-              <span className="text-sm font-light text-[#B7A3E3]">
-                เปิด →
-              </span>
-            </Link>
-
-            <Link
               href={`/exam-bank/${offeringId}/questions`}
               className="group flex flex-col gap-4 rounded-3xl bg-white p-8 transition-all hover:shadow-xl hover:-translate-y-0.5"
             >
@@ -93,6 +73,26 @@ export default function ExamBankHubPage() {
                 <p className="mt-2 text-sm font-light text-gray-500">
                   เพิ่ม แก้ไข ค้นหาและจัดการคำถามทั้งหมด
                   พร้อมหมวดหมู่ความรู้และระดับความยาก
+                </p>
+              </div>
+              <span className="text-sm font-light text-[#B7A3E3]">
+                เปิด →
+              </span>
+            </Link>
+
+            <Link
+              href={`/exam-bank/${offeringId}/exam-sets`}
+              className="group flex flex-col gap-4 rounded-3xl bg-white p-8 transition-all hover:shadow-xl hover:-translate-y-0.5"
+            >
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#B7A3E3] text-white">
+                <ClipboardList size={32} strokeWidth={1.5} />
+              </div>
+              <div>
+                <h3 className="text-2xl font-light text-[#575757] group-hover:text-[#B7A3E3]">
+                  ชุดข้อสอบ
+                </h3>
+                <p className="mt-2 text-sm font-light text-gray-500">
+                  สร้าง แก้ไข และจัดการชุดข้อสอบที่พร้อมใช้งานในรายวิชานี้
                 </p>
               </div>
               <span className="text-sm font-light text-[#B7A3E3]">
