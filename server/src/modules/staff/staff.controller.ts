@@ -38,11 +38,15 @@ export class StaffController {
    * @query role - Optional role filter: INSTRUCTOR or ADMINISTRATOR
    */
   @Get()
+  @Auth()
+  @Roles('ADMIN')
   findAll(@Query('role') role?: string) {
     return this.staffService.findAll(role);
   }
 
   @Get('instructors')
+  @Auth()
+  @Roles('INSTRUCTOR', 'ADMIN')
   findAllInstructors() {
     return this.staffService.findAllInstructors();
   }
@@ -52,6 +56,8 @@ export class StaffController {
    * Used for frontend validation
    */
   @Get('check-email')
+  @Auth()
+  @Roles('ADMIN')
   async checkEmailExists(
     @Query('email') email: string,
     @Query('excludeId') excludeId?: string,
@@ -61,6 +67,8 @@ export class StaffController {
   }
 
   @Get(':id')
+  @Auth()
+  @Roles('ADMIN')
   findOne(@Param('id') id: bigint) {
     return this.staffService.findOne(id);
   }
