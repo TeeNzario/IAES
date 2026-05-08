@@ -1,126 +1,183 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with this repository.
 
 ## Project Overview
 
-IAES (Intelligent Adaptive Examination System) is a web application for examination adaptive systems. It's a monorepo with a Next.js frontend and NestJS backend, using PostgreSQL with Prisma ORM.
+IAES (Intelligent Adaptive Examination System) is a monorepo for adaptive examination management. It has a Next.js frontend, a NestJS backend, PostgreSQL, and Prisma ORM.
 
 ## Repository Structure
 
-```
+```text
 IAES/
-├── client/          # Next.js frontend (React 19, Tailwind CSS 4, TypeScript)
-├── server/          # NestJS backend (TypeScript, Prisma, Passport JWT auth)
-├── shared/          # Shared code between client and server
-├── package.json     # Root scripts for running both concurrently
+|-- client/       Next.js frontend (React 19, Tailwind CSS 4, TypeScript)
+|-- server/       NestJS backend (TypeScript, Prisma, Passport JWT auth)
+|-- shared/       Shared code between client and server
+|-- package.json  Root scripts for running both apps concurrently
 ```
 
 ## Key Commands
 
-### Root (run both concurrently)
+### Root
+
 ```bash
-npm install          # Install root dependencies (concurrently)
-npm run dev          # Start both frontend and backend
-npm run dev:client   # Start frontend only
-npm run dev:server   # Start backend only
+npm install
+npm install --prefix server
+npm install --prefix client
+npm run dev
+npm run dev:client
+npm run dev:server
 ```
 
-### Client (`client/`)
+### Client
+
 ```bash
-npm install          # Install dependencies
-npm run dev          # Start dev server (Next.js 16)
-npm run build        # Production build
-npm run start        # Start production server
-npm run lint         # Run ESLint
+cd client
+npm install
+npm run dev
+npm run build
+npm run start
+npm run lint
 ```
 
-### Server (`server/`)
+### Server
+
 ```bash
-npm install          # Install dependencies
-npm run start:dev    # Start with watch mode
-npm run build        # Build with NestJS CLI
-npm run test         # Run unit tests (Jest)
-npm run test:watch   # Run tests in watch mode
-npm run test:e2e     # Run e2e tests
-npm run lint         # Run ESLint with auto-fix
-npm run seed         # Seed database (tsx prisma/seed.ts)
+cd server
+npm install
+npm run start:dev
+npm run build
+npm run test -- --runInBand
+npm run test:e2e
+npm run lint
+npm run seed
+npm run rehash-passwords
 ```
 
-### Database (run from `server/`)
+### Database
+
+Run Prisma commands from `server/`.
+
 ```bash
-npx prisma migrate dev --name <name>   # Create and apply a new migration after editing schema.prisma
-npx prisma migrate deploy              # Apply pending migrations (safe for existing DB, no data loss)
-npx prisma migrate reset               # ⚠️ Drop schema, re-apply migrations, run seed (local dev only)
-npx prisma generate                    # Regenerate Prisma client to src/generated/prisma
-npx prisma studio                      # Open Prisma GUI
+npx prisma migrate deploy
+npx prisma generate
+npx prisma migrate dev --name <name>
+npx prisma migrate reset
+npx prisma studio
+```
+
+Prefer Prisma Migrate over `db push`. Use `migrate reset` only for local throwaway databases because it drops data.
+
+## Environment Variables
+
+### Server
+
+Create `server/.env`.
+
+```env
+PORT="3002"
+DATABASE_URL="postgresql://user:password@localhost:5432/iaes_db"
+JWT_SECRET="replace-this-with-a-random-secret-at-least-32-characters"
+BCRYPT_COST="10"
+```
+
+Rules:
+
+- `JWT_SECRET` must be at least 32 characters.
+- Production refuses missing, short, or known placeholder JWT secrets.
+- `BCRYPT_COST` must be an integer from `10` to `31`.
+
+### Client
+
+Create `client/.env.local`.
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3002
 ```
 
 ## Architecture
 
-### Backend (NestJS)
+### Backend
 
-The server follows a modular NestJS architecture. Modules wired in [server/src/app.module.ts](server/src/app.module.ts):
+The server is a modular NestJS application wired through `server/src/app.module.ts`.
 
-- **Auth Module** ([server/src/auth/](server/src/auth/)) - JWT-based authentication using Passport (strategies, guards, decorators, DTOs, types under this folder). Tokens expire in 1 day. Two user types: STAFF (with roles ADMIN/INSTRUCTOR) and STUDENT.
-- **Staff Module** ([server/src/modules/staff/](server/src/modules/staff/)) - CRUD for staff users (instructors and admins).
-- **Students Module** ([server/src/modules/students/](server/src/modules/students/)) - CRUD for students.
-- **Courses Module** ([server/src/modules/courses/](server/src/modules/courses/)) - Course management with knowledge categories.
-- **Course Offerings Module** ([server/src/modules/course-offerings/](server/src/modules/course-offerings/)) - Course offerings per academic year/semester, student enrollment, CSV bulk upload with preview.
-- **Knowledge Categories Module** ([server/src/modules/knowledge-categories/](server/src/modules/knowledge-categories/)) - Categorization system linking courses and questions.
-- **Question Bank Module** ([server/src/modules/question-bank/](server/src/modules/question-bank/)) - Question CRUD with choices and knowledge tagging. Exposes both `question-bank` and `questions` controllers/services.
-- **Course Exams Module** ([server/src/modules/course-exams/](server/src/modules/course-exams/)) - Exam set creation/management bound to a course offering, including exam questions composition.
-- **Prisma Module** ([server/src/prisma/](server/src/prisma/)) - Global Prisma service provider.
-- **Shared lib** ([server/src/lib/](server/src/lib/)) - Cross-module helpers: `faculty-map.ts` (faculty/department lookup) and `prisma.ts`.
+- `server/src/auth/` - JWT login, guards, roles, strategy, cookie auth, JWT secret validation
+- `server/src/modules/audit/` - audit logging into `audit_logs`
+- `server/src/modules/staff/` - staff CRUD and password changes
+- `server/src/modules/students/` - student CRUD and password changes
+- `server/src/modules/courses/` - course management
+- `server/src/modules/course-offerings/` - course offerings, enrollments, CSV preview/import
+- `server/src/modules/knowledge-categories/` - knowledge category links
+- `server/src/modules/question-bank/` - question bank, choices, knowledge tagging
+- `server/src/modules/course-exams/` - exam set creation and management
+- `server/src/prisma/` - global Prisma service provider
+- `server/src/lib/password.ts` - bcrypt hashing, verification, and `BCRYPT_COST`
 
-Key patterns:
-- Controllers use `@Auth()` decorator for JWT protection
-- `RolesGuard` enforces role-based access (ADMIN/INSTRUCTOR)
-- DTOs use `class-validator` for validation
-- Prisma client is generated to `server/src/generated/prisma`
+Key backend patterns:
 
-### Frontend (Next.js App Router)
+- Controllers use the `@Auth()` decorator for protected routes.
+- `RolesGuard` enforces ADMIN and INSTRUCTOR access.
+- Login routes use `@nestjs/throttler` with a 5 attempts per minute limit.
+- JWTs are accepted from Bearer tokens or the httpOnly `access_token` cookie.
+- Password changes update `password_changed_at`; tokens issued before that timestamp are rejected.
+- Sensitive changes write audit records through `AuditService`.
+- Student list/detail responses must keep using explicit selects that exclude `password_hash`.
 
-- Uses Next.js 16 App Router with React 19, Tailwind CSS 4, and the React Compiler (`babel-plugin-react-compiler`).
-- **Middleware** ([client/src/middleware.ts](client/src/middleware.ts)) - Edge runtime middleware that checks auth cookies (`access_token`, `user`) and enforces role-based route access. Redirects unauthenticated users to `/login`, sends ADMIN to `/admin/manage-users` instead of `/`.
-- **App routes** ([client/src/app/](client/src/app/)) - `login`, `register`, `forbidden`, `admin/manage-users`, `staff/login`, `course/[offeringId]`, `exam-bank`, `results`.
-- **Auth** ([client/src/lib/auth.ts](client/src/lib/auth.ts)) - Client-side auth service storing tokens in both localStorage and cookies. Permission helpers in [client/src/lib/auth.permissions.ts](client/src/lib/auth.permissions.ts).
-- **API** ([client/src/lib/api.ts](client/src/lib/api.ts)) - Axios instance with automatic Bearer token injection and 401 handling.
-- **Feature-based organization** - Domain logic under [client/src/features/](client/src/features/) (`admin`, `auth`, `courseOffering`, `staff`, `student`); reusable UI under [client/src/components/](client/src/components/) (`course`, `courseOffering`, `exam`, `layout`, `questionBank`, `ui`).
-- **Types & utils** - Shared TypeScript types in [client/src/types/](client/src/types/); helpers in [client/src/utils/](client/src/utils/).
-- **Shared lib** - `faculty-map.ts` mirrors the server-side faculty/department mapping.
+### Frontend
 
-### Database Schema (Prisma)
+- Uses Next.js 16 App Router, React 19, Tailwind CSS 4, and TypeScript.
+- `client/src/middleware.ts` reads `access_token` and `user` cookies for route protection and role access.
+- `client/src/lib/api.ts` creates an Axios instance with `withCredentials: true`.
+- `client/src/lib/auth.ts` stores only non-sensitive user profile data in `localStorage`; it does not store JWTs.
+- Feature code lives under `client/src/features/`.
+- Shared UI lives under `client/src/components/`.
+- Shared frontend types live under `client/src/types/`.
 
-Key models:
-- `staff_users` - Staff accounts with role enum (INSTRUCTOR/ADMIN). Required: `title` (VARCHAR(50)), `curriculumId` (INTEGER), `facultyCode` (INTEGER), name, email.
-- `students` / `student_directory` - Student accounts and directory. `students` requires the same `title` + `curriculumId` + `facultyCode` columns as staff.
-- `courses` / `course_offerings` / `course_enrollments` / `course_instructors` - Course management
-- `question_bank` / `question_choices` / `knowledge_categories` / `question_knowledge` / `course_knowledge` - Question bank with knowledge categorization
-- `course_exams` / `exam_questions` / `exam_attempts` / `attempt_items` / `attempt_answers` - Exam and attempt tracking
-- `import_preview_sessions` / `import_preview_rows` - Ephemeral tables for CSV import preview
+## Database Schema Notes
 
-Curriculum IDs are defined in [client/src/config/curriculums.ts](client/src/config/curriculums.ts) (single source of truth). When inserting `staff_users` or `students`, every code path must supply `title` and `curriculumId` — service layers fall back to `title: ''` and `curriculumId: 1` when the DTO does not include them.
+Important Prisma models include:
 
-## Environment Variables
+- `audit_logs` - audit trail for sensitive actions
+- `staff_users` - staff accounts with ADMIN or INSTRUCTOR role
+- `students` and `student_directory` - student auth records and directory records
+- `courses`, `course_offerings`, `course_enrollments`, `course_instructors` - course management
+- `question_bank`, `question_choices`, `knowledge_categories`, `question_knowledge`, `course_knowledge` - question bank and tagging
+- `course_exams`, `exam_questions`, `exam_attempts`, `attempt_items`, `attempt_answers` - exam and attempt tracking
+- `import_preview_sessions`, `import_preview_rows` - CSV import preview workflow
 
-**Server** (`server/.env`):
+`staff_users` and `students` include `password_changed_at` to invalidate old JWTs after password changes.
+
+Curriculum IDs are defined in `client/src/config/curriculums.ts`. When inserting staff or students, code paths must supply `title`, `curriculumId`, and `facultyCode`; service layers provide defaults where DTOs omit allowed values.
+
+## Setup Flow After Pulling Latest `master`
+
+```bash
+npm install
+npm install --prefix server
+npm install --prefix client
+
+cd server
+npx prisma migrate deploy
+npx prisma generate
+
+cd ..
+npm run dev
 ```
-PORT=3002
-DATABASE_URL=postgresql://user:password@localhost:5432/db_name
-JWT_SECRET=secret123  # Change in production
-```
 
-**Client** (`client/.env.local`):
-```
-NEXT_PUBLIC_API_URL=http://localhost:3002
+Run verification before handing off larger changes:
+
+```bash
+npm run build --prefix server
+npm run test --prefix server -- --runInBand
+npm run build --prefix client
 ```
 
 ## Important Notes
 
-- Prisma generates to a custom output path: `server/src/generated/prisma` (CJS module format)
-- The backend runs on port 3002 by default
-- Auth uses both localStorage (client-side API calls) and cookies (Next.js middleware)
-- The `shared/` directory exists for code shared between client and server
-- Exam system supports adaptive testing with IRT parameters (difficulty, discrimination, guessing)
-- CSV bulk student enrollment uses a two-phase preview-then-commit pattern with auto-expiring preview sessions
+- Prisma client output is `server/src/generated/prisma` with CJS module format.
+- Backend default port is `3002`.
+- Frontend default port is `3000`.
+- Auth token storage is cookie-based. Do not reintroduce access tokens in `localStorage`.
+- Keep `.env` and `.env.local` out of commits.
+- The CSV bulk enrollment flow uses preview, edit/delete rows, and confirm.
+- Existing generated Prisma output is part of the current repository layout; regenerate it after schema changes.

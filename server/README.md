@@ -9,6 +9,7 @@ NestJS backend for IAES (Intelligent Adaptive Examination System).
 - PostgreSQL
 - Prisma 7
 - Passport JWT authentication
+- NestJS Throttler
 
 ## Prerequisites
 
@@ -21,20 +22,23 @@ NestJS backend for IAES (Intelligent Adaptive Examination System).
 Create `server/.env`.
 
 ```env
-PORT=3002
+PORT="3002"
 DATABASE_URL="postgresql://user:password@localhost:5432/iaes_db"
-JWT_SECRET="local-dev-jwt-secret-change-me-2026-iaes-64-characters-minimum"
+JWT_SECRET="replace-this-with-a-random-secret-at-least-32-characters"
+BCRYPT_COST="10"
 ```
 
 Keep `DATABASE_URL` in quotes if the password contains special characters such as `!`, `@`, or `#`.
 
-`JWT_SECRET` signs login tokens. Use a long private value for shared or production environments.
+`JWT_SECRET` signs login tokens. It must be at least 32 characters. Production refuses missing, short, or known placeholder values.
 
 Generate a random secret with PowerShell:
 
 ```powershell
 [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
 ```
+
+`BCRYPT_COST` controls password hash cost. Valid values are integers from `10` to `31`; the default is `10`.
 
 ## Install Dependencies
 
@@ -52,7 +56,7 @@ npm install --prefix server
 
 ## Database Setup
 
-This project uses **Prisma Migrate** (migration history under `prisma/migrations/`). Prefer `prisma migrate` over `db push` so migration history stays consistent across environments.
+This project uses Prisma Migrate. Migration history lives under `server/prisma/migrations/`.
 
 ### Fresh Empty Database
 
@@ -62,18 +66,18 @@ npx prisma generate
 npm run seed
 ```
 
-`migrate deploy` applies all existing migrations in order. Then `generate` refreshes the typed Prisma client at `src/generated/prisma`. Finally `seed` populates demo data.
+The Prisma client is generated to `src/generated/prisma`.
 
-The seed script is idempotent (uses `upsert` / `skipDuplicates`) and can be re-run safely. It creates:
+The seed script is idempotent and creates:
 
-- 1 admin staff (`admin@iaes.local`)
-- 1 instructor staff (`instructor@iaes.local`)
-- 5 students (4 active, 1 inactive)
-- 1 course (`IAES101`) + 1 course offering (year 2026 / semester 1)
+- 1 admin staff account
+- 1 instructor staff account
+- 5 students
+- 1 course and 1 course offering
 - 2 knowledge categories linked to the course
-- Enrollments for the 4 active students
+- Enrollments for active demo students
 
-Demo login accounts (password `1234`):
+Demo login accounts use password `1234`:
 
 ```text
 Admin:      admin@iaes.local / 1234
@@ -81,44 +85,46 @@ Instructor: instructor@iaes.local / 1234
 Student:    66131319 / 1234
 ```
 
-### Existing Database With Data
+### Existing Database With New Migrations
 
-If migrations are already applied and you only changed code or regenerated the client:
-
-```bash
-npx prisma generate
-```
-
-If new migration files were pulled from upstream:
+After pulling new files under `prisma/migrations/`:
 
 ```bash
 npx prisma migrate deploy
 npx prisma generate
 ```
 
-`migrate deploy` only applies migrations that have not yet been recorded in the `_prisma_migrations` table. It will not destroy data.
+`migrate deploy` only applies migrations not yet recorded in `_prisma_migrations`. It does not destroy data.
+
+### Existing Database With Code-Only Changes
+
+If migrations are already applied and only code changed:
+
+```bash
+npx prisma generate
+```
 
 ### Creating A New Migration
 
-When you change `prisma/schema.prisma` locally:
+After editing `prisma/schema.prisma`:
 
 ```bash
 npx prisma migrate dev --name <short_descriptive_name>
 ```
 
-This creates a new SQL file under `prisma/migrations/`, applies it to your local DB, and regenerates the client.
+This creates a SQL migration, applies it locally, and regenerates the Prisma client.
 
 ### Reset Local Development Database
 
-⚠️ **Destructive — local dev only. This drops all data.**
+Danger: this drops all local data.
 
 ```bash
 npx prisma migrate reset
 ```
 
-`migrate reset` drops the schema, re-applies every migration in order, then automatically runs the seed configured in `prisma.config.ts` (`tsx prisma/seed.ts`). If seed does not run automatically, run `npm run seed` after.
+`migrate reset` reapplies all migrations and runs the seed configured in `prisma.config.ts`.
 
-Never run `migrate reset` against a shared or production database.
+Never run this against a shared or production database.
 
 ## Run The Server
 
@@ -141,6 +147,18 @@ The backend runs on:
 http://localhost:3002
 ```
 
+## Auth And Security Flow
+
+- `POST /auth/login`, `POST /auth/student/login`, and `POST /auth/staff/login` are throttled to 5 attempts per minute by the `short` throttler.
+- Successful login sets httpOnly cookies: `access_token` and `user`.
+- JWT extraction supports both Bearer tokens and the `access_token` cookie.
+- `JWT_SECRET` validation happens during boot through `src/auth/jwt-secret.ts`.
+- Password changes update `password_changed_at` for staff and students.
+- JWT validation rejects tokens issued before the latest password change.
+- `BCRYPT_COST` is read from environment by `src/lib/password.ts`.
+- Sensitive actions are recorded through `AuditService` into the `audit_logs` table.
+- Student list/detail service methods use explicit selects that exclude `password_hash`.
+
 ## Useful Commands
 
 Generate Prisma client:
@@ -149,22 +167,16 @@ Generate Prisma client:
 npx prisma generate
 ```
 
-Apply pending migrations (existing DB):
+Apply pending migrations:
 
 ```bash
 npx prisma migrate deploy
 ```
 
-Create a new migration after editing `schema.prisma`:
+Create a migration:
 
 ```bash
 npx prisma migrate dev --name <short_descriptive_name>
-```
-
-Reset local DB (drops data, re-applies migrations, runs seed):
-
-```bash
-npx prisma migrate reset
 ```
 
 Open Prisma Studio:
@@ -179,10 +191,16 @@ Run seed:
 npm run seed
 ```
 
+Rehash existing plaintext or lower-cost passwords after changing `BCRYPT_COST`:
+
+```bash
+npm run rehash-passwords
+```
+
 Run unit tests:
 
 ```bash
-npm run test
+npm run test -- --runInBand
 ```
 
 Run e2e tests:
@@ -200,30 +218,43 @@ npm run build
 ## Important Paths
 
 ```text
-src/main.ts                  App bootstrap, global validation, CORS
-src/app.module.ts            Root Nest module
-src/auth/                    JWT auth, guards, strategies, login logic
-src/modules/staff/           Staff CRUD
-src/modules/students/        Student CRUD and student enrollments
-src/modules/courses/         Course management
+src/main.ts                   App bootstrap, validation, CORS
+src/app.module.ts             Root Nest module
+src/auth/                     JWT auth, guards, strategy, login logic
+src/auth/jwt-secret.ts        JWT_SECRET validation
+src/lib/password.ts           bcrypt hashing and verification
+src/modules/audit/            Audit logging module
+src/modules/staff/            Staff CRUD and password changes
+src/modules/students/         Student CRUD and password changes
+src/modules/courses/          Course management
 src/modules/course-offerings/ Course offerings, enrollments, CSV preview
-src/modules/question-bank/   Question bank years, collections, questions
-src/modules/course-exams/    Course exam management
-src/prisma/                  Prisma service module
-src/generated/prisma/        Generated Prisma client
-prisma/schema.prisma         Database schema
-prisma/seed.ts               Demo data seed
+src/modules/question-bank/    Question bank years, collections, questions
+src/modules/course-exams/     Course exam management
+src/prisma/                   Prisma service module
+src/generated/prisma/         Generated Prisma client
+prisma/schema.prisma          Database schema
+prisma/migrations/            Database migrations
+prisma/seed.ts                Demo data seed
+prisma/rehash-passwords.ts    Password rehash utility
 ```
 
 ## Troubleshooting
 
 ### PowerShell Blocks npm
 
-Use `npm.cmd` instead:
+Use `npm.cmd`:
 
 ```powershell
 npm.cmd run start:dev
 ```
+
+### JWT_SECRET Boot Error
+
+Set `JWT_SECRET` in `server/.env`. It must be at least 32 characters. In production, replace all example placeholders with a unique random secret.
+
+### Invalid BCRYPT_COST
+
+Set `BCRYPT_COST` to an integer from `10` to `31`.
 
 ### `permission denied for schema public`
 
@@ -252,4 +283,4 @@ Both values must be `true`.
 
 ### Port Already In Use
 
-If `3002` is already in use, stop the existing process or change `PORT` in `server/.env`.
+Stop the existing process or change `PORT` in `server/.env`.
