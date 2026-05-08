@@ -2,8 +2,10 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Prisma } from 'src/generated/prisma/client';
 import {
   DEFAULT_CURRICULUM_ID,
   DEFAULT_FACULTY_CODE,
@@ -27,6 +29,46 @@ const THAI_NAME_REGEX = /^[ก-๙\s]+$/;
 export class PreviewImportService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private async assertInstructorForOffering(
+    offeringId: bigint,
+    staffUserId: string,
+    client: PrismaService | Prisma.TransactionClient = this.prisma,
+  ) {
+    const link = await client.course_instructors.findFirst({
+      where: {
+        course_offerings_id: offeringId,
+        staff_users_id: BigInt(staffUserId),
+      },
+      select: { staff_users_id: true },
+    });
+
+    if (!link) {
+      throw new ForbiddenException('You are not assigned to this offering.');
+    }
+  }
+
+  private async assertSessionBelongsToOffering(
+    sessionId: string,
+    offeringId: bigint,
+  ) {
+    const session = await this.prisma.import_preview_sessions.findUnique({
+      where: { id: sessionId },
+      select: { course_offerings_id: true, expires_at: true },
+    });
+
+    if (!session) {
+      throw new NotFoundException('Preview session not found');
+    }
+
+    if (session.course_offerings_id !== offeringId) {
+      throw new BadRequestException('Session does not belong to this offering');
+    }
+
+    if (new Date() > session.expires_at) {
+      throw new BadRequestException('Preview session has expired');
+    }
+  }
+
   /**
    * Create a preview session from CSV data
    */
@@ -42,6 +84,8 @@ export class PreviewImportService {
 
     // Create session and rows in transaction
     const session = await this.prisma.$transaction(async (tx) => {
+      await this.assertInstructorForOffering(offeringBigInt, createdBy, tx);
+
       const newSession = await tx.import_preview_sessions.create({
         data: {
           course_offerings_id: offeringBigInt,
@@ -95,7 +139,7 @@ export class PreviewImportService {
     });
 
     // Fetch the complete session with rows
-    return this.getSessionResponse(session.id);
+    return this.getSessionResponse(session.id, offeringBigInt);
   }
 
   /**
@@ -106,8 +150,11 @@ export class PreviewImportService {
     sessionId: string,
     rowIndex: number,
     dto: EditPreviewRowDto,
+    staffUserId: string,
   ): Promise<PreviewRowResponse> {
     const offeringBigInt = BigInt(offeringId);
+
+    await this.assertInstructorForOffering(offeringBigInt, staffUserId);
 
     // Get existing row
     const row = await this.prisma.import_preview_rows.findUnique({
@@ -174,7 +221,17 @@ export class PreviewImportService {
   /**
    * Delete a preview row (soft delete)
    */
-  async deletePreviewRow(sessionId: string, rowIndex: number): Promise<void> {
+  async deletePreviewRow(
+    offeringId: string,
+    sessionId: string,
+    rowIndex: number,
+    staffUserId: string,
+  ): Promise<void> {
+    const offeringBigInt = BigInt(offeringId);
+
+    await this.assertInstructorForOffering(offeringBigInt, staffUserId);
+    await this.assertSessionBelongsToOffering(sessionId, offeringBigInt);
+
     await this.prisma.import_preview_rows.update({
       where: {
         session_id_row_index: { session_id: sessionId, row_index: rowIndex },
@@ -186,8 +243,17 @@ export class PreviewImportService {
   /**
    * Get a preview session with all its rows
    */
-  async getPreviewSession(sessionId: string): Promise<PreviewSessionResponse> {
-    return this.getSessionResponse(sessionId);
+  async getPreviewSession(
+    offeringId: string,
+    sessionId: string,
+    staffUserId: string,
+  ): Promise<PreviewSessionResponse> {
+    const offeringBigInt = BigInt(offeringId);
+
+    await this.assertInstructorForOffering(offeringBigInt, staffUserId);
+    await this.assertSessionBelongsToOffering(sessionId, offeringBigInt);
+
+    return this.getSessionResponse(sessionId, offeringBigInt);
   }
 
   /**
@@ -196,8 +262,11 @@ export class PreviewImportService {
   async confirmSession(
     offeringId: string,
     sessionId: string,
+    staffUserId: string,
   ): Promise<ConfirmResponse> {
     const offeringBigInt = BigInt(offeringId);
+
+    await this.assertInstructorForOffering(offeringBigInt, staffUserId);
 
     const session = await this.prisma.import_preview_sessions.findUnique({
       where: { id: sessionId },
@@ -473,6 +542,7 @@ export class PreviewImportService {
 
   private async getSessionResponse(
     sessionId: string,
+    offeringId?: bigint,
   ): Promise<PreviewSessionResponse> {
     const session = await this.prisma.import_preview_sessions.findUnique({
       where: { id: sessionId },
@@ -486,6 +556,10 @@ export class PreviewImportService {
 
     if (!session) {
       throw new NotFoundException('Preview session not found');
+    }
+
+    if (offeringId !== undefined && session.course_offerings_id !== offeringId) {
+      throw new BadRequestException('Session does not belong to this offering');
     }
 
     const rows = session.rows.map(this.formatRow);

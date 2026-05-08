@@ -3,6 +3,7 @@ import {
   Injectable,
   ConflictException,
   InternalServerErrorException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
@@ -21,6 +22,7 @@ import {
 } from './dto/bulk-enroll-student.dto';
 import { Prisma } from 'src/generated/prisma/client';
 import { hashPassword } from '../../lib/password';
+import type { RequestUser } from 'src/auth/types/jwt-payload.type';
 
 const courseOfferingSelect = {
   course_offerings_id: true,
@@ -64,6 +66,50 @@ function serializeBigInt(data: any) {
 @Injectable()
 export class CourseOfferingsService {
   constructor(private readonly prisma: PrismaService) {}
+
+  private async assertInstructorForOffering(
+    offeringId: bigint,
+    staffUserId: string,
+    client: PrismaService | Prisma.TransactionClient = this.prisma,
+  ) {
+    const instructorId = BigInt(staffUserId);
+    const link = await client.course_instructors.findFirst({
+      where: {
+        course_offerings_id: offeringId,
+        staff_users_id: instructorId,
+      },
+      select: { staff_users_id: true },
+    });
+
+    if (!link) {
+      throw new ForbiddenException('You are not assigned to this offering.');
+    }
+  }
+
+  private async assertCanViewOffering(
+    offeringId: bigint,
+    user: RequestUser,
+    client: PrismaService | Prisma.TransactionClient = this.prisma,
+  ) {
+    if (user.type === 'staff') {
+      await this.assertInstructorForOffering(offeringId, user.sub, client);
+      return;
+    }
+
+    const enrollment = await client.course_enrollments.findUnique({
+      where: {
+        course_offerings_id_student_code: {
+          course_offerings_id: offeringId,
+          student_code: user.sub,
+        },
+      },
+      select: { student_code: true },
+    });
+
+    if (!enrollment) {
+      throw new ForbiddenException('You are not enrolled in this offering.');
+    }
+  }
 
   async create(dto: CreateCourseOfferingDto, creatorId: string) {
     // Prepend creator ID to instructor list (creator is always first)
@@ -212,12 +258,14 @@ export class CourseOfferingsService {
   //   return serializeBigInt(offerings);
   // }
 
-  async findOneById(offeringId: string) {
+  async findOneById(offeringId: string, user: RequestUser) {
     if (!offeringId || offeringId === 'undefined') {
       throw new BadRequestException('Invalid course_offerings_id');
     }
 
     const id = BigInt(offeringId);
+
+    await this.assertCanViewOffering(id, user);
 
     const offering = await this.prisma.course_offerings.findUnique({
       where: {
@@ -233,10 +281,16 @@ export class CourseOfferingsService {
     return serializeBigInt(offering);
   }
 
-  async addStudentToOffering(offeringId: string, dto: AddStudentDto) {
+  async addStudentToOffering(
+    offeringId: string,
+    dto: AddStudentDto,
+    staffUserId: string,
+  ) {
     const offeringBigInt = BigInt(offeringId);
 
     return this.prisma.$transaction(async (tx) => {
+      await this.assertInstructorForOffering(offeringBigInt, staffUserId, tx);
+
       // 1. Ensure student exists (or create)
       const student = await tx.students.upsert({
         where: { student_code: dto.student_code },
@@ -274,8 +328,10 @@ export class CourseOfferingsService {
     });
   }
 
-  async getStudentsByOffering(offeringId: string) {
+  async getStudentsByOffering(offeringId: string, user: RequestUser) {
     const id = BigInt(offeringId);
+
+    await this.assertCanViewOffering(id, user);
 
     const enrollments = await this.prisma.course_enrollments.findMany({
       where: {
@@ -318,10 +374,13 @@ export class CourseOfferingsService {
   async bulkEnrollStudents(
     offeringId: string,
     dto: BulkEnrollStudentDto,
+    staffUserId: string,
   ): Promise<BulkEnrollResponse> {
     const offeringBigInt = BigInt(offeringId);
     const results: BulkEnrollRowResult[] = [];
     const placeholderHash = await hashPassword(INVITE_PLACEHOLDER_PASSWORD);
+
+    await this.assertInstructorForOffering(offeringBigInt, staffUserId);
 
     for (const row of dto.students) {
       try {
@@ -476,6 +535,8 @@ export class CourseOfferingsService {
     const id = BigInt(offeringId);
 
     return this.prisma.$transaction(async (tx) => {
+      await this.assertInstructorForOffering(id, userId, tx);
+
       // Build update data object
       const updateData: any = {};
       if (dto.academic_year !== undefined)
@@ -532,10 +593,13 @@ export class CourseOfferingsService {
   async checkStudentCodeExists(
     offeringId: string,
     studentCode: string,
+    staffUserId: string,
   ): Promise<boolean> {
     if (!studentCode?.trim() || !offeringId) return false;
 
     const id = BigInt(offeringId);
+
+    await this.assertInstructorForOffering(id, staffUserId);
 
     const existing = await this.prisma.course_enrollments.findUnique({
       where: {
@@ -559,10 +623,13 @@ export class CourseOfferingsService {
   async checkStudentEmailExists(
     offeringId: string,
     email: string,
+    staffUserId: string,
   ): Promise<boolean> {
     if (!email?.trim() || !offeringId) return false;
 
     const id = BigInt(offeringId);
+
+    await this.assertInstructorForOffering(id, staffUserId);
 
     // First find all student_codes enrolled in this offering
     const enrollment = await this.prisma.course_enrollments.findFirst({
@@ -587,8 +654,11 @@ export class CourseOfferingsService {
   async unenrollStudent(
     offeringId: string,
     studentCode: string,
+    staffUserId: string,
   ): Promise<{ success: boolean }> {
     const id = BigInt(offeringId);
+
+    await this.assertInstructorForOffering(id, staffUserId);
 
     await this.prisma.course_enrollments.delete({
       where: {
@@ -607,12 +677,17 @@ export class CourseOfferingsService {
    * Business rule: Can only delete if no students are enrolled
    * @param offeringId - The course offering ID to delete
    */
-  async remove(offeringId: string): Promise<{ success: boolean }> {
+  async remove(
+    offeringId: string,
+    staffUserId: string,
+  ): Promise<{ success: boolean }> {
     if (!offeringId || offeringId === 'undefined') {
       throw new BadRequestException('Invalid course_offerings_id');
     }
 
     const id = BigInt(offeringId);
+
+    await this.assertInstructorForOffering(id, staffUserId);
 
     // Check if any students are enrolled
     const enrollmentsCount = await this.prisma.course_enrollments.count({
