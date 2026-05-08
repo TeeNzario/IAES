@@ -95,9 +95,21 @@ export class StudentsService {
     const data = password
       ? { ...rest, password_hash: await hashPassword(password) }
       : rest;
-    return this.prisma.students.update({
-      where: { student_code },
-      data,
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.students.update({
+        where: { student_code },
+        data,
+      });
+
+      if (password) {
+        await tx.$executeRaw`
+          UPDATE "students"
+          SET "password_changed_at" = CURRENT_TIMESTAMP
+          WHERE "student_code" = ${student_code}
+        `;
+      }
+
+      return updated;
     });
   }
 
@@ -106,24 +118,36 @@ export class StudentsService {
     const data = password
       ? { ...rest, password_hash: await hashPassword(password) }
       : rest;
-    return this.prisma.students.update({
-      where: { student_code: id },
-      data: {
-        ...data,
-        updated_at: new Date(),
-      },
-      select: {
-        student_code: true,
-        email: true,
-        facultyCode: true,
-        title: true,
-        curriculumId: true,
-        first_name: true,
-        last_name: true,
-        is_active: true,
-        created_at: true,
-        updated_at: true,
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.students.update({
+        where: { student_code: id },
+        data: {
+          ...data,
+          updated_at: new Date(),
+        },
+        select: {
+          student_code: true,
+          email: true,
+          facultyCode: true,
+          title: true,
+          curriculumId: true,
+          first_name: true,
+          last_name: true,
+          is_active: true,
+          created_at: true,
+          updated_at: true,
+        },
+      });
+
+      if (password) {
+        await tx.$executeRaw`
+          UPDATE "students"
+          SET "password_changed_at" = CURRENT_TIMESTAMP
+          WHERE "student_code" = ${id}
+        `;
+      }
+
+      return updated;
     });
   }
 
