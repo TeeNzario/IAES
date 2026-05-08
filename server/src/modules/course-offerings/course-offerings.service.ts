@@ -8,6 +8,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import {
   DEFAULT_CURRICULUM_ID,
   DEFAULT_TITLE,
+  INVITE_PLACEHOLDER_PASSWORD,
 } from 'src/lib/academic-defaults';
 import { CreateCourseOfferingDto } from './dto/create-course-offerings.dto';
 import { UpdateCourseOfferingDto } from './dto/update-course-offering.dto';
@@ -250,7 +251,7 @@ export class CourseOfferingsService {
         create: {
           student_code: dto.student_code,
           email: dto.email,
-          password_hash: await hashPassword('12345678'),
+          password_hash: await hashPassword(INVITE_PLACEHOLDER_PASSWORD),
           facultyCode: dto.facultyCode,
           title: dto.title ?? DEFAULT_TITLE,
           curriculumId: dto.curriculumId ?? DEFAULT_CURRICULUM_ID,
@@ -320,10 +321,15 @@ export class CourseOfferingsService {
   ): Promise<BulkEnrollResponse> {
     const offeringBigInt = BigInt(offeringId);
     const results: BulkEnrollRowResult[] = [];
+    const placeholderHash = await hashPassword(INVITE_PLACEHOLDER_PASSWORD);
 
     for (const row of dto.students) {
       try {
-        const result = await this.processStudentRow(offeringBigInt, row);
+        const result = await this.processStudentRow(
+          offeringBigInt,
+          row,
+          placeholderHash,
+        );
         results.push(result);
       } catch (error) {
         results.push({
@@ -356,6 +362,7 @@ export class CourseOfferingsService {
   private async processStudentRow(
     offeringBigInt: bigint,
     row: BulkEnrollStudentRowDto,
+    placeholderHash: string,
   ): Promise<BulkEnrollRowResult> {
     return this.prisma.$transaction(async (tx) => {
       let directoryAction: 'created' | 'updated' | 'unchanged' = 'unchanged';
@@ -409,7 +416,7 @@ export class CourseOfferingsService {
         create: {
           student_code: row.student_code,
           email: row.email,
-          password_hash: await hashPassword('12345678'),
+          password_hash: placeholderHash,
           facultyCode: row.facultyCode,
           title: row.title ?? DEFAULT_TITLE,
           curriculumId: row.curriculumId ?? DEFAULT_CURRICULUM_ID,

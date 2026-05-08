@@ -8,6 +8,7 @@ import {
   DEFAULT_CURRICULUM_ID,
   DEFAULT_FACULTY_CODE,
   DEFAULT_TITLE,
+  INVITE_PLACEHOLDER_PASSWORD,
 } from 'src/lib/academic-defaults';
 import {
   CreatePreviewSessionDto,
@@ -221,6 +222,7 @@ export class PreviewImportService {
     }
 
     const results: ConfirmResult[] = [];
+    const placeholderHash = await hashPassword(INVITE_PLACEHOLDER_PASSWORD);
 
     for (const row of session.rows) {
       // Skip rows with missing data
@@ -276,7 +278,7 @@ export class PreviewImportService {
             create: {
               student_code: row.student_code,
               email: row.email,
-              password_hash: await hashPassword('12345678'),
+              password_hash: placeholderHash,
               facultyCode: row.facultyCode ?? DEFAULT_FACULTY_CODE,
               title: row.title || DEFAULT_TITLE,
               curriculumId: row.curriculumId || DEFAULT_CURRICULUM_ID,
