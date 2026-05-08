@@ -455,7 +455,7 @@ const isStudent = user?.userType === "STUDENT";
   return (
     <Navbar>
       <div className="min-h-screen bg-[#F4EFFF] p-4">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="border-b border-gray-200/50 px-6 lg:px-8 pt-4">
             <div className="flex items-center gap-6 pb-3">
               <button
@@ -490,34 +490,36 @@ const isStudent = user?.userType === "STUDENT";
           {/* Main Flex Container */}
           <div className="flex gap-4 mt-4">
             {/* Left Section - Lists */}
-            <div className="flex-1 bg-white rounded-3xl p-10">
+            <div className="flex-1 min-w-0 bg-white rounded-3xl p-6 lg:p-8">
               {/* Header Card */}
               <div className=" rounded-lg mb-4">
                 <div className="px-5 py-4 border-b border-[#D9D9D9] flex items-center justify-between">
                   <h3 className="text-sm text-[#575757] font-light">อาจารย์</h3>
                 </div>
-                <div className="p-5">
-                  <div className="flex gap-3">
-                    {offering && (
-                      <div className="flex flex-col gap-2">
-                        {offering.course_instructors.map((ci) => (
-                          <div
-                            key={ci.staff_users_id}
-                            className="flex flex-col"
-                          >
-                            <span className="text-base text-[#575757]">
-                              {formatInstructorName(ci.staff_users)}
-                            </span>
-                            <span className="text-xs text-gray-400">
-                              {getFacultyName(ci.staff_users.facultyCode ?? 1)}
-                              {" · "}
-                              {getCurriculumName(ci.staff_users.curriculumId)}
-                            </span>
-                          </div>
-                        ))}
+                <div>
+                  {offering?.course_instructors.map((ci) => (
+                    <div
+                      key={ci.staff_users_id}
+                      className="px-5 py-3 flex items-center gap-3 md:grid md:grid-cols-[minmax(8rem,1fr)_minmax(12rem,1.5fr)_minmax(12rem,1.5fr)] md:gap-4 md:items-start"
+                    >
+                      <div className="flex flex-col flex-1 min-w-0 md:contents">
+                        <span className="text-base text-[#575757] truncate md:whitespace-normal md:overflow-visible md:text-clip md:wrap-break-word md:min-w-0">
+                          {formatInstructorName(ci.staff_users)}
+                        </span>
+                        <span className="text-xs text-gray-400 truncate md:hidden">
+                          {getFacultyName(ci.staff_users.facultyCode ?? 1)}
+                          {" · "}
+                          {getCurriculumName(ci.staff_users.curriculumId)}
+                        </span>
+                        <span className="hidden md:block text-sm text-gray-500 wrap-break-word min-w-0">
+                          {getFacultyName(ci.staff_users.facultyCode ?? 1)}
+                        </span>
+                        <span className="hidden md:block text-sm text-gray-500 wrap-break-word min-w-0">
+                          {getCurriculumName(ci.staff_users.curriculumId)}
+                        </span>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  ))}
                 </div>
               </div>
               {/* Users List */}
@@ -534,54 +536,71 @@ const isStudent = user?.userType === "STUDENT";
                   </div>
                 </div>
 
+                {/* Desktop column header */}
+                <div className="hidden md:grid md:grid-cols-[6rem_minmax(8rem,1fr)_minmax(12rem,1.5fr)_minmax(12rem,1.5fr)_2rem] md:gap-4 md:items-center px-5 py-2.5 border-b border-[#E9E0FA] bg-[#FBF8FF]">
+                  <span className="text-xs font-medium text-gray-500">รหัส</span>
+                  <span className="text-xs font-medium text-gray-500">ชื่อ-นามสกุล</span>
+                  <span className="text-xs font-medium text-gray-500">สำนักวิชา</span>
+                  <span className="text-xs font-medium text-gray-500">หลักสูตร</span>
+                  <span aria-hidden />
+                </div>
+
                 {/* List */}
                 <div>
                   {students.map((student) => (
                     <div
                       key={student.student_code}
-                      className={`px-5 py-4 hover:bg-gray-50 transition-colors cursor-pointer flex items-center justify-between group`}
+                      className="px-5 py-3 hover:bg-gray-50 transition-colors flex items-center gap-3 md:grid md:grid-cols-[6rem_minmax(8rem,1fr)_minmax(12rem,1.5fr)_minmax(12rem,1.5fr)_2rem] md:gap-4 md:items-start group border-b border-gray-100 last:border-b-0"
                     >
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-3">
-                          <span className="text-base text-[#575757]">
+                      <div className="flex flex-col flex-1 min-w-0 md:contents">
+                        <div className="flex items-center gap-3 md:contents">
+                          <span className="text-base text-[#575757] md:truncate md:min-w-0">
                             {student.student_code}
                           </span>
-                          <span className="text-base text-[#575757]">
+                          <span className="text-base text-[#575757] md:whitespace-normal md:wrap-break-word md:min-w-0">
                             {student.title} {student.first_name} {student.last_name}
                           </span>
                         </div>
-                        <span className="text-xs text-gray-400 mt-0.5">
+                        <span className="text-xs text-gray-400 mt-0.5 truncate md:hidden">
                           {getFacultyName(student.facultyCode ?? 1)}
                           {" · "}
                           {getCurriculumName(student.curriculumId)}
                         </span>
+                        <span className="hidden md:block text-sm text-gray-500 wrap-break-word min-w-0">
+                          {getFacultyName(student.facultyCode ?? 1)}
+                        </span>
+                        <span className="hidden md:block text-sm text-gray-500 wrap-break-word min-w-0">
+                          {getCurriculumName(student.curriculumId)}
+                        </span>
                       </div>
                       {/* Delete button - visible on hover */}
-                      {!isStudent && (
-                      <button
-                        onClick={() =>
-                          handleUnenrollStudent(
-                            student.student_code,
-                            `${student.title} ${student.first_name} ${student.last_name}`,
-                          )
-                        }
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-50 rounded"
-                        title="นำออกจากรายวิชา"
-                      >
-                        <svg
-                          className="w-5 h-5 text-red-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                      {!isStudent ? (
+                        <button
+                          onClick={() =>
+                            handleUnenrollStudent(
+                              student.student_code,
+                              `${student.title} ${student.first_name} ${student.last_name}`,
+                            )
+                          }
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-50 rounded shrink-0 md:justify-self-end md:self-start"
+                          title="นำออกจากรายวิชา"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      </button>
+                          <svg
+                            className="w-5 h-5 text-red-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </button>
+                      ) : (
+                        <span aria-hidden className="hidden md:block" />
                       )}
                     </div>
                   ))}
