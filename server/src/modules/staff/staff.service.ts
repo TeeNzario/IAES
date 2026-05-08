@@ -183,6 +183,12 @@ export class StaffService {
       });
 
       if (password) {
+        await tx.$executeRaw`
+          UPDATE "staff_users"
+          SET "password_changed_at" = CURRENT_TIMESTAMP
+          WHERE "staff_users_id" = ${id}
+        `;
+
         await this.audit.record(
           {
             actor,
