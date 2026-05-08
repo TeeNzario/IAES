@@ -28,7 +28,7 @@ export class StudentsService {
         student_code: createStudentDto.student_code,
         email: createStudentDto.email,
         password_hash: await hashPassword(
-          createStudentDto.password_hash ?? createStudentDto.student_code,
+          createStudentDto.password ?? createStudentDto.student_code,
         ),
         facultyCode: createStudentDto.facultyCode,
         title: createStudentDto.title ?? DEFAULT_TITLE,
