@@ -5,7 +5,6 @@ type RawUserType = "staff" | "student" | "STAFF" | "STUDENT";
 type RawStaffRole = "admin" | "instructor" | "ADMIN" | "INSTRUCTOR";
 
 interface RawLoginResponse {
-  access_token: string;
   user: {
     id: string | number;
     type?: RawUserType;
@@ -19,7 +18,6 @@ interface RawLoginResponse {
 }
 
 export interface UnifiedLoginResponse {
-  access_token: string;
   user: {
     id: string | number;
     type: "STAFF" | "STUDENT";
@@ -57,7 +55,6 @@ export async function login(data: LoginDto): Promise<UnifiedLoginResponse> {
   const normalizedRole = normalizeRole(raw.user.role ?? raw.user.staff_role);
 
   return {
-    access_token: raw.access_token,
     user: {
       ...raw.user,
       type: normalizedType,
