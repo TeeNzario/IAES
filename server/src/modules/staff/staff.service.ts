@@ -2,6 +2,11 @@ import { Injectable, ConflictException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
+import {
+  DEFAULT_CURRICULUM_ID,
+  DEFAULT_TITLE,
+} from 'src/lib/academic-defaults';
+import { hashPassword } from '../../lib/password';
 
 function serializeBigInt(data: any) {
   return JSON.parse(
@@ -32,10 +37,10 @@ export class StaffService {
     const staff = await this.prisma.staff_users.create({
       data: {
         email: createStaffDto.email,
-        password_hash: createStaffDto.password, // Plain text per requirement
+        password_hash: await hashPassword(createStaffDto.password),
         facultyCode: createStaffDto.facultyCode,
-        title: createStaffDto.title ?? '',
-        curriculumId: createStaffDto.curriculumId ?? 1,
+        title: createStaffDto.title ?? DEFAULT_TITLE,
+        curriculumId: createStaffDto.curriculumId ?? DEFAULT_CURRICULUM_ID,
         first_name: createStaffDto.first_name,
         last_name: createStaffDto.last_name,
         role: createStaffDto.role,
@@ -45,6 +50,8 @@ export class StaffService {
         staff_users_id: true,
         email: true,
         facultyCode: true,
+        title: true,
+        curriculumId: true,
         first_name: true,
         last_name: true,
         role: true,
@@ -73,6 +80,8 @@ export class StaffService {
         staff_users_id: true,
         email: true,
         facultyCode: true,
+        title: true,
+        curriculumId: true,
         first_name: true,
         last_name: true,
         role: true,
@@ -95,6 +104,8 @@ export class StaffService {
         last_name: true,
         email: true,
         facultyCode: true,
+        title: true,
+        curriculumId: true,
       },
     });
     return serializeBigInt(staff);
@@ -110,6 +121,8 @@ export class StaffService {
         email: true,
         role: true,
         facultyCode: true,
+        title: true,
+        curriculumId: true,
         is_active: true,
       },
     });
@@ -134,13 +147,20 @@ export class StaffService {
       }
     }
 
+    const { password, ...rest } = updateStaffDto;
+    const data = password
+      ? { ...rest, password_hash: await hashPassword(password) }
+      : rest;
+
     const updated = await this.prisma.staff_users.update({
       where: { staff_users_id: id },
-      data: updateStaffDto,
+      data,
       select: {
         staff_users_id: true,
         email: true,
         facultyCode: true,
+        title: true,
+        curriculumId: true,
         first_name: true,
         last_name: true,
         role: true,

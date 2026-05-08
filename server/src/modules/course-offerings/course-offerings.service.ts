@@ -5,6 +5,11 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import {
+  DEFAULT_CURRICULUM_ID,
+  DEFAULT_TITLE,
+  INVITE_PLACEHOLDER_PASSWORD,
+} from 'src/lib/academic-defaults';
 import { CreateCourseOfferingDto } from './dto/create-course-offerings.dto';
 import { UpdateCourseOfferingDto } from './dto/update-course-offering.dto';
 import { AddStudentDto } from './dto/add-student.dto';
@@ -15,6 +20,7 @@ import {
   BulkEnrollResponse,
 } from './dto/bulk-enroll-student.dto';
 import { Prisma } from 'src/generated/prisma/client';
+import { hashPassword } from '../../lib/password';
 
 const courseOfferingSelect = {
   course_offerings_id: true,
@@ -39,6 +45,7 @@ const courseOfferingSelect = {
           first_name: true,
           last_name: true,
           facultyCode: true,
+          title: true,
           curriculumId: true,
         },
       },
@@ -235,16 +242,19 @@ export class CourseOfferingsService {
         where: { student_code: dto.student_code },
         update: {
           email: dto.email,
+          title: dto.title ?? DEFAULT_TITLE,
+          facultyCode: dto.facultyCode,
+          curriculumId: dto.curriculumId ?? DEFAULT_CURRICULUM_ID,
           first_name: dto.first_name,
           last_name: dto.last_name,
         },
         create: {
           student_code: dto.student_code,
           email: dto.email,
-          password_hash: '12345678', // 🔒 replace later with invite flow
+          password_hash: await hashPassword(INVITE_PLACEHOLDER_PASSWORD),
           facultyCode: dto.facultyCode,
-          title: dto.title ?? '',
-          curriculumId: dto.curriculumId ?? 1,
+          title: dto.title ?? DEFAULT_TITLE,
+          curriculumId: dto.curriculumId ?? DEFAULT_CURRICULUM_ID,
           first_name: dto.first_name,
           last_name: dto.last_name,
         },
@@ -280,6 +290,7 @@ export class CourseOfferingsService {
             last_name: true,
             email: true,
             facultyCode: true,
+            title: true,
             curriculumId: true,
           },
         },
@@ -295,6 +306,7 @@ export class CourseOfferingsService {
       last_name: e.students.last_name,
       email: e.students.email,
       facultyCode: e.students.facultyCode,
+      title: e.students.title,
       curriculumId: e.students.curriculumId,
     }));
   }
@@ -309,10 +321,15 @@ export class CourseOfferingsService {
   ): Promise<BulkEnrollResponse> {
     const offeringBigInt = BigInt(offeringId);
     const results: BulkEnrollRowResult[] = [];
+    const placeholderHash = await hashPassword(INVITE_PLACEHOLDER_PASSWORD);
 
     for (const row of dto.students) {
       try {
-        const result = await this.processStudentRow(offeringBigInt, row);
+        const result = await this.processStudentRow(
+          offeringBigInt,
+          row,
+          placeholderHash,
+        );
         results.push(result);
       } catch (error) {
         results.push({
@@ -345,6 +362,7 @@ export class CourseOfferingsService {
   private async processStudentRow(
     offeringBigInt: bigint,
     row: BulkEnrollStudentRowDto,
+    placeholderHash: string,
   ): Promise<BulkEnrollRowResult> {
     return this.prisma.$transaction(async (tx) => {
       let directoryAction: 'created' | 'updated' | 'unchanged' = 'unchanged';
@@ -389,16 +407,19 @@ export class CourseOfferingsService {
         where: { student_code: row.student_code },
         update: {
           email: row.email,
+          title: row.title ?? DEFAULT_TITLE,
+          facultyCode: row.facultyCode,
+          curriculumId: row.curriculumId ?? DEFAULT_CURRICULUM_ID,
           first_name: row.first_name,
           last_name: row.last_name,
         },
         create: {
           student_code: row.student_code,
           email: row.email,
-          password_hash: '12345678', // Placeholder for invite flow
+          password_hash: placeholderHash,
           facultyCode: row.facultyCode,
-          title: row.title ?? '',
-          curriculumId: row.curriculumId ?? 1,
+          title: row.title ?? DEFAULT_TITLE,
+          curriculumId: row.curriculumId ?? DEFAULT_CURRICULUM_ID,
           first_name: row.first_name,
           last_name: row.last_name,
         },
