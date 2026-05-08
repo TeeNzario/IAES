@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
@@ -12,6 +13,13 @@ import { DEFAULT_JWT_SECRET } from './constants';
 @Module({
   imports: [
     PassportModule,
+    ThrottlerModule.forRoot([
+      {
+        name: 'short',
+        ttl: 60_000,
+        limit: 5,
+      },
+    ]),
     // registerAsync (instead of register) so the secret is resolved AFTER
     // ConfigModule.forRoot has loaded .env / .env.local. Using
     // process.env.JWT_SECRET at module-import time was racing the env loader
