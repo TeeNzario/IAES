@@ -151,13 +151,20 @@ export class StudentsService {
     const data = password
       ? { ...rest, password_hash: await hashPassword(password) }
       : rest;
-
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.students.update({
         where: { student_code },
         data,
         select: studentPublicTimestampSelect,
       });
+
+      if (password) {
+        await tx.$executeRaw`
+          UPDATE "students"
+          SET "password_changed_at" = CURRENT_TIMESTAMP
+          WHERE "student_code" = ${student_code}
+        `;
+      }
 
       await this.recordStudentUpdateAudit(
         tx,
@@ -191,7 +198,6 @@ export class StudentsService {
     const data = password
       ? { ...rest, password_hash: await hashPassword(password) }
       : rest;
-
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.students.update({
         where: { student_code: id },
@@ -201,6 +207,14 @@ export class StudentsService {
         },
         select: studentPublicTimestampSelect,
       });
+
+      if (password) {
+        await tx.$executeRaw`
+          UPDATE "students"
+          SET "password_changed_at" = CURRENT_TIMESTAMP
+          WHERE "student_code" = ${id}
+        `;
+      }
 
       await this.recordStudentUpdateAudit(
         tx,
