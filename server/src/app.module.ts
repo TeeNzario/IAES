@@ -14,6 +14,7 @@ import { CourseOfferingsModule } from './modules/course-offerings/course-offerin
 import { KnowledgeCategoriesModule } from './modules/knowledge-categories/knowledge-categories.module';
 import { QuestionBankModule } from './modules/question-bank/question-bank.module';
 import { CourseExamsModule } from './modules/course-exams/course-exams.module';
+import { AuditModule } from './modules/audit/audit.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { CourseExamsModule } from './modules/course-exams/course-exams.module';
     }),
     StudentsModule,
     AuthModule,
+    AuditModule,
     CourseOfferingsModule,
     KnowledgeCategoriesModule,
     QuestionBankModule,
