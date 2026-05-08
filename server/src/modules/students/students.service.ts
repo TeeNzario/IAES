@@ -3,6 +3,11 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
+import {
+  DEFAULT_CURRICULUM_ID,
+  DEFAULT_TITLE,
+} from 'src/lib/academic-defaults';
+import { hashPassword } from '../../lib/password';
 
 @Injectable()
 export class StudentsService {
@@ -22,10 +27,12 @@ export class StudentsService {
       data: {
         student_code: createStudentDto.student_code,
         email: createStudentDto.email,
-        password_hash: createStudentDto.password_hash ?? createStudentDto.student_code,
+        password_hash: await hashPassword(
+          createStudentDto.password ?? createStudentDto.student_code,
+        ),
         facultyCode: createStudentDto.facultyCode,
-        title: createStudentDto.title ?? '',
-        curriculumId: createStudentDto.curriculumId ?? 1,
+        title: createStudentDto.title ?? DEFAULT_TITLE,
+        curriculumId: createStudentDto.curriculumId ?? DEFAULT_CURRICULUM_ID,
         first_name: createStudentDto.first_name,
         last_name: createStudentDto.last_name,
         is_active: true,
@@ -34,6 +41,8 @@ export class StudentsService {
         student_code: true,
         email: true,
         facultyCode: true,
+        title: true,
+        curriculumId: true,
         first_name: true,
         last_name: true,
         is_active: true,
@@ -49,6 +58,8 @@ export class StudentsService {
         student_code: true,
         email: true,
         facultyCode: true,
+        title: true,
+        curriculumId: true,
         first_name: true,
         last_name: true,
         is_active: true,
@@ -71,6 +82,8 @@ export class StudentsService {
         student_code: true,
         email: true,
         facultyCode: true,
+        title: true,
+        curriculumId: true,
         first_name: true,
         last_name: true,
       },
@@ -78,23 +91,33 @@ export class StudentsService {
   }
 
   async updateByStudentCode(student_code: string, dto: UpdateStudentDto) {
+    const { password, ...rest } = dto;
+    const data = password
+      ? { ...rest, password_hash: await hashPassword(password) }
+      : rest;
     return this.prisma.students.update({
       where: { student_code },
-      data: dto,
+      data,
     });
   }
 
   async update(id: string, updateStudentDto: UpdateStudentDto) {
+    const { password, ...rest } = updateStudentDto;
+    const data = password
+      ? { ...rest, password_hash: await hashPassword(password) }
+      : rest;
     return this.prisma.students.update({
       where: { student_code: id },
       data: {
-        ...updateStudentDto,
+        ...data,
         updated_at: new Date(),
       },
       select: {
         student_code: true,
         email: true,
         facultyCode: true,
+        title: true,
+        curriculumId: true,
         first_name: true,
         last_name: true,
         is_active: true,

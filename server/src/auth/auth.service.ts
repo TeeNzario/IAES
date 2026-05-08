@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
+import { verifyPassword } from '../lib/password';
 import {
   StaffJwtPayload,
   StaffRole,
@@ -51,7 +52,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    if (student.password_hash !== password) {
+    if (!(await verifyPassword(password, student.password_hash))) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -71,6 +72,7 @@ export class AuthService {
         type: 'STUDENT' as const,
         student_code: student.student_code,
         email: student.email,
+        title: student.title,
         first_name: student.first_name,
         last_name: student.last_name,
       },
@@ -86,7 +88,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    if (staff.password_hash !== password) {
+    if (!(await verifyPassword(password, staff.password_hash))) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -106,6 +108,7 @@ export class AuthService {
         id: staff.staff_users_id.toString(),
         type: 'STAFF' as const,
         email: staff.email,
+        title: staff.title,
         first_name: staff.first_name,
         last_name: staff.last_name,
         staff_role: staff.role as StaffRole,

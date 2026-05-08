@@ -1,0 +1,4 @@
+export const DEFAULT_TITLE = 'นาย';
+export const DEFAULT_FACULTY_CODE = 1;
+export const DEFAULT_CURRICULUM_ID = 'CUR067';
+export const INVITE_PLACEHOLDER_PASSWORD = '12345678';

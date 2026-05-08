@@ -36,9 +36,9 @@ export class BulkEnrollStudentRowDto {
   @IsOptional()
   title?: string;
 
-  @IsInt()
+  @IsString()
   @IsOptional()
-  curriculumId?: number;
+  curriculumId?: string;
 }
 
 export class BulkEnrollStudentDto {

@@ -58,9 +58,10 @@ export interface CreateStudentPayload {
   student_code: string;
   email: string;
   facultyCode: number;
+  title: string;
   first_name: string;
   last_name: string;
-  curriculumId?: number;
+  curriculumId?: string;
 }
 
 export const createStudent = async (
@@ -91,11 +92,12 @@ export const createUser = async (userData: Omit<User, "id">): Promise<User> => {
 
 // Update user
 export interface UpdateUserPayload {
+  title?: string;
   first_name?: string;
   last_name?: string;
   is_active?: boolean;
   facultyCode?: number;
-  curriculumId?: number;
+  curriculumId?: string;
 }
 
 export const updateUser = async (

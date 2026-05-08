@@ -25,6 +25,14 @@ export class PreviewRowDto {
 
   @IsOptional()
   @IsString()
+  title?: string;
+
+  @IsOptional()
+  @IsString()
+  curriculumId?: string;
+
+  @IsOptional()
+  @IsString()
   first_name?: string;
 
   @IsOptional()
@@ -56,6 +64,14 @@ export class EditPreviewRowDto {
 
   @IsString()
   @IsOptional()
+  title?: string;
+
+  @IsString()
+  @IsOptional()
+  curriculumId?: string;
+
+  @IsString()
+  @IsOptional()
   first_name?: string;
 
   @IsString()
@@ -77,6 +93,8 @@ export interface PreviewRowResponse {
   student_code: string;
   email: string;
   facultyCode: number;
+  title: string;
+  curriculumId?: string;
   first_name: string;
   last_name: string;
   status: PreviewRowStatus;
