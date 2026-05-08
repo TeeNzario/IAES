@@ -152,20 +152,32 @@ export class StaffService {
       ? { ...rest, password_hash: await hashPassword(password) }
       : rest;
 
-    const updated = await this.prisma.staff_users.update({
-      where: { staff_users_id: id },
-      data,
-      select: {
-        staff_users_id: true,
-        email: true,
-        facultyCode: true,
-        title: true,
-        curriculumId: true,
-        first_name: true,
-        last_name: true,
-        role: true,
-        is_active: true,
-      },
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const result = await tx.staff_users.update({
+        where: { staff_users_id: id },
+        data,
+        select: {
+          staff_users_id: true,
+          email: true,
+          facultyCode: true,
+          title: true,
+          curriculumId: true,
+          first_name: true,
+          last_name: true,
+          role: true,
+          is_active: true,
+        },
+      });
+
+      if (password) {
+        await tx.$executeRaw`
+          UPDATE "staff_users"
+          SET "password_changed_at" = CURRENT_TIMESTAMP
+          WHERE "staff_users_id" = ${id}
+        `;
+      }
+
+      return result;
     });
     return serializeBigInt(updated);
   }
