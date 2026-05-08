@@ -9,6 +9,23 @@ import {
 } from 'src/lib/academic-defaults';
 import { hashPassword } from '../../lib/password';
 
+const studentPublicSelect = {
+  student_code: true,
+  email: true,
+  facultyCode: true,
+  title: true,
+  curriculumId: true,
+  first_name: true,
+  last_name: true,
+  is_active: true,
+};
+
+const studentPublicTimestampSelect = {
+  ...studentPublicSelect,
+  created_at: true,
+  updated_at: true,
+};
+
 @Injectable()
 export class StudentsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -37,16 +54,7 @@ export class StudentsService {
         last_name: createStudentDto.last_name,
         is_active: true,
       },
-      select: {
-        student_code: true,
-        email: true,
-        facultyCode: true,
-        title: true,
-        curriculumId: true,
-        first_name: true,
-        last_name: true,
-        is_active: true,
-      },
+      select: studentPublicSelect,
     });
 
     return student;
@@ -54,18 +62,7 @@ export class StudentsService {
 
   findAll() {
     return this.prisma.students.findMany({
-      select: {
-        student_code: true,
-        email: true,
-        facultyCode: true,
-        title: true,
-        curriculumId: true,
-        first_name: true,
-        last_name: true,
-        is_active: true,
-        created_at: true,
-        updated_at: true,
-      },
+      select: studentPublicTimestampSelect,
       orderBy: { student_code: 'asc' },
     });
   }
@@ -98,6 +95,7 @@ export class StudentsService {
     return this.prisma.students.update({
       where: { student_code },
       data,
+      select: studentPublicTimestampSelect,
     });
   }
 
@@ -112,24 +110,14 @@ export class StudentsService {
         ...data,
         updated_at: new Date(),
       },
-      select: {
-        student_code: true,
-        email: true,
-        facultyCode: true,
-        title: true,
-        curriculumId: true,
-        first_name: true,
-        last_name: true,
-        is_active: true,
-        created_at: true,
-        updated_at: true,
-      },
+      select: studentPublicTimestampSelect,
     });
   }
 
   remove(id: string) {
     return this.prisma.students.delete({
       where: { student_code: id },
+      select: studentPublicSelect,
     });
   }
 
