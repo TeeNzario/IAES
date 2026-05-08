@@ -21,11 +21,15 @@ export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
   @Post()
+  @Auth()
+  @Roles('ADMIN')
   create(@Body() createStudentDto: CreateStudentDto) {
     return this.studentsService.create(createStudentDto);
   }
 
   @Get()
+  @Auth()
+  @Roles('ADMIN')
   findAll() {
     return this.studentsService.findAll();
   }
@@ -35,6 +39,8 @@ export class StudentsController {
    * Used for frontend validation
    */
   @Get('check-code')
+  @Auth()
+  @Roles('ADMIN')
   async checkCodeExists(
     @Query('student_code') studentCode: string,
     @Query('excludeCode') excludeCode?: string,

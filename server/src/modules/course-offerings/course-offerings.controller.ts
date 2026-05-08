@@ -83,8 +83,12 @@ export class CourseOfferingsController {
   // }
 
   @Get(':offeringId')
-  findOne(@Param('offeringId') offeringId: string) {
-    return this.courseOfferingsService.findOneById(offeringId);
+  @Auth()
+  findOne(
+    @Param('offeringId') offeringId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.courseOfferingsService.findOneById(offeringId, req.user);
   }
 
   @Patch(':offeringId')
@@ -109,21 +113,38 @@ export class CourseOfferingsController {
   @Delete(':offeringId')
   @Auth()
   @Roles('INSTRUCTOR')
-  remove(@Param('offeringId') offeringId: string) {
-    return this.courseOfferingsService.remove(offeringId);
+  remove(
+    @Param('offeringId') offeringId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.courseOfferingsService.remove(offeringId, req.user.sub);
   }
 
   @Post(':offeringId/students')
+  @Auth()
+  @Roles('INSTRUCTOR')
   addStudent(
     @Param('offeringId') offeringId: string,
+    @Req() req: AuthenticatedRequest,
     @Body() dto: AddStudentDto,
   ) {
-    return this.courseOfferingsService.addStudentToOffering(offeringId, dto);
+    return this.courseOfferingsService.addStudentToOffering(
+      offeringId,
+      dto,
+      req.user.sub,
+    );
   }
 
   @Get(':offeringId/students')
-  getStudents(@Param('offeringId') offeringId: string) {
-    return this.courseOfferingsService.getStudentsByOffering(offeringId);
+  @Auth()
+  getStudents(
+    @Param('offeringId') offeringId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.courseOfferingsService.getStudentsByOffering(
+      offeringId,
+      req.user,
+    );
   }
 
   /**
@@ -131,13 +152,17 @@ export class CourseOfferingsController {
    * Used for frontend validation before form submission
    */
   @Get(':offeringId/students/check-code')
+  @Auth()
+  @Roles('INSTRUCTOR')
   async checkCodeExists(
     @Param('offeringId') offeringId: string,
+    @Req() req: AuthenticatedRequest,
     @Query('student_code') studentCode: string,
   ) {
     const exists = await this.courseOfferingsService.checkStudentCodeExists(
       offeringId,
       studentCode,
+      req.user.sub,
     );
     return { exists };
   }
@@ -147,13 +172,17 @@ export class CourseOfferingsController {
    * Used for frontend validation before form submission
    */
   @Get(':offeringId/students/check-email')
+  @Auth()
+  @Roles('INSTRUCTOR')
   async checkEmailExists(
     @Param('offeringId') offeringId: string,
+    @Req() req: AuthenticatedRequest,
     @Query('email') email: string,
   ) {
     const exists = await this.courseOfferingsService.checkStudentEmailExists(
       offeringId,
       email,
+      req.user.sub,
     );
     return { exists };
   }
@@ -168,8 +197,13 @@ export class CourseOfferingsController {
   unenrollStudent(
     @Param('offeringId') offeringId: string,
     @Param('studentCode') studentCode: string,
+    @Req() req: AuthenticatedRequest,
   ) {
-    return this.courseOfferingsService.unenrollStudent(offeringId, studentCode);
+    return this.courseOfferingsService.unenrollStudent(
+      offeringId,
+      studentCode,
+      req.user.sub,
+    );
   }
 
   @Post(':offeringId/bulk-enroll')
@@ -177,9 +211,14 @@ export class CourseOfferingsController {
   @Roles('INSTRUCTOR')
   bulkEnroll(
     @Param('offeringId') offeringId: string,
+    @Req() req: AuthenticatedRequest,
     @Body() dto: BulkEnrollStudentDto,
   ) {
-    return this.courseOfferingsService.bulkEnrollStudents(offeringId, dto);
+    return this.courseOfferingsService.bulkEnrollStudents(
+      offeringId,
+      dto,
+      req.user.sub,
+    );
   }
 
   // =============== Preview Import Endpoints ===============
@@ -202,8 +241,16 @@ export class CourseOfferingsController {
   @Get(':offeringId/import/preview/:sessionId')
   @Auth()
   @Roles('INSTRUCTOR')
-  getPreviewSession(@Param('sessionId') sessionId: string) {
-    return this.previewImportService.getPreviewSession(sessionId);
+  getPreviewSession(
+    @Param('offeringId') offeringId: string,
+    @Param('sessionId') sessionId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.previewImportService.getPreviewSession(
+      offeringId,
+      sessionId,
+      req.user.sub,
+    );
   }
 
   @Patch(':offeringId/import/preview/:sessionId/:rowIndex')
@@ -213,6 +260,7 @@ export class CourseOfferingsController {
     @Param('offeringId') offeringId: string,
     @Param('sessionId') sessionId: string,
     @Param('rowIndex', ParseIntPipe) rowIndex: number,
+    @Req() req: AuthenticatedRequest,
     @Body() dto: EditPreviewRowDto,
   ) {
     return this.previewImportService.editPreviewRow(
@@ -220,6 +268,7 @@ export class CourseOfferingsController {
       sessionId,
       rowIndex,
       dto,
+      req.user.sub,
     );
   }
 
@@ -227,10 +276,17 @@ export class CourseOfferingsController {
   @Auth()
   @Roles('INSTRUCTOR')
   deletePreviewRow(
+    @Param('offeringId') offeringId: string,
     @Param('sessionId') sessionId: string,
     @Param('rowIndex', ParseIntPipe) rowIndex: number,
+    @Req() req: AuthenticatedRequest,
   ) {
-    return this.previewImportService.deletePreviewRow(sessionId, rowIndex);
+    return this.previewImportService.deletePreviewRow(
+      offeringId,
+      sessionId,
+      rowIndex,
+      req.user.sub,
+    );
   }
 
   @Post(':offeringId/import/confirm/:sessionId')
@@ -239,7 +295,12 @@ export class CourseOfferingsController {
   confirmImport(
     @Param('offeringId') offeringId: string,
     @Param('sessionId') sessionId: string,
+    @Req() req: AuthenticatedRequest,
   ) {
-    return this.previewImportService.confirmSession(offeringId, sessionId);
+    return this.previewImportService.confirmSession(
+      offeringId,
+      sessionId,
+      req.user.sub,
+    );
   }
 }
