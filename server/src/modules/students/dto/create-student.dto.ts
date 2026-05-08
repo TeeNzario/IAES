@@ -31,8 +31,7 @@ export class CreateStudentDto {
   @IsOptional()
   title?: string;
 
-  @Type(() => Number)
-  @IsInt()
+  @IsString()
   @IsOptional()
-  curriculumId?: number;
+  curriculumId?: string;
 }

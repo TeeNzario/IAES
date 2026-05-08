@@ -21,6 +21,7 @@ export interface AuthUser {
   id: string | number;
   type: UserType;
   email?: string;
+  title?: string;
   first_name?: string;
   last_name?: string;
   // Student-specific

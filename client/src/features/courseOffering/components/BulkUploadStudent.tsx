@@ -4,8 +4,14 @@ import { useState, useRef, DragEvent, ChangeEvent } from "react";
 import { Edit2, Trash2, Loader2, Save, X } from "lucide-react";
 import Papa from "papaparse";
 import { apiFetch } from "@/lib/api";
-import { FACULTY_MAP, getFacultyName } from "@/lib/faculty-map";
-import { CURRICULUMS, getCurriculumName } from "@/config/curriculums";
+import { DEFAULT_FACULTY_CODE, FACULTY_MAP, getFacultyName } from "@/lib/faculty-map";
+import {
+  CURRICULUMS,
+  DEFAULT_CURRICULUM_ID,
+  getCurriculumName,
+  resolveCurriculumId,
+} from "@/config/curriculums";
+import { DEFAULT_TITLE, THAI_TITLES } from "@/config/titles";
 
 // Row data from preview session
 interface PreviewRow {
@@ -14,7 +20,8 @@ interface PreviewRow {
   student_code: string;
   email: string;
   facultyCode: number;
-  curriculumId?: number;
+  title: string;
+  curriculumId?: string;
   first_name: string;
   last_name: string;
   status:
@@ -68,6 +75,23 @@ interface BulkUploadModalProps {
 
 type FilterStatus = "all" | "new" | "enrolled" | "error";
 
+function parseFacultyCode(value: unknown): number | undefined {
+  const text = String(value ?? "").trim();
+  if (!text) return undefined;
+
+  const numeric = Number(text);
+  if (Number.isInteger(numeric)) return numeric;
+
+  const match = Object.entries(FACULTY_MAP).find(([, name]) => name === text);
+  return match ? Number(match[0]) : undefined;
+}
+
+function parseCurriculumId(value: unknown): string {
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+  return resolveCurriculumId(text, text.split(":")[0].trim());
+}
+
 export default function BulkUploadModal({
   isOpen,
   onClose,
@@ -90,8 +114,9 @@ export default function BulkUploadModal({
   const [editForm, setEditForm] = useState({
     student_code: "",
     email: "",
-    facultyCode: 1,
-    curriculumId: 1,
+    facultyCode: DEFAULT_FACULTY_CODE,
+    title: DEFAULT_TITLE,
+    curriculumId: DEFAULT_CURRICULUM_ID,
     first_name: "",
     last_name: "",
   });
@@ -186,8 +211,20 @@ export default function BulkUploadModal({
               ""
             ).trim(),
             email: (row.email || row.อีเมล || "").trim(),
-            facultyCode: row.facultyCode ? Number(row.facultyCode) : (row.คณะ ? Number(row.คณะ) : undefined),
-            curriculumId: row.curriculumId ? Number(row.curriculumId) : (row.หลักสูตร ? Number(row.หลักสูตร) : undefined),
+            facultyCode: parseFacultyCode(row.facultyCode || row.faculty_code || row.สำนักวิชา || row.คณะ),
+            title: String(
+              row.title ||
+              row.prefix ||
+              row.คำนำหน้า ||
+              ""
+            ).trim(),
+            curriculumId: parseCurriculumId(
+              row.curriculumId ||
+              row.curriculum_id ||
+              row.curriculumCode ||
+              row.หลักสูตร ||
+              ""
+            ).trim(),
             first_name: (
               row.firstName ||
               row.first_name ||
@@ -238,8 +275,9 @@ export default function BulkUploadModal({
     setEditForm({
       student_code: row.student_code,
       email: row.email,
-      facultyCode: row.facultyCode ?? 1,
-      curriculumId: row.curriculumId ?? 1,
+      facultyCode: row.facultyCode ?? DEFAULT_FACULTY_CODE,
+      title: row.title || DEFAULT_TITLE,
+      curriculumId: row.curriculumId ?? DEFAULT_CURRICULUM_ID,
       first_name: row.first_name,
       last_name: row.last_name,
     });
@@ -404,7 +442,7 @@ export default function BulkUploadModal({
                 <>
                   <p className="text-purple-400 text-lg">อัพโหลดไฟล์ CSV</p>
                   <p className="text-gray-400 text-sm mt-2">
-                    คอลัมน์: student_code, email, first_name, last_name, facultyCode, curriculumId
+                    คอลัมน์: student_code, email, title, first_name, last_name, facultyCode, curriculumId
                   </p>
                 </>
               )}
@@ -476,10 +514,11 @@ export default function BulkUploadModal({
                       <th className="py-3 px-4 text-left font-light text-sm rounded-tl-lg w-28">
                         รหัสนักศึกษา
                       </th>
+                      <th className="py-3 px-4 text-left font-light text-sm">คำนำหน้า</th>
                       <th className="py-3 px-4 text-left font-light text-sm">ชื่อ</th>
                       <th className="py-3 px-4 text-left font-light text-sm">นามสกุล</th>
                       <th className="py-3 px-4 text-left font-light text-sm">อีเมล</th>
-                      <th className="py-3 px-4 text-left font-light text-sm">คณะ</th>
+                      <th className="py-3 px-4 text-left font-light text-sm">สำนักวิชา</th>
                       <th className="py-3 px-4 text-left font-light text-sm">หลักสูตร</th>
                       <th className="py-3 px-4 text-left font-light text-sm">สถานะ</th>
                       <th className="py-3 px-4 text-left font-light text-sm">หมายเหตุ</th>
@@ -517,6 +556,24 @@ export default function BulkUploadModal({
                                 }
                                 className="w-full px-2 py-1 border rounded text-sm"
                               />
+                            </td>
+                            <td className="py-2 px-4">
+                              <select
+                                value={editForm.title}
+                                onChange={(e) =>
+                                  setEditForm((f) => ({
+                                    ...f,
+                                    title: e.target.value,
+                                  }))
+                                }
+                                className="w-full px-2 py-1 border rounded text-sm"
+                              >
+                                {THAI_TITLES.map((title) => (
+                                  <option key={title} value={title}>
+                                    {title}
+                                  </option>
+                                ))}
+                              </select>
                             </td>
                             <td className="py-2 px-4">
                               <input
@@ -581,14 +638,14 @@ export default function BulkUploadModal({
                                 onChange={(e) =>
                                   setEditForm((f) => ({
                                     ...f,
-                                    curriculumId: Number(e.target.value),
+                                    curriculumId: e.target.value,
                                   }))
                                 }
                                 className="w-full px-2 py-1 border rounded text-sm"
                               >
                                 {CURRICULUMS.map((c) => (
                                   <option key={c.id} value={c.id}>
-                                    {c.name}
+                                    {getCurriculumName(c.id)}
                                   </option>
                                 ))}
                               </select>
@@ -620,6 +677,9 @@ export default function BulkUploadModal({
                           <>
                             <td className="py-3 px-4 text-gray-700 text-sm">
                               {row.student_code || "-"}
+                            </td>
+                            <td className="py-3 px-4 text-gray-700 text-sm">
+                              {row.title || "-"}
                             </td>
                             <td className="py-3 px-4 text-gray-700 text-sm">
                               {row.first_name || "-"}

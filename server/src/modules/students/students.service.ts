@@ -3,6 +3,10 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
+import {
+  DEFAULT_CURRICULUM_ID,
+  DEFAULT_TITLE,
+} from 'src/lib/academic-defaults';
 
 @Injectable()
 export class StudentsService {
@@ -24,8 +28,8 @@ export class StudentsService {
         email: createStudentDto.email,
         password_hash: createStudentDto.password_hash ?? createStudentDto.student_code,
         facultyCode: createStudentDto.facultyCode,
-        title: createStudentDto.title ?? '',
-        curriculumId: createStudentDto.curriculumId ?? 1,
+        title: createStudentDto.title ?? DEFAULT_TITLE,
+        curriculumId: createStudentDto.curriculumId ?? DEFAULT_CURRICULUM_ID,
         first_name: createStudentDto.first_name,
         last_name: createStudentDto.last_name,
         is_active: true,
@@ -34,6 +38,8 @@ export class StudentsService {
         student_code: true,
         email: true,
         facultyCode: true,
+        title: true,
+        curriculumId: true,
         first_name: true,
         last_name: true,
         is_active: true,
@@ -49,6 +55,8 @@ export class StudentsService {
         student_code: true,
         email: true,
         facultyCode: true,
+        title: true,
+        curriculumId: true,
         first_name: true,
         last_name: true,
         is_active: true,
@@ -71,6 +79,8 @@ export class StudentsService {
         student_code: true,
         email: true,
         facultyCode: true,
+        title: true,
+        curriculumId: true,
         first_name: true,
         last_name: true,
       },
@@ -95,6 +105,8 @@ export class StudentsService {
         student_code: true,
         email: true,
         facultyCode: true,
+        title: true,
+        curriculumId: true,
         first_name: true,
         last_name: true,
         is_active: true,

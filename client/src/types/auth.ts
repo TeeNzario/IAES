@@ -11,6 +11,7 @@ export interface AuthUser {
   type?: UserType;
   userType?: UserType;
   email?: string;
+  title?: string;
   first_name?: string;
   last_name?: string;
   student_code?: string;

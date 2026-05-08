@@ -4,8 +4,9 @@
 import NavBar from "@/components/layout/NavBar";
 import { useState, useMemo, useEffect } from "react";
 import { Search, ChevronLeft, ChevronRight, Plus, Loader2, ChevronDown } from "lucide-react";
-import { FACULTY_MAP, getFacultyName } from "@/lib/faculty-map";
-import { CURRICULUMS, getCurriculumName } from "@/config/curriculums";
+import { DEFAULT_FACULTY_CODE, FACULTY_MAP, getFacultyName } from "@/lib/faculty-map";
+import { CURRICULUMS, DEFAULT_CURRICULUM_ID, getCurriculumName } from "@/config/curriculums";
+import { DEFAULT_TITLE, THAI_TITLES } from "@/config/titles";
 import {
   getUsers,
   updateUser as apiUpdateUser,
@@ -57,16 +58,18 @@ type RoleFilter = "STUDENT" | "INSTRUCTOR" | "ADMINISTRATOR";
 
 interface User {
   id: string;
+  title: string;
   first_name: string;
   last_name: string;
   is_active: boolean;
   role: RoleFilter;
   email?: string;
   facultyCode: number;
-  curriculumId?: number;
+  curriculumId?: string;
 }
 
 interface FormErrors {
+  title?: string;
   first_name?: string;
   last_name?: string;
   email?: string;
@@ -77,32 +80,34 @@ interface FormErrors {
 function mapStudentToUser(student: any): User {
   return {
     id: student.student_code,
+    title: student.title ?? DEFAULT_TITLE,
     first_name: student.first_name ?? "",
     last_name: student.last_name ?? "",
     is_active: !!student.is_active,
     role: "STUDENT",
     email: student.email,
-    facultyCode: student.facultyCode ?? 1,
-    curriculumId: student.curriculumId ?? 1,
+    facultyCode: student.facultyCode ?? DEFAULT_FACULTY_CODE,
+    curriculumId: student.curriculumId ?? DEFAULT_CURRICULUM_ID,
   };
 }
 
 function mapStaffToUser(staff: any): User {
   return {
     id: String(staff.staff_users_id),
+    title: staff.title ?? DEFAULT_TITLE,
     first_name: staff.first_name ?? "",
     last_name: staff.last_name ?? "",
     is_active: !!staff.is_active,
     role: staff.role === "ADMIN" ? "ADMINISTRATOR" : (staff.role as RoleFilter),
     email: staff.email,
-    facultyCode: staff.facultyCode ?? 1,
-    curriculumId: staff.curriculumId ?? 1,
+    facultyCode: staff.facultyCode ?? DEFAULT_FACULTY_CODE,
+    curriculumId: staff.curriculumId ?? DEFAULT_CURRICULUM_ID,
   };
 }
 
 // Email and Name validation regex pattern
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const NAME_REGEX = /^[A-Za-zก-๙\s]+$/;
+const NAME_REGEX = /^[ก-๙\s]+$/;
 
 
 export default function ManageUserPage() {
@@ -119,10 +124,11 @@ export default function ManageUserPage() {
   // Edit modal states
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editId, setEditId] = useState("");
+  const [editTitle, setEditTitle] = useState(DEFAULT_TITLE);
   const [editFirstName, setEditFirstName] = useState("");
   const [editLastName, setEditLastName] = useState("");
-  const [editFacultyCode, setEditFacultyCode] = useState<number>(1);
-  const [editCurriculumId, setEditCurriculumId] = useState<number>(1);
+  const [editFacultyCode, setEditFacultyCode] = useState<number>(DEFAULT_FACULTY_CODE);
+  const [editCurriculumId, setEditCurriculumId] = useState<string>(DEFAULT_CURRICULUM_ID);
   const [editActive, setEditActive] = useState<"ACTIVE" | "INACTIVE">("ACTIVE");
   const [editErrors, setEditErrors] = useState<FormErrors>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -135,8 +141,9 @@ export default function ManageUserPage() {
   const [createEmail, setCreateEmail] = useState("");
   const [createPassword, setCreatePassword] = useState("");
   const [createConfirmPassword, setCreateConfirmPassword] = useState("");
-  const [createFacultyCode, setCreateFacultyCode] = useState<number>(1);
-  const [createCurriculumId, setCreateCurriculumId] = useState<number>(1);
+  const [createFacultyCode, setCreateFacultyCode] = useState<number>(DEFAULT_FACULTY_CODE);
+  const [createCurriculumId, setCreateCurriculumId] = useState<string>(DEFAULT_CURRICULUM_ID);
+  const [createTitle, setCreateTitle] = useState("อาจารย์");
   const [createFirstName, setCreateFirstName] = useState("");
   const [createLastName, setCreateLastName] = useState("");
   const [createErrors, setCreateErrors] = useState<FormErrors>({});
@@ -146,10 +153,11 @@ export default function ManageUserPage() {
   const [showCreateStudentModal, setShowCreateStudentModal] = useState(false);
   const [studentCode, setStudentCode] = useState("");
   const [studentEmail, setStudentEmail] = useState("");
+  const [studentTitle, setStudentTitle] = useState(DEFAULT_TITLE);
   const [studentFirstName, setStudentFirstName] = useState("");
   const [studentLastName, setStudentLastName] = useState("");
-  const [studentFacultyCode, setStudentFacultyCode] = useState<number>(1);
-  const [studentCurriculumId, setStudentCurriculumId] = useState<number>(1);
+  const [studentFacultyCode, setStudentFacultyCode] = useState<number>(DEFAULT_FACULTY_CODE);
+  const [studentCurriculumId, setStudentCurriculumId] = useState<string>(DEFAULT_CURRICULUM_ID);
   const [studentErrors, setStudentErrors] = useState<FormErrors & { student_code?: string; facultyCode?: string }>({});
   const [isCreatingStudent, setIsCreatingStudent] = useState(false);
 
@@ -198,7 +206,7 @@ export default function ManageUserPage() {
         if (user.id === currentId) return false;
       }
 
-      const fullName = `${user.first_name} ${user.last_name}`.trim();
+      const fullName = `${user.title} ${user.first_name} ${user.last_name}`.trim();
       const matchesSearch =
         fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.id.includes(searchTerm);
@@ -217,8 +225,8 @@ export default function ManageUserPage() {
     });
 
     list.sort((a, b) => {
-      const aName = `${a.first_name} ${a.last_name}`.trim();
-      const bName = `${b.first_name} ${b.last_name}`.trim();
+      const aName = `${a.title} ${a.first_name} ${a.last_name}`.trim();
+      const bName = `${b.title} ${b.first_name} ${b.last_name}`.trim();
 
       const nameCmp = collator.compare(aName, bName);
       if (nameCmp !== 0) return nameCmp;
@@ -250,16 +258,21 @@ export default function ManageUserPage() {
   function openEdit(user: User) {
     setEditingUser(user);
     setEditId(user.id);
+    setEditTitle(user.title || DEFAULT_TITLE);
     setEditFirstName(user.first_name);
     setEditLastName(user.last_name);
-    setEditFacultyCode(user.facultyCode ?? 1);
-    setEditCurriculumId(user.curriculumId ?? 1);
+    setEditFacultyCode(user.facultyCode ?? DEFAULT_FACULTY_CODE);
+    setEditCurriculumId(user.curriculumId ?? DEFAULT_CURRICULUM_ID);
     setEditActive(user.is_active ? "ACTIVE" : "INACTIVE");
     setEditErrors({});
   }
 
   function validateEditForm(): boolean {
     const errors: FormErrors = {};
+
+    if (!editTitle.trim()) {
+      errors.title = "กรุณาเลือกคำนำหน้า";
+    }
 
     if (!editFirstName.trim()) {
       errors.first_name = ERROR_MESSAGES.firstName.required;
@@ -275,11 +288,11 @@ export default function ManageUserPage() {
 
     // Validate name format 
     if (!NAME_REGEX.test(editFirstName.trim())) {
-      errors.first_name = "ชื่อต้องเป็นตัวอักษรเท่านั้น";
+      errors.first_name = "ชื่อต้องเป็นภาษาไทยเท่านั้น";
     }
 
     if (!NAME_REGEX.test(editLastName.trim())) {
-      errors.last_name = "นามสกุลต้องเป็นตัวอักษรเท่านั้น";
+      errors.last_name = "นามสกุลต้องเป็นภาษาไทยเท่านั้น";
     }
 
 
@@ -301,6 +314,7 @@ export default function ManageUserPage() {
         u.id === editingUser.id
           ? {
             ...u,
+            title: editTitle,
             first_name: editFirstName,
             last_name: editLastName,
             facultyCode: editFacultyCode,
@@ -315,6 +329,7 @@ export default function ManageUserPage() {
     try {
       if (editingUser.role === "STUDENT") {
         await apiUpdateUser(editingUser.id, {
+          title: editTitle,
           first_name: editFirstName,
           last_name: editLastName,
           facultyCode: editFacultyCode,
@@ -324,6 +339,7 @@ export default function ManageUserPage() {
       } else {
         // For staff, include facultyCode; only include is_active if NOT ADMIN
         const updatePayload: any = {
+          title: editTitle,
           first_name: editFirstName,
           last_name: editLastName,
           facultyCode: editFacultyCode,
@@ -350,8 +366,9 @@ export default function ManageUserPage() {
     setCreateEmail("");
     setCreatePassword("");
     setCreateConfirmPassword("");
-    setCreateFacultyCode(1);
-    setCreateCurriculumId(1);
+    setCreateFacultyCode(DEFAULT_FACULTY_CODE);
+    setCreateCurriculumId(DEFAULT_CURRICULUM_ID);
+    setCreateTitle("อาจารย์");
     setCreateFirstName("");
     setCreateLastName("");
     setCreateErrors({});
@@ -360,6 +377,10 @@ export default function ManageUserPage() {
 
   async function validateCreateForm(): Promise<boolean> {
     const errors: FormErrors = {};
+
+    if (!createTitle.trim()) {
+      errors.title = "กรุณาเลือกคำนำหน้า";
+    }
 
     // First name
     if (!createFirstName.trim()) {
@@ -377,11 +398,11 @@ export default function ManageUserPage() {
 
     // Validate name format 
     if (!NAME_REGEX.test(createFirstName.trim())) {
-      errors.first_name = "ชื่อต้องเป็นตัวอักษรเท่านั้น";
+      errors.first_name = "ชื่อต้องเป็นภาษาไทยเท่านั้น";
     }
 
     if (!NAME_REGEX.test(createLastName.trim())) {
-      errors.last_name = "นามสกุลต้องเป็นตัวอักษรเท่านั้น";
+      errors.last_name = "นามสกุลต้องเป็นภาษาไทยเท่านั้น";
     }
 
 
@@ -432,6 +453,7 @@ export default function ManageUserPage() {
         password: createPassword,
         facultyCode: createFacultyCode,
         curriculumId: createCurriculumId,
+        title: createTitle,
         first_name: createFirstName,
         last_name: createLastName,
         role: createRole,
@@ -464,10 +486,11 @@ export default function ManageUserPage() {
   function openCreateStudentModal() {
     setStudentCode("");
     setStudentEmail("");
+    setStudentTitle(DEFAULT_TITLE);
     setStudentFirstName("");
     setStudentLastName("");
-    setStudentFacultyCode(1);
-    setStudentCurriculumId(1);
+    setStudentFacultyCode(DEFAULT_FACULTY_CODE);
+    setStudentCurriculumId(DEFAULT_CURRICULUM_ID);
     setStudentErrors({});
     setShowCreateStudentModal(true);
   }
@@ -478,6 +501,10 @@ export default function ManageUserPage() {
 
     if (!studentCode.trim()) {
       errors.student_code = "กรุณาระบุรหัสนักศึกษา";
+    }
+
+    if (!studentTitle.trim()) {
+      errors.title = "กรุณาเลือกคำนำหน้า";
     }
 
     if (!studentFirstName.trim()) {
@@ -527,6 +554,7 @@ export default function ManageUserPage() {
         email: studentEmail,
         facultyCode: studentFacultyCode,
         curriculumId: studentCurriculumId,
+        title: studentTitle,
         first_name: studentFirstName,
         last_name: studentLastName,
       });
@@ -692,7 +720,7 @@ export default function ManageUserPage() {
                     <td className="px-4 py-2 text-gray-700">
                       {user.role === "STUDENT" ? user.id : ""}
                     </td>
-                    <td className="px-4 py-2 text-gray-700">{`${user.first_name} ${user.last_name}`}</td>
+                    <td className="px-4 py-2 text-gray-700">{`${user.title} ${user.first_name} ${user.last_name}`}</td>
                     <td className="px-4 py-2 text-gray-700">{getFacultyName(user.facultyCode ?? 1)}</td>
                     <td className="px-4 py-2 text-gray-700">{getCurriculumName(user.curriculumId)}</td>
                     <td className="px-4 py-2">
@@ -742,7 +770,7 @@ export default function ManageUserPage() {
                     <div className="text-sm text-gray-500">
                       {user.role === "STUDENT" ? `รหัสนักศึกษา: ${user.id}` : ""}
                     </div>
-                    <div className="font-medium text-gray-800">{`${user.first_name} ${user.last_name}`}</div>
+                    <div className="font-medium text-gray-800">{`${user.title} ${user.first_name} ${user.last_name}`}</div>
                     <span
                       className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${user.is_active
                         ? "bg-green-100 text-green-700"
@@ -854,6 +882,34 @@ export default function ManageUserPage() {
                 />
               </div>
 
+              {/* Title Field */}
+              <div className="mb-5">
+                <label className="block text-sm font-medium text-black mb-2">
+                  คำนำหน้า
+                </label>
+                <div className="relative">
+                  <select
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black appearance-none bg-white ${
+                      editErrors.title
+                        ? "border-red-500"
+                        : "border-[#9264F5] focus:border-[#B7A3E3]"
+                    }`}
+                  >
+                    {THAI_TITLES.map((title) => (
+                      <option key={title} value={title}>
+                        {title}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                </div>
+                {editErrors.title && (
+                  <p className="text-red-500 text-xs mt-1">{editErrors.title}</p>
+                )}
+              </div>
+
               {/* First Name Field */}
               <div className="mb-5">
                 <label className="block text-sm font-medium text-black mb-2">
@@ -867,7 +923,7 @@ export default function ManageUserPage() {
                   type="text"
                   value={editFirstName}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/[^A-Za-zก-๙\s]/g, "");
+                    const value = e.target.value.replace(/[^ก-๙\s]/g, "");
                     setEditFirstName(value);
                     if (editErrors.first_name)
                       setEditErrors((p) => ({ ...p, first_name: undefined }));
@@ -898,7 +954,7 @@ export default function ManageUserPage() {
                   type="text"
                   value={editLastName}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/[^A-Za-zก-๙\s]/g, "");
+                    const value = e.target.value.replace(/[^ก-๙\s]/g, "");
                     setEditLastName(value);
                     if (editErrors.last_name)
                       setEditErrors((p) => ({ ...p, last_name: undefined }));
@@ -945,12 +1001,12 @@ export default function ManageUserPage() {
                 <div className="relative">
                   <select
                     value={editCurriculumId}
-                    onChange={(e) => setEditCurriculumId(Number(e.target.value))}
+                    onChange={(e) => setEditCurriculumId(e.target.value)}
                     className="w-full px-4 py-3 border-2 border-[#9264F5] rounded-2xl focus:outline-none focus:border-[#B7A3E3] transition-colors text-black appearance-none bg-white"
                   >
                     {CURRICULUMS.map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.name}
+                        {getCurriculumName(c.id)}
                       </option>
                     ))}
                   </select>
@@ -1057,6 +1113,34 @@ export default function ManageUserPage() {
                 )}
               </div>
 
+              {/* Title Field */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-black mb-2">
+                  คำนำหน้า <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={studentTitle}
+                    onChange={(e) => setStudentTitle(e.target.value)}
+                    className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black appearance-none bg-white ${
+                      studentErrors.title
+                        ? "border-red-500"
+                        : "border-[#9264F5] focus:border-[#B7A3E3]"
+                    }`}
+                  >
+                    {THAI_TITLES.map((title) => (
+                      <option key={title} value={title}>
+                        {title}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                </div>
+                {studentErrors.title && (
+                  <p className="text-red-500 text-xs mt-1">{studentErrors.title}</p>
+                )}
+              </div>
+
               {/* First Name Field */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-black mb-2">
@@ -1066,7 +1150,7 @@ export default function ManageUserPage() {
                   type="text"
                   value={studentFirstName}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/[^A-Za-zก-๙\s]/g, "");
+                    const value = e.target.value.replace(/[^ก-๙\s]/g, "");
                     setStudentFirstName(value);
                     if (studentErrors.first_name)
                       setStudentErrors((p) => ({ ...p, first_name: undefined }));
@@ -1094,7 +1178,7 @@ export default function ManageUserPage() {
                   type="text"
                   value={studentLastName}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/[^A-Za-zก-๙\s]/g, "");
+                    const value = e.target.value.replace(/[^ก-๙\s]/g, "");
                     setStudentLastName(value);
                     if (studentErrors.last_name)
                       setStudentErrors((p) => ({ ...p, last_name: undefined }));
@@ -1142,12 +1226,12 @@ export default function ManageUserPage() {
                 <div className="relative">
                   <select
                     value={studentCurriculumId}
-                    onChange={(e) => setStudentCurriculumId(Number(e.target.value))}
+                    onChange={(e) => setStudentCurriculumId(e.target.value)}
                     className="w-full px-4 py-3 border-2 border-[#9264F5] rounded-2xl focus:outline-none focus:border-[#B7A3E3] transition-colors text-black appearance-none bg-white"
                   >
                     {CURRICULUMS.map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.name}
+                        {getCurriculumName(c.id)}
                       </option>
                     ))}
                   </select>
@@ -1241,6 +1325,34 @@ export default function ManageUserPage() {
                 )}
               </div>
 
+              {/* Title Field */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-black mb-2">
+                  คำนำหน้า <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={createTitle}
+                    onChange={(e) => setCreateTitle(e.target.value)}
+                    className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black appearance-none bg-white ${
+                      createErrors.title
+                        ? "border-red-500"
+                        : "border-[#9264F5] focus:border-[#B7A3E3]"
+                    }`}
+                  >
+                    {THAI_TITLES.map((title) => (
+                      <option key={title} value={title}>
+                        {title}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                </div>
+                {createErrors.title && (
+                  <p className="text-red-500 text-xs mt-1">{createErrors.title}</p>
+                )}
+              </div>
+
               {/* First Name Field */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-black mb-2">
@@ -1254,7 +1366,7 @@ export default function ManageUserPage() {
                   type="text"
                   value={createFirstName}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/[^A-Za-zก-๙\s]/g, "");
+                    const value = e.target.value.replace(/[^ก-๙\s]/g, "");
                     setCreateFirstName(value);
                     if (createErrors.first_name)
                       setCreateErrors((p) => ({ ...p, first_name: undefined }));
@@ -1285,7 +1397,7 @@ export default function ManageUserPage() {
                   type="text"
                   value={createLastName}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/[^A-Za-zก-๙\s]/g, "");
+                    const value = e.target.value.replace(/[^ก-๙\s]/g, "");
                     setCreateLastName(value);
                     if (createErrors.last_name)
                       setCreateErrors((p) => ({ ...p, last_name: undefined }));
@@ -1332,12 +1444,12 @@ export default function ManageUserPage() {
                 <div className="relative">
                   <select
                     value={createCurriculumId}
-                    onChange={(e) => setCreateCurriculumId(Number(e.target.value))}
+                    onChange={(e) => setCreateCurriculumId(e.target.value)}
                     className="w-full px-4 py-3 border-2 border-[#9264F5] rounded-2xl focus:outline-none focus:border-[#B7A3E3] transition-colors text-black appearance-none bg-white"
                   >
                     {CURRICULUMS.map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.name}
+                        {getCurriculumName(c.id)}
                       </option>
                     ))}
                   </select>

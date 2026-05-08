@@ -13,8 +13,9 @@ import BulkUploadModal from "@/features/courseOffering/components/BulkUploadStud
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import AlertModal from "@/components/ui/AlertModal";
 import { AuthUser } from "@/types/auth";
-import { FACULTY_MAP, getFacultyName } from "@/lib/faculty-map";
-import { CURRICULUMS, getCurriculumName } from "@/config/curriculums";
+import { DEFAULT_FACULTY_CODE, FACULTY_MAP, getFacultyName } from "@/lib/faculty-map";
+import { CURRICULUMS, DEFAULT_CURRICULUM_ID, getCurriculumName } from "@/config/curriculums";
+import { DEFAULT_TITLE, THAI_TITLES } from "@/config/titles";
 
 // ============================================================
 // CONFIGURATION CONSTANTS — Adjust limits here
@@ -26,7 +27,7 @@ const LAST_NAME_MAX_LENGTH = 50;
 
 // Email and Name validation regex pattern
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const NAME_REGEX = /^[A-Za-zก-๙\s]+$/;
+const NAME_REGEX = /^[ก-๙\s]+$/;
 
 
 // ============================================================
@@ -61,6 +62,7 @@ const ERROR_MESSAGES = {
 interface FormErrors {
   student_code?: string;
   email?: string;
+  title?: string;
   first_name?: string;
   last_name?: string;
 }
@@ -79,10 +81,11 @@ export default function SimpleShowUsers() {
   // Form state
   const [studentId, setStudentId] = useState("");
   const [email, setEmail] = useState("");
+  const [title, setTitle] = useState(DEFAULT_TITLE);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [addFacultyCode, setAddFacultyCode] = useState<number>(1);
-  const [addCurriculumId, setAddCurriculumId] = useState<number>(1);
+  const [addFacultyCode, setAddFacultyCode] = useState<number>(DEFAULT_FACULTY_CODE);
+  const [addCurriculumId, setAddCurriculumId] = useState<string>(DEFAULT_CURRICULUM_ID);
 
   // Validation errors state
   const [errors, setErrors] = useState<FormErrors>({});
@@ -166,7 +169,7 @@ export default function SimpleShowUsers() {
     if (trimmed.length > FIRST_NAME_MAX_LENGTH)
       return ERROR_MESSAGES.first_name.maxLength;
     if (!NAME_REGEX.test(trimmed))
-      return "ชื่อต้องเป็นตัวอักษรเท่านั้น";
+      return "ชื่อต้องเป็นภาษาไทยเท่านั้น";
     return undefined;
   };
 
@@ -179,7 +182,7 @@ export default function SimpleShowUsers() {
     if (trimmed.length > LAST_NAME_MAX_LENGTH)
       return ERROR_MESSAGES.last_name.maxLength;
     if (!NAME_REGEX.test(trimmed))
-      return "นามสกุลต้องเป็นตัวอักษรเท่านั้น";
+      return "นามสกุลต้องเป็นภาษาไทยเท่านั้น";
     return undefined;
   };
 
@@ -243,6 +246,7 @@ export default function SimpleShowUsers() {
 
     if (codeError) newErrors.student_code = codeError;
     if (emailError) newErrors.email = emailError;
+    if (!title.trim()) newErrors.title = "กรุณาเลือกคำนำหน้า";
     if (firstNameError) newErrors.first_name = firstNameError;
     if (lastNameError) newErrors.last_name = lastNameError;
 
@@ -299,7 +303,7 @@ export default function SimpleShowUsers() {
 
     const rawValue = e.target.value;
     //only letter and space
-    const value = rawValue.replace(/[^A-Za-zก-๙\s]/g, "");
+    const value = rawValue.replace(/[^ก-๙\s]/g, "");
 
     setFirstName(value);
     setErrors((prev) => ({
@@ -312,7 +316,7 @@ export default function SimpleShowUsers() {
 
     const rawValue = e.target.value;
     //only letter and space
-    const value = rawValue.replace(/[^A-Za-zก-๙\s]/g, "");
+    const value = rawValue.replace(/[^ก-๙\s]/g, "");
 
     setLastName(value);
     setErrors((prev) => ({
@@ -330,10 +334,11 @@ export default function SimpleShowUsers() {
     setShowAddModal(false);
     setStudentId("");
     setEmail("");
+    setTitle(DEFAULT_TITLE);
     setFirstName("");
     setLastName("");
-    setAddFacultyCode(1);
-    setAddCurriculumId(1);
+    setAddFacultyCode(DEFAULT_FACULTY_CODE);
+    setAddCurriculumId(DEFAULT_CURRICULUM_ID);
     setErrors({}); // Clear errors when closing modal
   };
 
@@ -355,6 +360,7 @@ export default function SimpleShowUsers() {
           email: email.trim(),
           facultyCode: addFacultyCode,
           curriculumId: addCurriculumId,
+          title,
           first_name: firstName.trim(),
           last_name: lastName.trim(),
         },
@@ -541,7 +547,7 @@ const isStudent = user?.userType === "STUDENT";
                             {student.student_code}
                           </span>
                           <span className="text-base text-[#575757]">
-                            {student.first_name} {student.last_name}
+                            {student.title} {student.first_name} {student.last_name}
                           </span>
                         </div>
                         <span className="text-xs text-gray-400 mt-0.5">
@@ -556,7 +562,7 @@ const isStudent = user?.userType === "STUDENT";
                         onClick={() =>
                           handleUnenrollStudent(
                             student.student_code,
-                            `${student.first_name} ${student.last_name}`,
+                            `${student.title} ${student.first_name} ${student.last_name}`,
                           )
                         }
                         className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-50 rounded"
@@ -685,6 +691,34 @@ const isStudent = user?.userType === "STUDENT";
                   </div>
                 </div>
 
+                {/* คำนำหน้า */}
+                <div>
+                  <label className="block text-base font-normal text-gray-900 mb-2">
+                    คำนำหน้า <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className={`w-full px-4 py-3.5 border rounded-xl focus:outline-none transition-colors text-base appearance-none bg-white ${
+                        errors.title
+                          ? "border-red-500 focus:border-red-500"
+                          : "border-[#B7A3E3] focus:border-purple-500"
+                      }`}
+                    >
+                      {THAI_TITLES.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-3.5 text-gray-400 pointer-events-none" size={18} />
+                  </div>
+                  {errors.title && (
+                    <p className="text-red-500 text-xs mt-1">{errors.title}</p>
+                  )}
+                </div>
+
                 {/* ชื่อ */}
                 <div>
                   <label className="block text-base font-normal text-gray-900 mb-2">
@@ -743,10 +777,10 @@ const isStudent = user?.userType === "STUDENT";
                   </div>
                 </div>
 
-                {/* คณะ */}
+                {/* สำนักวิชา */}
                 <div>
                   <label className="block text-base font-normal text-gray-900 mb-2">
-                    คณะ <span className="text-red-500">*</span>
+                    สำนักวิชา <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <select
@@ -772,12 +806,12 @@ const isStudent = user?.userType === "STUDENT";
                   <div className="relative">
                     <select
                       value={addCurriculumId}
-                      onChange={(e) => setAddCurriculumId(Number(e.target.value))}
+                      onChange={(e) => setAddCurriculumId(e.target.value)}
                       className="w-full px-4 py-3.5 border border-[#B7A3E3] rounded-xl focus:outline-none focus:border-purple-500 transition-colors text-base appearance-none bg-white"
                     >
                       {CURRICULUMS.map((c) => (
                         <option key={c.id} value={c.id}>
-                          {c.name}
+                          {getCurriculumName(c.id)}
                         </option>
                       ))}
                     </select>

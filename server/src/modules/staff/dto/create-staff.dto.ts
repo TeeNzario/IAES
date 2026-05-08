@@ -53,7 +53,7 @@ export class CreateStaffDto {
   @MaxLength(50)
   title?: string;
 
-  @IsInt()
+  @IsString()
   @IsOptional()
-  curriculumId?: number;
+  curriculumId?: string;
 }
