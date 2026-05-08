@@ -19,6 +19,7 @@ import {
   BulkEnrollResponse,
 } from './dto/bulk-enroll-student.dto';
 import { Prisma } from 'src/generated/prisma/client';
+import { hashPassword } from '../../lib/password';
 
 const courseOfferingSelect = {
   course_offerings_id: true,
@@ -249,7 +250,7 @@ export class CourseOfferingsService {
         create: {
           student_code: dto.student_code,
           email: dto.email,
-          password_hash: '12345678', // 🔒 replace later with invite flow
+          password_hash: await hashPassword('12345678'),
           facultyCode: dto.facultyCode,
           title: dto.title ?? DEFAULT_TITLE,
           curriculumId: dto.curriculumId ?? DEFAULT_CURRICULUM_ID,
@@ -408,7 +409,7 @@ export class CourseOfferingsService {
         create: {
           student_code: row.student_code,
           email: row.email,
-          password_hash: '12345678', // Placeholder for invite flow
+          password_hash: await hashPassword('12345678'),
           facultyCode: row.facultyCode,
           title: row.title ?? DEFAULT_TITLE,
           curriculumId: row.curriculumId ?? DEFAULT_CURRICULUM_ID,

@@ -18,6 +18,7 @@ import {
   ConfirmResponse,
   ConfirmResult,
 } from './dto/preview-import.dto';
+import { hashPassword } from '../../lib/password';
 
 const THAI_NAME_REGEX = /^[ก-๙\s]+$/;
 
@@ -275,7 +276,7 @@ export class PreviewImportService {
             create: {
               student_code: row.student_code,
               email: row.email,
-              password_hash: '12345678', // Placeholder
+              password_hash: await hashPassword('12345678'),
               facultyCode: row.facultyCode ?? DEFAULT_FACULTY_CODE,
               title: row.title || DEFAULT_TITLE,
               curriculumId: row.curriculumId || DEFAULT_CURRICULUM_ID,

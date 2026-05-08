@@ -6,6 +6,7 @@ import {
   DEFAULT_CURRICULUM_ID,
   DEFAULT_TITLE,
 } from 'src/lib/academic-defaults';
+import { hashPassword } from '../../lib/password';
 
 function serializeBigInt(data: any) {
   return JSON.parse(
@@ -36,7 +37,7 @@ export class StaffService {
     const staff = await this.prisma.staff_users.create({
       data: {
         email: createStaffDto.email,
-        password_hash: createStaffDto.password, // Plain text per requirement
+        password_hash: await hashPassword(createStaffDto.password),
         facultyCode: createStaffDto.facultyCode,
         title: createStaffDto.title ?? DEFAULT_TITLE,
         curriculumId: createStaffDto.curriculumId ?? DEFAULT_CURRICULUM_ID,

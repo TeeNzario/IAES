@@ -7,6 +7,7 @@ import {
   DEFAULT_CURRICULUM_ID,
   DEFAULT_TITLE,
 } from 'src/lib/academic-defaults';
+import { hashPassword } from '../../lib/password';
 
 @Injectable()
 export class StudentsService {
@@ -26,7 +27,9 @@ export class StudentsService {
       data: {
         student_code: createStudentDto.student_code,
         email: createStudentDto.email,
-        password_hash: createStudentDto.password_hash ?? createStudentDto.student_code,
+        password_hash: await hashPassword(
+          createStudentDto.password_hash ?? createStudentDto.student_code,
+        ),
         facultyCode: createStudentDto.facultyCode,
         title: createStudentDto.title ?? DEFAULT_TITLE,
         curriculumId: createStudentDto.curriculumId ?? DEFAULT_CURRICULUM_ID,
