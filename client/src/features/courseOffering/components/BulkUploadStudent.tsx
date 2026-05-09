@@ -92,6 +92,14 @@ function parseCurriculumId(value: unknown): string {
   return resolveCurriculumId(text, text.split(":")[0].trim());
 }
 
+function readCsvCell(row: Record<string, unknown>, keys: string[]): string {
+  for (const key of keys) {
+    const value = String(row[key] ?? "").trim();
+    if (value) return value;
+  }
+  return "";
+}
+
 export default function BulkUploadModal({
   isOpen,
   onClose,
@@ -202,42 +210,33 @@ export default function BulkUploadModal({
       complete: async (results) => {
         try {
           // Parse CSV rows
-          const parsedRows = results.data.map((row: any) => ({
-            student_code: (
-              row.studentCode ||
-              row.student_code ||
-              row.studentId ||
-              row.รหัสนักศึกษา ||
-              ""
-            ).trim(),
-            email: (row.email || row.อีเมล || "").trim(),
-            facultyCode: parseFacultyCode(row.facultyCode || row.faculty_code || row.สำนักวิชา || row.คณะ),
-            title: String(
-              row.title ||
-              row.prefix ||
-              row.คำนำหน้า ||
-              ""
-            ).trim(),
-            curriculumId: parseCurriculumId(
-              row.curriculumId ||
-              row.curriculum_id ||
-              row.curriculumCode ||
-              row.หลักสูตร ||
-              ""
-            ).trim(),
-            first_name: (
-              row.firstName ||
-              row.first_name ||
-              row.ชื่อ ||
-              ""
-            ).trim(),
-            last_name: (
-              row.lastName ||
-              row.last_name ||
-              row.นามสกุล ||
-              ""
-            ).trim(),
-          }));
+          const parsedRows = results.data.map((rawRow) => {
+            const row = rawRow as Record<string, unknown>;
+
+            return {
+              student_code: readCsvCell(row, [
+                "studentCode",
+                "student_code",
+                "studentId",
+                "รหัสนักศึกษา",
+              ]),
+              email: readCsvCell(row, ["email", "อีเมล"]),
+              facultyCode: parseFacultyCode(
+                readCsvCell(row, ["facultyCode", "faculty_code", "สำนักวิชา", "คณะ"]),
+              ),
+              title: readCsvCell(row, ["title", "prefix", "คำนำหน้า"]),
+              curriculumId: parseCurriculumId(
+                readCsvCell(row, [
+                  "curriculumId",
+                  "curriculum_id",
+                  "curriculumCode",
+                  "หลักสูตร",
+                ]),
+              ),
+              first_name: readCsvCell(row, ["firstName", "first_name", "ชื่อ"]),
+              last_name: readCsvCell(row, ["lastName", "last_name", "นามสกุล"]),
+            };
+          });
 
           // Create preview session
           const response = await apiFetch<PreviewSessionResponse>(
@@ -384,11 +383,11 @@ export default function BulkUploadModal({
   ).length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-7xl max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-3 sm:p-4">
+      <div className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
         {/* Header */}
-        <div className="text-center py-6 flex-shrink-0">
-          <h2 className="text-2xl font-light text-gray-800">
+        <div className="flex-shrink-0 border-b border-[#EFE8FB] px-5 py-5 text-center sm:px-8">
+          <h2 className="text-xl font-semibold text-[#2F2A3A]">
             {step === "result" ? "ผลลัพธ์การลงทะเบียน" : "เพิ่มนักศึกษา"}
           </h2>
           {sessionId && step === "preview" && (
@@ -400,14 +399,14 @@ export default function BulkUploadModal({
 
         {/* Error Message */}
         {error && (
-          <div className="mx-8 mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+          <div className="mx-5 mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600 sm:mx-8">
             {error}
           </div>
         )}
 
         {/* Content */}
         {step === "upload" ? (
-          <div className="p-20 flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto p-5 sm:p-8 lg:p-10">
             {/* Drag and Drop Area */}
             <div
               onDragEnter={handleDragEnter}
@@ -416,7 +415,7 @@ export default function BulkUploadModal({
               onDrop={handleDrop}
               onClick={handleClickUploadArea}
               className={`
-                border-2 border-dashed rounded-3xl py-30 px-5 text-center cursor-pointer
+                border-2 border-dashed rounded-2xl px-5 py-14 text-center cursor-pointer sm:py-20
                 transition-all duration-200
                 ${
                   isDragging
@@ -448,10 +447,10 @@ export default function BulkUploadModal({
               )}
             </div>
 
-            <div className="flex justify-center mt-8">
+            <div className="mt-6 flex justify-center">
               <button
                 onClick={handleClose}
-                className="px-28 py-3 border-1 border-[#9264F5] text-[#9264F5] rounded-lg hover:bg-[#9264F5] hover:text-white transition-colors font-medium cursor-pointer"
+                className="h-11 w-full rounded-xl border border-[#9264F5] px-8 text-sm font-medium text-[#9264F5] transition-colors hover:bg-[#9264F5] hover:text-white cursor-pointer sm:w-auto sm:min-w-40"
               >
                 ยกเลิก
               </button>
@@ -460,7 +459,7 @@ export default function BulkUploadModal({
         ) : step === "preview" ? (
           <>
             {/* Filter Buttons */}
-            <div className="px-8 pt-6 pb-4 flex-shrink-0">
+            <div className="flex-shrink-0 px-5 py-4 sm:px-8">
               <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => setFilterStatus("all")}
@@ -506,9 +505,9 @@ export default function BulkUploadModal({
             </div>
 
             {/* Table */}
-            <div className="px-8 flex-1 overflow-y-auto">
-              <div className="overflow-x-auto">
-                <table className="w-full">
+            <div className="flex-1 overflow-y-auto px-5 sm:px-8">
+              <div className="overflow-x-auto rounded-xl ring-1 ring-[#E7DDF8]">
+                <table className="w-full min-w-[980px]">
                   <thead className="sticky top-0 bg-[#B7A3E3] text-white">
                     <tr>
                       <th className="py-3 px-4 text-left font-light text-sm rounded-tl-lg w-28">
@@ -732,17 +731,17 @@ export default function BulkUploadModal({
             </div>
 
             {/* Action Buttons */}
-            <div className="px-8 py-6 flex justify-end gap-4 flex-shrink-0">
+            <div className="flex flex-shrink-0 flex-col-reverse gap-3 border-t border-[#EFE8FB] px-5 py-5 sm:flex-row sm:justify-end sm:px-8">
               <button
                 onClick={handleClose}
-                className="px-23 py-3 border-1 border-[#9264F5] text-[#9264F5] rounded-xl hover:bg-purple-50 transition-colors font-medium cursor-pointer"
+                className="h-11 rounded-xl border border-[#9264F5] px-8 text-sm font-medium text-[#9264F5] transition-colors hover:bg-purple-50 cursor-pointer sm:min-w-40"
               >
                 ยกเลิก
               </button>
               <button
                 onClick={handleConfirm}
                 disabled={isLoading || enrollableCount === 0}
-                className="px-23 py-3 bg-[#9264F5] text-white rounded-xl hover:bg-purple-600 transition-colors font-medium disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#9264F5] px-8 text-sm font-medium text-white transition-colors hover:bg-purple-600 disabled:opacity-50 cursor-pointer sm:min-w-48"
               >
                 {isLoading && <Loader2 size={20} className="animate-spin" />}
                 ยืนยัน ({enrollableCount} รายการ)
@@ -752,11 +751,11 @@ export default function BulkUploadModal({
         ) : (
           // Result step ====================================================
           <>
-            <div className="px-8 py-6 flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-8">
               {confirmResults && (
                 <div className="space-y-4">
                   {/* Summary */}
-                  <div className="grid grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     <div className="border border-[#B7A3E3] rounded-lg p-4 text-center">
                       <div className="text-2xl font-bold text-[#B7A3E3]">
                         {confirmResults.summary.enrolled}
@@ -788,7 +787,8 @@ export default function BulkUploadModal({
                   </div>
 
                   {/* Results Table */}
-                  <table className="w-full mt-6">
+                  <div className="mt-6 overflow-x-auto rounded-xl ring-1 ring-[#E7DDF8]">
+                  <table className="w-full min-w-[720px]">
                     <thead className="bg-gray-100">
                       <tr>
                         <th className="py-2 px-4 text-left text-sm">
@@ -839,14 +839,15 @@ export default function BulkUploadModal({
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               )}
             </div>
 
-            <div className="px-8 py-6 flex justify-center flex-shrink-0">
+            <div className="flex flex-shrink-0 justify-center border-t border-[#EFE8FB] px-5 py-5 sm:px-8">
               <button
                 onClick={handleClose}
-                className="px-12 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors font-medium cursor-pointer"
+                className="h-11 rounded-xl bg-purple-500 px-12 text-sm font-medium text-white transition-colors hover:bg-purple-600 cursor-pointer"
               >
                 ปิด
               </button>

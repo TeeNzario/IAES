@@ -736,7 +736,7 @@ export default function ManageUserPage() {
   ].filter(Boolean).length;
   const currentRoleLabel =
     roleFilter === "STUDENT"
-      ? "นักเรียน"
+      ? "นักศึกษา"
       : roleFilter === "INSTRUCTOR"
         ? "อาจารย์"
         : "ผู้ดูแลระบบ";
@@ -756,7 +756,7 @@ export default function ManageUserPage() {
   const dropdownIconClass =
     "absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none";
   const selectControlClass =
-    "h-12 w-full rounded-xl border-2 border-gray-300 bg-white px-4 pr-10 text-[15px] text-gray-800 shadow-sm appearance-none focus:outline-none focus:border-purple-400";
+    "h-11 w-full rounded-xl border border-[#E7DDF8] bg-white px-4 pr-10 text-sm font-medium text-[#2F2A3A] shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-[#B7A3E3]";
 
   function resetListFilters() {
     setSearchTerm("");
@@ -773,33 +773,61 @@ export default function ManageUserPage() {
 
   return (
     <NavBar>
-      <div className="p-4 sm:p-8 bg-gray-50 min-h-screen w-full">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-gray-800">
-          จัดการข้อมูลผู้ใช้
-        </h1>
+      <div className="min-h-screen w-full bg-[#F4EFFF] px-4 py-6 sm:px-8 lg:px-10">
+        <section className="mb-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-[#7C5BD9]">
+                ผู้ดูแลระบบ
+              </p>
+              <h1 className="mt-1 text-2xl font-semibold text-[#2F2A3A] sm:text-3xl">
+                จัดการข้อมูลผู้ใช้
+              </h1>
+              <p className="mt-2 text-sm font-normal text-[#7A7287]">
+                เพิ่ม แก้ไข และจัดการสิทธิ์ของนักศึกษา อาจารย์ และผู้ดูแลระบบ
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 sm:w-[20rem]">
+              <div className="rounded-xl bg-[#FAF8FF] px-4 py-3">
+                <p className="text-sm font-semibold text-[#7C5BD9]">จำนวนรายการ</p>
+                <p className="mt-1 text-2xl font-semibold text-[#2F2A3A]">
+                  {filteredUsers.length}
+                </p>
+              </div>
+              <div className="rounded-xl bg-[#FAF8FF] px-4 py-3">
+                <p className="text-sm font-semibold text-[#7C5BD9]">ประเภท</p>
+                <p className="mt-2 truncate text-lg font-semibold text-[#2F2A3A]">
+                  {currentRoleLabel}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Filter and Search */}
-        <div className="flex flex-col gap-4 mb-6 2xl:flex-row 2xl:items-center 2xl:justify-between">
+        <div className="mb-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#E7DDF8] sm:p-5">
+        <div className="flex flex-col gap-4 2xl:flex-row 2xl:items-center 2xl:justify-between">
           <div className="flex flex-wrap gap-2 items-center">
             <button
               onClick={() => {
                 selectRole("STUDENT");
               }}
-              className={`h-12 min-w-32 whitespace-nowrap px-6 rounded-full text-[15px] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9264F5] focus-visible:ring-offset-2 ${roleFilter === "STUDENT"
+              className={`h-11 min-w-32 whitespace-nowrap rounded-xl px-5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9264F5] focus-visible:ring-offset-2 ${roleFilter === "STUDENT"
                 ? "bg-[#B7A3E3] text-white"
-                : "bg-white border-2 border-[#B7A3E3] text-[#B7A3E3] hover:bg-purple-50"
+                : "bg-[#F4EFFF] text-[#7C5BD9] hover:bg-[#E9E0FA]"
                 }`}
             >
-              นักเรียน
+              นักศึกษา
             </button>
 
             <button
               onClick={() => {
                 selectRole("INSTRUCTOR");
               }}
-              className={`h-12 min-w-32 whitespace-nowrap px-6 rounded-full text-[15px] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9264F5] focus-visible:ring-offset-2 ${roleFilter === "INSTRUCTOR"
+              className={`h-11 min-w-32 whitespace-nowrap rounded-xl px-5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9264F5] focus-visible:ring-offset-2 ${roleFilter === "INSTRUCTOR"
                 ? "bg-[#B7A3E3] text-white"
-                : "bg-white border-2 border-[#B7A3E3] text-[#B7A3E3] hover:bg-purple-50"
+                : "bg-[#F4EFFF] text-[#7C5BD9] hover:bg-[#E9E0FA]"
                 }`}
             >
               อาจารย์
@@ -809,9 +837,9 @@ export default function ManageUserPage() {
               onClick={() => {
                 selectRole("ADMINISTRATOR");
               }}
-              className={`h-12 min-w-32 whitespace-nowrap px-6 rounded-full text-[15px] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9264F5] focus-visible:ring-offset-2 ${roleFilter === "ADMINISTRATOR"
+              className={`h-11 min-w-32 whitespace-nowrap rounded-xl px-5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9264F5] focus-visible:ring-offset-2 ${roleFilter === "ADMINISTRATOR"
                 ? "bg-[#B7A3E3] text-white"
-                : "bg-white border-2 border-[#B7A3E3] text-[#B7A3E3] hover:bg-purple-50"
+                : "bg-[#F4EFFF] text-[#7C5BD9] hover:bg-[#E9E0FA]"
                 }`}
             >
               ผู้ดูแลระบบ
@@ -821,8 +849,8 @@ export default function ManageUserPage() {
             {roleFilter === "STUDENT" && (
               <button
                 onClick={openCreateStudentModal}
-                className="flex h-12 w-12 items-center justify-center rounded-full bg-[#B7A3E3] text-white transition-colors hover:bg-[#9264F5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9264F5] focus-visible:ring-offset-2"
-                title="เพิ่มนักเรียน"
+                className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#B7A3E3] text-white transition-colors hover:bg-[#9264F5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9264F5] focus-visible:ring-offset-2"
+                title="เพิ่มนักศึกษา"
               >
                 <Plus size={20} />
               </button>
@@ -837,7 +865,7 @@ export default function ManageUserPage() {
                       roleFilter === "ADMINISTRATOR" ? "ADMIN" : "INSTRUCTOR",
                     )
                   }
-                  className="flex h-12 w-12 items-center justify-center rounded-full bg-[#B7A3E3] text-white transition-colors hover:bg-[#9264F5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9264F5] focus-visible:ring-offset-2"
+                  className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#B7A3E3] text-white transition-colors hover:bg-[#9264F5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9264F5] focus-visible:ring-offset-2"
                   title={`เพิ่ม${roleFilter === "INSTRUCTOR" ? "อาจารย์" : "ผู้ดูแลระบบ"}`}
                 >
                   <Plus size={20} />
@@ -848,10 +876,10 @@ export default function ManageUserPage() {
           <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center 2xl:w-auto">
             <button
               onClick={() => setShowFilters((visible) => !visible)}
-              className={`relative flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl border-2 px-4 text-[15px] font-semibold shadow-sm transition-colors sm:w-auto sm:min-w-32 ${
+              className={`relative flex h-11 w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 text-sm font-semibold shadow-sm transition-colors sm:w-auto sm:min-w-32 ${
                 showFilters || activeFilterCount > 0
-                  ? "border-[#B7A3E3] bg-[#B7A3E3] text-white hover:bg-[#9264F5]"
-                  : "border-gray-300 bg-white text-gray-800 hover:border-purple-300 hover:bg-purple-50"
+                  ? "bg-[#B7A3E3] text-white hover:bg-[#9264F5]"
+                  : "bg-[#F4EFFF] text-[#7C5BD9] hover:bg-[#E9E0FA]"
               }`}
               aria-expanded={showFilters}
               aria-controls="manage-users-filters"
@@ -891,26 +919,27 @@ export default function ManageUserPage() {
                   setSearchTerm(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="h-12 w-full rounded-xl border-2 border-gray-300 bg-white px-4 pr-11 text-[15px] text-gray-900 shadow-sm placeholder:text-gray-500 placeholder:font-medium focus:outline-none focus:border-purple-400"
+                className="h-11 w-full rounded-xl bg-[#FAF8FF] px-4 pr-11 text-sm font-medium text-[#2F2A3A] shadow-sm ring-1 ring-[#E7DDF8] placeholder:text-[#B7AFC6] focus:outline-none focus:ring-2 focus:ring-[#B7A3E3]"
                 aria-label="ค้นหาผู้ใช้"
               />
               <Search
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A7287]"
                 size={20}
               />
             </div>
           </div>
         </div>
+        </div>
 
         {showFilters && (
           <div
             id="manage-users-filters"
-            className="mb-6 rounded-2xl border border-[#B7A3E3]/40 bg-white p-4 shadow-sm sm:p-5"
+            className="mb-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#E7DDF8] sm:p-5"
           >
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>
-                <h2 className="text-lg font-bold text-gray-900">เพิ่มตัวกรอง</h2>
-                <p className="text-sm text-gray-500">
+                <h2 className="text-lg font-semibold text-[#2F2A3A]">เพิ่มตัวกรอง</h2>
+                <p className="text-sm text-[#7A7287]">
                   เลือกจากข้อมูล{currentRoleLabel}ที่มีอยู่ในระบบ
                 </p>
               </div>
@@ -993,7 +1022,7 @@ export default function ManageUserPage() {
               <button
                 onClick={resetListFilters}
                 disabled={activeFilterCount === 0 && searchTerm.trim() === ""}
-                className="h-11 rounded-xl border-2 border-gray-300 px-5 text-[15px] font-semibold text-gray-800 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                className="h-11 rounded-xl bg-[#F4EFFF] px-5 text-sm font-semibold text-[#7C5BD9] transition-colors hover:bg-[#E9E0FA] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 ล้างตัวกรอง
               </button>
@@ -1002,7 +1031,7 @@ export default function ManageUserPage() {
         )}
 
         {/* Table for desktop */}
-        <div className="bg-white rounded-lg shadow overflow-hidden w-full">
+        <div className="w-full overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-[#E7DDF8]">
           <div className="overflow-auto max-h-[calc(100vh-280px)]">
             <table className="w-full min-w-[820px] hidden table-fixed sm:table">
               <colgroup>
@@ -1015,39 +1044,39 @@ export default function ManageUserPage() {
               </colgroup>
               <thead className="sticky top-0 z-10">
                 <tr className="bg-[#B7A3E3] text-white">
-                  <th className="px-4 py-3 text-left text-[15px] font-medium">
+                  <th className="px-5 py-4 text-left text-sm font-semibold">
                     {showSequenceColumn ? "ลำดับ" : "รหัสนักศึกษา"}
                   </th>
-                  <th className="px-4 py-3 text-left text-[15px] font-medium">ชื่อ-นามสกุล</th>
-                  <th className="px-4 py-3 text-left text-[15px] font-medium">สำนักวิชา</th>
-                  <th className="px-4 py-3 text-left text-[15px] font-medium">หลักสูตร</th>
-                  <th className="px-4 py-3 text-left text-[15px] font-medium">สถานะ</th>
-                  <th className="px-2 py-3 text-center text-[15px] font-medium">แก้ไข</th>
+                  <th className="px-5 py-4 text-left text-sm font-semibold">ชื่อ-นามสกุล</th>
+                  <th className="px-5 py-4 text-left text-sm font-semibold">สำนักวิชา</th>
+                  <th className="px-5 py-4 text-left text-sm font-semibold">หลักสูตร</th>
+                  <th className="px-5 py-4 text-left text-sm font-semibold">สถานะ</th>
+                  <th className="px-3 py-4 text-center text-sm font-semibold">แก้ไข</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-[#EFE8FB]">
                 {paginatedUsers.map((user, index) => (
-                  <tr key={user.id} className="border-b border-gray-200 text-[15px] hover:bg-gray-50">
-                    <td className="px-4 py-3 text-gray-700">
+                  <tr key={user.id} className="text-[15px] hover:bg-[#FAF8FF]">
+                    <td className="px-5 py-4 font-normal text-[#2F2A3A]">
                       {showSequenceColumn ? (currentPage - 1) * itemsPerPage + index + 1 : user.id}
                     </td>
-                    <td className="px-4 py-3 text-gray-700">{`${user.title} ${user.first_name} ${user.last_name}`}</td>
-                    <td className="px-4 py-3 text-gray-700">{getFacultyName(user.facultyCode ?? DEFAULT_FACULTY_CODE)}</td>
-                    <td className="px-4 py-3 text-gray-700">{getCurriculumName(user.curriculumId)}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4 font-normal text-[#2F2A3A]">{`${user.title} ${user.first_name} ${user.last_name}`}</td>
+                    <td className="px-5 py-4 font-normal text-[#514667]">{getFacultyName(user.facultyCode ?? DEFAULT_FACULTY_CODE)}</td>
+                    <td className="px-5 py-4 font-normal text-[#514667]">{getCurriculumName(user.curriculumId)}</td>
+                    <td className="px-5 py-4">
                       <span
-                        className={`inline-flex min-w-28 justify-center rounded-full px-3 py-1 text-sm font-semibold ${user.is_active
+                        className={`inline-flex min-w-28 justify-center rounded-full px-3 py-1 text-sm font-normal ${user.is_active
                           ? "bg-[#B7A3E3] text-white"
-                          : "bg-white text-[#B7A3E3] border border-[#B7A3E3]"
+                          : "border border-[#D9CCF2] bg-white text-[#7C5BD9]"
                           }`}
                       >
                         {statusLabel(user.is_active)}
                       </span>
                     </td>
-                    <td className="px-2 py-3 text-center text-gray-700">
+                    <td className="px-3 py-4 text-center">
                       <button
                         onClick={() => openEdit(user)}
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-purple-400 transition-colors hover:bg-purple-50 hover:text-purple-600"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#D9CCF2] text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF]"
                         title="แก้ไขข้อมูล"
                         aria-label="แก้ไขข้อมูล"
                       >
@@ -1064,19 +1093,19 @@ export default function ManageUserPage() {
               {paginatedUsers.map((user, index) => (
                 <div
                   key={user.id}
-                  className="p-4 border-b flex justify-between items-start gap-4"
+                  className="flex items-start justify-between gap-4 border-b border-[#EFE8FB] p-4"
                 >
                   <div className="flex-1">
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm font-normal text-[#7A7287]">
                       {user.role === "STUDENT"
                         ? `รหัสนักศึกษา: ${user.id}`
                         : `ลำดับ: ${(currentPage - 1) * itemsPerPage + index + 1}`}
                     </div>
-                    <div className="font-medium text-gray-800">{`${user.title} ${user.first_name} ${user.last_name}`}</div>
+                    <div className="text-[15px] font-normal text-[#2F2A3A]">{`${user.title} ${user.first_name} ${user.last_name}`}</div>
                     <span
-                      className={`inline-block mt-1 rounded-full px-2.5 py-1 text-sm font-semibold ${user.is_active
+                      className={`mt-1 inline-block rounded-full px-2.5 py-1 text-sm font-normal ${user.is_active
                         ? "bg-[#B7A3E3] text-white"
-                        : "border border-[#B7A3E3] bg-white text-[#B7A3E3]"
+                        : "border border-[#D9CCF2] bg-white text-[#7C5BD9]"
                         }`}
                     >
                       {statusLabel(user.is_active)}
@@ -1085,7 +1114,7 @@ export default function ManageUserPage() {
                   <div className="flex flex-col gap-2 items-end">
                     <button
                       onClick={() => openEdit(user)}
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-purple-400 hover:bg-purple-50 hover:text-purple-600"
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#D9CCF2] text-[#7C5BD9] hover:bg-[#F4EFFF]"
                       title="แก้ไขข้อมูล"
                       aria-label="แก้ไขข้อมูล"
                     >
@@ -1099,9 +1128,9 @@ export default function ManageUserPage() {
         </div>
 
         {/* Pagination */}
-        <div className="flex flex-wrap justify-center items-center gap-2 mt-6">
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
           <button
-            className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#B7A3E3] text-white shadow-md hover:bg-[#9264F5] transition-colors disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed"
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#B7A3E3] text-white shadow-sm transition-colors hover:bg-[#9264F5] disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed"
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             title="หน้าก่อนหน้า"
@@ -1134,10 +1163,10 @@ export default function ManageUserPage() {
                 <button
                   key={pg}
                   onClick={() => setCurrentPage(pg)}
-                  className={`w-10 h-10 rounded-lg font-semibold transition-colors ${
+                  className={`h-10 w-10 rounded-xl font-semibold transition-colors ${
                     currentPage === pg
-                      ? "bg-[#B7A3E3] text-white shadow-md"
-                      : "border-2 border-[#B7A3E3] text-[#B7A3E3] bg-white hover:bg-purple-50"
+                      ? "bg-[#B7A3E3] text-white shadow-sm"
+                      : "bg-white text-[#7C5BD9] ring-1 ring-[#D9CCF2] hover:bg-[#F4EFFF]"
                   }`}
                 >
                   {pg}
@@ -1146,7 +1175,7 @@ export default function ManageUserPage() {
             );
           })()}
           <button
-            className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#B7A3E3] text-white shadow-md hover:bg-[#9264F5] transition-colors disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed"
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#B7A3E3] text-white shadow-sm transition-colors hover:bg-[#9264F5] disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed"
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             title="หน้าถัดไป"
@@ -1468,7 +1497,7 @@ export default function ManageUserPage() {
           <div className={modalBackdropClass}>
             <div className={modalPanelClass}>
               <h2 className="text-xl font-bold text-gray-800 mb-6">
-                เพิ่มนักเรียน
+                เพิ่มนักศึกษา
               </h2>
 
               {/* Student Code Field */}

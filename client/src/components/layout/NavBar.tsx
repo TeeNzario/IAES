@@ -17,6 +17,7 @@ import {
 import { AuthUser, getUser, clearAuth } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 import Image from "next/image";
+import { formatCourseName } from "@/utils/formatCourseName";
 
 type PageLayoutProps = {
   children: React.ReactNode;
@@ -27,6 +28,8 @@ interface CourseOffering {
   courses: {
     course_code: string;
     course_name: string;
+    course_name_th?: string;
+    course_name_en?: string;
   };
 }
 
@@ -60,8 +63,8 @@ const NavBar = ({ children }: PageLayoutProps) => {
   const isHomeActive = pathname === "/";
   const isCourseManageActive = pathname === "/course";
   const isCourseSectionActive = pathname.startsWith("/course/");
-  const isResultsActive = pathname === "/results";
-  const isExamBankActive = pathname === "/exam-bank";
+  const isResultsActive = pathname.startsWith("/results");
+  const isExamBankActive = pathname.startsWith("/exam-bank");
 
   // Get active course offering ID from path
   const activeCourseOfferingId = isCourseSectionActive
@@ -128,24 +131,24 @@ const NavBar = ({ children }: PageLayoutProps) => {
   // Style helpers
   const getMenuButtonStyle = (isActive: boolean) => {
     if (isActive) {
-      return `w-full flex items-center gap-3 ${isSidebarOpen ? "px-4 py-3 rounded-full" : "p-3 rounded-lg justify-center"} bg-[#B7A3E3] text-white mb-4 hover:bg-[#B7A3E3]/80 transition-colors cursor-pointer`;
+      return `w-full flex items-center gap-3 text-sm font-medium ${isSidebarOpen ? "px-4 py-3 rounded-lg" : "p-3 rounded-lg justify-center"} bg-[#B7A3E3] text-white mb-3 hover:bg-[#B7A3E3]/80 transition-colors cursor-pointer`;
     }
-    return `w-full flex items-center gap-3 ${isSidebarOpen ? "px-4 py-3 rounded-full" : "p-3 rounded-lg justify-center"} text-[#575757] mb-4 hover:bg-gray-100 transition-colors cursor-pointer`;
+    return `w-full flex items-center gap-3 text-sm font-medium ${isSidebarOpen ? "px-4 py-3 rounded-lg" : "p-3 rounded-lg justify-center"} text-[#575757] mb-3 hover:bg-gray-100 transition-colors cursor-pointer`;
   };
 
   const getSideMenuStyle = (isActive: boolean) => {
     if (isActive) {
-      return `w-full flex items-center gap-3 ${isSidebarOpen ? "px-4" : "justify-center"} py-3 bg-[#B7A3E3] text-white rounded-lg transition-colors cursor-pointer`;
+      return `w-full flex items-center gap-3 text-sm font-medium ${isSidebarOpen ? "px-4" : "justify-center"} py-3 bg-[#B7A3E3] text-white rounded-lg transition-colors cursor-pointer`;
     }
-    return `w-full flex items-center gap-3 ${isSidebarOpen ? "px-4" : "justify-center"} py-3 text-[#575757] hover:bg-gray-100 rounded-lg transition-colors cursor-pointer`;
+    return `w-full flex items-center gap-3 text-sm font-medium ${isSidebarOpen ? "px-4" : "justify-center"} py-3 text-[#575757] hover:bg-gray-100 rounded-lg transition-colors cursor-pointer`;
   };
 
   const getCourseItemStyle = (courseOfferingId: string) => {
     const isActive = activeCourseOfferingId === courseOfferingId;
     if (isActive) {
-      return "w-full text-left px-4 py-2 bg-[#B7A3E3]/80 text-white rounded-lg transition-colors text-sm cursor-pointer font-medium";
+      return "group w-full text-left px-4 py-2 bg-[#B7A3E3]/80 text-white rounded-lg transition-colors cursor-pointer";
     }
-    return "w-full text-left px-4 py-2 text-[#575757] hover:bg-[#B7A3E3]/80 hover:text-white rounded-lg transition-colors text-sm cursor-pointer";
+    return "group w-full text-left px-4 py-2 text-[#575757] hover:bg-[#B7A3E3]/80 hover:text-white rounded-lg transition-colors cursor-pointer";
   };
 
   return (
@@ -187,7 +190,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
               </button>
 
               {/* Courses Section */}
-              <div className="mb-4">
+              <div className="mb-3">
                 <button
                   onClick={() => setIsCoursesExpanded(!isCoursesExpanded)}
                   className={`w-full flex items-center ${isSidebarOpen ? "justify-between px-4" : "justify-center"} py-3 ${
@@ -198,7 +201,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
                 >
                   <div className="flex items-center gap-3">
                     <FileText size={20} />
-                    {isSidebarOpen && <span>รายวิชา</span>}
+                    {isSidebarOpen && <span className="text-sm font-medium">รายวิชา</span>}
                   </div>
                   {isSidebarOpen && (
                     <ChevronDown
@@ -230,22 +233,25 @@ const NavBar = ({ children }: PageLayoutProps) => {
                             course.course_offerings_id,
                           )}
                         >
-                          {course.courses.course_code}
+                          <span className="block text-sm font-semibold">
+                            {course.courses.course_code}
+                          </span>
+                          <span
+                            className={`mt-0.5 block truncate text-xs ${
+                              activeCourseOfferingId ===
+                              course.course_offerings_id
+                                ? "text-white/80"
+                                : "text-gray-400 group-hover:text-white/80"
+                            }`}
+                          >
+                            {formatCourseName(course.courses)}
+                          </span>
                         </button>
                       ))
                     )}
                   </div>
                 )}
               </div>
-
-              {/* Results Section - Available to all */}
-              <button
-                onClick={() => router.push("/results")}
-                className={getSideMenuStyle(isResultsActive)}
-              >
-                <BookOpen size={20} />
-                {isSidebarOpen && <span>ผลสรุปการสอบ</span>}
-              </button>
 
               {/* Instructor-only menus */}
               {isInstructor && (
@@ -267,6 +273,15 @@ const NavBar = ({ children }: PageLayoutProps) => {
                   </button>
                 </>
               )}
+
+              {/* Results Section - Available to all, kept as the final menu item */}
+              <button
+                onClick={() => router.push("/results")}
+                className={getSideMenuStyle(isResultsActive)}
+              >
+                <BookOpen size={20} />
+                {isSidebarOpen && <span>ผลสรุปการสอบ</span>}
+              </button>
             </>
           )}
         </div>
