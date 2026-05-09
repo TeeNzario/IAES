@@ -3,7 +3,17 @@
 
 import NavBar from "@/components/layout/NavBar";
 import { useState, useMemo, useEffect } from "react";
-import { Search, ChevronLeft, ChevronRight, Plus, Loader2, ChevronDown } from "lucide-react";
+import {
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Loader2,
+  ChevronDown,
+  Pencil,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 import { DEFAULT_FACULTY_CODE, FACULTY_MAP, getFacultyName } from "@/lib/faculty-map";
 import { CURRICULUMS, DEFAULT_CURRICULUM_ID, getCurriculumName } from "@/config/curriculums";
 import { DEFAULT_TITLE, THAI_TITLES } from "@/config/titles";
@@ -77,7 +87,51 @@ interface FormErrors {
   confirmPassword?: string;
 }
 
-function mapStudentToUser(student: any): User {
+interface StudentUserResponse {
+  student_code: string;
+  title?: string;
+  first_name?: string;
+  last_name?: string;
+  is_active?: boolean;
+  email?: string;
+  facultyCode?: number;
+  curriculumId?: string;
+}
+
+interface StaffUserResponse {
+  staff_users_id: string | number;
+  title?: string;
+  first_name?: string;
+  last_name?: string;
+  is_active?: boolean;
+  role?: "ADMIN" | "INSTRUCTOR" | "ADMINISTRATOR" | "STUDENT";
+  email?: string;
+  facultyCode?: number;
+  curriculumId?: string;
+}
+
+interface StaffUpdatePayload {
+  email: string;
+  title: string;
+  first_name: string;
+  last_name: string;
+  facultyCode: number;
+  curriculumId: string;
+  is_active?: boolean;
+  password?: string;
+}
+
+interface ApiErrorResponse {
+  response?: {
+    status?: number;
+  };
+}
+
+function getApiStatus(error: unknown) {
+  return (error as ApiErrorResponse)?.response?.status;
+}
+
+function mapStudentToUser(student: StudentUserResponse): User {
   return {
     id: student.student_code,
     title: student.title ?? DEFAULT_TITLE,
@@ -91,7 +145,7 @@ function mapStudentToUser(student: any): User {
   };
 }
 
-function mapStaffToUser(staff: any): User {
+function mapStaffToUser(staff: StaffUserResponse): User {
   return {
     id: String(staff.staff_users_id),
     title: staff.title ?? DEFAULT_TITLE,
@@ -117,6 +171,9 @@ export default function ManageUserPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [facultyFilter, setFacultyFilter] = useState("all");
+  const [curriculumFilter, setCurriculumFilter] = useState("all");
+  const [showFilters, setShowFilters] = useState(false);
   // Default to STUDENT (no "all" option per requirement)
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("STUDENT");
   const [itemsPerPage, setItemsPerPage] = useState<number>(50);
@@ -124,12 +181,15 @@ export default function ManageUserPage() {
   // Edit modal states
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editId, setEditId] = useState("");
+  const [editEmail, setEditEmail] = useState("");
   const [editTitle, setEditTitle] = useState(DEFAULT_TITLE);
   const [editFirstName, setEditFirstName] = useState("");
   const [editLastName, setEditLastName] = useState("");
   const [editFacultyCode, setEditFacultyCode] = useState<number>(DEFAULT_FACULTY_CODE);
   const [editCurriculumId, setEditCurriculumId] = useState<string>(DEFAULT_CURRICULUM_ID);
   const [editActive, setEditActive] = useState<"ACTIVE" | "INACTIVE">("ACTIVE");
+  const [editPassword, setEditPassword] = useState("");
+  const [editConfirmPassword, setEditConfirmPassword] = useState("");
   const [editErrors, setEditErrors] = useState<FormErrors>({});
   const [isSaving, setIsSaving] = useState(false);
 
@@ -174,7 +234,7 @@ export default function ManageUserPage() {
       try {
         if (roleFilter === "STUDENT") {
           const res = await getUsers({ role: "" });
-          const data = Array.isArray(res) ? res : (res?.data ?? []);
+          const data = (Array.isArray(res) ? res : (res?.data ?? [])) as StudentUserResponse[];
           setUsers(data.map(mapStudentToUser));
           return;
         }
@@ -196,6 +256,8 @@ export default function ManageUserPage() {
 
   // Filter out current user from list
   const filteredUsers = useMemo(() => {
+    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+
     const list = users.filter((user) => {
       // Exclude current logged-in user
       if (currentUser) {
@@ -208,15 +270,23 @@ export default function ManageUserPage() {
 
       const fullName = `${user.title} ${user.first_name} ${user.last_name}`.trim();
       const matchesSearch =
-        fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.id.includes(searchTerm);
+        !normalizedSearchTerm ||
+        fullName.toLowerCase().includes(normalizedSearchTerm) ||
+        user.id.toLowerCase().includes(normalizedSearchTerm) ||
+        Boolean(user.email?.toLowerCase().includes(normalizedSearchTerm));
 
       const matchesStatus =
         statusFilter === "all" ||
         (statusFilter === "active" && user.is_active) ||
         (statusFilter === "inactive" && !user.is_active);
 
-      return matchesSearch && matchesStatus;
+      const matchesFaculty =
+        facultyFilter === "all" || String(user.facultyCode) === facultyFilter;
+      const matchesCurriculum =
+        curriculumFilter === "all" ||
+        (user.curriculumId ?? DEFAULT_CURRICULUM_ID) === curriculumFilter;
+
+      return matchesSearch && matchesStatus && matchesFaculty && matchesCurriculum;
     });
 
     const collator = new Intl.Collator(["th", "en"], {
@@ -235,7 +305,40 @@ export default function ManageUserPage() {
     });
 
     return list;
-  }, [users, searchTerm, statusFilter, currentUser]);
+  }, [
+    users,
+    searchTerm,
+    statusFilter,
+    facultyFilter,
+    curriculumFilter,
+    currentUser,
+  ]);
+
+  const facultyFilterOptions = useMemo(() => {
+    const collator = new Intl.Collator(["th", "en"], {
+      sensitivity: "base",
+      numeric: true,
+    });
+
+    return Object.entries(FACULTY_MAP)
+      .map(([code, name]) => ({
+        code: Number(code),
+        name,
+      }))
+      .sort((a, b) => collator.compare(a.name, b.name));
+  }, []);
+
+  const curriculumFilterOptions = useMemo(() => {
+    const collator = new Intl.Collator(["th", "en"], {
+      sensitivity: "base",
+      numeric: true,
+    });
+
+    return CURRICULUMS.map((curriculum) => ({
+      id: curriculum.id,
+      name: getCurriculumName(curriculum.id),
+    })).sort((a, b) => collator.compare(a.name, b.name));
+  }, []);
 
   const totalPages = Math.max(
     1,
@@ -250,7 +353,7 @@ export default function ManageUserPage() {
     setCurrentPage((cp) =>
       Math.min(cp, Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage))),
     );
-  }, [filteredUsers.length]);
+  }, [filteredUsers.length, itemsPerPage]);
 
   // ============================================================
   // EDIT MODAL FUNCTIONS
@@ -258,20 +361,35 @@ export default function ManageUserPage() {
   function openEdit(user: User) {
     setEditingUser(user);
     setEditId(user.id);
+    setEditEmail(user.email ?? "");
     setEditTitle(user.title || DEFAULT_TITLE);
     setEditFirstName(user.first_name);
     setEditLastName(user.last_name);
     setEditFacultyCode(user.facultyCode ?? DEFAULT_FACULTY_CODE);
     setEditCurriculumId(user.curriculumId ?? DEFAULT_CURRICULUM_ID);
     setEditActive(user.is_active ? "ACTIVE" : "INACTIVE");
+    setEditPassword("");
+    setEditConfirmPassword("");
     setEditErrors({});
   }
 
-  function validateEditForm(): boolean {
+  async function validateEditForm(): Promise<boolean> {
     const errors: FormErrors = {};
+    const normalizedEmail = editEmail.trim();
+    const canEditEmail = editingUser?.role !== "STUDENT";
 
     if (!editTitle.trim()) {
       errors.title = "กรุณาเลือกคำนำหน้า";
+    }
+
+    if (canEditEmail) {
+      if (!normalizedEmail) {
+        errors.email = ERROR_MESSAGES.email.required;
+      } else if (normalizedEmail.length > USER_VALIDATION_CONFIG.email.max) {
+        errors.email = ERROR_MESSAGES.email.maxLength;
+      } else if (!EMAIL_REGEX.test(normalizedEmail)) {
+        errors.email = ERROR_MESSAGES.email.invalid;
+      }
     }
 
     if (!editFirstName.trim()) {
@@ -295,50 +413,75 @@ export default function ManageUserPage() {
       errors.last_name = "นามสกุลต้องเป็นภาษาไทยเท่านั้น";
     }
 
+    const isChangingPassword = editPassword.length > 0 || editConfirmPassword.length > 0;
+    if (isChangingPassword) {
+      if (!editPassword) {
+        errors.password = ERROR_MESSAGES.password.required;
+      } else if (editPassword.length < USER_VALIDATION_CONFIG.password.min) {
+        errors.password = ERROR_MESSAGES.password.minLength;
+      }
+
+      if (editPassword !== editConfirmPassword) {
+        errors.confirmPassword = ERROR_MESSAGES.password.mismatch;
+      }
+    }
+
 
     setEditErrors(errors);
-    return Object.keys(errors).length === 0;
+    if (Object.keys(errors).length > 0) return false;
+
+    const emailChanged = normalizedEmail !== (editingUser?.email ?? "");
+    if (editingUser && canEditEmail && emailChanged) {
+      const emailExists = await checkEmailExists(normalizedEmail, editingUser.id);
+
+      if (emailExists) {
+        setEditErrors({ email: ERROR_MESSAGES.email.duplicate });
+        return false;
+      }
+    }
+
+    return true;
   }
 
   async function saveEdit() {
-    if (!editingUser || !validateEditForm()) return;
+    if (!editingUser || !(await validateEditForm())) return;
 
     setIsSaving(true);
 
     // Check if user is ADMIN (cannot change is_active)
     const isAdminUser = editingUser.role === "ADMINISTRATOR";
+    const canEditEmail = editingUser.role !== "STUDENT";
+    const normalizedEmail = editEmail.trim();
+    const passwordToUpdate = editPassword;
 
-    // Optimistic update
-    setUsers((prev) =>
-      (prev ?? []).map((u) =>
-        u.id === editingUser.id
-          ? {
-            ...u,
-            title: editTitle,
-            first_name: editFirstName,
-            last_name: editLastName,
-            facultyCode: editFacultyCode,
-            curriculumId: editCurriculumId,
-            // Don't update is_active for ADMIN
-            is_active: isAdminUser ? u.is_active : editActive === "ACTIVE",
-          }
-          : u,
-      ),
-    );
+    const updatedUser: User = {
+      ...editingUser,
+      email: canEditEmail ? normalizedEmail : editingUser.email,
+      title: editTitle,
+      first_name: editFirstName,
+      last_name: editLastName,
+      facultyCode: editFacultyCode,
+      curriculumId: editCurriculumId,
+      // Don't update is_active for ADMIN
+      is_active: isAdminUser ? editingUser.is_active : editActive === "ACTIVE",
+    };
 
     try {
       if (editingUser.role === "STUDENT") {
-        await apiUpdateUser(editingUser.id, {
+        const updatePayload = {
           title: editTitle,
           first_name: editFirstName,
           last_name: editLastName,
           facultyCode: editFacultyCode,
           curriculumId: editCurriculumId,
           is_active: editActive === "ACTIVE",
-        });
+          ...(passwordToUpdate ? { password: passwordToUpdate } : {}),
+        };
+        await apiUpdateUser(editingUser.id, updatePayload);
       } else {
         // For staff, include facultyCode; only include is_active if NOT ADMIN
-        const updatePayload: any = {
+        const updatePayload: StaffUpdatePayload = {
+          email: normalizedEmail,
           title: editTitle,
           first_name: editFirstName,
           last_name: editLastName,
@@ -348,10 +491,19 @@ export default function ManageUserPage() {
         if (!isAdminUser) {
           updatePayload.is_active = editActive === "ACTIVE";
         }
+        if (passwordToUpdate) {
+          updatePayload.password = passwordToUpdate;
+        }
         await apiUpdateStaff(editingUser.id, updatePayload);
       }
+      setUsers((prev) =>
+        (prev ?? []).map((u) => (u.id === editingUser.id ? updatedUser : u)),
+      );
       setEditingUser(null);
-    } catch (error) {
+    } catch (error: unknown) {
+      if (getApiStatus(error) === 409) {
+        setEditErrors({ email: ERROR_MESSAGES.email.duplicate });
+      }
       console.error("Error updating user on server:", error);
     } finally {
       setIsSaving(false);
@@ -469,8 +621,8 @@ export default function ManageUserPage() {
       const res = await getStaffs({ role: createRole });
       const data = res?.data ?? [];
       setUsers(data.map(mapStaffToUser));
-    } catch (error: any) {
-      if (error?.response?.status === 409) {
+    } catch (error: unknown) {
+      if (getApiStatus(error) === 409) {
         setCreateErrors({ email: ERROR_MESSAGES.email.duplicate });
       } else {
         console.error("Error creating staff:", error);
@@ -564,10 +716,10 @@ export default function ManageUserPage() {
 
       // Re-fetch
       const res = await getUsers({ role: "" });
-      const data = Array.isArray(res) ? res : (res?.data ?? []);
+      const data = (Array.isArray(res) ? res : (res?.data ?? [])) as StudentUserResponse[];
       setUsers(data.map(mapStudentToUser));
-    } catch (error: any) {
-      if (error?.response?.status === 409) {
+    } catch (error: unknown) {
+      if (getApiStatus(error) === 409) {
         setStudentErrors({ student_code: "รหัสนักศึกษานี้ถูกใช้งานแล้ว" });
       } else {
         console.error("Error creating student:", error);
@@ -575,6 +727,49 @@ export default function ManageUserPage() {
     } finally {
       setIsCreatingStudent(false);
     }
+  }
+
+  const showSequenceColumn = roleFilter !== "STUDENT";
+  const activeFilterCount = [
+    statusFilter !== "all",
+    facultyFilter !== "all",
+    curriculumFilter !== "all",
+  ].filter(Boolean).length;
+  const currentRoleLabel =
+    roleFilter === "STUDENT"
+      ? "นักเรียน"
+      : roleFilter === "INSTRUCTOR"
+        ? "อาจารย์"
+        : "ผู้ดูแลระบบ";
+  const statusLabel = (isActive: boolean) =>
+    isActive ? "เปิดใช้งานสิทธิ์" : "ระงับสิทธิ์";
+  const modalBackdropClass =
+    "fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/45 p-4 py-6 sm:p-6";
+  const modalPanelClass =
+    "w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl sm:p-6 max-h-[calc(100vh-3rem)] overflow-y-auto";
+  const fieldGroupClass = "mb-4";
+  const labelClass = "block text-sm font-semibold text-gray-800 mb-1.5";
+  const baseFieldClass =
+    "w-full rounded-xl border-2 px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none";
+  const validFieldClass = "border-[#9264F5] focus:border-[#B7A3E3]";
+  const errorFieldClass = "border-red-500 focus:border-red-500";
+  const selectFieldClass = `${baseFieldClass} appearance-none bg-white pr-10`;
+  const dropdownIconClass =
+    "absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none";
+  const selectControlClass =
+    "h-12 w-full rounded-xl border-2 border-gray-300 bg-white px-4 pr-10 text-[15px] text-gray-800 shadow-sm appearance-none focus:outline-none focus:border-purple-400";
+
+  function resetListFilters() {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setFacultyFilter("all");
+    setCurriculumFilter("all");
+    setCurrentPage(1);
+  }
+
+  function selectRole(nextRole: RoleFilter) {
+    resetListFilters();
+    setRoleFilter(nextRole);
   }
 
   return (
@@ -585,16 +780,13 @@ export default function ManageUserPage() {
         </h1>
 
         {/* Filter and Search */}
-        <div className="flex flex-col sm:flex-row sm:justify-between gap-4 items-start sm:items-center mb-6">
+        <div className="flex flex-col gap-4 mb-6 2xl:flex-row 2xl:items-center 2xl:justify-between">
           <div className="flex flex-wrap gap-2 items-center">
             <button
               onClick={() => {
-                setSearchTerm("");
-                setStatusFilter("all");
-                setRoleFilter("STUDENT");
-                setCurrentPage(1);
+                selectRole("STUDENT");
               }}
-              className={`px-6 py-2 rounded-full font-medium transition-colors ${roleFilter === "STUDENT"
+              className={`h-12 min-w-32 whitespace-nowrap px-6 rounded-full text-[15px] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9264F5] focus-visible:ring-offset-2 ${roleFilter === "STUDENT"
                 ? "bg-[#B7A3E3] text-white"
                 : "bg-white border-2 border-[#B7A3E3] text-[#B7A3E3] hover:bg-purple-50"
                 }`}
@@ -604,12 +796,9 @@ export default function ManageUserPage() {
 
             <button
               onClick={() => {
-                setSearchTerm("");
-                setStatusFilter("all");
-                setRoleFilter("INSTRUCTOR");
-                setCurrentPage(1);
+                selectRole("INSTRUCTOR");
               }}
-              className={`px-6 py-2 rounded-full font-medium transition-colors ${roleFilter === "INSTRUCTOR"
+              className={`h-12 min-w-32 whitespace-nowrap px-6 rounded-full text-[15px] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9264F5] focus-visible:ring-offset-2 ${roleFilter === "INSTRUCTOR"
                 ? "bg-[#B7A3E3] text-white"
                 : "bg-white border-2 border-[#B7A3E3] text-[#B7A3E3] hover:bg-purple-50"
                 }`}
@@ -619,12 +808,9 @@ export default function ManageUserPage() {
 
             <button
               onClick={() => {
-                setSearchTerm("");
-                setStatusFilter("all");
-                setRoleFilter("ADMINISTRATOR");
-                setCurrentPage(1);
+                selectRole("ADMINISTRATOR");
               }}
-              className={`px-6 py-2 rounded-full font-medium transition-colors ${roleFilter === "ADMINISTRATOR"
+              className={`h-12 min-w-32 whitespace-nowrap px-6 rounded-full text-[15px] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9264F5] focus-visible:ring-offset-2 ${roleFilter === "ADMINISTRATOR"
                 ? "bg-[#B7A3E3] text-white"
                 : "bg-white border-2 border-[#B7A3E3] text-[#B7A3E3] hover:bg-purple-50"
                 }`}
@@ -636,7 +822,7 @@ export default function ManageUserPage() {
             {roleFilter === "STUDENT" && (
               <button
                 onClick={openCreateStudentModal}
-                className="p-2 bg-[#B7A3E3] text-white rounded-full hover:bg-[#9264F5] transition-colors"
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-[#B7A3E3] text-white transition-colors hover:bg-[#9264F5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9264F5] focus-visible:ring-offset-2"
                 title="เพิ่มนักเรียน"
               >
                 <Plus size={20} />
@@ -652,7 +838,7 @@ export default function ManageUserPage() {
                       roleFilter === "ADMINISTRATOR" ? "ADMIN" : "INSTRUCTOR",
                     )
                   }
-                  className="p-2 bg-[#B7A3E3] text-white rounded-full hover:bg-[#9264F5] transition-colors"
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-[#B7A3E3] text-white transition-colors hover:bg-[#9264F5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9264F5] focus-visible:ring-offset-2"
                   title={`เพิ่ม${roleFilter === "INSTRUCTOR" ? "อาจารย์" : "ผู้ดูแลระบบ"}`}
                 >
                   <Plus size={20} />
@@ -660,7 +846,25 @@ export default function ManageUserPage() {
               )}
           </div>
 
-          <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-2 sm:items-center">
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center 2xl:w-auto">
+            <button
+              onClick={() => setShowFilters((visible) => !visible)}
+              className={`relative flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl border-2 px-4 text-[15px] font-semibold shadow-sm transition-colors sm:w-auto sm:min-w-32 ${
+                showFilters || activeFilterCount > 0
+                  ? "border-[#B7A3E3] bg-[#B7A3E3] text-white hover:bg-[#9264F5]"
+                  : "border-gray-300 bg-white text-gray-800 hover:border-purple-300 hover:bg-purple-50"
+              }`}
+              aria-expanded={showFilters}
+              aria-controls="manage-users-filters"
+            >
+              <SlidersHorizontal size={18} />
+              ตัวกรอง
+              {activeFilterCount > 0 && (
+                <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1.5 text-xs font-bold text-[#9264F5]">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
             <div className="relative">
               <select
                 value={itemsPerPage}
@@ -668,7 +872,7 @@ export default function ManageUserPage() {
                   setItemsPerPage(Number(e.target.value));
                   setCurrentPage(1);
                 }}
-                className="w-full sm:w-auto px-4 py-2 pr-9 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-400 appearance-none bg-white text-gray-700"
+                className={`${selectControlClass} sm:w-48`}
                 title="จำนวนต่อหน้า"
               >
                 <option value={25}>แสดง 25 คน</option>
@@ -677,9 +881,9 @@ export default function ManageUserPage() {
                 <option value={200}>แสดง 200 คน</option>
                 <option value={500}>แสดง 500 คน</option>
               </select>
-              <ChevronDown className="absolute right-2 top-2.5 text-gray-400 pointer-events-none" size={18} />
+              <ChevronDown className={dropdownIconClass} size={18} />
             </div>
-            <div className="relative w-full sm:w-64">
+            <div className="relative w-full sm:w-80">
               <input
                 type="text"
                 placeholder="ค้นหา"
@@ -688,70 +892,167 @@ export default function ManageUserPage() {
                   setSearchTerm(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-400"
+                className="h-12 w-full rounded-xl border-2 border-gray-300 bg-white px-4 pr-11 text-[15px] text-gray-900 shadow-sm placeholder:text-gray-500 placeholder:font-medium focus:outline-none focus:border-purple-400"
+                aria-label="ค้นหาผู้ใช้"
               />
               <Search
-                className="absolute right-3 top-2.5 text-gray-400"
-                size={18}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                size={20}
               />
             </div>
           </div>
         </div>
 
+        {showFilters && (
+          <div
+            id="manage-users-filters"
+            className="mb-6 rounded-2xl border border-[#B7A3E3]/40 bg-white p-4 shadow-sm sm:p-5"
+          >
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">เพิ่มตัวกรอง</h2>
+                <p className="text-sm text-gray-500">
+                  เลือกจากข้อมูล{currentRoleLabel}ที่มีอยู่ในระบบ
+                </p>
+              </div>
+              <button
+                onClick={() => setShowFilters(false)}
+                className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800"
+                title="ปิดตัวกรอง"
+                aria-label="ปิดตัวกรอง"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+              <div>
+                <label className={labelClass}>สำนักวิชา</label>
+                <div className="relative">
+                  <select
+                    value={facultyFilter}
+                    onChange={(e) => {
+                      setFacultyFilter(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className={selectControlClass}
+                  >
+                    <option value="all">ทั้งหมด</option>
+                    {facultyFilterOptions.map((faculty) => (
+                      <option key={faculty.code} value={faculty.code}>
+                        {faculty.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className={dropdownIconClass} size={18} />
+                </div>
+              </div>
+
+              <div>
+                <label className={labelClass}>หลักสูตร</label>
+                <div className="relative">
+                  <select
+                    value={curriculumFilter}
+                    onChange={(e) => {
+                      setCurriculumFilter(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className={selectControlClass}
+                  >
+                    <option value="all">ทั้งหมด</option>
+                    {curriculumFilterOptions.map((curriculum) => (
+                      <option key={curriculum.id} value={curriculum.id}>
+                        {curriculum.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className={dropdownIconClass} size={18} />
+                </div>
+              </div>
+
+              <div>
+                <label className={labelClass}>สถานะ</label>
+                <div className="relative">
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => {
+                      setStatusFilter(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className={selectControlClass}
+                  >
+                    <option value="all">ทั้งหมด</option>
+                    <option value="active">เปิดใช้งานสิทธิ์</option>
+                    <option value="inactive">ระงับสิทธิ์</option>
+                  </select>
+                  <ChevronDown className={dropdownIconClass} size={18} />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                onClick={resetListFilters}
+                disabled={activeFilterCount === 0 && searchTerm.trim() === ""}
+                className="h-11 rounded-xl border-2 border-gray-300 px-5 text-[15px] font-semibold text-gray-800 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                ล้างตัวกรอง
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Table for desktop */}
         <div className="bg-white rounded-lg shadow overflow-hidden w-full">
           <div className="overflow-auto max-h-[calc(100vh-280px)]">
-            <table className="w-full min-w-[640px] hidden sm:table">
+            <table className="w-full min-w-[820px] hidden table-fixed sm:table">
+              <colgroup>
+                <col className={showSequenceColumn ? "w-[8%]" : "w-[14%]"} />
+                <col className={showSequenceColumn ? "w-[23%]" : "w-[21%]"} />
+                <col className={showSequenceColumn ? "w-[24%]" : "w-[23%]"} />
+                <col className={showSequenceColumn ? "w-[22%]" : "w-[19%]"} />
+                <col className="w-[16%]" />
+                <col className="w-[7%]" />
+              </colgroup>
               <thead className="sticky top-0 z-10">
                 <tr className="bg-[#B7A3E3] text-white">
-                  <th className="px-4 py-2.5 text-left font-light text-sm">
-                    {roleFilter === "STUDENT" ? "รหัสนักศึกษา" : ""}
+                  <th className="px-4 py-3 text-left text-[15px] font-medium">
+                    {showSequenceColumn ? "ลำดับ" : "รหัสนักศึกษา"}
                   </th>
-                  <th className="px-4 py-2.5 text-left font-light text-sm">ชื่อ-นามสกุล</th>
-                  <th className="px-4 py-2.5 text-left font-light text-sm">สำนักวิชา</th>
-                  <th className="px-4 py-2.5 text-left font-light text-sm">หลักสูตร</th>
-                  <th className="px-4 py-2.5 text-left font-light text-sm">สถานะ</th>
-                  <th className="px-4 py-2.5 text-left font-light text-sm">แก้ไข</th>
+                  <th className="px-4 py-3 text-left text-[15px] font-medium">ชื่อ-นามสกุล</th>
+                  <th className="px-4 py-3 text-left text-[15px] font-medium">สำนักวิชา</th>
+                  <th className="px-4 py-3 text-left text-[15px] font-medium">หลักสูตร</th>
+                  <th className="px-4 py-3 text-left text-[15px] font-medium">สถานะ</th>
+                  <th className="px-2 py-3 text-center text-[15px] font-medium">แก้ไข</th>
                 </tr>
               </thead>
               <tbody>
-                {paginatedUsers.map((user) => (
-                  <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-50 text-sm">
-                    <td className="px-4 py-2 text-gray-700">
-                      {user.role === "STUDENT" ? user.id : ""}
+                {paginatedUsers.map((user, index) => (
+                  <tr key={user.id} className="border-b border-gray-200 text-[15px] hover:bg-gray-50">
+                    <td className="px-4 py-3 text-gray-700">
+                      {showSequenceColumn ? (currentPage - 1) * itemsPerPage + index + 1 : user.id}
                     </td>
-                    <td className="px-4 py-2 text-gray-700">{`${user.title} ${user.first_name} ${user.last_name}`}</td>
-                    <td className="px-4 py-2 text-gray-700">{getFacultyName(user.facultyCode ?? 1)}</td>
-                    <td className="px-4 py-2 text-gray-700">{getCurriculumName(user.curriculumId)}</td>
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-3 text-gray-700">{`${user.title} ${user.first_name} ${user.last_name}`}</td>
+                    <td className="px-4 py-3 text-gray-700">{getFacultyName(user.facultyCode ?? DEFAULT_FACULTY_CODE)}</td>
+                    <td className="px-4 py-3 text-gray-700">{getCurriculumName(user.curriculumId)}</td>
+                    <td className="px-4 py-3">
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${user.is_active
+                        className={`inline-flex min-w-28 justify-center rounded-full px-3 py-1 text-xs font-semibold ${user.is_active
                           ? "bg-[#B7A3E3] text-white"
                           : "bg-white text-[#B7A3E3] border border-[#B7A3E3]"
                           }`}
                       >
-                        {user.is_active ? "เปิดใช้งาน" : "ปิดใช้งาน"}
+                        {statusLabel(user.is_active)}
                       </span>
                     </td>
-                    <td className="px-4 py-2 text-gray-700">
+                    <td className="px-2 py-3 text-center text-gray-700">
                       <button
                         onClick={() => openEdit(user)}
-                        className="p-1.5 text-purple-400 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-purple-400 transition-colors hover:bg-purple-50 hover:text-purple-600"
+                        title="แก้ไขข้อมูล"
+                        aria-label="แก้ไขข้อมูล"
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                          <path d="m15 5 4 4" />
-                        </svg>
+                        <Pencil size={20} />
                       </button>
                     </td>
                   </tr>
@@ -761,44 +1062,35 @@ export default function ManageUserPage() {
 
             {/* Mobile list */}
             <div className="sm:hidden">
-              {paginatedUsers.map((user) => (
+              {paginatedUsers.map((user, index) => (
                 <div
                   key={user.id}
                   className="p-4 border-b flex justify-between items-start gap-4"
                 >
                   <div className="flex-1">
                     <div className="text-sm text-gray-500">
-                      {user.role === "STUDENT" ? `รหัสนักศึกษา: ${user.id}` : ""}
+                      {user.role === "STUDENT"
+                        ? `รหัสนักศึกษา: ${user.id}`
+                        : `ลำดับ: ${(currentPage - 1) * itemsPerPage + index + 1}`}
                     </div>
                     <div className="font-medium text-gray-800">{`${user.title} ${user.first_name} ${user.last_name}`}</div>
                     <span
-                      className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${user.is_active
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
+                      className={`inline-block mt-1 rounded-full px-2.5 py-1 text-xs font-semibold ${user.is_active
+                        ? "bg-[#B7A3E3] text-white"
+                        : "border border-[#B7A3E3] bg-white text-[#B7A3E3]"
                         }`}
                     >
-                      {user.is_active ? "เปิดใช้งาน" : "ปิดใช้งาน"}
+                      {statusLabel(user.is_active)}
                     </span>
                   </div>
                   <div className="flex flex-col gap-2 items-end">
                     <button
                       onClick={() => openEdit(user)}
-                      className="p-2 text-purple-400 hover:text-purple-600 hover:bg-purple-50 rounded-md"
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-purple-400 hover:bg-purple-50 hover:text-purple-600"
+                      title="แก้ไขข้อมูล"
+                      aria-label="แก้ไขข้อมูล"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                        <path d="m15 5 4 4" />
-                      </svg>
+                      <Pencil size={20} />
                     </button>
                   </div>
                 </div>
@@ -867,34 +1159,66 @@ export default function ManageUserPage() {
 
         {/* Edit Modal */}
         {editingUser && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl">
-              {/* ID Field */}
+          <div className={modalBackdropClass}>
+            <div className={modalPanelClass}>
               <div className="mb-5">
-                <label className="block text-sm font-medium text-black mb-2">
-                  {editingUser.role === "STUDENT" ? "รหัสนักศึกษา" : "ID"}
-                </label>
-                <input
-                  type="text"
-                  value={editId}
-                  disabled
-                  className="w-full px-4 py-3 border-2 border-[#9264F5] rounded-2xl bg-gray-50 text-black cursor-not-allowed"
-                />
+                <h2 className="text-xl font-bold text-gray-900">
+                  แก้ไขข้อมูล{currentRoleLabel}
+                </h2>
               </div>
 
+              {editingUser.role === "STUDENT" ? (
+                <div className={fieldGroupClass}>
+                  <label className={labelClass}>รหัสนักศึกษา</label>
+                  <input
+                    type="text"
+                    value={editId}
+                    disabled
+                    className={`${baseFieldClass} cursor-not-allowed border-gray-200 bg-gray-50 text-gray-500`}
+                  />
+                </div>
+              ) : (
+                <div className={fieldGroupClass}>
+                  <label className={labelClass}>
+                    อีเมล{" "}
+                    <span className="text-xs font-medium text-gray-500">
+                      ({editEmail.length}/{USER_VALIDATION_CONFIG.email.max})
+                    </span>
+                  </label>
+                  <input
+                    type="email"
+                    value={editEmail}
+                    onChange={(e) => {
+                      setEditEmail(e.target.value);
+                      if (editErrors.email)
+                        setEditErrors((p) => ({ ...p, email: undefined }));
+                    }}
+                    maxLength={USER_VALIDATION_CONFIG.email.max}
+                    className={`${baseFieldClass} ${
+                      editErrors.email ? errorFieldClass : validFieldClass
+                    }`}
+                  />
+                  {editErrors.email && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {editErrors.email}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Title Field */}
-              <div className="mb-5">
-                <label className="block text-sm font-medium text-black mb-2">
+              <div className={fieldGroupClass}>
+                <label className={labelClass}>
                   คำนำหน้า
                 </label>
                 <div className="relative">
                   <select
                     value={editTitle}
                     onChange={(e) => setEditTitle(e.target.value)}
-                    className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black appearance-none bg-white ${
+                    className={`${selectFieldClass} ${
                       editErrors.title
-                        ? "border-red-500"
-                        : "border-[#9264F5] focus:border-[#B7A3E3]"
+                        ? errorFieldClass
+                        : validFieldClass
                     }`}
                   >
                     {THAI_TITLES.map((title) => (
@@ -903,85 +1227,86 @@ export default function ManageUserPage() {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                  <ChevronDown className={dropdownIconClass} size={18} />
                 </div>
                 {editErrors.title && (
                   <p className="text-red-500 text-xs mt-1">{editErrors.title}</p>
                 )}
               </div>
 
-              {/* First Name Field */}
-              <div className="mb-5">
-                <label className="block text-sm font-medium text-black mb-2">
-                  ชื่อ{" "}
-                  <span className="text-xs text-gray-400">
-                    ({editFirstName.length}/
-                    {USER_VALIDATION_CONFIG.firstName.max})
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  value={editFirstName}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^ก-๙\s]/g, "");
-                    setEditFirstName(value);
-                    if (editErrors.first_name)
-                      setEditErrors((p) => ({ ...p, first_name: undefined }));
-                  }}
-                  maxLength={USER_VALIDATION_CONFIG.firstName.max}
-                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${editErrors.first_name
-                    ? "border-red-500"
-                    : "border-[#9264F5] focus:border-[#B7A3E3]"
-                    }`}
-                />
-                {editErrors.first_name && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {editErrors.first_name}
-                  </p>
-                )}
-              </div>
+              <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+                {/* First Name Field */}
+                <div className={fieldGroupClass}>
+                  <label className={labelClass}>
+                    ชื่อ{" "}
+                    <span className="text-xs font-medium text-gray-500">
+                      ({editFirstName.length}/
+                      {USER_VALIDATION_CONFIG.firstName.max})
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editFirstName}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^ก-๙\s]/g, "");
+                      setEditFirstName(value);
+                      if (editErrors.first_name)
+                        setEditErrors((p) => ({ ...p, first_name: undefined }));
+                    }}
+                    maxLength={USER_VALIDATION_CONFIG.firstName.max}
+                    className={`${baseFieldClass} ${editErrors.first_name
+                      ? errorFieldClass
+                      : validFieldClass
+                      }`}
+                  />
+                  {editErrors.first_name && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {editErrors.first_name}
+                    </p>
+                  )}
+                </div>
 
-              {/* Last Name Field */}
-              <div className="mb-5">
-                <label className="block text-sm font-medium text-black mb-2">
-                  นามสกุล{" "}
-                  <span className="text-xs text-gray-400">
-                    ({editLastName.length}/{USER_VALIDATION_CONFIG.lastName.max}
-                    )
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  value={editLastName}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^ก-๙\s]/g, "");
-                    setEditLastName(value);
-                    if (editErrors.last_name)
-                      setEditErrors((p) => ({ ...p, last_name: undefined }));
-                  }}
-                  maxLength={USER_VALIDATION_CONFIG.lastName.max}
-                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${editErrors.last_name
-                    ? "border-red-500"
-                    : "border-[#9264F5] focus:border-[#B7A3E3]"
-                    }`}
-                />
-                {editErrors.last_name && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {editErrors.last_name}
-                  </p>
-                )}
+                {/* Last Name Field */}
+                <div className={fieldGroupClass}>
+                  <label className={labelClass}>
+                    นามสกุล{" "}
+                    <span className="text-xs font-medium text-gray-500">
+                      ({editLastName.length}/{USER_VALIDATION_CONFIG.lastName.max})
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editLastName}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^ก-๙\s]/g, "");
+                      setEditLastName(value);
+                      if (editErrors.last_name)
+                        setEditErrors((p) => ({ ...p, last_name: undefined }));
+                    }}
+                    maxLength={USER_VALIDATION_CONFIG.lastName.max}
+                    className={`${baseFieldClass} ${editErrors.last_name
+                      ? errorFieldClass
+                      : validFieldClass
+                      }`}
+                  />
+                  {editErrors.last_name && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {editErrors.last_name}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Faculty Dropdown */}
-              <div className="mb-5">
-                <label className="block text-sm font-medium text-black mb-2">
+              <div className={fieldGroupClass}>
+                <label className={labelClass}>
                   สำนักวิชา
                 </label>
                 <div className="relative">
                   <select
                     value={editFacultyCode}
                     onChange={(e) => setEditFacultyCode(Number(e.target.value))}
-                    className="w-full px-4 py-3 border-2 border-[#9264F5] rounded-2xl focus:outline-none focus:border-[#B7A3E3] transition-colors text-black appearance-none bg-white"
+                    className={`${selectFieldClass} ${validFieldClass}`}
                   >
                     {Object.entries(FACULTY_MAP).map(([code, name]) => (
                       <option key={code} value={code}>
@@ -989,20 +1314,20 @@ export default function ManageUserPage() {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                  <ChevronDown className={dropdownIconClass} size={18} />
                 </div>
               </div>
 
               {/* Curriculum Dropdown */}
-              <div className="mb-5">
-                <label className="block text-sm font-medium text-black mb-2">
+              <div className={fieldGroupClass}>
+                <label className={labelClass}>
                   หลักสูตร
                 </label>
                 <div className="relative">
                   <select
                     value={editCurriculumId}
                     onChange={(e) => setEditCurriculumId(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-[#9264F5] rounded-2xl focus:outline-none focus:border-[#B7A3E3] transition-colors text-black appearance-none bg-white"
+                    className={`${selectFieldClass} ${validFieldClass}`}
                   >
                     {CURRICULUMS.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -1010,18 +1335,73 @@ export default function ManageUserPage() {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                  <ChevronDown className={dropdownIconClass} size={18} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+                <div className={fieldGroupClass}>
+                  <label className={labelClass}>รหัสผ่านใหม่</label>
+                  <input
+                    type="password"
+                    value={editPassword}
+                    onChange={(e) => {
+                      setEditPassword(e.target.value);
+                      if (editErrors.password || editErrors.confirmPassword)
+                        setEditErrors((p) => ({
+                          ...p,
+                          password: undefined,
+                          confirmPassword: undefined,
+                        }));
+                    }}
+                    className={`${baseFieldClass} ${
+                      editErrors.password ? errorFieldClass : validFieldClass
+                    }`}
+                  />
+                  {editErrors.password && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {editErrors.password}
+                    </p>
+                  )}
+                </div>
+
+                <div className={fieldGroupClass}>
+                  <label className={labelClass}>
+                    ยืนยันรหัสผ่านใหม่
+                  </label>
+                  <input
+                    type="password"
+                    value={editConfirmPassword}
+                    onChange={(e) => {
+                      setEditConfirmPassword(e.target.value);
+                      if (editErrors.confirmPassword)
+                        setEditErrors((p) => ({
+                          ...p,
+                          confirmPassword: undefined,
+                        }));
+                    }}
+                    className={`${baseFieldClass} ${
+                      editErrors.confirmPassword
+                        ? errorFieldClass
+                        : validFieldClass
+                    }`}
+                  />
+                  {editErrors.confirmPassword && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {editErrors.confirmPassword}
+                    </p>
+                  )}
                 </div>
               </div>
 
               {/* Status Toggle - Hidden for ADMIN users */}
               {editingUser.role !== "ADMINISTRATOR" && (
-                <div className="mb-8">
-                  <label className="block text-sm font-medium text-black mb-3">
+                <div className="mb-6">
+                  <label className={labelClass}>
                     สถานะ
                   </label>
-                  <div className="flex gap-6">
-                    <label className="flex items-center gap-2 cursor-pointer">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 px-3 py-2.5">
                       <input
                         type="radio"
                         name="edit-user-status"
@@ -1030,9 +1410,11 @@ export default function ManageUserPage() {
                         onChange={() => setEditActive("ACTIVE")}
                         className="w-4 h-4 accent-[#B7A3E3] cursor-pointer"
                       />
-                      <span className="text-black font-medium">เปิดใช้งาน</span>
+                      <span className="text-sm font-semibold text-gray-900">
+                        เปิดใช้งานสิทธิ์
+                      </span>
                     </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 px-3 py-2.5">
                       <input
                         type="radio"
                         name="edit-user-status"
@@ -1041,7 +1423,7 @@ export default function ManageUserPage() {
                         onChange={() => setEditActive("INACTIVE")}
                         className="w-4 h-4 accent-[#B7A3E3] cursor-pointer"
                       />
-                      <span className="text-black font-medium">ปิดใช้งาน</span>
+                      <span className="text-sm font-semibold text-gray-900">ระงับสิทธิ์</span>
                     </label>
                   </div>
                 </div>
@@ -1049,7 +1431,7 @@ export default function ManageUserPage() {
 
               {/* Info message for ADMIN users */}
               {editingUser.role === "ADMINISTRATOR" && (
-                <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-center">
+                <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-center">
                   <p className="text-sm text-amber-700">
                     ผู้ดูแลระบบไม่สามารถเปลี่ยนสถานะได้
                   </p>
@@ -1061,14 +1443,14 @@ export default function ManageUserPage() {
                 <button
                   onClick={() => setEditingUser(null)}
                   disabled={isSaving}
-                  className="flex-1 px-6 py-3 rounded-2xl font-medium border-2 border-gray-300 text-black hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  className="flex-1 rounded-xl border-2 border-gray-300 px-6 py-2.5 font-semibold text-gray-900 transition-colors hover:bg-gray-50 disabled:opacity-50"
                 >
                   ยกเลิก
                 </button>
                 <button
                   onClick={saveEdit}
                   disabled={isSaving}
-                  className="flex-1 px-6 py-3 rounded-2xl font-medium bg-[#B7A3E3] text-white hover:bg-[#9264F5] transition-colors shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-6 py-2.5 font-semibold text-white shadow-lg transition-colors hover:bg-[#9264F5] disabled:opacity-50"
                 >
                   {isSaving && <Loader2 size={18} className="animate-spin" />}
                   บันทึก
@@ -1081,15 +1463,15 @@ export default function ManageUserPage() {
         {/* Create Staff Modal */}
         {/* Create Student Modal */}
         {showCreateStudentModal && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+          <div className={modalBackdropClass}>
+            <div className={modalPanelClass}>
               <h2 className="text-xl font-bold text-gray-800 mb-6">
                 เพิ่มนักเรียน
               </h2>
 
               {/* Student Code Field */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-black mb-2">
+              <div className={fieldGroupClass}>
+                <label className={labelClass}>
                   รหัสนักศึกษา
                 </label>
                 <input
@@ -1100,10 +1482,10 @@ export default function ManageUserPage() {
                     if (studentErrors.student_code)
                       setStudentErrors((p) => ({ ...p, student_code: undefined }));
                   }}
-                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${
+                  className={`${baseFieldClass} ${
                     studentErrors.student_code
-                      ? "border-red-500"
-                      : "border-[#9264F5] focus:border-[#B7A3E3]"
+                      ? errorFieldClass
+                      : validFieldClass
                   }`}
                 />
                 {studentErrors.student_code && (
@@ -1114,18 +1496,18 @@ export default function ManageUserPage() {
               </div>
 
               {/* Title Field */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-black mb-2">
+              <div className={fieldGroupClass}>
+                <label className={labelClass}>
                   คำนำหน้า <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <select
                     value={studentTitle}
                     onChange={(e) => setStudentTitle(e.target.value)}
-                    className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black appearance-none bg-white ${
+                    className={`${selectFieldClass} ${
                       studentErrors.title
-                        ? "border-red-500"
-                        : "border-[#9264F5] focus:border-[#B7A3E3]"
+                        ? errorFieldClass
+                        : validFieldClass
                     }`}
                   >
                     {THAI_TITLES.map((title) => (
@@ -1134,79 +1516,77 @@ export default function ManageUserPage() {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                  <ChevronDown className={dropdownIconClass} size={18} />
                 </div>
                 {studentErrors.title && (
                   <p className="text-red-500 text-xs mt-1">{studentErrors.title}</p>
                 )}
               </div>
 
-              {/* First Name Field */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-black mb-2">
-                  ชื่อ
-                </label>
-                <input
-                  type="text"
-                  value={studentFirstName}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^ก-๙\s]/g, "");
-                    setStudentFirstName(value);
-                    if (studentErrors.first_name)
-                      setStudentErrors((p) => ({ ...p, first_name: undefined }));
-                  }}
-                  maxLength={USER_VALIDATION_CONFIG.firstName.max}
-                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${
-                    studentErrors.first_name
-                      ? "border-red-500"
-                      : "border-[#9264F5] focus:border-[#B7A3E3]"
-                  }`}
-                />
-                {studentErrors.first_name && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {studentErrors.first_name}
-                  </p>
-                )}
-              </div>
+              <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+                {/* First Name Field */}
+                <div className={fieldGroupClass}>
+                  <label className={labelClass}>ชื่อ</label>
+                  <input
+                    type="text"
+                    value={studentFirstName}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^ก-๙\s]/g, "");
+                      setStudentFirstName(value);
+                      if (studentErrors.first_name)
+                        setStudentErrors((p) => ({ ...p, first_name: undefined }));
+                    }}
+                    maxLength={USER_VALIDATION_CONFIG.firstName.max}
+                    className={`${baseFieldClass} ${
+                      studentErrors.first_name
+                        ? errorFieldClass
+                        : validFieldClass
+                    }`}
+                  />
+                  {studentErrors.first_name && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {studentErrors.first_name}
+                    </p>
+                  )}
+                </div>
 
-              {/* Last Name Field */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-black mb-2">
-                  นามสกุล
-                </label>
-                <input
-                  type="text"
-                  value={studentLastName}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^ก-๙\s]/g, "");
-                    setStudentLastName(value);
-                    if (studentErrors.last_name)
-                      setStudentErrors((p) => ({ ...p, last_name: undefined }));
-                  }}
-                  maxLength={USER_VALIDATION_CONFIG.lastName.max}
-                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${
-                    studentErrors.last_name
-                      ? "border-red-500"
-                      : "border-[#9264F5] focus:border-[#B7A3E3]"
-                  }`}
-                />
-                {studentErrors.last_name && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {studentErrors.last_name}
-                  </p>
-                )}
+                {/* Last Name Field */}
+                <div className={fieldGroupClass}>
+                  <label className={labelClass}>นามสกุล</label>
+                  <input
+                    type="text"
+                    value={studentLastName}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^ก-๙\s]/g, "");
+                      setStudentLastName(value);
+                      if (studentErrors.last_name)
+                        setStudentErrors((p) => ({ ...p, last_name: undefined }));
+                    }}
+                    maxLength={USER_VALIDATION_CONFIG.lastName.max}
+                    className={`${baseFieldClass} ${
+                      studentErrors.last_name
+                        ? errorFieldClass
+                        : validFieldClass
+                    }`}
+                  />
+                  {studentErrors.last_name && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {studentErrors.last_name}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Faculty Dropdown */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-black mb-2">
+              <div className={fieldGroupClass}>
+                <label className={labelClass}>
                   สำนักวิชา <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <select
                     value={studentFacultyCode}
                     onChange={(e) => setStudentFacultyCode(Number(e.target.value))}
-                    className="w-full px-4 py-3 border-2 border-[#9264F5] rounded-2xl focus:outline-none focus:border-[#B7A3E3] transition-colors text-black appearance-none bg-white"
+                    className={`${selectFieldClass} ${validFieldClass}`}
                   >
                     {Object.entries(FACULTY_MAP).map(([code, name]) => (
                       <option key={code} value={code}>
@@ -1214,20 +1594,20 @@ export default function ManageUserPage() {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                  <ChevronDown className={dropdownIconClass} size={18} />
                 </div>
               </div>
 
               {/* Curriculum Dropdown */}
-              <div className="mb-5">
-                <label className="block text-sm font-medium text-black mb-2">
+              <div className={fieldGroupClass}>
+                <label className={labelClass}>
                   หลักสูตร
                 </label>
                 <div className="relative">
                   <select
                     value={studentCurriculumId}
                     onChange={(e) => setStudentCurriculumId(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-[#9264F5] rounded-2xl focus:outline-none focus:border-[#B7A3E3] transition-colors text-black appearance-none bg-white"
+                    className={`${selectFieldClass} ${validFieldClass}`}
                   >
                     {CURRICULUMS.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -1235,13 +1615,13 @@ export default function ManageUserPage() {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                  <ChevronDown className={dropdownIconClass} size={18} />
                 </div>
               </div>
 
               {/* Email Field */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-black mb-2">
+              <div className="mb-5">
+                <label className={labelClass}>
                   อีเมล
                 </label>
                 <input
@@ -1253,10 +1633,10 @@ export default function ManageUserPage() {
                       setStudentErrors((p) => ({ ...p, email: undefined }));
                   }}
                   maxLength={USER_VALIDATION_CONFIG.email.max}
-                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${
+                  className={`${baseFieldClass} ${
                     studentErrors.email
-                      ? "border-red-500"
-                      : "border-[#9264F5] focus:border-[#B7A3E3]"
+                      ? errorFieldClass
+                      : validFieldClass
                   }`}
                 />
                 {studentErrors.email && (
@@ -1271,14 +1651,14 @@ export default function ManageUserPage() {
                 <button
                   onClick={() => setShowCreateStudentModal(false)}
                   disabled={isCreatingStudent}
-                  className="flex-1 px-6 py-3 rounded-2xl font-medium border-2 border-gray-300 text-black hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  className="flex-1 rounded-xl border-2 border-gray-300 px-6 py-2.5 font-semibold text-gray-900 transition-colors hover:bg-gray-50 disabled:opacity-50"
                 >
                   ยกเลิก
                 </button>
                 <button
                   onClick={handleCreateStudent}
                   disabled={isCreatingStudent}
-                  className="flex-1 px-6 py-3 rounded-2xl font-medium bg-[#B7A3E3] text-white hover:bg-[#9264F5] transition-colors shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-6 py-2.5 font-semibold text-white shadow-lg transition-colors hover:bg-[#9264F5] disabled:opacity-50"
                 >
                   {isCreatingStudent && <Loader2 size={18} className="animate-spin" />}
                   สร้าง
@@ -1290,17 +1670,17 @@ export default function ManageUserPage() {
 
         {/* Create Staff Modal */}
         {showCreateModal && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+          <div className={modalBackdropClass}>
+            <div className={modalPanelClass}>
               <h2 className="text-xl font-bold text-gray-800 mb-6">
                 เพิ่ม{createRole === "INSTRUCTOR" ? "อาจารย์" : "ผู้ดูแลระบบ"}
               </h2>
 
               {/* Email Field */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-black mb-2">
+              <div className={fieldGroupClass}>
+                <label className={labelClass}>
                   อีเมล{" "}
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs font-medium text-gray-500">
                     ({createEmail.length}/{USER_VALIDATION_CONFIG.email.max})
                   </span>
                 </label>
@@ -1313,9 +1693,9 @@ export default function ManageUserPage() {
                       setCreateErrors((p) => ({ ...p, email: undefined }));
                   }}
                   maxLength={USER_VALIDATION_CONFIG.email.max}
-                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${createErrors.email
-                    ? "border-red-500"
-                    : "border-[#9264F5] focus:border-[#B7A3E3]"
+                  className={`${baseFieldClass} ${createErrors.email
+                    ? errorFieldClass
+                    : validFieldClass
                     }`}
                 />
                 {createErrors.email && (
@@ -1326,18 +1706,18 @@ export default function ManageUserPage() {
               </div>
 
               {/* Title Field */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-black mb-2">
+              <div className={fieldGroupClass}>
+                <label className={labelClass}>
                   คำนำหน้า <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <select
                     value={createTitle}
                     onChange={(e) => setCreateTitle(e.target.value)}
-                    className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black appearance-none bg-white ${
+                    className={`${selectFieldClass} ${
                       createErrors.title
-                        ? "border-red-500"
-                        : "border-[#9264F5] focus:border-[#B7A3E3]"
+                        ? errorFieldClass
+                        : validFieldClass
                     }`}
                   >
                     {THAI_TITLES.map((title) => (
@@ -1346,85 +1726,87 @@ export default function ManageUserPage() {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                  <ChevronDown className={dropdownIconClass} size={18} />
                 </div>
                 {createErrors.title && (
                   <p className="text-red-500 text-xs mt-1">{createErrors.title}</p>
                 )}
               </div>
 
-              {/* First Name Field */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-black mb-2">
-                  ชื่อ{" "}
-                  <span className="text-xs text-gray-400">
-                    ({createFirstName.length}/
-                    {USER_VALIDATION_CONFIG.firstName.max})
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  value={createFirstName}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^ก-๙\s]/g, "");
-                    setCreateFirstName(value);
-                    if (createErrors.first_name)
-                      setCreateErrors((p) => ({ ...p, first_name: undefined }));
-                  }}
-                  maxLength={USER_VALIDATION_CONFIG.firstName.max}
-                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${createErrors.first_name
-                    ? "border-red-500"
-                    : "border-[#9264F5] focus:border-[#B7A3E3]"
-                    }`}
-                />
-                {createErrors.first_name && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {createErrors.first_name}
-                  </p>
-                )}
-              </div>
+              <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+                {/* First Name Field */}
+                <div className={fieldGroupClass}>
+                  <label className={labelClass}>
+                    ชื่อ{" "}
+                    <span className="text-xs font-medium text-gray-500">
+                      ({createFirstName.length}/
+                      {USER_VALIDATION_CONFIG.firstName.max})
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    value={createFirstName}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^ก-๙\s]/g, "");
+                      setCreateFirstName(value);
+                      if (createErrors.first_name)
+                        setCreateErrors((p) => ({ ...p, first_name: undefined }));
+                    }}
+                    maxLength={USER_VALIDATION_CONFIG.firstName.max}
+                    className={`${baseFieldClass} ${createErrors.first_name
+                      ? errorFieldClass
+                      : validFieldClass
+                      }`}
+                  />
+                  {createErrors.first_name && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {createErrors.first_name}
+                    </p>
+                  )}
+                </div>
 
-              {/* Last Name Field */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-black mb-2">
-                  นามสกุล{" "}
-                  <span className="text-xs text-gray-400">
-                    ({createLastName.length}/
-                    {USER_VALIDATION_CONFIG.lastName.max})
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  value={createLastName}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^ก-๙\s]/g, "");
-                    setCreateLastName(value);
-                    if (createErrors.last_name)
-                      setCreateErrors((p) => ({ ...p, last_name: undefined }));
-                  }}
-                  maxLength={USER_VALIDATION_CONFIG.lastName.max}
-                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${createErrors.last_name
-                    ? "border-red-500"
-                    : "border-[#9264F5] focus:border-[#B7A3E3]"
-                    }`}
-                />
-                {createErrors.last_name && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {createErrors.last_name}
-                  </p>
-                )}
+                {/* Last Name Field */}
+                <div className={fieldGroupClass}>
+                  <label className={labelClass}>
+                    นามสกุล{" "}
+                    <span className="text-xs font-medium text-gray-500">
+                      ({createLastName.length}/
+                      {USER_VALIDATION_CONFIG.lastName.max})
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    value={createLastName}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^ก-๙\s]/g, "");
+                      setCreateLastName(value);
+                      if (createErrors.last_name)
+                        setCreateErrors((p) => ({ ...p, last_name: undefined }));
+                    }}
+                    maxLength={USER_VALIDATION_CONFIG.lastName.max}
+                    className={`${baseFieldClass} ${createErrors.last_name
+                      ? errorFieldClass
+                      : validFieldClass
+                      }`}
+                  />
+                  {createErrors.last_name && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {createErrors.last_name}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Faculty Dropdown */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-black mb-2">
+              <div className={fieldGroupClass}>
+                <label className={labelClass}>
                   สำนักวิชา
                 </label>
                 <div className="relative">
                   <select
                     value={createFacultyCode}
                     onChange={(e) => setCreateFacultyCode(Number(e.target.value))}
-                    className="w-full px-4 py-3 border-2 border-[#9264F5] rounded-2xl focus:outline-none focus:border-[#B7A3E3] transition-colors text-black appearance-none bg-white"
+                    className={`${selectFieldClass} ${validFieldClass}`}
                   >
                     {Object.entries(FACULTY_MAP).map(([code, name]) => (
                       <option key={code} value={code}>
@@ -1432,20 +1814,20 @@ export default function ManageUserPage() {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                  <ChevronDown className={dropdownIconClass} size={18} />
                 </div>
               </div>
 
               {/* Curriculum Dropdown */}
-              <div className="mb-5">
-                <label className="block text-sm font-medium text-black mb-2">
+              <div className={fieldGroupClass}>
+                <label className={labelClass}>
                   หลักสูตร
                 </label>
                 <div className="relative">
                   <select
                     value={createCurriculumId}
                     onChange={(e) => setCreateCurriculumId(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-[#9264F5] rounded-2xl focus:outline-none focus:border-[#B7A3E3] transition-colors text-black appearance-none bg-white"
+                    className={`${selectFieldClass} ${validFieldClass}`}
                   >
                     {CURRICULUMS.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -1453,64 +1835,66 @@ export default function ManageUserPage() {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                  <ChevronDown className={dropdownIconClass} size={18} />
                 </div>
               </div>
 
-              {/* Password Field */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-black mb-2">
-                  รหัสผ่าน{" "}
-                  <span className="text-xs text-gray-400">
-                    (อย่างน้อย {USER_VALIDATION_CONFIG.password.min} ตัวอักษร)
-                  </span>
-                </label>
-                <input
-                  type="password"
-                  value={createPassword}
-                  onChange={(e) => {
-                    setCreatePassword(e.target.value);
-                    if (createErrors.password)
-                      setCreateErrors((p) => ({ ...p, password: undefined }));
-                  }}
-                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${createErrors.password
-                    ? "border-red-500"
-                    : "border-[#9264F5] focus:border-[#B7A3E3]"
-                    }`}
-                />
-                {createErrors.password && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {createErrors.password}
-                  </p>
-                )}
-              </div>
+              <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+                {/* Password Field */}
+                <div className={fieldGroupClass}>
+                  <label className={labelClass}>
+                    รหัสผ่าน{" "}
+                    <span className="text-xs font-medium text-gray-500">
+                      (อย่างน้อย {USER_VALIDATION_CONFIG.password.min} ตัวอักษร)
+                    </span>
+                  </label>
+                  <input
+                    type="password"
+                    value={createPassword}
+                    onChange={(e) => {
+                      setCreatePassword(e.target.value);
+                      if (createErrors.password)
+                        setCreateErrors((p) => ({ ...p, password: undefined }));
+                    }}
+                    className={`${baseFieldClass} ${createErrors.password
+                      ? errorFieldClass
+                      : validFieldClass
+                      }`}
+                  />
+                  {createErrors.password && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {createErrors.password}
+                    </p>
+                  )}
+                </div>
 
-              {/* Confirm Password Field */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-black mb-2">
-                  ยืนยันรหัสผ่าน
-                </label>
-                <input
-                  type="password"
-                  value={createConfirmPassword}
-                  onChange={(e) => {
-                    setCreateConfirmPassword(e.target.value);
-                    if (createErrors.confirmPassword)
-                      setCreateErrors((p) => ({
-                        ...p,
-                        confirmPassword: undefined,
-                      }));
-                  }}
-                  className={`w-full px-4 py-3 border-2 rounded-2xl focus:outline-none transition-colors text-black ${createErrors.confirmPassword
-                    ? "border-red-500"
-                    : "border-[#9264F5] focus:border-[#B7A3E3]"
-                    }`}
-                />
-                {createErrors.confirmPassword && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {createErrors.confirmPassword}
-                  </p>
-                )}
+                {/* Confirm Password Field */}
+                <div className="mb-5">
+                  <label className={labelClass}>
+                    ยืนยันรหัสผ่าน
+                  </label>
+                  <input
+                    type="password"
+                    value={createConfirmPassword}
+                    onChange={(e) => {
+                      setCreateConfirmPassword(e.target.value);
+                      if (createErrors.confirmPassword)
+                        setCreateErrors((p) => ({
+                          ...p,
+                          confirmPassword: undefined,
+                        }));
+                    }}
+                    className={`${baseFieldClass} ${createErrors.confirmPassword
+                      ? errorFieldClass
+                      : validFieldClass
+                      }`}
+                  />
+                  {createErrors.confirmPassword && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {createErrors.confirmPassword}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Action Buttons */}
@@ -1518,14 +1902,14 @@ export default function ManageUserPage() {
                 <button
                   onClick={() => setShowCreateModal(false)}
                   disabled={isCreating}
-                  className="flex-1 px-6 py-3 rounded-2xl font-medium border-2 border-gray-300 text-black hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  className="flex-1 rounded-xl border-2 border-gray-300 px-6 py-2.5 font-semibold text-gray-900 transition-colors hover:bg-gray-50 disabled:opacity-50"
                 >
                   ยกเลิก
                 </button>
                 <button
                   onClick={handleCreateStaff}
                   disabled={isCreating}
-                  className="flex-1 px-6 py-3 rounded-2xl font-medium bg-[#B7A3E3] text-white hover:bg-[#9264F5] transition-colors shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-6 py-2.5 font-semibold text-white shadow-lg transition-colors hover:bg-[#9264F5] disabled:opacity-50"
                 >
                   {isCreating && <Loader2 size={18} className="animate-spin" />}
                   สร้าง
