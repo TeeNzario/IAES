@@ -46,6 +46,16 @@ const NavBar = ({ children }: PageLayoutProps) => {
     setUser(getUser<AuthUser>());
   }, []);
 
+  useEffect(() => {
+    const mobileQuery = window.matchMedia("(max-width: 640px)");
+    const syncSidebar = () => setIsSidebarOpen(!mobileQuery.matches);
+
+    syncSidebar();
+    mobileQuery.addEventListener("change", syncSidebar);
+
+    return () => mobileQuery.removeEventListener("change", syncSidebar);
+  }, []);
+
   // Derive active states from pathname
   const isHomeActive = pathname === "/";
   const isCourseManageActive = pathname === "/course";
@@ -142,7 +152,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <div
-        className={`${isSidebarOpen ? "w-64" : "w-20"} h-screen overflow-y-auto transition-all duration-300 bg-white shadow-lg flex-shrink-0`}
+        className={`${isSidebarOpen ? "w-64" : "w-16 sm:w-20"} h-screen overflow-y-auto transition-all duration-300 bg-white shadow-lg flex-shrink-0`}
       >
         <div className="p-4">
           {/* Burger Button */}
@@ -263,34 +273,34 @@ const NavBar = ({ children }: PageLayoutProps) => {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
         {/* Navigation Bar */}
         <nav className="bg-white shadow-sm flex-shrink-0">
-          <div className="flex items-center justify-between px-10 py-4">
+          <div className="flex items-center justify-between gap-3 px-4 py-4 sm:px-10">
             {/* Left Section - Clickable Logo */}
             <Link
               href="/"
-              className="flex items-center gap-4 hover:opacity-80 transition-opacity"
+              className="min-w-0 flex items-center gap-3 hover:opacity-80 transition-opacity sm:gap-4"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+              <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                <div className="h-8 w-8 flex-shrink-0 bg-white rounded-full flex items-center justify-center sm:h-10 sm:w-10">
                   <Image src="/IAES_logo.png" alt="" width={100} height={100} />
                 </div>
-                <span className="text-xl font-light text-gray-800">
+                <span className="truncate text-lg font-bold text-gray-800 sm:text-xl">
                   IAES System
                 </span>
               </div>
             </Link>
 
             {/* Right Section - User Info with Dropdown */}
-            <div className="flex items-center gap-4">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-4">
               <div
                 className="relative"
                 onMouseEnter={() => setIsUserMenuOpen(true)}
                 onMouseLeave={() => setIsUserMenuOpen(false)}
               >
-                <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
-                  <span className="text-[#484848] font-medium">
+                <button className="flex min-w-0 items-center gap-2 rounded-lg px-2 py-2 transition-colors cursor-pointer hover:bg-gray-100 sm:px-3">
+                  <span className="hidden max-w-28 truncate text-sm font-medium text-[#484848] sm:block sm:max-w-none sm:text-base">
                     {getDisplayName()}
                   </span>
                   <ChevronDown
