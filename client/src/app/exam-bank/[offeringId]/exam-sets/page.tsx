@@ -74,9 +74,6 @@ export default function ExamSetsListPage() {
       .finally(() => setLoading(false));
   }, [offeringId]);
 
-  // Reset page when filters change.
-  useEffect(() => setPage(1), [search, statusFilter, sortKey]);
-
   const counts = useMemo(() => {
     const c = { ALL: exams.length, UPCOMING: 0, ONGOING: 0, ENDED: 0 };
     for (const e of exams) c[e.status] += 1;
@@ -120,29 +117,29 @@ export default function ExamSetsListPage() {
   return (
     <NavBar>
       <div className="min-h-screen w-full bg-[#F4EFFF]">
-        <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-8 lg:px-10 lg:py-8">
           {/* Title row */}
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => router.push(`/exam-bank/${offeringId}`)}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-[#575757] hover:bg-white cursor-pointer"
+                className="flex h-9 w-9 items-center justify-center rounded-xl text-[#514667] transition-colors hover:bg-white cursor-pointer"
                 aria-label="กลับ"
               >
                 <ChevronLeft size={18} />
               </button>
-              <h1 className="flex items-center gap-2 text-xl font-light text-[#575757]">
-                <ClipboardList size={22} />
+              <h1 className="flex items-center gap-2 text-lg font-semibold text-[#2F2A3A] sm:text-xl">
+                <ClipboardList size={22} className="text-[#7C5BD9]" />
                 ชุดข้อสอบ
-                <span className="ml-1 rounded-full bg-white px-2 py-0.5 text-xs font-medium text-[#7C5BD9]">
+                <span className="ml-1 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-[#7C5BD9]">
                   {exams.length}
                 </span>
               </h1>
             </div>
             <Link
               href={`/exam-bank/${offeringId}/exam-sets/create`}
-              className="flex items-center gap-1 rounded-full bg-[#B7A3E3] px-4 py-2 text-sm font-light text-white shadow-sm hover:bg-[#A48FD6]"
+              className="flex items-center gap-2 rounded-xl bg-[#B7A3E3] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#A48FD6]"
             >
               <Plus size={16} />
               สร้างชุดข้อสอบ
@@ -150,7 +147,7 @@ export default function ExamSetsListPage() {
           </div>
 
           {/* Toolbar */}
-          <div className="mb-5 rounded-2xl bg-white p-4 shadow-sm">
+          <div className="mb-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#E7DDF8]">
             <div className="flex flex-wrap items-center gap-3">
               {/* Status chips */}
               <div className="flex flex-wrap items-center gap-1.5">
@@ -167,11 +164,14 @@ export default function ExamSetsListPage() {
                     <button
                       key={key}
                       type="button"
-                      onClick={() => setStatusFilter(key)}
-                      className={`rounded-full px-3 py-1 text-xs cursor-pointer transition-colors ${
+                      onClick={() => {
+                        setStatusFilter(key);
+                        setPage(1);
+                      }}
+                      className={`rounded-full px-3 py-1 text-xs font-semibold cursor-pointer transition-colors ${
                         active
                           ? "bg-[#B7A3E3] text-white"
-                          : "bg-[#F4EFFF] text-[#575757] hover:bg-[#E9E0FA]"
+                          : "bg-[#F4EFFF] text-[#514667] hover:bg-[#E9E0FA]"
                       }`}
                     >
                       {label}
@@ -189,12 +189,15 @@ export default function ExamSetsListPage() {
 
               <div className="ml-auto flex flex-wrap items-center gap-2">
                 {/* Sort */}
-                <label className="flex items-center gap-1.5 text-xs font-light text-gray-500">
+                <label className="flex items-center gap-1.5 text-sm font-medium text-[#514667]">
                   เรียง:
                   <select
                     value={sortKey}
-                    onChange={(e) => setSortKey(e.target.value as SortKey)}
-                    className="rounded-md bg-[#F4EFFF] px-2 py-1 text-xs text-[#575757] outline-none focus:ring-2 focus:ring-[#B7A3E3] cursor-pointer"
+                    onChange={(e) => {
+                      setSortKey(e.target.value as SortKey);
+                      setPage(1);
+                    }}
+                    className="rounded-xl bg-[#F4EFFF] px-3 py-2 text-xs font-semibold text-[#514667] outline-none focus:ring-2 focus:ring-[#B7A3E3] cursor-pointer"
                   >
                     <option value="newest">ใหม่สุด</option>
                     <option value="oldest">เก่าสุด</option>
@@ -204,11 +207,11 @@ export default function ExamSetsListPage() {
                 </label>
 
                 {/* View toggle */}
-                <div className="flex overflow-hidden rounded-md border border-[#E9E0FA]">
+                <div className="flex overflow-hidden rounded-xl border border-[#E7DDF8]">
                   <button
                     type="button"
                     onClick={() => setView("grid")}
-                    className={`flex h-7 w-7 items-center justify-center cursor-pointer ${
+                    className={`flex h-9 w-9 items-center justify-center cursor-pointer transition-colors ${
                       view === "grid"
                         ? "bg-[#B7A3E3] text-white"
                         : "text-[#575757] hover:bg-[#F4EFFF]"
@@ -221,7 +224,7 @@ export default function ExamSetsListPage() {
                   <button
                     type="button"
                     onClick={() => setView("list")}
-                    className={`flex h-7 w-7 items-center justify-center cursor-pointer ${
+                    className={`flex h-9 w-9 items-center justify-center cursor-pointer transition-colors ${
                       view === "list"
                         ? "bg-[#B7A3E3] text-white"
                         : "text-[#575757] hover:bg-[#F4EFFF]"
@@ -238,13 +241,16 @@ export default function ExamSetsListPage() {
                   <input
                     type="text"
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setPage(1);
+                    }}
                     placeholder="ค้นหาชุดข้อสอบ"
-                    className="w-56 rounded-full bg-[#F4EFFF] px-4 py-1.5 pr-9 text-sm font-light text-[#575757] placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#B7A3E3]"
+                    className="w-64 rounded-xl bg-white px-4 py-3 pr-10 text-sm font-normal text-[#2F2A3A] placeholder:text-[#B7AFC6] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
                   />
                   <Search
-                    size={14}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    size={18}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A7287]"
                   />
                 </div>
               </div>
@@ -253,10 +259,10 @@ export default function ExamSetsListPage() {
 
           {/* Body */}
           {loading ? (
-            <p className="text-sm text-gray-400">กำลังโหลด...</p>
+            <p className="text-sm font-medium text-[#7A7287]">กำลังโหลด...</p>
           ) : processed.length === 0 ? (
-            <div className="rounded-2xl bg-white p-10 text-center">
-              <p className="text-sm font-light text-gray-400">
+            <div className="rounded-2xl bg-white p-10 text-center shadow-sm ring-1 ring-[#E7DDF8]">
+              <p className="text-sm font-medium text-[#7A7287]">
                 {exams.length === 0
                   ? "ยังไม่มีชุดข้อสอบ"
                   : "ไม่พบชุดข้อสอบที่ตรงกับเงื่อนไข"}
@@ -264,7 +270,7 @@ export default function ExamSetsListPage() {
               {exams.length === 0 && (
                 <Link
                   href={`/exam-bank/${offeringId}/exam-sets/create`}
-                  className="mt-4 inline-flex items-center gap-1 rounded-full bg-[#B7A3E3] px-4 py-2 text-sm font-light text-white hover:bg-[#A48FD6]"
+                  className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#B7A3E3] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#A48FD6]"
                 >
                   <Plus size={16} />
                   สร้างชุดข้อสอบใหม่
@@ -276,10 +282,10 @@ export default function ExamSetsListPage() {
               {pageItems.map((e) => (
                 <div
                   key={e.course_exams_id}
-                  className="flex flex-col rounded-2xl bg-white p-5 transition-shadow hover:shadow-md"
+                  className="flex min-h-56 flex-col rounded-2xl bg-white p-6 shadow-sm ring-1 ring-[#E7DDF8] transition-shadow hover:shadow-md"
                 >
                   <div className="mb-3 flex items-start justify-between gap-2">
-                    <h3 className="font-medium text-[#575757] line-clamp-2">
+                    <h3 className="line-clamp-2 text-lg font-semibold leading-snug text-[#2F2A3A]">
                       {e.title}
                     </h3>
                     <span
@@ -291,14 +297,14 @@ export default function ExamSetsListPage() {
                     </span>
                   </div>
                   {e.description && (
-                    <p className="mb-3 text-xs font-light text-gray-500 line-clamp-2">
+                    <p className="mb-3 line-clamp-2 text-sm font-normal leading-6 text-[#7A7287]">
                       {e.description}
                     </p>
                   )}
-                  <p className="mb-1 text-xs text-gray-400">
+                  <p className="mb-1 text-xs font-semibold text-[#7C5BD9]">
                     {e.question_count} ข้อ
                   </p>
-                  <p className="mb-4 text-[11px] text-gray-400">
+                  <p className="mb-4 text-xs font-medium text-[#7A7287]">
                     {formatThaiDate(e.start_time)} → {formatThaiDate(e.end_time)}
                   </p>
                   <div className="mt-auto flex justify-end">
@@ -309,7 +315,7 @@ export default function ExamSetsListPage() {
                           `/exam-bank/${offeringId}/exam-sets/${e.course_exams_id}/edit`,
                         )
                       }
-                      className="flex items-center gap-1 rounded-md border border-[#B7A3E3] px-3 py-1 text-xs text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
+                      className="flex items-center gap-1 rounded-xl border border-[#D9CCF2] px-3 py-1.5 text-xs font-semibold text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
                     >
                       <Pencil size={12} />
                       แก้ไข
@@ -319,22 +325,22 @@ export default function ExamSetsListPage() {
               ))}
             </div>
           ) : (
-            <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-              <div className="grid grid-cols-[1fr_120px_140px_180px_80px] items-center bg-[#B7A3E3] px-5 py-3 text-xs font-light text-white">
+            <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-[#E7DDF8]">
+              <div className="grid grid-cols-[1fr_120px_140px_180px_80px] items-center bg-[#B7A3E3] px-5 py-4 text-sm font-semibold text-white">
                 <div>ชื่อชุดข้อสอบ</div>
                 <div>สถานะ</div>
                 <div>จำนวนข้อ</div>
                 <div>ช่วงเวลา</div>
                 <div className="text-center">จัดการ</div>
               </div>
-              <ul className="divide-y divide-[#F4EFFF]">
+              <ul className="divide-y divide-[#EFE8FB]">
                 {pageItems.map((e) => (
                   <li
                     key={e.course_exams_id}
-                    className="grid grid-cols-[1fr_120px_140px_180px_80px] items-center px-5 py-3 text-sm font-light text-[#575757] hover:bg-[#F4EFFF]/40"
+                    className="grid grid-cols-[1fr_120px_140px_180px_80px] items-center px-5 py-4 text-sm font-medium text-[#514667] hover:bg-[#FAF8FF]"
                   >
                     <div className="min-w-0">
-                      <p className="truncate font-medium">{e.title}</p>
+                      <p className="truncate font-semibold text-[#2F2A3A]">{e.title}</p>
                       {e.description && (
                         <p className="truncate text-xs text-gray-500">
                           {e.description}
@@ -365,7 +371,7 @@ export default function ExamSetsListPage() {
                             `/exam-bank/${offeringId}/exam-sets/${e.course_exams_id}/edit`,
                           )
                         }
-                        className="flex h-7 w-7 items-center justify-center rounded-md border border-[#B7A3E3] text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#D9CCF2] text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
                         aria-label="แก้ไข"
                         title="แก้ไข"
                       >
@@ -380,7 +386,7 @@ export default function ExamSetsListPage() {
 
           {/* Pagination */}
           {processed.length > 0 && totalPages > 1 && (
-            <div className="mt-5 flex items-center justify-between text-xs font-light text-[#575757]">
+            <div className="mt-5 flex items-center justify-between text-xs font-medium text-[#514667]">
               <span>
                 แสดง {(page - 1) * PAGE_SIZE + 1}–
                 {Math.min(page * PAGE_SIZE, processed.length)} จาก{" "}
@@ -391,7 +397,7 @@ export default function ExamSetsListPage() {
                   type="button"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="rounded-md bg-white px-3 py-1 disabled:opacity-40 hover:bg-[#F4EFFF] cursor-pointer"
+                  className="rounded-xl bg-white px-3 py-2 shadow-sm disabled:opacity-40 hover:bg-[#F4EFFF] cursor-pointer"
                 >
                   ก่อนหน้า
                 </button>
@@ -402,7 +408,7 @@ export default function ExamSetsListPage() {
                   type="button"
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="rounded-md bg-white px-3 py-1 disabled:opacity-40 hover:bg-[#F4EFFF] cursor-pointer"
+                  className="rounded-xl bg-white px-3 py-2 shadow-sm disabled:opacity-40 hover:bg-[#F4EFFF] cursor-pointer"
                 >
                   ถัดไป
                 </button>

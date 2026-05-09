@@ -60,6 +60,9 @@ export default function EditCourseOfferingModal({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const hasCourseExams = (courseOffering._count?.course_exams ?? 0) > 0;
+  const examDeleteBlockedMessage =
+    "ไม่สามารถลบรายวิชานี้ได้ เนื่องจากมีการสร้างชุดสอบหรือการสอบแล้ว";
 
   // Reset form when course offering changes
   useEffect(() => {
@@ -172,6 +175,11 @@ export default function EditCourseOfferingModal({
 
   // Handle delete
   const handleDelete = async () => {
+    if (hasCourseExams) {
+      setDeleteError(examDeleteBlockedMessage);
+      return;
+    }
+
     setIsDeleting(true);
     setDeleteError(null);
 
@@ -186,7 +194,7 @@ export default function EditCourseOfferingModal({
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 409) {
         setDeleteError(
-          "ไม่สามารถลบรายวิชานี้ได้ เนื่องจากมีนักศึกษาลงทะเบียนอยู่แล้ว",
+          "ไม่สามารถลบรายวิชานี้ได้ เนื่องจากมีนักศึกษาลงทะเบียนหรือมีการสร้างชุดสอบ/การสอบแล้ว",
         );
       } else {
         setDeleteError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
@@ -407,7 +415,7 @@ export default function EditCourseOfferingModal({
           </button>
           <button
             onClick={() => {
-              setDeleteError(null);
+              setDeleteError(hasCourseExams ? examDeleteBlockedMessage : null);
               setShowDeleteConfirm(true);
             }}
             disabled={isSubmitting || isDeleting || isLoading}
@@ -438,12 +446,12 @@ export default function EditCourseOfferingModal({
             setDeleteError(null);
           }
         }}
-        onConfirm={handleDelete}
+        onConfirm={deleteError ? () => setShowDeleteConfirm(false) : handleDelete}
         title="ลบรายวิชาที่เปิดสอน"
         message={
           deleteError || `คุณแน่ใจหรือไม่ว่าต้องการลบรายวิชาที่เปิดสอนนี้?`
         }
-        confirmText="ลบ"
+        confirmText={deleteError ? "รับทราบ" : "ลบ"}
         cancelText="ยกเลิก"
         isLoading={isDeleting}
         variant={deleteError ? "warning" : "danger"}
