@@ -1006,11 +1006,11 @@ export default function ManageUserPage() {
           <div className="overflow-auto max-h-[calc(100vh-280px)]">
             <table className="w-full min-w-[820px] hidden table-fixed sm:table">
               <colgroup>
-                <col className={showSequenceColumn ? "w-[8%]" : "w-[14%]"} />
-                <col className={showSequenceColumn ? "w-[23%]" : "w-[21%]"} />
-                <col className={showSequenceColumn ? "w-[24%]" : "w-[23%]"} />
-                <col className={showSequenceColumn ? "w-[22%]" : "w-[19%]"} />
-                <col className="w-[16%]" />
+                <col className={showSequenceColumn ? "w-[7%]" : "w-[13%]"} />
+                <col className={showSequenceColumn ? "w-[22%]" : "w-[20%]"} />
+                <col className={showSequenceColumn ? "w-[23%]" : "w-[22%]"} />
+                <col className={showSequenceColumn ? "w-[21%]" : "w-[18%]"} />
+                <col className="w-[20%]" />
                 <col className="w-[7%]" />
               </colgroup>
               <thead className="sticky top-0 z-10">
@@ -1036,7 +1036,7 @@ export default function ManageUserPage() {
                     <td className="px-4 py-3 text-gray-700">{getCurriculumName(user.curriculumId)}</td>
                     <td className="px-4 py-3">
                       <span
-                        className={`inline-flex min-w-28 justify-center rounded-full px-3 py-1 text-xs font-semibold ${user.is_active
+                        className={`inline-flex min-w-28 justify-center rounded-full px-3 py-1 text-sm font-semibold ${user.is_active
                           ? "bg-[#B7A3E3] text-white"
                           : "bg-white text-[#B7A3E3] border border-[#B7A3E3]"
                           }`}
@@ -1074,7 +1074,7 @@ export default function ManageUserPage() {
                     </div>
                     <div className="font-medium text-gray-800">{`${user.title} ${user.first_name} ${user.last_name}`}</div>
                     <span
-                      className={`inline-block mt-1 rounded-full px-2.5 py-1 text-xs font-semibold ${user.is_active
+                      className={`inline-block mt-1 rounded-full px-2.5 py-1 text-sm font-semibold ${user.is_active
                         ? "bg-[#B7A3E3] text-white"
                         : "border border-[#B7A3E3] bg-white text-[#B7A3E3]"
                         }`}
