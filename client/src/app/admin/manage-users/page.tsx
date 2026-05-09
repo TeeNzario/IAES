@@ -1,4 +1,3 @@
-// ...existing code...
 "use client";
 
 import NavBar from "@/components/layout/NavBar";
@@ -221,6 +220,8 @@ export default function ManageUserPage() {
   const [studentErrors, setStudentErrors] = useState<FormErrors & { student_code?: string; facultyCode?: string }>({});
   const [isCreatingStudent, setIsCreatingStudent] = useState(false);
 
+  const [refreshKey, setRefreshKey] = useState(0);
+
   // Fetch current user on mount
   useEffect(() => {
     apiFetch<AuthUser>("/auth/me")
@@ -230,10 +231,12 @@ export default function ManageUserPage() {
 
   // Fetch users based on role filter
   useEffect(() => {
+    let cancelled = false;
     async function fetchUsers() {
       try {
         if (roleFilter === "STUDENT") {
           const res = await getUsers({ role: "" });
+          if (cancelled) return;
           const data = (Array.isArray(res) ? res : (res?.data ?? [])) as StudentUserResponse[];
           setUsers(data.map(mapStudentToUser));
           return;
@@ -242,17 +245,22 @@ export default function ManageUserPage() {
         if (roleFilter === "INSTRUCTOR" || roleFilter === "ADMINISTRATOR") {
           const apiRole = roleFilter === "ADMINISTRATOR" ? "ADMIN" : roleFilter;
           const res = await getStaffs({ role: apiRole });
+          if (cancelled) return;
           const data = res?.data ?? [];
           setUsers(data.map(mapStaffToUser));
           return;
         }
       } catch (err) {
+        if (cancelled) return;
         console.error("fetch users error:", err);
       }
     }
 
     fetchUsers();
-  }, [roleFilter]);
+    return () => {
+      cancelled = true;
+    };
+  }, [roleFilter, refreshKey]);
 
   // Filter out current user from list
   const filteredUsers = useMemo(() => {
@@ -295,8 +303,8 @@ export default function ManageUserPage() {
     });
 
     list.sort((a, b) => {
-      const aName = `${a.title} ${a.first_name} ${a.last_name}`.trim();
-      const bName = `${b.title} ${b.first_name} ${b.last_name}`.trim();
+      const aName = `${a.first_name} ${a.last_name}`.trim();
+      const bName = `${b.first_name} ${b.last_name}`.trim();
 
       const nameCmp = collator.compare(aName, bName);
       if (nameCmp !== 0) return nameCmp;
@@ -396,20 +404,15 @@ export default function ManageUserPage() {
       errors.first_name = ERROR_MESSAGES.firstName.required;
     } else if (editFirstName.length > USER_VALIDATION_CONFIG.firstName.max) {
       errors.first_name = ERROR_MESSAGES.firstName.maxLength;
+    } else if (!NAME_REGEX.test(editFirstName.trim())) {
+      errors.first_name = "ชื่อต้องเป็นภาษาไทยเท่านั้น";
     }
 
     if (!editLastName.trim()) {
       errors.last_name = ERROR_MESSAGES.lastName.required;
     } else if (editLastName.length > USER_VALIDATION_CONFIG.lastName.max) {
       errors.last_name = ERROR_MESSAGES.lastName.maxLength;
-    }
-
-    // Validate name format 
-    if (!NAME_REGEX.test(editFirstName.trim())) {
-      errors.first_name = "ชื่อต้องเป็นภาษาไทยเท่านั้น";
-    }
-
-    if (!NAME_REGEX.test(editLastName.trim())) {
+    } else if (!NAME_REGEX.test(editLastName.trim())) {
       errors.last_name = "นามสกุลต้องเป็นภาษาไทยเท่านั้น";
     }
 
@@ -435,7 +438,7 @@ export default function ManageUserPage() {
       const emailExists = await checkEmailExists(normalizedEmail, editingUser.id);
 
       if (emailExists) {
-        setEditErrors({ email: ERROR_MESSAGES.email.duplicate });
+        setEditErrors((p) => ({ ...p, email: ERROR_MESSAGES.email.duplicate }));
         return false;
       }
     }
@@ -458,8 +461,8 @@ export default function ManageUserPage() {
       ...editingUser,
       email: canEditEmail ? normalizedEmail : editingUser.email,
       title: editTitle,
-      first_name: editFirstName,
-      last_name: editLastName,
+      first_name: editFirstName.trim(),
+      last_name: editLastName.trim(),
       facultyCode: editFacultyCode,
       curriculumId: editCurriculumId,
       // Don't update is_active for ADMIN
@@ -470,8 +473,8 @@ export default function ManageUserPage() {
       if (editingUser.role === "STUDENT") {
         const updatePayload = {
           title: editTitle,
-          first_name: editFirstName,
-          last_name: editLastName,
+          first_name: editFirstName.trim(),
+          last_name: editLastName.trim(),
           facultyCode: editFacultyCode,
           curriculumId: editCurriculumId,
           is_active: editActive === "ACTIVE",
@@ -483,8 +486,8 @@ export default function ManageUserPage() {
         const updatePayload: StaffUpdatePayload = {
           email: normalizedEmail,
           title: editTitle,
-          first_name: editFirstName,
-          last_name: editLastName,
+          first_name: editFirstName.trim(),
+          last_name: editLastName.trim(),
           facultyCode: editFacultyCode,
           curriculumId: editCurriculumId,
         };
@@ -502,7 +505,7 @@ export default function ManageUserPage() {
       setEditingUser(null);
     } catch (error: unknown) {
       if (getApiStatus(error) === 409) {
-        setEditErrors({ email: ERROR_MESSAGES.email.duplicate });
+        setEditErrors((p) => ({ ...p, email: ERROR_MESSAGES.email.duplicate }));
       }
       console.error("Error updating user on server:", error);
     } finally {
@@ -539,6 +542,8 @@ export default function ManageUserPage() {
       errors.first_name = ERROR_MESSAGES.firstName.required;
     } else if (createFirstName.length > USER_VALIDATION_CONFIG.firstName.max) {
       errors.first_name = ERROR_MESSAGES.firstName.maxLength;
+    } else if (!NAME_REGEX.test(createFirstName.trim())) {
+      errors.first_name = "ชื่อต้องเป็นภาษาไทยเท่านั้น";
     }
 
     // Last name
@@ -546,14 +551,7 @@ export default function ManageUserPage() {
       errors.last_name = ERROR_MESSAGES.lastName.required;
     } else if (createLastName.length > USER_VALIDATION_CONFIG.lastName.max) {
       errors.last_name = ERROR_MESSAGES.lastName.maxLength;
-    }
-
-    // Validate name format 
-    if (!NAME_REGEX.test(createFirstName.trim())) {
-      errors.first_name = "ชื่อต้องเป็นภาษาไทยเท่านั้น";
-    }
-
-    if (!NAME_REGEX.test(createLastName.trim())) {
+    } else if (!NAME_REGEX.test(createLastName.trim())) {
       errors.last_name = "นามสกุลต้องเป็นภาษาไทยเท่านั้น";
     }
 
@@ -563,7 +561,7 @@ export default function ManageUserPage() {
       errors.email = ERROR_MESSAGES.email.required;
     } else if (createEmail.length > USER_VALIDATION_CONFIG.email.max) {
       errors.email = ERROR_MESSAGES.email.maxLength;
-    } else if (!EMAIL_REGEX.test(createEmail)) {
+    } else if (!EMAIL_REGEX.test(createEmail.trim())) {
       errors.email = ERROR_MESSAGES.email.invalid;
     }
 
@@ -585,7 +583,7 @@ export default function ManageUserPage() {
     if (Object.keys(errors).length === 0) {
       const emailExists = await checkEmailExists(createEmail);
       if (emailExists) {
-        setCreateErrors({ email: ERROR_MESSAGES.email.duplicate });
+        setCreateErrors((p) => ({ ...p, email: ERROR_MESSAGES.email.duplicate }));
         return false;
       }
     }
@@ -601,29 +599,27 @@ export default function ManageUserPage() {
 
     try {
       await apiCreateStaff({
-        email: createEmail,
+        email: createEmail.trim(),
         password: createPassword,
         facultyCode: createFacultyCode,
         curriculumId: createCurriculumId,
         title: createTitle,
-        first_name: createFirstName,
-        last_name: createLastName,
+        first_name: createFirstName.trim(),
+        last_name: createLastName.trim(),
         role: createRole,
         is_active: true,
       });
 
-      // Refresh list
-      const apiRole = createRole === "ADMIN" ? "ADMINISTRATOR" : createRole;
-      setRoleFilter(apiRole as RoleFilter);
       setShowCreateModal(false);
-
-      // Re-fetch
-      const res = await getStaffs({ role: createRole });
-      const data = res?.data ?? [];
-      setUsers(data.map(mapStaffToUser));
+      const apiRole = createRole === "ADMIN" ? "ADMINISTRATOR" : createRole;
+      if (roleFilter === apiRole) {
+        setRefreshKey((k) => k + 1);
+      } else {
+        setRoleFilter(apiRole as RoleFilter);
+      }
     } catch (error: unknown) {
       if (getApiStatus(error) === 409) {
-        setCreateErrors({ email: ERROR_MESSAGES.email.duplicate });
+        setCreateErrors((p) => ({ ...p, email: ERROR_MESSAGES.email.duplicate }));
       } else {
         console.error("Error creating staff:", error);
       }
@@ -665,19 +661,23 @@ export default function ManageUserPage() {
       studentFirstName.length > USER_VALIDATION_CONFIG.firstName.max
     ) {
       errors.first_name = ERROR_MESSAGES.firstName.maxLength;
+    } else if (!NAME_REGEX.test(studentFirstName.trim())) {
+      errors.first_name = "ชื่อต้องเป็นภาษาไทยเท่านั้น";
     }
 
     if (!studentLastName.trim()) {
       errors.last_name = ERROR_MESSAGES.lastName.required;
     } else if (studentLastName.length > USER_VALIDATION_CONFIG.lastName.max) {
       errors.last_name = ERROR_MESSAGES.lastName.maxLength;
+    } else if (!NAME_REGEX.test(studentLastName.trim())) {
+      errors.last_name = "นามสกุลต้องเป็นภาษาไทยเท่านั้น";
     }
 
     if (!studentEmail.trim()) {
       errors.email = ERROR_MESSAGES.email.required;
     } else if (studentEmail.length > USER_VALIDATION_CONFIG.email.max) {
       errors.email = ERROR_MESSAGES.email.maxLength;
-    } else if (!EMAIL_REGEX.test(studentEmail)) {
+    } else if (!EMAIL_REGEX.test(studentEmail.trim())) {
       errors.email = ERROR_MESSAGES.email.invalid;
     }
 
@@ -686,7 +686,7 @@ export default function ManageUserPage() {
     if (Object.keys(errors).length === 0) {
       const codeExists = await checkStudentCodeExists(studentCode);
       if (codeExists) {
-        setStudentErrors({ student_code: "รหัสนักศึกษานี้ถูกใช้งานแล้ว" });
+        setStudentErrors((p) => ({ ...p, student_code: "รหัสนักศึกษานี้ถูกใช้งานแล้ว" }));
         return false;
       }
     }
@@ -702,25 +702,24 @@ export default function ManageUserPage() {
 
     try {
       await apiCreateStudent({
-        student_code: studentCode,
-        email: studentEmail,
+        student_code: studentCode.trim(),
+        email: studentEmail.trim(),
         facultyCode: studentFacultyCode,
         curriculumId: studentCurriculumId,
         title: studentTitle,
-        first_name: studentFirstName,
-        last_name: studentLastName,
+        first_name: studentFirstName.trim(),
+        last_name: studentLastName.trim(),
       });
 
-      setRoleFilter("STUDENT");
       setShowCreateStudentModal(false);
-
-      // Re-fetch
-      const res = await getUsers({ role: "" });
-      const data = (Array.isArray(res) ? res : (res?.data ?? [])) as StudentUserResponse[];
-      setUsers(data.map(mapStudentToUser));
+      if (roleFilter === "STUDENT") {
+        setRefreshKey((k) => k + 1);
+      } else {
+        setRoleFilter("STUDENT");
+      }
     } catch (error: unknown) {
       if (getApiStatus(error) === 409) {
-        setStudentErrors({ student_code: "รหัสนักศึกษานี้ถูกใช้งานแล้ว" });
+        setStudentErrors((p) => ({ ...p, student_code: "รหัสนักศึกษานี้ถูกใช้งานแล้ว" }));
       } else {
         console.error("Error creating student:", error);
       }
@@ -1180,7 +1179,7 @@ export default function ManageUserPage() {
               ) : (
                 <div className={fieldGroupClass}>
                   <label className={labelClass}>
-                    อีเมล{" "}
+                    อีเมล <span className="text-red-500">*</span>{" "}
                     <span className="text-xs font-medium text-gray-500">
                       ({editEmail.length}/{USER_VALIDATION_CONFIG.email.max})
                     </span>
@@ -1209,12 +1208,16 @@ export default function ManageUserPage() {
               {/* Title Field */}
               <div className={fieldGroupClass}>
                 <label className={labelClass}>
-                  คำนำหน้า
+                  คำนำหน้า <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <select
                     value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
+                    onChange={(e) => {
+                      setEditTitle(e.target.value);
+                      if (editErrors.title)
+                        setEditErrors((p) => ({ ...p, title: undefined }));
+                    }}
                     className={`${selectFieldClass} ${
                       editErrors.title
                         ? errorFieldClass
@@ -1238,7 +1241,7 @@ export default function ManageUserPage() {
                 {/* First Name Field */}
                 <div className={fieldGroupClass}>
                   <label className={labelClass}>
-                    ชื่อ{" "}
+                    ชื่อ <span className="text-red-500">*</span>{" "}
                     <span className="text-xs font-medium text-gray-500">
                       ({editFirstName.length}/
                       {USER_VALIDATION_CONFIG.firstName.max})
@@ -1269,7 +1272,7 @@ export default function ManageUserPage() {
                 {/* Last Name Field */}
                 <div className={fieldGroupClass}>
                   <label className={labelClass}>
-                    นามสกุล{" "}
+                    นามสกุล <span className="text-red-500">*</span>{" "}
                     <span className="text-xs font-medium text-gray-500">
                       ({editLastName.length}/{USER_VALIDATION_CONFIG.lastName.max})
                     </span>
@@ -1460,7 +1463,6 @@ export default function ManageUserPage() {
           </div>
         )}
 
-        {/* Create Staff Modal */}
         {/* Create Student Modal */}
         {showCreateStudentModal && (
           <div className={modalBackdropClass}>
@@ -1472,7 +1474,7 @@ export default function ManageUserPage() {
               {/* Student Code Field */}
               <div className={fieldGroupClass}>
                 <label className={labelClass}>
-                  รหัสนักศึกษา
+                  รหัสนักศึกษา <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -1503,7 +1505,11 @@ export default function ManageUserPage() {
                 <div className="relative">
                   <select
                     value={studentTitle}
-                    onChange={(e) => setStudentTitle(e.target.value)}
+                    onChange={(e) => {
+                      setStudentTitle(e.target.value);
+                      if (studentErrors.title)
+                        setStudentErrors((p) => ({ ...p, title: undefined }));
+                    }}
                     className={`${selectFieldClass} ${
                       studentErrors.title
                         ? errorFieldClass
@@ -1526,7 +1532,7 @@ export default function ManageUserPage() {
               <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
                 {/* First Name Field */}
                 <div className={fieldGroupClass}>
-                  <label className={labelClass}>ชื่อ</label>
+                  <label className={labelClass}>ชื่อ <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     value={studentFirstName}
@@ -1552,7 +1558,7 @@ export default function ManageUserPage() {
 
                 {/* Last Name Field */}
                 <div className={fieldGroupClass}>
-                  <label className={labelClass}>นามสกุล</label>
+                  <label className={labelClass}>นามสกุล <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     value={studentLastName}
@@ -1620,9 +1626,9 @@ export default function ManageUserPage() {
               </div>
 
               {/* Email Field */}
-              <div className="mb-5">
+              <div className={fieldGroupClass}>
                 <label className={labelClass}>
-                  อีเมล
+                  อีเมล <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="email"
@@ -1679,7 +1685,7 @@ export default function ManageUserPage() {
               {/* Email Field */}
               <div className={fieldGroupClass}>
                 <label className={labelClass}>
-                  อีเมล{" "}
+                  อีเมล <span className="text-red-500">*</span>{" "}
                   <span className="text-xs font-medium text-gray-500">
                     ({createEmail.length}/{USER_VALIDATION_CONFIG.email.max})
                   </span>
@@ -1737,7 +1743,7 @@ export default function ManageUserPage() {
                 {/* First Name Field */}
                 <div className={fieldGroupClass}>
                   <label className={labelClass}>
-                    ชื่อ{" "}
+                    ชื่อ <span className="text-red-500">*</span>{" "}
                     <span className="text-xs font-medium text-gray-500">
                       ({createFirstName.length}/
                       {USER_VALIDATION_CONFIG.firstName.max})
@@ -1768,7 +1774,7 @@ export default function ManageUserPage() {
                 {/* Last Name Field */}
                 <div className={fieldGroupClass}>
                   <label className={labelClass}>
-                    นามสกุล{" "}
+                    นามสกุล <span className="text-red-500">*</span>{" "}
                     <span className="text-xs font-medium text-gray-500">
                       ({createLastName.length}/
                       {USER_VALIDATION_CONFIG.lastName.max})
@@ -1843,7 +1849,7 @@ export default function ManageUserPage() {
                 {/* Password Field */}
                 <div className={fieldGroupClass}>
                   <label className={labelClass}>
-                    รหัสผ่าน{" "}
+                    รหัสผ่าน <span className="text-red-500">*</span>{" "}
                     <span className="text-xs font-medium text-gray-500">
                       (อย่างน้อย {USER_VALIDATION_CONFIG.password.min} ตัวอักษร)
                     </span>
@@ -1869,9 +1875,9 @@ export default function ManageUserPage() {
                 </div>
 
                 {/* Confirm Password Field */}
-                <div className="mb-5">
+                <div className={fieldGroupClass}>
                   <label className={labelClass}>
-                    ยืนยันรหัสผ่าน
+                    ยืนยันรหัสผ่าน <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="password"
@@ -1922,4 +1928,3 @@ export default function ManageUserPage() {
     </NavBar>
   );
 }
-// ...existing code...
