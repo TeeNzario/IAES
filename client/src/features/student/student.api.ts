@@ -1,7 +1,5 @@
 import { api } from "@/lib/api";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
-
 export interface User {
   id: string;
   name: string;
@@ -64,9 +62,22 @@ export interface CreateStudentPayload {
   curriculumId?: string;
 }
 
+export interface StudentResponse {
+  student_code: string;
+  email: string;
+  facultyCode: number;
+  title: string;
+  first_name: string;
+  last_name: string;
+  curriculumId?: string;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export const createStudent = async (
   payload: CreateStudentPayload,
-): Promise<any> => {
+): Promise<StudentResponse> => {
   try {
     const response = await api.post(`/students`, payload);
     return response.data;
@@ -92,12 +103,14 @@ export const createUser = async (userData: Omit<User, "id">): Promise<User> => {
 
 // Update user
 export interface UpdateUserPayload {
+  email?: string;
   title?: string;
   first_name?: string;
   last_name?: string;
   is_active?: boolean;
   facultyCode?: number;
   curriculumId?: string;
+  password?: string;
 }
 
 export const updateUser = async (
@@ -149,7 +162,9 @@ export const checkStudentCodeExists = async (
   excludeCode?: string,
 ): Promise<boolean> => {
   try {
-    const params: any = { student_code: studentCode };
+    const params: { student_code: string; excludeCode?: string } = {
+      student_code: studentCode,
+    };
     if (excludeCode) params.excludeCode = excludeCode;
 
     const response = await api.get(`/students/check-code`, {
@@ -158,6 +173,28 @@ export const checkStudentCodeExists = async (
     return response.data.exists;
   } catch (error) {
     console.error("Error checking student code:", error);
+    return false;
+  }
+};
+
+/**
+ * Check if student email already exists
+ * Used for frontend validation before form submission
+ */
+export const checkStudentEmailExists = async (
+  email: string,
+  excludeCode?: string,
+): Promise<boolean> => {
+  try {
+    const params: { email: string; excludeCode?: string } = { email };
+    if (excludeCode) params.excludeCode = excludeCode;
+
+    const response = await api.get(`/students/check-email`, {
+      params,
+    });
+    return response.data.exists;
+  } catch (error) {
+    console.error("Error checking student email:", error);
     return false;
   }
 };
