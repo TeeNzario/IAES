@@ -146,6 +146,23 @@ export class StaffService {
     const updateData: any = { ...rest };
     let previousActive: boolean | undefined;
 
+    if (updateData.email !== undefined) {
+      const nextEmail = String(updateData.email).trim();
+      const existingEmail = await this.prisma.staff_users.findFirst({
+        where: {
+          email: nextEmail,
+          NOT: { staff_users_id: id },
+        },
+        select: { staff_users_id: true },
+      });
+
+      if (existingEmail) {
+        throw new ConflictException('Email already exists');
+      }
+
+      updateData.email = nextEmail;
+    }
+
     // ADMIN protection: Cannot change is_active status for ADMIN users
     if (updateData.is_active !== undefined) {
       const existingStaff = await this.prisma.staff_users.findUnique({
