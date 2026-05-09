@@ -8,9 +8,9 @@ import {
   Edit2,
   Trash2,
   BookOpen,
+  Plus,
 } from "lucide-react";
 import Navbar from "@/components/layout/NavBar";
-import CourseModal from "@/features/courseOffering/components/CourseOfferingModal";
 import CreateCourseModal from "@/components/course/CreateCourseModal";
 import EditCourseModal from "@/components/course/EditCourseModal";
 import KnowledgeCategoriesCell from "@/components/course/KnowledgeCategoriesCell";
@@ -243,44 +243,51 @@ export default function CourseManagement() {
 
   return (
     <Navbar>
-      <div className="min-h-screen bg-[#FAF8FF] p-15">
-        <div className="max-w-6xl mx-auto">
+      <div className="min-h-screen bg-[#F4EFFF] px-4 py-6 sm:px-8 lg:px-10">
+        <div className="mx-auto max-w-7xl">
           {/* Header */}
-          <h1 className="text-3xl font-bold text-[#484848] mb-12">
-            จัดการรายวิชา
-          </h1>
+          <section className="mb-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-[#7C5BD9]">
+                  รายวิชา
+                </p>
+                <h1 className="mt-1 text-2xl font-semibold text-[#2F2A3A] sm:text-3xl">
+                  จัดการรายวิชา
+                </h1>
+                <p className="mt-2 text-sm font-normal text-[#7A7287]">
+                  เพิ่ม แก้ไข จัดหมวดหมู่ความรู้ และเปิดสอบจากรายวิชาที่มีในระบบ
+                </p>
+              </div>
 
-          <div className="flex flex-row justify-between items-center gap-4">
-            {/* Controls */}
-            <div className="flex gap-3 mb-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <button
                 onClick={() => setIsCreateModalOpen(true)}
-                className="px-12 py-2 bg-[#B7A3E3] border-1 border-[#B7A3E3] text-white text-lg font-bold rounded-xl hover:bg-gray-50 hover:text-[#B7A3E3] hover:border-[#B7A3E3] hover:border-1 transition-colors cursor-pointer"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#A48FD6] cursor-pointer"
               >
+                  <Plus size={18} />
                 สร้างรายวิชา
               </button>
-            </div>
 
-            {/* Search Bar */}
-            <div className="flex gap-3 mb-4">
-              <div className="relative">
+                <div className="relative">
                 <input
                   type="text"
-                  placeholder="ค้นหา..."
+                    placeholder="ค้นหารหัสหรือชื่อวิชา"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-white px-3 py-2 pr-40 text-[#DEDEDE] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
+                    className="w-full rounded-xl bg-[#FAF8FF] px-4 py-3 pr-10 text-sm font-normal text-[#2F2A3A] placeholder:text-[#B7AFC6] outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3] sm:w-80"
                 />
                 <Search
-                  className="absolute right-3 top-2.5 text-[#525252]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A7287]"
                   size={20}
                 />
               </div>
             </div>
           </div>
+          </section>
 
           {/* Table */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-[#E7DDF8]">
             <table className="w-full">
               <colgroup>
                 <col className="w-[12%]" />
@@ -290,21 +297,21 @@ export default function CourseManagement() {
               </colgroup>
               <thead className="bg-[#B7A3E3] text-white">
                 <tr>
-                  <th className="px-4 py-3 text-left text-md font-light">
+                  <th className="px-5 py-4 text-left text-sm font-semibold">
                     รหัสวิชา
                   </th>
-                  <th className="px-4 py-3 text-left text-md font-light">
+                  <th className="px-5 py-4 text-left text-sm font-semibold">
                     ชื่อวิชา
                   </th>
-                  <th className="px-4 py-3 text-left text-md font-light">
+                  <th className="px-5 py-4 text-left text-sm font-semibold">
                     หมวดหมู่ความรู้
                   </th>
-                  <th className="px-4 py-3 text-left text-md font-light">
+                  <th className="px-5 py-4 text-left text-sm font-semibold">
                     แก้ไข
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-[#EFE8FB]">
                 {/* Loading State */}
                 {isLoading && (
                   <tr>
@@ -345,14 +352,14 @@ export default function CourseManagement() {
                 {!isLoading &&
                   !error &&
                   filteredCourses.map((course) => (
-                    <tr key={course.courses_id} className="hover:bg-gray-50">
-                      <td className="px-4 py-4 text-sm text-gray-700">
+                    <tr key={course.courses_id} className="hover:bg-[#FAF8FF]">
+                      <td className="px-5 py-4 text-sm font-semibold text-[#2F2A3A]">
                         {course.course_code}
                       </td>
-                      <td className="px-4 py-4 text-sm text-gray-700">
+                      <td className="px-5 py-4 text-sm font-medium text-[#2F2A3A]">
                         {getThaiCourseName(course)}
                       </td>
-                      <td className="px-4 py-4">
+                      <td className="px-5 py-4">
                         <KnowledgeCategoriesCell
                           categories={
                             course.course_knowledge?.map(
@@ -362,8 +369,8 @@ export default function CourseManagement() {
                           maxVisible={2}
                         />
                       </td>
-                      <td className="px-4 py-4 text-center">
-                        <div className="flex justify-end items-center gap-3">
+                      <td className="px-5 py-4 text-center">
+                        <div className="flex items-center justify-end gap-3">
                           {/* Knowledge Categories Button */}
                           <button
                             onClick={() => {
@@ -373,7 +380,7 @@ export default function CourseManagement() {
                               });
                               setIsKnowledgeModalOpen(true);
                             }}
-                            className="w-10 h-10 flex items-center justify-center text-[#B492FF] border border-[#B492FF] hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
+                            className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#D9CCF2] text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
                             title="จัดการหมวดหมู่ความรู้"
                           >
                             <BookOpen size={18} />
@@ -382,7 +389,7 @@ export default function CourseManagement() {
                           {/* Edit Button */}
                           <button
                             onClick={() => handleEditClick(course)}
-                            className="w-10 h-10 flex items-center justify-center text-[#B492FF] border border-[#B492FF] hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
+                            className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#D9CCF2] text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
                           >
                             <Edit2 size={18} />
                           </button>
@@ -390,7 +397,7 @@ export default function CourseManagement() {
                           {/* Delete Button */}
                           <button
                             onClick={() => handleDeleteClick(course)}
-                            className="w-10 h-10 flex items-center justify-center text-red-500 border border-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                            className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-200 text-red-500 transition-colors hover:bg-red-50 cursor-pointer"
                           >
                             <Trash2 size={18} />
                           </button>
@@ -404,7 +411,7 @@ export default function CourseManagement() {
                                 e.target.value === "ACTIVE",
                               )
                             }
-                            className="px-2 py-2 text-sm font-medium bg-white text-[#484848] hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#B7A3E3] rounded"
+                            className="rounded-xl bg-white px-3 py-2 text-sm font-medium text-[#2F2A3A] ring-1 ring-[#E7DDF8] transition-colors hover:bg-[#FAF8FF] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#B7A3E3]"
                           >
                             <option value="ACTIVE" className="text-[#484848]">
                               เปิดใช้งาน
@@ -419,7 +426,7 @@ export default function CourseManagement() {
                               setSelectedCourse(course);
                               setIsModalOpen(true);
                             }}
-                            className="px-5 py-2 text-sm text-[#B7A3E3] border border-[#B7A3E3] rounded-xl hover:bg-purple-50 transition-colors cursor-pointer"
+                            className="rounded-xl border border-[#D9CCF2] px-5 py-2 text-sm font-semibold text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
                           >
                             เปิดสอบ
                           </button>

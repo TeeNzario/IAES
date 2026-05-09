@@ -165,7 +165,7 @@ const LoginPage = () => {
               value={identifier}
               onChange={handleInputChange(setIdentifier)}
               onKeyDown={handleKeyDown}
-              className="w-full text-black px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition"
+              className="w-full px-4 py-3 font-sans text-base leading-5 text-black placeholder:text-sm placeholder:font-normal placeholder:text-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition"
               placeholder="65123456 หรือ example@university.ac.th"
               disabled={isLoading}
             />
@@ -181,8 +181,8 @@ const LoginPage = () => {
               value={password}
               onChange={handleInputChange(setPassword)}
               onKeyDown={handleKeyDown}
-              className="w-full text-black px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition"
-              placeholder="รหัสผ่าน"
+              className="w-full px-4 py-3 font-sans text-base leading-5 text-black placeholder:text-sm placeholder:font-normal placeholder:text-gray-400 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition"
+              placeholder="Password123"
               disabled={isLoading}
             />
           </div>
