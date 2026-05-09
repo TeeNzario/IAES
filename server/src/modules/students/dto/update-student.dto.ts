@@ -1,14 +1,17 @@
 import {
   IsBoolean,
+  IsEmail,
   IsInt,
   IsOptional,
   IsString,
+  MaxLength,
   MinLength,
 } from 'class-validator';
 
 export class UpdateStudentDto {
-  @IsString()
+  @IsEmail()
   @IsOptional()
+  @MaxLength(100)
   email?: string;
 
   @IsString()
