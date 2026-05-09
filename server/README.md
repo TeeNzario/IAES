@@ -54,6 +54,8 @@ Or from the repository root:
 npm install --prefix server
 ```
 
+Use `--prefix server` only from the repository root. If your terminal is already in `server/`, use plain `npm install`.
+
 ## Database Setup
 
 This project uses Prisma Migrate. Migration history lives under `server/prisma/migrations/`.
@@ -67,6 +69,8 @@ npm run seed
 ```
 
 The Prisma client is generated to `src/generated/prisma`.
+
+`src/generated/prisma` is gitignored and generated locally. The server `postinstall` script also runs `prisma generate`.
 
 The seed script is idempotent and creates:
 
@@ -245,8 +249,50 @@ prisma/rehash-passwords.ts    Password rehash utility
 Use `npm.cmd`:
 
 ```powershell
+npm.cmd install
 npm.cmd run start:dev
 ```
+
+Use `npx.cmd` if Prisma commands are blocked:
+
+```powershell
+npx.cmd prisma generate
+```
+
+### Prisma Client Cannot Be Imported
+
+If TypeScript reports errors such as:
+
+```text
+Cannot find module '../generated/prisma/client'
+Cannot find module '../../src/generated/prisma/client'
+Property '$transaction' does not exist on type 'PrismaService'
+Property 'students' does not exist on type 'PrismaService'
+```
+
+the generated Prisma client is missing or incomplete. Stop the running watch process, then run from `server/`:
+
+```powershell
+Remove-Item -LiteralPath .\src\generated\prisma -Recurse -Force
+npx.cmd prisma generate
+npm.cmd run build
+```
+
+If `prisma generate` fails with:
+
+```text
+src\generated\prisma exists and is not empty but doesn't look like a generated Prisma Client
+```
+
+remove `src/generated/prisma` and generate again with the commands above.
+
+If a nested `server/server/` directory appears, it usually means `npm install --prefix server` was run while the terminal was already inside `server/`. Remove the nested folder from `server/`:
+
+```powershell
+Remove-Item -LiteralPath .\server -Recurse -Force
+```
+
+Then run `npm install` from `server/`, or return to the repository root before using `npm install --prefix server`.
 
 ### JWT_SECRET Boot Error
 
