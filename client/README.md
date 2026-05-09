@@ -41,6 +41,8 @@ Or from the repository root:
 npm install --prefix client
 ```
 
+Use `--prefix client` only from the repository root. If your terminal is already in `client/`, use plain `npm install`.
+
 ## Run Development Server
 
 From `client/`:
@@ -153,5 +155,15 @@ If a public file returns HTML instead of the asset, check `src/middleware.ts` an
 Use `npm.cmd`:
 
 ```powershell
+npm.cmd install
 npm.cmd run dev
+npm.cmd run build
 ```
+
+### Next.js Workspace Root Warning
+
+`next build` may warn that it detected multiple lockfiles and inferred the workspace root from the repository root. This is non-blocking. Keep running client commands from `client/`, or from the repository root with `--prefix client`.
+
+### Middleware Deprecation Warning
+
+Next.js 16 may warn that the `middleware` file convention is deprecated in favor of `proxy`. This is a framework migration warning; it does not block the current build.

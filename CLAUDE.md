@@ -29,6 +29,8 @@ npm run dev:client
 npm run dev:server
 ```
 
+Use `--prefix` only from the repository root. From inside `server/` or `client/`, run plain `npm install`, `npm run build`, and similar local scripts. On Windows PowerShell, use `npm.cmd` or `npx.cmd` if script execution is blocked.
+
 ### Client
 
 ```bash
@@ -151,16 +153,24 @@ Curriculum IDs are defined in `client/src/config/curriculums.ts`. When inserting
 
 ## Setup Flow After Pulling Latest `master`
 
+From the repository root:
+
 ```bash
 npm install
 npm install --prefix server
 npm install --prefix client
+```
 
-cd server
+Then from `server/`:
+
+```bash
 npx prisma migrate deploy
 npx prisma generate
+```
 
-cd ..
+Return to the repository root to start both apps:
+
+```bash
 npm run dev
 ```
 
@@ -181,3 +191,5 @@ npm run build --prefix client
 - Keep `.env` and `.env.local` out of commits.
 - The CSV bulk enrollment flow uses preview, edit/delete rows, and confirm.
 - Generated Prisma client (`server/src/generated/prisma`) is gitignored. It is regenerated automatically by the `postinstall` hook on `npm install`. Re-run `npx prisma generate` after editing `schema.prisma`.
+- If TypeScript cannot import `src/generated/prisma/client` or `PrismaService` appears to have no model delegates, remove `server/src/generated/prisma` and run `npx prisma generate` from `server/`.
+- If a nested `server/server/` directory appears, it usually came from running `npm install --prefix server` while already inside `server/`; remove that nested directory and run plain `npm install` from `server/`.

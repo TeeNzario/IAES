@@ -34,6 +34,8 @@ npm install --prefix server
 npm install --prefix client
 ```
 
+Run the `--prefix` commands only from the repository root. If your terminal is already in `server/` or `client/`, run plain `npm install` there instead.
+
 2. Create backend environment file at `server/.env`.
 
 ```env
@@ -64,6 +66,8 @@ cd server
 npx prisma migrate deploy
 npx prisma generate
 ```
+
+The generated Prisma client lives at `server/src/generated/prisma`. It is gitignored and can be regenerated at any time.
 
 5. Optional: seed demo data.
 
@@ -213,6 +217,38 @@ Use `npm.cmd`:
 npm.cmd install
 npm.cmd run dev
 ```
+
+Use the same `.cmd` form for `npx` if PowerShell blocks scripts:
+
+```powershell
+npx.cmd prisma generate
+```
+
+### Prisma Client Cannot Be Imported
+
+If the server shows TypeScript errors such as:
+
+```text
+Cannot find module '../generated/prisma/client'
+Property '$transaction' does not exist on type 'PrismaService'
+Property 'students' does not exist on type 'PrismaService'
+```
+
+the generated Prisma client is missing or incomplete. From `server/`, stop the watch process and regenerate it:
+
+```powershell
+Remove-Item -LiteralPath .\src\generated\prisma -Recurse -Force
+npx.cmd prisma generate
+npm.cmd run build
+```
+
+If you accidentally ran `npm install --prefix server` while already inside `server/`, remove the accidental nested folder from the repository root:
+
+```powershell
+Remove-Item -LiteralPath .\server\server -Recurse -Force
+```
+
+Then run the correct install command for your current directory.
 
 ### JWT_SECRET Boot Error
 
