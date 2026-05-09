@@ -52,6 +52,24 @@ export class StudentsController {
     return { exists };
   }
 
+  /**
+   * Check if student email already exists
+   * Used for frontend validation
+   */
+  @Get('check-email')
+  @Auth()
+  @Roles('ADMIN')
+  async checkEmailExists(
+    @Query('email') email: string,
+    @Query('excludeCode') excludeCode?: string,
+  ) {
+    const exists = await this.studentsService.checkStudentEmailExists(
+      email,
+      excludeCode,
+    );
+    return { exists };
+  }
+
   // @Get(':id')
   // findOne(@Param('id') id: string) {
   //   return this.studentsService.findOne(id);
