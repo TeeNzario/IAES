@@ -1,5 +1,4 @@
-// ...existing code...
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -7,6 +6,7 @@ import {
   DEFAULT_CURRICULUM_ID,
   DEFAULT_TITLE,
 } from 'src/lib/academic-defaults';
+import { Prisma } from 'src/generated/prisma/client';
 import { hashPassword } from '../../lib/password';
 import { AuditActor, AuditService } from '../audit/audit.service';
 
@@ -41,7 +41,16 @@ export class StudentsService {
     });
 
     if (existing) {
-      throw new Error('Student code already exists');
+      throw new ConflictException('Student code already exists');
+    }
+
+    const existingEmail = await this.prisma.students.findUnique({
+      where: { email: createStudentDto.email },
+      select: { student_code: true },
+    });
+
+    if (existingEmail) {
+      throw new ConflictException('Email already exists');
     }
 
     const student = await this.prisma.students.create({
@@ -132,6 +141,28 @@ export class StudentsService {
     }
   }
 
+  private async assertStudentEmailAvailable(
+    email: string | undefined,
+    studentCode: string,
+  ) {
+    if (email === undefined) return undefined;
+
+    const nextEmail = email.trim();
+    const existingEmail = await this.prisma.students.findFirst({
+      where: {
+        email: nextEmail,
+        NOT: { student_code: studentCode },
+      },
+      select: { student_code: true },
+    });
+
+    if (existingEmail) {
+      throw new ConflictException('Email already exists');
+    }
+
+    return nextEmail;
+  }
+
   async updateByStudentCode(
     student_code: string,
     dto: UpdateStudentDto,
@@ -139,8 +170,14 @@ export class StudentsService {
   ) {
     const { password, ...rest } = dto;
     let previousActive: boolean | undefined;
+    const updateData = { ...rest };
+    const nextEmail = await this.assertStudentEmailAvailable(
+      updateData.email,
+      student_code,
+    );
+    if (nextEmail !== undefined) updateData.email = nextEmail;
 
-    if (rest.is_active !== undefined) {
+    if (updateData.is_active !== undefined) {
       const existing = await this.prisma.students.findUnique({
         where: { student_code },
         select: { is_active: true },
@@ -149,8 +186,8 @@ export class StudentsService {
     }
 
     const data = password
-      ? { ...rest, password_hash: await hashPassword(password) }
-      : rest;
+      ? { ...updateData, password_hash: await hashPassword(password) }
+      : updateData;
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.students.update({
         where: { student_code },
@@ -172,7 +209,7 @@ export class StudentsService {
         student_code,
         Boolean(password),
         previousActive,
-        rest.is_active,
+        updateData.is_active,
       );
 
       return updated;
@@ -186,8 +223,14 @@ export class StudentsService {
   ) {
     const { password, ...rest } = updateStudentDto;
     let previousActive: boolean | undefined;
+    const updateData = { ...rest };
+    const nextEmail = await this.assertStudentEmailAvailable(
+      updateData.email,
+      id,
+    );
+    if (nextEmail !== undefined) updateData.email = nextEmail;
 
-    if (rest.is_active !== undefined) {
+    if (updateData.is_active !== undefined) {
       const existing = await this.prisma.students.findUnique({
         where: { student_code: id },
         select: { is_active: true },
@@ -196,8 +239,8 @@ export class StudentsService {
     }
 
     const data = password
-      ? { ...rest, password_hash: await hashPassword(password) }
-      : rest;
+      ? { ...updateData, password_hash: await hashPassword(password) }
+      : updateData;
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.students.update({
         where: { student_code: id },
@@ -222,7 +265,7 @@ export class StudentsService {
         id,
         Boolean(password),
         previousActive,
-        rest.is_active,
+        updateData.is_active,
       );
 
       return updated;
@@ -295,6 +338,26 @@ export class StudentsService {
     if (!studentCode?.trim()) return false;
 
     const where: any = { student_code: studentCode.trim() };
+
+    if (excludeCode) {
+      where.NOT = { student_code: excludeCode };
+    }
+
+    const existing = await this.prisma.students.findFirst({
+      where,
+      select: { student_code: true },
+    });
+
+    return existing !== null;
+  }
+
+  async checkStudentEmailExists(
+    email: string,
+    excludeCode?: string,
+  ): Promise<boolean> {
+    if (!email?.trim()) return false;
+
+    const where: Prisma.studentsWhereInput = { email: email.trim() };
 
     if (excludeCode) {
       where.NOT = { student_code: excludeCode };
