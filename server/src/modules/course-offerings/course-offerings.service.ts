@@ -41,6 +41,9 @@ const courseOfferingSelect = {
   },
 
   course_instructors: {
+    orderBy: {
+      staff_users_id: 'asc' as const,
+    },
     select: {
       staff_users_id: true,
       staff_users: {
@@ -52,6 +55,12 @@ const courseOfferingSelect = {
           curriculumId: true,
         },
       },
+    },
+  },
+
+  _count: {
+    select: {
+      course_exams: true,
     },
   },
 };
@@ -112,6 +121,21 @@ export class CourseOfferingsService {
 
     if (!enrollment) {
       throw new ForbiddenException('You are not enrolled in this offering.');
+    }
+  }
+
+  private async assertNoExamsForDelete(
+    offeringId: bigint,
+    client: PrismaService | Prisma.TransactionClient = this.prisma,
+  ) {
+    const examsCount = await client.course_exams.count({
+      where: { course_offerings_id: offeringId },
+    });
+
+    if (examsCount > 0) {
+      throw new ConflictException(
+        'ไม่สามารถลบได้ เนื่องจากรายวิชานี้มีการสร้างชุดสอบหรือการสอบแล้ว',
+      );
     }
   }
 
@@ -575,6 +599,21 @@ export class CourseOfferingsService {
           ...(dto.instructor_ids ?? []).map((instructorId) => BigInt(instructorId)),
         ];
 
+        const currentInstructors = await tx.course_instructors.findMany({
+          where: { course_offerings_id: id },
+          select: { staff_users_id: true },
+        });
+        const nextInstructorIds = new Set(
+          allInstructorIds.map((instructorId) => instructorId.toString()),
+        );
+        const removesInstructor = currentInstructors.some(
+          (instructor) => !nextInstructorIds.has(instructor.staff_users_id.toString()),
+        );
+
+        if (removesInstructor) {
+          await this.assertNoExamsForDelete(id, tx);
+        }
+
         // Delete existing instructors
         await tx.course_instructors.deleteMany({
           where: { course_offerings_id: id },
@@ -674,6 +713,7 @@ export class CourseOfferingsService {
     const id = BigInt(offeringId);
 
     await this.assertInstructorForOffering(id, staffUserId);
+    await this.assertNoExamsForDelete(id);
 
     await this.prisma.course_enrollments.delete({
       where: {
@@ -685,6 +725,54 @@ export class CourseOfferingsService {
     });
 
     return { success: true };
+  }
+
+  async removeInstructorFromOffering(
+    offeringId: string,
+    targetStaffUserId: string,
+    actorStaffUserId: string,
+  ): Promise<{ success: boolean }> {
+    if (!offeringId || offeringId === 'undefined') {
+      throw new BadRequestException('Invalid course_offerings_id');
+    }
+    if (!targetStaffUserId || targetStaffUserId === 'undefined') {
+      throw new BadRequestException('Invalid staff_users_id');
+    }
+
+    const id = BigInt(offeringId);
+    const targetId = BigInt(targetStaffUserId);
+
+    return this.prisma.$transaction(async (tx) => {
+      await this.assertInstructorForOffering(id, actorStaffUserId, tx);
+      await this.assertNoExamsForDelete(id, tx);
+
+      const instructors = await tx.course_instructors.findMany({
+        where: { course_offerings_id: id },
+        select: { staff_users_id: true },
+        orderBy: { staff_users_id: 'asc' },
+      });
+
+      if (!instructors.some((instructor) => instructor.staff_users_id === targetId)) {
+        throw new BadRequestException(
+          'Instructor is not assigned to this offering.',
+        );
+      }
+
+      if (instructors[0]?.staff_users_id === targetId) {
+        throw new BadRequestException('Primary instructor cannot be removed.');
+      }
+
+      await tx.course_instructors.delete({
+        where: {
+          course_offerings_id_staff_users_id: {
+            course_offerings_id: id,
+            staff_users_id: targetId,
+          },
+        },
+      });
+
+      return { success: true };
+    });
   }
 
   /**
@@ -703,6 +791,7 @@ export class CourseOfferingsService {
     const id = BigInt(offeringId);
 
     await this.assertInstructorForOffering(id, staffUserId);
+    await this.assertNoExamsForDelete(id);
 
     // Check if any students are enrolled
     const enrollmentsCount = await this.prisma.course_enrollments.count({

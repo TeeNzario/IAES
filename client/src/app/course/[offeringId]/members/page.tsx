@@ -3,7 +3,15 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Navbar from "@/components/layout/NavBar";
 import { useRouter } from "next/navigation";
-import { UserPlus, Upload, ChevronDown } from "lucide-react";
+import {
+  UserPlus,
+  Upload,
+  ChevronDown,
+  Trash2,
+  UsersRound,
+  Lock,
+  AlertTriangle,
+} from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { useParams } from "next/navigation";
 import { Student } from "@/types/student";
@@ -71,8 +79,26 @@ interface DuplicateCheckResponse {
   exists: boolean;
 }
 
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) return error.message;
+
+  const apiError = error as {
+    response?: { data?: { message?: unknown } };
+    message?: unknown;
+  };
+  const message = apiError.response?.data?.message ?? apiError.message;
+
+  if (Array.isArray(message) && typeof message[0] === "string") {
+    return message[0];
+  }
+  if (typeof message === "string" && message.trim()) {
+    return message;
+  }
+
+  return fallback;
+}
+
 export default function SimpleShowUsers() {
-  const [activeTab, setActiveTab] = useState("learn");
   const [activeTopTab, setActiveTopTab] = useState("student");
   const [showAddModal, setShowAddModal] = useState(false);
 
@@ -101,6 +127,13 @@ export default function SimpleShowUsers() {
   const [isUnenrollModalOpen, setIsUnenrollModalOpen] = useState(false);
   const [unenrollingStudent, setUnenrollingStudent] = useState<{ code: string; name: string } | null>(null);
   const [isUnenrolling, setIsUnenrolling] = useState(false);
+  const [isRemoveInstructorModalOpen, setIsRemoveInstructorModalOpen] =
+    useState(false);
+  const [removingInstructor, setRemovingInstructor] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [isRemovingInstructor, setIsRemovingInstructor] = useState(false);
 
   // Alert state
   const [alertState, setAlertState] = useState<{
@@ -111,27 +144,30 @@ export default function SimpleShowUsers() {
   }>({ isOpen: false, title: "", message: "", variant: "error" });
 
   const [offering, setOffering] = useState<CourseOffering | null>(null);
-  const [students, setStudents] = useState<any[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(true);
+  const hasCourseExams = (offering?._count?.course_exams ?? 0) > 0;
+  const deleteBlockedMessage =
+    "มีการสร้างชุดสอบหรือการสอบในรายวิชานี้แล้ว ระบบไม่อนุญาตให้ลบอาจารย์หรือนักศึกษาออกจากรายวิชา";
 
   const router = useRouter();
 
   const { offeringId } = useParams<{ offeringId: string }>();
-  console.log(offering);
 
-  const fetchStudents = async () => {
+  const fetchStudents = useCallback(async () => {
     if (!offeringId) return;
 
+    setLoadingStudents(true);
     const data = await apiFetch<Student[]>(
       `course-offerings/${offeringId}/students`,
     );
     setStudents(data);
     setLoadingStudents(false);
-  };
+  }, [offeringId]);
 
   useEffect(() => {
     fetchStudents();
-  }, [offeringId]);
+  }, [fetchStudents]);
 
   // ============================================================
   // VALIDATION HELPERS
@@ -367,12 +403,15 @@ export default function SimpleShowUsers() {
       });
       await fetchStudents();
       handleCancelAddStudent();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setAlertState({
         isOpen: true,
         title: "เกิดข้อผิดพลาด",
-        message: err?.message || "ไม่สามารถเพิ่มนักศึกษาได้ กรุณาลองใหม่อีกครั้ง",
+        message: getErrorMessage(
+          err,
+          "ไม่สามารถเพิ่มนักศึกษาได้ กรุณาลองใหม่อีกครั้ง",
+        ),
         variant: "error",
       });
     } finally {
@@ -385,6 +424,16 @@ export default function SimpleShowUsers() {
     studentCode: string,
     studentName: string,
   ) => {
+    if (hasCourseExams) {
+      setAlertState({
+        isOpen: true,
+        title: "ไม่สามารถลบได้",
+        message: deleteBlockedMessage,
+        variant: "warning",
+      });
+      return;
+    }
+
     setUnenrollingStudent({ code: studentCode, name: studentName });
     setIsUnenrollModalOpen(true);
   };
@@ -400,12 +449,15 @@ export default function SimpleShowUsers() {
       await fetchStudents(); // Refresh list
       setIsUnenrollModalOpen(false);
       setUnenrollingStudent(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to unenroll student:", err);
       setAlertState({
         isOpen: true,
         title: "เกิดข้อผิดพลาด",
-        message: err?.message || "ไม่สามารถลบนักศึกษาได้ กรุณาลองใหม่อีกครั้ง",
+        message: getErrorMessage(
+          err,
+          "ไม่สามารถลบนักศึกษาได้ กรุณาลองใหม่อีกครั้ง",
+        ),
         variant: "error",
       });
     } finally {
@@ -413,17 +465,63 @@ export default function SimpleShowUsers() {
     }
   };
 
+  const handleRemoveInstructor = (staffUserId: string, instructorName: string) => {
+    if (hasCourseExams) {
+      setAlertState({
+        isOpen: true,
+        title: "ไม่สามารถลบได้",
+        message: deleteBlockedMessage,
+        variant: "warning",
+      });
+      return;
+    }
+
+    setRemovingInstructor({ id: staffUserId, name: instructorName });
+    setIsRemoveInstructorModalOpen(true);
+  };
+
+  const handleRemoveInstructorConfirm = async () => {
+    if (!removingInstructor) return;
+
+    setIsRemovingInstructor(true);
+    try {
+      await apiFetch(
+        `course-offerings/${offeringId}/instructors/${removingInstructor.id}`,
+        {
+          method: "DELETE",
+        },
+      );
+      await fetchOffering();
+      setIsRemoveInstructorModalOpen(false);
+      setRemovingInstructor(null);
+    } catch (err: unknown) {
+      console.error("Failed to remove instructor:", err);
+      setAlertState({
+        isOpen: true,
+        title: "เกิดข้อผิดพลาด",
+        message: getErrorMessage(
+          err,
+          "ไม่สามารถลบอาจารย์ออกจากรายวิชาได้ กรุณาลองใหม่อีกครั้ง",
+        ),
+        variant: "error",
+      });
+    } finally {
+      setIsRemovingInstructor(false);
+    }
+  };
+
+  const fetchOffering = useCallback(async () => {
+    if (!offeringId) return;
+    const data = await apiFetch<CourseOffering>(
+      `course-offerings/${offeringId}`,
+    );
+    setOffering(data);
+  }, [offeringId]);
+
   //fetch instructors name
   useEffect(() => {
-    const fetchOffering = async () => {
-      if (!offeringId) return;
-      const data = await apiFetch<CourseOffering>(
-        `course-offerings/${offeringId}`,
-      );
-      setOffering(data);
-    };
     fetchOffering();
-  }, [offeringId]);
+  }, [fetchOffering]);
 
    useEffect(() => {
   apiFetch<AuthUser>("/auth/me")
@@ -435,7 +533,8 @@ export default function SimpleShowUsers() {
     });
 }, []);
 
-const isStudent = user?.userType === "STUDENT";
+const isStudent =
+  String(user?.type ?? user?.userType ?? "").toUpperCase() === "STUDENT";
 
   // ============================================================
   // COMPUTED VALUES
@@ -454,32 +553,32 @@ const isStudent = user?.userType === "STUDENT";
 
   return (
     <Navbar>
-      <div className="min-h-screen bg-[#F4EFFF] p-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="border-b border-gray-200/50 px-6 lg:px-8 pt-4">
+      <div className="min-h-screen bg-[#F4EFFF] px-4 py-6 sm:px-8 lg:px-10">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-5 border-b border-[#DDD1F6] pb-3">
             <div className="flex items-center gap-6 pb-3">
               <button
                 onClick={() => {
                   setActiveTopTab("home");
                   handleBackToCourse();
                 }}
-                className={`font-light text-sm transition-colors cursor-pointer ${
+                className={`text-sm font-medium transition-colors cursor-pointer ${
                   activeTopTab === "home"
-                    ? "text-[##B7A3E3]"
-                    : "text-gray-500 hover:text-[#B7A3E3]"
+                    ? "text-[#7C5BD9]"
+                    : "text-[#7A7287] hover:text-[#7C5BD9]"
                 }`}
               >
                 หน้าหลัก
               </button>
-              <div className="h-4 w-px bg-gray-300"></div>
+              <div className="h-4 w-px bg-[#D4C7ED]"></div>
               <button
                 onClick={() => {
                   setActiveTopTab("student");
                 }}
-                className={`font-light text-sm transition-colors cursor-pointer ${
+                className={`text-sm font-medium transition-colors cursor-pointer ${
                   activeTopTab === "student"
-                    ? "text-[#B7A3E3]"
-                    : "text-gray-500 hover:text-[#B7A3E3]"
+                    ? "text-[#7C5BD9]"
+                    : "text-[#7A7287] hover:text-[#7C5BD9]"
                 }`}
               >
                 สมาชิก
@@ -488,137 +587,229 @@ const isStudent = user?.userType === "STUDENT";
           </div>
 
           {/* Main Flex Container */}
-          <div className="flex gap-4 mt-4">
+          <div className="flex flex-col gap-4 lg:flex-row">
             {/* Left Section - Lists */}
-            <div className="flex-1 min-w-0 bg-white rounded-3xl p-6 lg:p-8">
+            <div className="min-w-0 flex-1 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6 lg:p-8">
+              {hasCourseExams && !isStudent && (
+                <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
+                  <AlertTriangle size={18} className="mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold">ล็อกการลบสมาชิก</p>
+                    <p className="mt-1 text-sm font-normal leading-6">
+                      {deleteBlockedMessage}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Header Card */}
-              <div className=" rounded-lg mb-4">
-                <div className="px-5 py-4 border-b border-[#D9D9D9] flex items-center justify-between">
-                  <h3 className="text-sm text-[#575757] font-light">อาจารย์</h3>
+              <div className="mb-6 rounded-xl border border-[#EFE8FB]">
+                <div className="flex items-center justify-between border-b border-[#EFE8FB] px-5 py-4">
+                  <h3 className="flex items-center gap-2 text-sm font-semibold text-[#2F2A3A]">
+                    <UsersRound size={16} className="text-[#B7A3E3]" />
+                    อาจารย์
+                  </h3>
+                  <span className="text-sm font-semibold tabular-nums text-[#514667]">
+                    {offering?.course_instructors.length ?? 0} คน
+                  </span>
+                </div>
+                <div className="hidden border-b border-[#EFE8FB] bg-[#F7F3FF] px-5 py-4 md:grid md:grid-cols-[minmax(10rem,1fr)_minmax(12rem,1.35fr)_minmax(12rem,1.35fr)_2.25rem] md:items-center md:gap-4">
+                  <span className="text-sm font-semibold text-[#5B4A73]">
+                    ชื่อ-นามสกุล
+                  </span>
+                  <span className="text-sm font-semibold text-[#5B4A73]">
+                    สำนักวิชา
+                  </span>
+                  <span className="text-sm font-semibold text-[#5B4A73]">
+                    หลักสูตร
+                  </span>
+                  <span aria-hidden />
                 </div>
                 <div>
-                  {offering?.course_instructors.map((ci) => (
+                  {offering?.course_instructors.map((ci, instructorIndex) => {
+                    const instructorName = formatInstructorName(ci.staff_users);
+                    const isPrimaryInstructor = instructorIndex === 0;
+
+                    return (
                     <div
                       key={ci.staff_users_id}
-                      className="px-5 py-3 flex items-center gap-3 md:grid md:grid-cols-[minmax(8rem,1fr)_minmax(12rem,1.5fr)_minmax(12rem,1.5fr)] md:gap-4 md:items-start"
+                      className="flex items-center gap-3 px-5 py-3 md:grid md:grid-cols-[minmax(10rem,1fr)_minmax(12rem,1.35fr)_minmax(12rem,1.35fr)_2.25rem] md:items-start md:gap-4"
                     >
                       <div className="flex flex-col flex-1 min-w-0 md:contents">
-                        <span className="text-base text-[#575757] truncate md:whitespace-normal md:overflow-visible md:text-clip md:wrap-break-word md:min-w-0">
-                          {formatInstructorName(ci.staff_users)}
+                        <span className="truncate text-sm font-normal text-[#2F2A3A] md:min-w-0 md:whitespace-normal md:text-clip md:wrap-break-word">
+                          {instructorName}
                         </span>
-                        <span className="text-xs text-gray-400 truncate md:hidden">
+                        <span className="truncate text-xs text-[#7A7287] md:hidden">
                           {getFacultyName(ci.staff_users.facultyCode ?? 1)}
                           {" · "}
                           {getCurriculumName(ci.staff_users.curriculumId)}
                         </span>
-                        <span className="hidden md:block text-sm text-gray-500 wrap-break-word min-w-0">
+                        <span className="hidden min-w-0 text-sm font-normal text-[#514667] wrap-break-word md:block">
                           {getFacultyName(ci.staff_users.facultyCode ?? 1)}
                         </span>
-                        <span className="hidden md:block text-sm text-gray-500 wrap-break-word min-w-0">
+                        <span className="hidden min-w-0 text-sm font-normal text-[#514667] wrap-break-word md:block">
                           {getCurriculumName(ci.staff_users.curriculumId)}
                         </span>
                       </div>
+                      {!isStudent && (
+                        isPrimaryInstructor ? (
+                          <span
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#B7A3E3] md:justify-self-end md:self-start"
+                            title="อาจารย์คนแรกไม่สามารถลบได้"
+                            aria-label="อาจารย์คนแรกไม่สามารถลบได้"
+                          >
+                            <Lock size={16} />
+                          </span>
+                        ) : hasCourseExams ? (
+                          <button
+                            onClick={() =>
+                              setAlertState({
+                                isOpen: true,
+                                title: "ไม่สามารถลบได้",
+                                message: deleteBlockedMessage,
+                                variant: "warning",
+                              })
+                            }
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-300 transition-colors hover:bg-amber-50 hover:text-amber-500 md:justify-self-end md:self-start"
+                            title="มีการสอบแล้ว ไม่สามารถลบได้"
+                            aria-label="มีการสอบแล้ว ไม่สามารถลบได้"
+                          >
+                            <Trash2 size={17} />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              handleRemoveInstructor(
+                                ci.staff_users_id,
+                                instructorName,
+                              )
+                            }
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-red-400 transition-colors hover:bg-red-50 hover:text-red-500 md:justify-self-end md:self-start"
+                            title="นำอาจารย์ออกจากรายวิชา"
+                            aria-label="นำอาจารย์ออกจากรายวิชา"
+                          >
+                            <Trash2 size={17} />
+                          </button>
+                        )
+                      )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
               {/* Users List */}
-              <div className=" rounded-lg">
+              <div className="overflow-hidden rounded-xl border border-[#EFE8FB]">
                 {/* Title */}
-                <div className="px-5 py-4 border-b border-[#D9D9D9] flex items-center justify-between">
-                  <div className="flex items-center gap-4 w-full justify-between">
-                    <h3 className="text-sm text-[#575757] font-light">
+                <div className="flex items-center justify-between border-b border-[#EFE8FB] px-5 py-4">
+                  <div className="flex w-full items-center justify-between gap-4">
+                    <h3 className="flex items-center gap-2 text-sm font-semibold text-[#2F2A3A]">
+                      <UsersRound size={16} className="text-[#B7A3E3]" />
                       นักศึกษา
                     </h3>
-                    <span className="text-sm text-[#575757]">
+                    <span className="text-sm font-semibold tabular-nums text-[#514667]">
                       {students.length} คน
                     </span>
                   </div>
                 </div>
 
                 {/* Desktop column header */}
-                <div className="hidden md:grid md:grid-cols-[6rem_minmax(8rem,1fr)_minmax(12rem,1.5fr)_minmax(12rem,1.5fr)_2rem] md:gap-4 md:items-center px-5 py-2.5 border-b border-[#E9E0FA] bg-[#FBF8FF]">
-                  <span className="text-xs font-medium text-gray-500">รหัส</span>
-                  <span className="text-xs font-medium text-gray-500">ชื่อ-นามสกุล</span>
-                  <span className="text-xs font-medium text-gray-500">สำนักวิชา</span>
-                  <span className="text-xs font-medium text-gray-500">หลักสูตร</span>
+                <div className="hidden border-b border-[#EFE8FB] bg-[#F7F3FF] px-5 py-4 md:grid md:grid-cols-[8.5rem_minmax(10rem,1fr)_minmax(12rem,1.35fr)_minmax(12rem,1.35fr)_2.25rem] md:items-center md:gap-4">
+                  <span className="text-sm font-semibold text-[#5B4A73]">รหัสนักศึกษา</span>
+                  <span className="text-sm font-semibold text-[#5B4A73]">ชื่อ-นามสกุล</span>
+                  <span className="text-sm font-semibold text-[#5B4A73]">สำนักวิชา</span>
+                  <span className="text-sm font-semibold text-[#5B4A73]">หลักสูตร</span>
                   <span aria-hidden />
                 </div>
 
                 {/* List */}
-                <div>
-                  {students.map((student) => (
+                <div className="divide-y divide-[#EFE8FB]">
+                  {loadingStudents ? (
+                    <div className="px-5 py-8 text-center text-sm font-medium text-[#7A7287]">
+                      กำลังโหลดรายชื่อนักศึกษา...
+                    </div>
+                  ) : students.length === 0 ? (
+                    <div className="px-5 py-8 text-center text-sm font-medium text-[#7A7287]">
+                      ยังไม่มีนักศึกษาในรายวิชานี้
+                    </div>
+                  ) : (
+                    students.map((student) => (
                     <div
                       key={student.student_code}
-                      className="px-5 py-3 hover:bg-gray-50 transition-colors flex items-center gap-3 md:grid md:grid-cols-[6rem_minmax(8rem,1fr)_minmax(12rem,1.5fr)_minmax(12rem,1.5fr)_2rem] md:gap-4 md:items-start group border-b border-gray-100 last:border-b-0"
+                      className="group flex items-center gap-3 px-5 py-4 transition-colors hover:bg-[#FAF8FF] md:grid md:grid-cols-[8.5rem_minmax(10rem,1fr)_minmax(12rem,1.35fr)_minmax(12rem,1.35fr)_2.25rem] md:items-start md:gap-4"
                     >
                       <div className="flex flex-col flex-1 min-w-0 md:contents">
                         <div className="flex items-center gap-3 md:contents">
-                          <span className="text-base text-[#575757] md:truncate md:min-w-0">
+                          <span className="text-sm font-normal text-[#2F2A3A] md:min-w-0 md:truncate">
                             {student.student_code}
                           </span>
-                          <span className="text-base text-[#575757] md:whitespace-normal md:wrap-break-word md:min-w-0">
+                          <span className="text-sm font-normal text-[#2F2A3A] md:min-w-0 md:whitespace-normal md:wrap-break-word">
                             {student.title} {student.first_name} {student.last_name}
                           </span>
                         </div>
-                        <span className="text-xs text-gray-400 mt-0.5 truncate md:hidden">
+                        <span className="mt-0.5 truncate text-xs text-[#7A7287] md:hidden">
                           {getFacultyName(student.facultyCode ?? 1)}
                           {" · "}
                           {getCurriculumName(student.curriculumId)}
                         </span>
-                        <span className="hidden md:block text-sm text-gray-500 wrap-break-word min-w-0">
+                        <span className="hidden min-w-0 text-sm font-normal text-[#514667] wrap-break-word md:block">
                           {getFacultyName(student.facultyCode ?? 1)}
                         </span>
-                        <span className="hidden md:block text-sm text-gray-500 wrap-break-word min-w-0">
+                        <span className="hidden min-w-0 text-sm font-normal text-[#514667] wrap-break-word md:block">
                           {getCurriculumName(student.curriculumId)}
                         </span>
                       </div>
                       {/* Delete button - visible on hover */}
                       {!isStudent ? (
-                        <button
-                          onClick={() =>
-                            handleUnenrollStudent(
-                              student.student_code,
-                              `${student.title} ${student.first_name} ${student.last_name}`,
-                            )
-                          }
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-50 rounded shrink-0 md:justify-self-end md:self-start"
-                          title="นำออกจากรายวิชา"
-                        >
-                          <svg
-                            className="w-5 h-5 text-red-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                        hasCourseExams ? (
+                          <button
+                            onClick={() =>
+                              setAlertState({
+                                isOpen: true,
+                                title: "ไม่สามารถลบได้",
+                                message: deleteBlockedMessage,
+                                variant: "warning",
+                              })
+                            }
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-300 transition-colors hover:bg-amber-50 hover:text-amber-500 md:justify-self-end md:self-start"
+                            title="มีการสอบแล้ว ไม่สามารถลบได้"
+                            aria-label="มีการสอบแล้ว ไม่สามารถลบได้"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
+                            <Trash2 size={17} />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              handleUnenrollStudent(
+                                student.student_code,
+                                `${student.title} ${student.first_name} ${student.last_name}`,
+                              )
+                            }
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-red-400 transition-colors hover:bg-red-50 hover:text-red-500 md:justify-self-end md:self-start"
+                            title="นำออกจากรายวิชา"
+                          >
+                            <Trash2 size={17} />
+                          </button>
+                        )
                       ) : (
                         <span aria-hidden className="hidden md:block" />
                       )}
                     </div>
-                  ))}
+                  )))}
                 </div>
               </div>
             </div>
 
             {/* Right Section - Action Buttons */}
             {!isStudent && (
-            <div className="flex flex-col gap-3 ">
+            <div className="flex flex-row gap-3 lg:flex-col">
               {/* Add Student Button */}
-              <div className="bg-red-500 flex flex-col bg-white rounded-2xl py-1">
+              <div className="flex flex-row rounded-2xl bg-white p-1 shadow-sm ring-1 ring-[#E7DDF8] lg:flex-col">
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer"
+                  className="flex h-12 w-12 items-center justify-center rounded-xl text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
                   title="เพิ่มนักศึกษา"
                 >
-                  <UserPlus className="w-5 h-5 text-[#1E1E1E]" />
+                  <UserPlus className="h-5 w-5" />
                 </button>
 
                 {/* CSV Upload Button */}
@@ -627,8 +818,8 @@ const isStudent = user?.userType === "STUDENT";
                   className="cursor-pointer"
                   title="อัพโหลด CSV"
                 >
-                  <div className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer">
-                    <Upload className="w-5 h-5 text-[#1E1E1E]" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer">
+                    <Upload className="h-5 w-5" />
                   </div>
                 </button>
               </div>
@@ -639,17 +830,17 @@ const isStudent = user?.userType === "STUDENT";
 
         {/* Add Student Modal */}
         {showAddModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg px-6">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="flex max-h-[92vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
               {/* Modal Header */}
-              <div className="text-center pt-8 pb-6 px-8">
-                <h3 className="text-2xl font-light text-gray-900">
+              <div className="border-b border-[#EFE8FB] px-5 py-5 text-center sm:px-8">
+                <h3 className="text-xl font-semibold text-[#2F2A3A]">
                   เพิ่มนักศึกษา
                 </h3>
               </div>
 
               {/* Modal Body */}
-              <div className="px-8 pb-8 space-y-4">
+              <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5 sm:px-8">
                 {/* รหัสนักศึกษา */}
                 <div>
                   <label className="block text-base font-normal text-gray-900 mb-2">
@@ -719,14 +910,18 @@ const isStudent = user?.userType === "STUDENT";
                     <select
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      className={`w-full px-4 py-3.5 border rounded-xl focus:outline-none transition-colors text-base appearance-none bg-white ${
+                      className={`w-full px-4 py-3.5 border rounded-xl focus:outline-none transition-colors text-base appearance-none bg-white text-[#2F2A3A] ${
                         errors.title
                           ? "border-red-500 focus:border-red-500"
                           : "border-[#B7A3E3] focus:border-purple-500"
                       }`}
                     >
                       {THAI_TITLES.map((option) => (
-                        <option key={option} value={option}>
+                        <option
+                          key={option}
+                          value={option}
+                          className="bg-white text-[#2F2A3A]"
+                        >
                           {option}
                         </option>
                       ))}
@@ -805,10 +1000,14 @@ const isStudent = user?.userType === "STUDENT";
                     <select
                       value={addFacultyCode}
                       onChange={(e) => setAddFacultyCode(Number(e.target.value))}
-                      className="w-full px-4 py-3.5 border border-[#B7A3E3] rounded-xl focus:outline-none focus:border-purple-500 transition-colors text-base appearance-none bg-white"
+                      className="w-full px-4 py-3.5 border border-[#B7A3E3] rounded-xl focus:outline-none focus:border-purple-500 transition-colors text-base appearance-none bg-white text-[#2F2A3A]"
                     >
                       {Object.entries(FACULTY_MAP).map(([code, name]) => (
-                        <option key={code} value={code}>
+                        <option
+                          key={code}
+                          value={code}
+                          className="bg-white text-[#2F2A3A]"
+                        >
                           {name}
                         </option>
                       ))}
@@ -826,10 +1025,14 @@ const isStudent = user?.userType === "STUDENT";
                     <select
                       value={addCurriculumId}
                       onChange={(e) => setAddCurriculumId(e.target.value)}
-                      className="w-full px-4 py-3.5 border border-[#B7A3E3] rounded-xl focus:outline-none focus:border-purple-500 transition-colors text-base appearance-none bg-white"
+                      className="w-full px-4 py-3.5 border border-[#B7A3E3] rounded-xl focus:outline-none focus:border-purple-500 transition-colors text-base appearance-none bg-white text-[#2F2A3A]"
                     >
                       {CURRICULUMS.map((c) => (
-                        <option key={c.id} value={c.id}>
+                        <option
+                          key={c.id}
+                          value={c.id}
+                          className="bg-white text-[#2F2A3A]"
+                        >
                           {getCurriculumName(c.id)}
                         </option>
                       ))}
@@ -840,24 +1043,26 @@ const isStudent = user?.userType === "STUDENT";
               </div>
 
               {/* Modal Footer */}
-              <div className="px-8 pb-8 space-y-3">
-                <button
-                  onClick={handleAddStudent}
-                  disabled={isSubmitDisabled}
-                  className="w-full py-4 text-xl font-medium text-white bg-[#9264F5] hover:bg-purple-700 rounded-3xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {(isSubmitting || isCheckingCode || isCheckingEmail) && (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  )}
-                  บันทึก
-                </button>
+              <div className="border-t border-[#EFE8FB] px-5 py-5 sm:px-8">
+                <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <button
                   onClick={handleCancelAddStudent}
                   disabled={isSubmitting}
-                  className="w-full py-4 text-xl font-medium text-[#B7A3E3] bg-white border-2 border-[#B7A3E3] hover:bg-purple-50 rounded-3xl transition-colors cursor-pointer disabled:opacity-50"
+                  className="h-12 rounded-xl border border-[#B7A3E3] bg-white px-6 text-base font-medium text-[#7C5BD9] transition-colors hover:bg-purple-50 cursor-pointer disabled:opacity-50 sm:min-w-32"
                 >
                   ยกเลิก
                 </button>
+                <button
+                  onClick={handleAddStudent}
+                  disabled={isSubmitDisabled}
+                  className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[#9264F5] px-6 text-base font-medium text-white transition-colors hover:bg-purple-700 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-32"
+                >
+                  {(isSubmitting || isCheckingCode || isCheckingEmail) && (
+                    <div className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                  )}
+                  บันทึก
+                </button>
+                </div>
               </div>
             </div>
           </div>
@@ -885,6 +1090,23 @@ const isStudent = user?.userType === "STUDENT";
           confirmText="นำออก"
           cancelText="ยกเลิก"
           isLoading={isUnenrolling}
+          variant="danger"
+        />
+
+        <ConfirmModal
+          isOpen={isRemoveInstructorModalOpen}
+          onClose={() => {
+            if (!isRemovingInstructor) {
+              setIsRemoveInstructorModalOpen(false);
+              setRemovingInstructor(null);
+            }
+          }}
+          onConfirm={handleRemoveInstructorConfirm}
+          title="นำอาจารย์ออกจากรายวิชา"
+          message={`คุณแน่ใจหรือไม่ว่าต้องการนำ ${removingInstructor?.name || ""} ออกจากรายวิชานี้?`}
+          confirmText="นำออก"
+          cancelText="ยกเลิก"
+          isLoading={isRemovingInstructor}
           variant="danger"
         />
 

@@ -1,66 +1,104 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "@/components/layout/NavBar";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { CourseOffering } from "@/types/course";
 import { apiFetch } from "@/lib/api";
-import { useParams } from "next/navigation";
 import { formatInstructorName } from "@/utils/formatName";
-import { formatCourseName } from "@/utils/formatCourseName";
+import {
+  getEnglishCourseName,
+  getThaiCourseName,
+} from "@/utils/formatCourseName";
+import { toBuddhistYear } from "@/utils/academicYear";
 import { AuthUser } from "@/types/auth";
-import { Pencil } from "lucide-react";
+import {
+  BarChart3,
+  CalendarClock,
+  ClipboardPlus,
+  FileText,
+  Pencil,
+  UsersRound,
+} from "lucide-react";
+
+interface ExamListItem {
+  course_exams_id: string;
+  title: string;
+  description: string | null;
+  start_time: string;
+  end_time: string;
+  question_count: number;
+  status: "UPCOMING" | "ONGOING" | "ENDED";
+}
 
 export default function CoursePage() {
   const router = useRouter();
+  const { offeringId } = useParams<{ offeringId: string }>();
+
   const [activeTab, setActiveTab] = useState("learn");
   const [activeTopTab, setActiveTopTab] = useState("home");
-
   const [course, setCourse] = useState<CourseOffering | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
-
-  const { offeringId } = useParams<{ offeringId: string }>();
-
-  console.log(offeringId);
+  const [exams, setExams] = useState<ExamListItem[]>([]);
 
   useEffect(() => {
     if (!offeringId) return;
 
     const fetchCourseOffering = async () => {
-      const data = await apiFetch<CourseOffering>(
-        `course-offerings/${offeringId}`,
-      );
-      setCourse(data);
-      setLoading(false);
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await apiFetch<CourseOffering>(
+          `course-offerings/${offeringId}`,
+        );
+        setCourse(data);
+      } catch {
+        setError("ไม่สามารถโหลดข้อมูลรายวิชาได้");
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchCourseOffering();
   }, [offeringId]);
 
-  interface ExamListItem {
-    course_exams_id: string;
-    title: string;
-    description: string | null;
-    start_time: string;
-    end_time: string;
-    question_count: number;
-    status: "UPCOMING" | "ONGOING" | "ENDED";
-  }
-  const [exams, setExams] = useState<ExamListItem[]>([]);
-
   useEffect(() => {
     if (!offeringId) return;
+
     apiFetch<ExamListItem[]>(`/course-offerings/${offeringId}/exams`)
       .then(setExams)
       .catch(() => setExams([]));
   }, [offeringId]);
 
+  useEffect(() => {
+    apiFetch<AuthUser>("/auth/me")
+      .then((user) => {
+        setUser(user);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch user", err);
+      });
+  }, []);
+
+  const userType = String(user?.type ?? user?.userType ?? "").toUpperCase();
+  const isStudent = userType === "STUDENT";
+  const isInstructor =
+    userType === "STAFF" &&
+    String(user?.staff_role ?? user?.role ?? "").toUpperCase() ===
+      "INSTRUCTOR";
+
+  const upcomingExams = exams
+    .filter((exam) => exam.status !== "ENDED")
+    .slice(0, 3);
+  const thaiCourseName = course ? getThaiCourseName(course.courses) : "";
+  const englishCourseName = course ? getEnglishCourseName(course.courses) : "";
+
   const formatExamDate = (iso: string) => {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return "-";
-    // Thai Buddhist year + short month.
+
     const thYear = d.getFullYear() + 543;
     const months = [
       "ม.ค.",
@@ -83,196 +121,245 @@ export default function CoursePage() {
     s === "UPCOMING"
       ? "ยังไม่เริ่ม"
       : s === "ONGOING"
-      ? "กำลังสอบ"
-      : "เสร็จสิ้น";
+        ? "กำลังสอบ"
+        : "เสร็จสิ้น";
+
   const statusClass = (s: ExamListItem["status"]) =>
     s === "UPCOMING"
-      ? "bg-amber-100 text-amber-700"
+      ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
       : s === "ONGOING"
-      ? "bg-emerald-100 text-emerald-700"
-      : "bg-gray-200 text-gray-500";
+        ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+        : "bg-gray-100 text-gray-500 ring-1 ring-gray-200";
 
-  // ฟังก์ชันสำหรับเปลี่ยนหน้า
   const handleNavigateToStudents = () => {
     router.push(`/course/${offeringId}/members`);
   };
 
-    useEffect(() => {
-  apiFetch<AuthUser>("/auth/me")
-    .then((user) => {
-      setUser(user);
-    })
-    .catch((err) => {
-      console.error("Failed to fetch user", err);
-    });
-}, []);
-
-const isStudent = user?.userType === "STUDENT";
-const isInstructor = user?.staff_role === "INSTRUCTOR" || user?.role === "INSTRUCTOR";
-
   return (
     <Navbar>
-      {/* Main Content */}
       <div className="min-h-screen w-full bg-[#F4EFFF]">
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8">
-        {/* Top Navigation Menu */}
-       <div className="border-b border-gray-200/50 px-6 lg:px-8 pt-4">
-          <div className="flex items-center gap-6 pb-3">
+        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-8 lg:px-10 lg:py-8">
+          <div className="mb-5 flex items-center gap-5 border-b border-[#DDD1F6] pb-3">
             <button
               onClick={() => setActiveTopTab("home")}
-              className={`font-light text-sm transition-colors cursor-pointer ${
+              className={`text-sm font-medium transition-colors cursor-pointer ${
                 activeTopTab === "home"
-                    ? "text-[#B7A3E3]"
-                    : "text-gray-500 hover:text-[#B7A3E3]"
-                }`}
-              >
-                หน้าหลัก
-              </button>
-              <div className="h-4 w-px bg-gray-300"></div>
-              <button
-                onClick={() => {
-                  setActiveTopTab("student");
-                  handleNavigateToStudents();
-                }}
-                className={`font-light text-sm transition-colors cursor-pointer ${
-                  activeTopTab === "student"
-                    ? "text-[#B7A3E3]"
-                    : "text-gray-500 hover:text-[#B7A3E3]"
-                }`}
-              >
-                สมาชิก
-              </button>
-            </div>
-          </div>
-       <div className="bg-gradient-to-r from-white/90 to-purple-50/90 backdrop-blur-sm rounded-2xl lg:rounded-3xl  mb-6 lg:mb-8 relative overflow-hidden">
-
-          {/* Decorative Elements */}
-          <div className="absolute top-0 right-0 w-32 h-32 lg:w-64 lg:h-64 bg-gradient-to-br from-blue-400 to-blue-600 rounded-bl-full opacity-20"></div>
-          <div className="absolute top-5 right-5 lg:top-10 lg:right-10 w-16 h-16 lg:w-32 lg:h-32 bg-blue-500 rounded-3xl transform rotate-12 opacity-30"></div>
-
-          {/* Course Info */}
-          <div className="relative z-10 p-6 lg:p-7 lg:px-10">
-            {loading && <p>กำลังโหลด...</p>}
-            {course && (
-              <>
-                <div className="inline-block text-[#B7A3E3] py-1 text-lg lg:text-xl font-medium mb-2 lg:mb-3">
-                  {course.semester}/{course.academic_year} {course.courses.course_code}
-                </div>
-                <h2 className="text-2xl lg:text-4xl font-light text-[#575757] mb-3 lg:mb-4">
-                  {formatCourseName(course.courses)}
-                </h2>
-                <div className="flex flex-wrap flex-col mt-1">
-                  {course.course_instructors.map((ci) => (
-                    <span
-                      key={ci.staff_users_id}
-                      className="text-gray-700 px-2 py-1 rounded-full text-xs"
-                    >
-                      {formatInstructorName(ci.staff_users)}
-                    </span>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-            
-        {/* Layout with sidebar and content */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Left Sidebar - Navigation Boxes */}
-          <div className="flex flex-col gap-4 w-full lg:w-48 flex-shrink-0">
-            {!isStudent && (
-            <button
-              onClick={() => router.push(`/course/${offeringId}/exam/create`)}
-              className="px-4 lg:px-6 py-3 lg:py-6 rounded-2xl font-light transition-all duration-200 text-center text-sm lg:text-base cursor-pointer bg-[#B7A3E3] text-white hover:bg-[#A48FD6]"
-            >
-              สร้างการสอบ
-            </button>
-            )}
-            {!isStudent && (
-            <button
-              onClick={() => setActiveTab("assignments")}
-              className={`px-4 lg:px-6 py-3 lg:py-6 rounded-2xl font-light transition-all duration-200 text-center text-sm cursor-pointer lg:text-base ${
-                activeTab === "assignments"
-                  ? "bg-gradient-to-r from-purple-400 to-purple-500 text-white"
-                  : "bg-white text-[#B7A3E3] hover:bg-gray-50 border border-purple-200"
+                  ? "text-[#7C5BD9]"
+                  : "text-[#7A7287] hover:text-[#7C5BD9]"
               }`}
             >
-              ดูการวิเคราะห์
+              หน้าหลัก
             </button>
-            )}
-
-            {/* Test Section - Hidden on mobile, shown on desktop */}
-            <div className="hidden lg:block bg-white backdrop-blur-sm rounded-2xl  p-6">
-              <h3 className="font-semibold text-[#575757] mb-4 flex items-center justify-center text-sm">
-                ข้อสอบที่ใกล้เปิด
-              </h3>
-              <div className="space-y-3">
-                <div className="text-xs text-gray-600 p-3 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer">
-                  ...
-                </div>
-                <div className="text-xs text-gray-600 p-3 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer">
-                  ...
-                </div>
-              </div>
-            </div>
+            <div className="h-4 w-px bg-[#D4C7ED]" />
+            <button
+              onClick={() => {
+                setActiveTopTab("student");
+                handleNavigateToStudents();
+              }}
+              className={`text-sm font-medium transition-colors cursor-pointer ${
+                activeTopTab === "student"
+                  ? "text-[#7C5BD9]"
+                  : "text-[#7A7287] hover:text-[#7C5BD9]"
+              }`}
+            >
+              สมาชิก
+            </button>
           </div>
 
-          {/* Main Content Area */}
-          <div className="flex-1 space-y-6">
-            {/* Exam Cards */}
-            {exams.length === 0 ? (
-              <div className="rounded-xl bg-white p-6 text-center text-sm font-light text-gray-400">
-                ยังไม่มีข้อสอบ
+          <section className="mb-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6 lg:p-8">
+            {loading && (
+              <div className="space-y-4">
+                <div className="h-6 w-48 rounded bg-[#F1EAFF]" />
+                <div className="h-9 w-3/4 rounded bg-[#F1EAFF]" />
+                <div className="h-5 w-1/2 rounded bg-[#F1EAFF]" />
               </div>
-            ) : (
-              exams.map((e) => (
-                <div
-                  key={e.course_exams_id}
-                  className="bg-white rounded-xl lg:rounded-2xl hover:bg-[#E0DFDF] transition-all duration-300 overflow-hidden"
+            )}
+
+            {error && (
+              <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+                {error}
+              </div>
+            )}
+
+            {course && (
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-[#F4EFFF] px-3 py-1 text-sm font-semibold text-[#7C5BD9]">
+                      {course.semester}/{toBuddhistYear(course.academic_year)}
+                    </span>
+                    <span className="text-sm font-semibold tracking-wide text-[#7C5BD9]">
+                      {course.courses.course_code}
+                    </span>
+                  </div>
+
+                  <h1 className="mt-4 max-w-5xl text-2xl font-semibold leading-tight text-[#2F2A3A] sm:text-3xl">
+                    {thaiCourseName}
+                  </h1>
+
+                  {englishCourseName && (
+                    <p className="mt-2 text-base font-medium leading-7 text-[#514667]">
+                      {englishCourseName}
+                    </p>
+                  )}
+
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {course.course_instructors.map((ci) => (
+                      <span
+                        key={ci.staff_users_id}
+                        className="inline-flex items-center gap-2 rounded-full bg-[#FAF8FF] px-3 py-1.5 text-sm font-medium text-[#514667]"
+                      >
+                        <UsersRound size={15} className="text-[#B7A3E3]" />
+                        {formatInstructorName(ci.staff_users)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid w-full grid-cols-2 gap-3 sm:w-80">
+                  <div className="rounded-xl bg-[#FAF8FF] px-4 py-3">
+                    <p className="text-xs font-medium text-[#7C5BD9]">
+                      ข้อสอบทั้งหมด
+                    </p>
+                    <p className="mt-1 text-2xl font-semibold text-[#2F2A3A]">
+                      {exams.length}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-[#FAF8FF] px-4 py-3">
+                    <p className="text-xs font-medium text-[#7C5BD9]">
+                      ใกล้เปิด
+                    </p>
+                    <p className="mt-1 text-2xl font-semibold text-[#2F2A3A]">
+                      {upcomingExams.length}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
+
+          <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
+            <aside className="space-y-4">
+              {!isStudent && (
+                <button
+                  onClick={() => router.push(`/course/${offeringId}/exam/create`)}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#A48FD6] cursor-pointer"
                 >
-                  <div className="p-4 lg:p-6">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1">
-                        <h3 className="font-medium text-[#575757] text-sm lg:text-base mb-2 lg:mb-3">
-                          {e.title}
+                  <ClipboardPlus size={18} />
+                  สร้างการสอบ
+                </button>
+              )}
+
+              {!isStudent && (
+                <button
+                  onClick={() => setActiveTab("analytics")}
+                  className={`flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-colors cursor-pointer ${
+                    activeTab === "analytics"
+                      ? "bg-[#F4EFFF] text-[#7C5BD9] ring-1 ring-[#D9CCF2]"
+                      : "bg-white text-[#7C5BD9] ring-1 ring-[#E7DDF8] hover:bg-[#FAF8FF]"
+                  }`}
+                >
+                  <BarChart3 size={18} />
+                  ดูการวิเคราะห์
+                </button>
+              )}
+
+              <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#E7DDF8]">
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-[#2F2A3A]">
+                  <CalendarClock size={17} className="text-[#B7A3E3]" />
+                  ข้อสอบที่ใกล้เปิด
+                </h2>
+                <div className="mt-4 space-y-2">
+                  {upcomingExams.length > 0 ? (
+                    upcomingExams.map((exam) => (
+                      <button
+                        key={exam.course_exams_id}
+                        type="button"
+                        className="w-full rounded-xl bg-[#FAF8FF] px-3 py-2 text-left transition-colors hover:bg-[#F4EFFF]"
+                      >
+                        <p className="truncate text-sm font-medium text-[#2F2A3A]">
+                          {exam.title}
+                        </p>
+                        <p className="mt-1 text-xs font-normal text-[#7A7287]">
+                          {formatExamDate(exam.start_time)}
+                        </p>
+                      </button>
+                    ))
+                  ) : (
+                    <p className="rounded-xl bg-[#FAF8FF] px-3 py-3 text-sm font-normal text-[#7A7287]">
+                      ยังไม่มีข้อสอบที่ใกล้เปิด
+                    </p>
+                  )}
+                </div>
+              </div>
+            </aside>
+
+            <section className="space-y-4">
+              {exams.length === 0 ? (
+                <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-[#E7DDF8]">
+                  <FileText size={28} className="mx-auto text-[#B7A3E3]" />
+                  <p className="mt-3 text-sm font-medium text-[#7A7287]">
+                    ยังไม่มีข้อสอบ
+                  </p>
+                </div>
+              ) : (
+                exams.map((exam) => (
+                  <article
+                    key={exam.course_exams_id}
+                    className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] transition hover:shadow-md"
+                  >
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-base font-semibold leading-6 text-[#2F2A3A] sm:text-lg">
+                          {exam.title}
                         </h3>
-                        <div className="inline-flex items-center bg-purple-100 text-purple-600 px-2.5 lg:px-3 py-1 rounded-full text-xs font-medium">
-                          {formatExamDate(e.start_time)}
+                        {exam.description && (
+                          <p className="mt-1 line-clamp-2 text-sm font-normal leading-6 text-[#7A7287]">
+                            {exam.description}
+                          </p>
+                        )}
+
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <span className="rounded-full bg-[#F4EFFF] px-3 py-1 text-xs font-semibold text-[#7C5BD9]">
+                            {formatExamDate(exam.start_time)}
+                          </span>
+                          <span className="rounded-full bg-[#FAF8FF] px-3 py-1 text-xs font-medium text-[#514667]">
+                            {exam.question_count} ข้อ
+                          </span>
                         </div>
                       </div>
+
                       <div className="flex shrink-0 items-center gap-2">
                         <span
-                          className={`rounded-full px-3 py-0.5 text-xs ${statusClass(
-                            e.status,
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${statusClass(
+                            exam.status,
                           )}`}
                         >
-                          {statusLabel(e.status)}
+                          {statusLabel(exam.status)}
                         </span>
                         {isInstructor && (
                           <button
                             type="button"
                             onClick={() =>
                               router.push(
-                                `/exam-bank/${offeringId}/exam-sets/${e.course_exams_id}/edit`,
+                                `/exam-bank/${offeringId}/exam-sets/${exam.course_exams_id}/edit`,
                               )
                             }
-                            className="flex h-7 w-7 items-center justify-center rounded-md border border-[#B7A3E3] text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
+                            className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#D9CCF2] text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
                             aria-label="แก้ไข"
                             title="แก้ไขชุดข้อสอบ"
                           >
-                            <Pencil size={14} />
+                            <Pencil size={16} />
                           </button>
                         )}
                       </div>
                     </div>
-                  </div>
-                </div>
-              ))
-            )}
+                  </article>
+                ))
+              )}
+            </section>
           </div>
-        </div>
-      </main>
+        </main>
       </div>
     </Navbar>
   );

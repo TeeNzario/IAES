@@ -155,13 +155,13 @@ export default function FlatQuestionBankPage() {
               <button
                 type="button"
                 onClick={() => router.push(`/exam-bank/${offeringId}`)}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-[#575757] hover:bg-white cursor-pointer"
+                className="flex h-9 w-9 items-center justify-center rounded-xl text-[#514667] transition-colors hover:bg-white cursor-pointer"
                 aria-label="กลับ"
               >
                 <ChevronLeft size={18} />
               </button>
-              <h1 className="flex items-center gap-2 text-xl font-light text-[#575757]">
-                <Inbox size={22} />
+              <h1 className="flex items-center gap-2 text-lg font-semibold text-[#2F2A3A] sm:text-xl">
+                <Inbox size={22} className="text-[#7C5BD9]" />
                 คลังคำถาม
               </h1>
               <button
@@ -169,7 +169,7 @@ export default function FlatQuestionBankPage() {
                 onClick={() =>
                   router.push(`/exam-bank/${offeringId}/questions/create`)
                 }
-                className="ml-2 flex items-center gap-1 rounded-full bg-[#B7A3E3] px-4 py-1.5 text-sm font-light text-white shadow-sm hover:bg-[#A48FD6] cursor-pointer"
+                className="ml-2 flex items-center gap-2 rounded-xl bg-[#B7A3E3] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#A48FD6] cursor-pointer"
               >
                 <Plus size={14} />
                 สร้างคำถาม
@@ -182,18 +182,18 @@ export default function FlatQuestionBankPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="ค้นหาคำถาม"
-                className="w-56 rounded-full bg-white px-4 py-2 pr-9 text-sm font-light text-[#575757] placeholder-gray-400 shadow-sm outline-none focus:ring-2 focus:ring-[#B7A3E3]"
+                className="w-64 rounded-xl bg-white px-4 py-3 pr-10 text-sm font-normal text-[#2F2A3A] placeholder:text-[#B7AFC6] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
               />
               <Search
-                size={16}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                size={18}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A7287]"
               />
             </div>
           </div>
 
           {/* Filters */}
-          <div className="mb-5 flex flex-wrap items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm">
-            <span className="text-xs font-light text-gray-500">
+          <div className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl bg-white px-5 py-4 shadow-sm ring-1 ring-[#E7DDF8]">
+            <span className="text-sm font-medium text-[#514667]">
               ระดับความยาก:
             </span>
             {(
@@ -208,10 +208,10 @@ export default function FlatQuestionBankPage() {
                 key={v || "all"}
                 type="button"
                 onClick={() => setDifficultyFilter(v)}
-                className={`rounded-full px-3 py-1 text-xs cursor-pointer ${
+                className={`rounded-full px-3 py-1 text-xs font-semibold cursor-pointer transition-colors ${
                   difficultyFilter === v
                     ? "bg-[#B7A3E3] text-white"
-                    : "bg-[#F4EFFF] text-[#575757] hover:bg-[#E9E0FA]"
+                    : "bg-[#F4EFFF] text-[#514667] hover:bg-[#E9E0FA]"
                 }`}
               >
                 {label}
@@ -220,7 +220,7 @@ export default function FlatQuestionBankPage() {
 
             {tags.length > 0 && (
               <>
-                <span className="ml-3 text-xs font-light text-gray-500">
+                <span className="ml-3 text-sm font-medium text-[#514667]">
                   หมวดหมู่:
                 </span>
                 <div className="flex flex-wrap gap-1.5">
@@ -233,10 +233,10 @@ export default function FlatQuestionBankPage() {
                         key={t.knowledge_category_id}
                         type="button"
                         onClick={() => toggleCategory(t.knowledge_category_id)}
-                        className={`rounded-full px-3 py-1 text-xs cursor-pointer ${
+                        className={`rounded-full px-3 py-1 text-xs font-semibold cursor-pointer transition-colors ${
                           active
                             ? "bg-[#B7A3E3] text-white"
-                            : "bg-[#F4EFFF] text-[#575757] hover:bg-[#E9E0FA]"
+                            : "bg-[#F4EFFF] text-[#514667] hover:bg-[#E9E0FA]"
                         }`}
                       >
                         {t.name}
@@ -249,8 +249,8 @@ export default function FlatQuestionBankPage() {
           </div>
 
           {/* Table */}
-          <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-            <div className="grid grid-cols-[60px_1fr_240px_140px_120px] items-center bg-[#B7A3E3] px-6 py-3 text-sm font-light text-white">
+          <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-[#E7DDF8]">
+            <div className="grid grid-cols-[60px_1fr_240px_140px_120px] items-center bg-[#B7A3E3] px-6 py-4 text-sm font-semibold text-white">
               <div>ลำดับ</div>
               <div>คำถาม</div>
               <div>หมวดหมู่ความรู้</div>
@@ -259,13 +259,13 @@ export default function FlatQuestionBankPage() {
             </div>
 
             {loading ? (
-              <p className="px-6 py-6 text-sm text-gray-400">กำลังโหลด...</p>
+              <p className="px-6 py-6 text-sm font-medium text-[#7A7287]">กำลังโหลด...</p>
             ) : error ? (
-              <p className="px-6 py-6 text-sm text-red-500">{error}</p>
+              <p className="px-6 py-6 text-sm font-medium text-red-500">{error}</p>
             ) : questions.length === 0 ? (
-              <p className="px-6 py-6 text-sm text-gray-400">ไม่มีคำถาม</p>
+              <p className="px-6 py-6 text-sm font-medium text-[#7A7287]">ไม่มีคำถาม</p>
             ) : (
-              <ul className="divide-y divide-[#F4EFFF]">
+              <ul className="divide-y divide-[#EFE8FB]">
                 {questions.map((q, idx) => {
                   const diff = difficultyLabel(q.difficulty_param);
                   const isOpen = expanded?.id === q.question_id;
@@ -276,20 +276,20 @@ export default function FlatQuestionBankPage() {
                     q.knowledge_categories.length - visibleTags.length;
                   return (
                     <li key={q.question_id}>
-                      <div className="grid grid-cols-[60px_1fr_240px_140px_120px] items-center px-6 py-3 text-sm font-light text-[#575757] hover:bg-[#F4EFFF]/40">
+                      <div className="grid grid-cols-[60px_1fr_240px_140px_120px] items-center px-6 py-4 text-sm font-medium text-[#514667] hover:bg-[#FAF8FF]">
                         <div>{startIndex + idx + 1}</div>
-                        <div className="truncate pr-3">{q.question_text}</div>
+                        <div className="truncate pr-3 text-[#2F2A3A]">{q.question_text}</div>
                         <div className="flex flex-wrap items-center gap-1">
                           {visibleTags.map((t) => (
                             <span
                               key={t.knowledge_category_id}
-                              className="rounded-full bg-[#B7A3E3] px-2 py-0.5 text-[11px] text-white"
+                              className="rounded-full bg-[#B7A3E3] px-2.5 py-1 text-[11px] font-medium text-white"
                             >
                               {t.name}
                             </span>
                           ))}
                           {remaining > 0 && (
-                            <span className="rounded-full bg-[#D9CCF2] px-2 py-0.5 text-[11px] text-white">
+                            <span className="rounded-full bg-[#D9CCF2] px-2.5 py-1 text-[11px] font-medium text-white">
                               +{remaining}
                             </span>
                           )}
@@ -314,7 +314,7 @@ export default function FlatQuestionBankPage() {
                                   : { id: q.question_id, mode: "view" },
                               )
                             }
-                            className="flex h-7 w-7 items-center justify-center rounded-md bg-[#B7A3E3] text-white hover:bg-[#A48FD6] cursor-pointer"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#B7A3E3] text-white transition-colors hover:bg-[#A48FD6] cursor-pointer"
                             aria-label="ดูรายละเอียด"
                           >
                             {isViewOpen ? (
@@ -332,10 +332,10 @@ export default function FlatQuestionBankPage() {
                                   : { id: q.question_id, mode: "edit" },
                               )
                             }
-                            className={`flex h-7 w-7 items-center justify-center rounded-md cursor-pointer ${
+                            className={`flex h-8 w-8 items-center justify-center rounded-lg cursor-pointer transition-colors ${
                               isEditOpen
                                 ? "bg-[#B7A3E3] text-white hover:bg-[#A48FD6]"
-                                : "border border-[#B7A3E3] text-[#B7A3E3] hover:bg-[#F4EFFF]"
+                                : "border border-[#D9CCF2] text-[#7C5BD9] hover:bg-[#F4EFFF]"
                             }`}
                             aria-label="แก้ไข"
                           >
@@ -344,7 +344,7 @@ export default function FlatQuestionBankPage() {
                           <button
                             type="button"
                             onClick={() => handleDelete(q.question_id)}
-                            className="flex h-7 w-7 items-center justify-center rounded-md text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
                             aria-label="ลบ"
                           >
                             <Trash2 size={16} />
@@ -394,7 +394,7 @@ function ExpandedRow({ question }: { question: Question }) {
       <div className="mb-3">
         <p className="mb-1 text-[11px] font-medium text-[#B7A3E3]">คำถาม</p>
         <p
-          className={`whitespace-pre-wrap font-light text-[#575757] ${textCls}`}
+          className={`whitespace-pre-wrap font-normal leading-relaxed text-[#2F3542] ${textCls}`}
         >
           {question.question_text}
         </p>
@@ -413,8 +413,8 @@ function ExpandedRow({ question }: { question: Question }) {
                 }`}
               />
               <span
-                className={`font-light text-[#575757] ${
-                  c.is_correct ? "font-medium" : ""
+                className={`font-normal text-[#2F3542] ${
+                  c.is_correct ? "font-semibold" : ""
                 }`}
               >
                 {c.choice_text}
@@ -423,7 +423,7 @@ function ExpandedRow({ question }: { question: Question }) {
           ))}
         </ul>
       </div>
-      <div className="grid grid-cols-3 gap-4 text-xs font-light text-[#575757]">
+      <div className="grid grid-cols-3 gap-4 text-xs font-normal text-[#575757]">
         <div>
           <span className="text-[11px] text-gray-400">ความยาก: </span>
           {question.difficulty_param ?? "-"}

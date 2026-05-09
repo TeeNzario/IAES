@@ -22,4 +22,7 @@ export interface CourseOffering {
   is_active: boolean;
   courses: CourseInfo;
   course_instructors: CourseInstructor[];
+  _count?: {
+    course_exams: number;
+  };
 }

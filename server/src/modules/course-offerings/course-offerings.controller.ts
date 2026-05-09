@@ -206,6 +206,21 @@ export class CourseOfferingsController {
     );
   }
 
+  @Delete(':offeringId/instructors/:staffUserId')
+  @Auth()
+  @Roles('INSTRUCTOR')
+  removeInstructor(
+    @Param('offeringId') offeringId: string,
+    @Param('staffUserId') staffUserId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.courseOfferingsService.removeInstructorFromOffering(
+      offeringId,
+      staffUserId,
+      req.user.sub,
+    );
+  }
+
   @Post(':offeringId/bulk-enroll')
   @Auth()
   @Roles('INSTRUCTOR')
