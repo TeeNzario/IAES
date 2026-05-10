@@ -194,9 +194,9 @@ export default function ExamQuestionPickerModal({
   }, [filterActive, yearFilter, collectionFilter, categoryFilter, collections]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="relative w-full max-w-4xl rounded-2xl bg-white p-7 shadow-xl">
-        <h2 className="mb-5 text-center text-lg font-medium text-[#575757]">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/45 p-4 py-6 sm:p-6">
+      <div className="relative w-full max-w-4xl rounded-2xl bg-white p-5 shadow-2xl sm:p-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
+        <h2 className="mb-5 text-xl font-bold text-gray-900">
           เลือกคำถาม
         </h2>
 
@@ -411,7 +411,7 @@ export default function ExamQuestionPickerModal({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-md border border-[#B7A3E3] px-8 py-1.5 text-sm text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
+            className="rounded-xl border-2 border-gray-300 px-6 py-2.5 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors cursor-pointer"
           >
             ยกเลิก
           </button>
@@ -419,10 +419,10 @@ export default function ExamQuestionPickerModal({
             type="button"
             onClick={handleConfirm}
             disabled={selectedCount < 1}
-            className={`rounded-md px-10 py-1.5 text-sm text-white ${
+            className={`rounded-xl px-8 py-2.5 text-sm font-semibold text-white shadow-lg transition-colors ${
               selectedCount < 1
                 ? "bg-[#B7A3E3] opacity-50 cursor-not-allowed"
-                : "bg-[#B7A3E3] hover:bg-[#A48FD6] cursor-pointer"
+                : "bg-[#B7A3E3] hover:bg-[#9264F5] cursor-pointer"
             }`}
           >
             ยืนยัน

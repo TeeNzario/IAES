@@ -45,7 +45,7 @@ export default function ConfirmModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center"
+      className="fixed inset-0 bg-black/45 z-[100] flex items-center justify-center p-4"
       onClick={(e) => {
         if (!isLoading) {
           e.stopPropagation();
@@ -54,40 +54,40 @@ export default function ConfirmModal({
       }}
     >
       <div
-        className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 mx-4"
+        className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl sm:p-8"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Icon */}
-        <div className="flex justify-center mb-5">
-          <div className={`p-4 rounded-full ${styles.iconBg}`}>
-            <AlertTriangle size={36} className={styles.icon} />
+        <div className="flex justify-center mb-4">
+          <div className={`p-3 rounded-full ${styles.iconBg}`}>
+            <AlertTriangle size={32} className={styles.icon} />
           </div>
         </div>
 
         {/* Title */}
-        <h3 className="text-xl font-bold text-gray-900 text-center mb-3">
+        <h3 className="text-lg font-bold text-gray-900 text-center mb-2">
           {title}
         </h3>
 
         {/* Message */}
-        <p className="text-gray-700 text-center text-base mb-8 leading-relaxed">{message}</p>
+        <p className="text-gray-600 text-center text-sm mb-6 leading-relaxed">{message}</p>
 
         {/* Buttons */}
-        <div className="flex gap-4">
+        <div className="flex gap-3">
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="flex-1 px-5 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-semibold text-base disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 rounded-xl border-2 border-gray-300 px-6 py-2.5 font-semibold text-gray-900 hover:bg-gray-50 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            className={`flex-1 px-5 py-3 text-white rounded-xl transition-colors font-semibold text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${styles.button}`}
+            className={`flex-1 rounded-xl px-6 py-2.5 text-white transition-colors font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg ${styles.button}`}
           >
             {isLoading && (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             )}
             {confirmText}
           </button>

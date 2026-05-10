@@ -17,12 +17,17 @@ export default function ExamBankHubPage() {
   const router = useRouter();
   const { offeringId } = useParams<{ offeringId: string }>();
   const [course, setCourse] = useState<CourseOffering | null>(null);
+  const [hubLoading, setHubLoading] = useState(true);
 
   useEffect(() => {
     if (!offeringId) return;
+    let isMounted = true;
+    setHubLoading(true);
     apiFetch<CourseOffering>(`course-offerings/${offeringId}`)
-      .then(setCourse)
-      .catch(() => {});
+      .then((data) => { if (isMounted) setCourse(data); })
+      .catch(() => { if (isMounted) setCourse(null); })
+      .finally(() => { if (isMounted) setHubLoading(false); });
+    return () => { isMounted = false; };
   }, [offeringId]);
 
   const thaiCourseName = course ? getThaiCourseName(course.courses) : "";
@@ -52,7 +57,12 @@ export default function ExamBankHubPage() {
             </h1>
           </div>
 
-          {course && (
+          {hubLoading ? (
+            <section className="mb-8 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6 lg:p-8">
+              <div className="h-6 w-48 rounded bg-[#F1EAFF] animate-pulse" />
+              <div className="mt-2 h-9 w-3/4 rounded bg-[#F1EAFF] animate-pulse" />
+            </section>
+          ) : course && (
             <section className="mb-8 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6 lg:p-8">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-[#F4EFFF] px-3 py-1 text-sm font-semibold text-[#7C5BD9]">

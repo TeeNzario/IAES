@@ -478,20 +478,20 @@ export default function ExamEditor({
       )}
 
       {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="mb-2 text-base font-medium text-[#575757]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <h3 className="mb-2 text-lg font-bold text-gray-900">
               ยืนยันการลบ
             </h3>
-            <p className="mb-5 text-sm font-light text-[#575757]">
+            <p className="mb-5 text-sm text-gray-600">
               คุณแน่ใจหรือไม่ว่าต้องการลบชุดข้อสอบนี้?
             </p>
-            <div className="flex justify-end gap-2">
+            <div className="flex gap-3">
               <button
                 type="button"
                 disabled={deleting}
                 onClick={() => setConfirmDelete(false)}
-                className="rounded-md border border-[#B7A3E3] px-5 py-1.5 text-sm text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer disabled:opacity-50"
+                className="flex-1 rounded-xl border-2 border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-50 cursor-pointer disabled:opacity-50"
               >
                 ยกเลิก
               </button>
@@ -499,7 +499,7 @@ export default function ExamEditor({
                 type="button"
                 disabled={deleting}
                 onClick={handleDeleteConfirmed}
-                className="rounded-md bg-rose-500 px-5 py-1.5 text-sm text-white hover:bg-rose-600 cursor-pointer disabled:opacity-50"
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-red-600 cursor-pointer disabled:opacity-50"
               >
                 {deleting ? "กำลังลบ..." : "ยืนยันลบ"}
               </button>

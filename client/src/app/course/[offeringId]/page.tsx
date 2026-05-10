@@ -52,6 +52,7 @@ export default function CoursePage() {
 
   useEffect(() => {
     if (!offeringId) return;
+    let isMounted = true;
 
     const fetchCourseOffering = async () => {
       try {
@@ -60,15 +61,16 @@ export default function CoursePage() {
         const data = await apiFetch<CourseOffering>(
           `course-offerings/${offeringId}`,
         );
-        setCourse(data);
+        if (isMounted) setCourse(data);
       } catch {
-        setError("ไม่สามารถโหลดข้อมูลรายวิชาได้");
+        if (isMounted) setError("ไม่สามารถโหลดข้อมูลรายวิชาได้");
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchCourseOffering();
+    return () => { isMounted = false; };
   }, [offeringId]);
 
   useEffect(() => {
@@ -96,9 +98,7 @@ export default function CoursePage() {
       .then((user) => {
         if (isMounted) setUser(user);
       })
-      .catch((err) => {
-        console.error("Failed to fetch user", err);
-      })
+      .catch(() => {})
       .finally(() => {
         if (isMounted) setAuthLoaded(true);
       });
@@ -109,7 +109,7 @@ export default function CoursePage() {
   }, []);
 
   const upcomingExams = exams
-    .filter((exam) => exam.status !== "ENDED")
+    .filter((exam) => exam.status === "UPCOMING")
     .slice(0, 3);
   const thaiCourseName = course ? getThaiCourseName(course.courses) : "";
   const englishCourseName = course ? getEnglishCourseName(course.courses) : "";
@@ -148,7 +148,7 @@ export default function CoursePage() {
       ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
       : s === "ONGOING"
         ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-        : "bg-gray-100 text-gray-500 ring-1 ring-gray-200";
+        : "bg-gray-200 text-gray-600 ring-1 ring-gray-300";
 
   const handleNavigateToStudents = () => {
     router.push(`/course/${offeringId}/members`);
@@ -222,16 +222,28 @@ export default function CoursePage() {
                     </p>
                   )}
 
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    {course.course_instructors.map((ci) => (
+                  <div className="mt-5 flex flex-wrap items-center gap-2">
+                    {(course.course_instructors ?? []).slice(0, 3).map((ci) => (
                       <span
                         key={ci.staff_users_id}
                         className="inline-flex items-center gap-2 rounded-full bg-[#FAF8FF] px-3 py-1.5 text-sm font-medium text-[#514667]"
                       >
                         <UsersRound size={15} className="text-[#B7A3E3]" />
-                        {formatInstructorName(ci.staff_users)}
+                        {ci.staff_users ? formatInstructorName(ci.staff_users) : "—"}
                       </span>
                     ))}
+                    {(course.course_instructors ?? []).length > 3 && (
+                      <span
+                        className="inline-flex items-center gap-1.5 rounded-full bg-[#F4EFFF] px-3 py-1.5 text-sm font-semibold text-[#7C5BD9] cursor-help"
+                        title={(course.course_instructors ?? [])
+                          .slice(3)
+                          .map((ci) => ci.staff_users ? formatInstructorName(ci.staff_users) : "—")
+                          .join(", ")}
+                      >
+                        <UsersRound size={15} className="text-[#B7A3E3]" />
+                        +{(course.course_instructors ?? []).length - 3} คน
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -350,7 +362,7 @@ export default function CoursePage() {
 
                       <div className="flex shrink-0 items-center gap-2">
                         <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${statusClass(
+                          className={`rounded-full px-4 py-1.5 text-sm font-semibold ${statusClass(
                             exam.status,
                           )}`}
                         >

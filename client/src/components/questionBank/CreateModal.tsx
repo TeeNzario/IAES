@@ -84,11 +84,11 @@ export default function CreateModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#B7A3E3]/60 p-4 backdrop-blur-[2px]"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/45 p-4 py-6 sm:p-6"
       onClick={handleBackdropClick}
     >
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-        <h2 className="mb-4 text-base font-medium text-[#575757]">{title}</h2>
+      <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
+        <h2 className="mb-4 text-lg font-bold text-gray-900">{title}</h2>
 
         <input
           ref={inputRef}
@@ -101,7 +101,7 @@ export default function CreateModal({
             if (e.key === "Enter" && !withDescription) handleConfirm();
             if (e.key === "Escape") onClose();
           }}
-          className="w-full rounded-lg bg-[#F4EFFF] px-4 py-2.5 text-sm font-light text-[#575757] placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#B7A3E3]"
+          className="w-full rounded-xl border-2 border-[#9264F5] px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors outline-none focus:border-[#B7A3E3]"
         />
 
         {withDescription && (
@@ -111,7 +111,7 @@ export default function CreateModal({
             placeholder={descriptionPlaceholder}
             disabled={submitting}
             rows={3}
-            className="mt-3 w-full resize-none rounded-lg bg-[#F4EFFF] px-4 py-2.5 text-sm font-light text-[#575757] placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#B7A3E3]"
+            className="mt-3 w-full resize-none rounded-xl border-2 border-[#9264F5] px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors outline-none focus:border-[#B7A3E3]"
           />
         )}
 
@@ -119,12 +119,12 @@ export default function CreateModal({
           <p className="mt-2 text-xs text-red-500">{error}</p>
         )}
 
-        <div className="mt-4 flex justify-end gap-4">
+        <div className="mt-4 flex gap-3 justify-end">
           <button
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="text-sm font-light text-gray-400 hover:text-gray-600 cursor-pointer"
+            className="rounded-xl border-2 border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors disabled:opacity-50 cursor-pointer"
           >
             ยกเลิก
           </button>
@@ -132,7 +132,7 @@ export default function CreateModal({
             type="button"
             onClick={handleConfirm}
             disabled={submitting}
-            className="text-sm font-medium text-[#B7A3E3] hover:text-[#A48FD6] cursor-pointer disabled:opacity-50"
+            className="rounded-xl bg-[#B7A3E3] px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-[#9264F5] disabled:opacity-50 cursor-pointer"
           >
             {submitting ? "กำลังบันทึก..." : confirmLabel}
           </button>

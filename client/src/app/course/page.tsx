@@ -23,7 +23,7 @@ import axios from "axios";
 import { getThaiCourseName } from "@/utils/formatCourseName";
 
 // Configuration
-const ITEMS_PER_PAGE = 3;
+const ITEMS_PER_PAGE = 20;
 
 // Interfaces
 interface KnowledgeCategory {
@@ -101,23 +101,26 @@ export default function CourseManagement() {
       setIsLoading(true);
       setError(null);
       const response = await apiFetch<PaginatedResponse>(
-        `/courses?page=${page}&limit=${ITEMS_PER_PAGE}`,
+        `/courses?page=${page}&limit=${ITEMS_PER_PAGE}${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ""}`,
       );
       setCourses(response.data);
       setTotalPages(response.pagination.totalPages);
       setTotalItems(response.pagination.total);
       setCurrentPage(response.pagination.page);
-    } catch (err) {
-      console.error("Failed to fetch courses:", err);
+    } catch {
       setError("ไม่สามารถโหลดข้อมูลคอร์สได้");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [searchTerm]);
 
-  // Fetch courses on mount
+  // Fetch courses on mount or when search changes
   useEffect(() => {
-    fetchCourses(1);
+    let isMounted = true;
+    fetchCourses(1).then(() => {
+      if (isMounted) { /* no-op, cleanup guard only */ }
+    });
+    return () => { isMounted = false; };
   }, [fetchCourses]);
 
   // Filter courses by search term
@@ -492,9 +495,7 @@ export default function CourseManagement() {
           onClose={() => setIsModalOpen(false)}
           courseId={String(selectedCourse.courses_id)}
           courseName={getThaiCourseName(selectedCourse)}
-          onSuccess={() => {
-            console.log("Course offering created successfully");
-          }}
+          onSuccess={() => fetchCourses(currentPage)}
         />
       )}
 

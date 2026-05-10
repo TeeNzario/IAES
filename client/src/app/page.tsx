@@ -74,34 +74,39 @@ export default function CourseHomePage() {
 
   const fetchCourseOfferings = useCallback(async () => {
     try {
-      setLoading(true);
       setError(null);
       const data = await apiFetch<CourseOffering[]>("/course-offerings");
       setCourses(data);
     } catch {
       setError("ไม่สามารถโหลดข้อมูลรายวิชาได้");
-    } finally {
-      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchCourseOfferings();
+    let isMounted = true;
+    setLoading(true);
+    fetchCourseOfferings().finally(() => {
+      if (isMounted) setLoading(false);
+    });
+    return () => { isMounted = false; };
   }, [fetchCourseOfferings]);
 
   useEffect(() => {
+    let isMounted = true;
     const storedUser = getUser<AuthUser>();
     if (storedUser) {
       setUser(storedUser);
     }
 
     apiFetch<AuthUser>("/auth/me")
-      .then((user) => {
-        setUser(user);
+      .then((fetchedUser) => {
+        if (isMounted) setUser(fetchedUser);
       })
-      .catch((err) => {
-        console.error("Failed to fetch user", err);
+      .catch(() => {
+        if (isMounted) setUser(null);
       });
+
+    return () => { isMounted = false; };
   }, []);
 
   const userType = getUserType(user);
@@ -123,9 +128,9 @@ export default function CourseHomePage() {
 
   return (
     <NavBar>
-      <div className="min-h-screen bg-[#F4EFFF] px-4 py-6 sm:px-8 lg:px-12">
+      <div className="min-h-screen bg-[#F4EFFF] px-4 py-6 sm:px-8 lg:px-10">
         <main className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-          <section className="rounded-2xl bg-white/90 p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6 lg:flex lg:items-end lg:justify-between lg:gap-8">
+          <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6 lg:flex lg:items-end lg:justify-between lg:gap-8">
             <div className="min-w-0">
               <p className="text-sm font-medium text-[#7C5BD9]">
                 {headerContent.eyebrow}
@@ -159,17 +164,17 @@ export default function CourseHomePage() {
           </section>
 
           {error && (
-            <div className="rounded-xl border border-red-100 bg-white px-5 py-4 text-sm text-red-600">
+            <div role="alert" className="rounded-xl border border-red-100 bg-white px-5 py-4 text-sm text-red-600">
               {error}
             </div>
           )}
 
           {loading ? (
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {Array.from({ length: 4 }).map((_, index) => (
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3" role="status" aria-label="กำลังโหลดรายวิชา">
+              {Array.from({ length: 6 }).map((_, index) => (
                 <div
                   key={index}
-                  className="min-h-[17rem] rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8]"
+                  className="min-h-[20rem] rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8]"
                 >
                   <div className="h-8 w-8 rounded-lg bg-[#F1EAFF]" />
                   <div className="mt-6 h-4 w-24 rounded bg-[#F1EAFF]" />
@@ -287,7 +292,13 @@ export default function CourseHomePage() {
                               </p>
                             )}
                             {instructors.length > 2 && (
-                              <p className="text-xs font-medium text-[#7C5BD9]">
+                              <p
+                                className="text-xs font-medium text-[#7C5BD9] cursor-help"
+                                title={instructors
+                                  .slice(2)
+                                  .map((s) => formatInstructorName(s.staff_users))
+                                  .join(", ")}
+                              >
                                 +{instructors.length - 2} คน
                               </p>
                             )}
