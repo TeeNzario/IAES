@@ -75,11 +75,6 @@ export default function CoursePage() {
     if (!offeringId) return;
     if (!authLoaded) return;
 
-    if (!canManageExams) {
-      setExams([]);
-      return;
-    }
-
     let isMounted = true;
     apiFetch<ExamListItem[]>(`/course-offerings/${offeringId}/exams`)
       .then((data) => {
@@ -92,7 +87,7 @@ export default function CoursePage() {
     return () => {
       isMounted = false;
     };
-  }, [authLoaded, canManageExams, offeringId]);
+  }, [authLoaded, offeringId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -240,26 +235,24 @@ export default function CoursePage() {
                   </div>
                 </div>
 
-                {canManageExams && (
-                  <div className="grid w-full grid-cols-2 gap-3 sm:w-80">
-                    <div className="rounded-xl bg-[#FAF8FF] px-4 py-3">
-                      <p className="text-xs font-medium text-[#7C5BD9]">
-                        ข้อสอบทั้งหมด
-                      </p>
-                      <p className="mt-1 text-2xl font-semibold text-[#2F2A3A]">
-                        {exams.length}
-                      </p>
-                    </div>
-                    <div className="rounded-xl bg-[#FAF8FF] px-4 py-3">
-                      <p className="text-xs font-medium text-[#7C5BD9]">
-                        ใกล้เปิด
-                      </p>
-                      <p className="mt-1 text-2xl font-semibold text-[#2F2A3A]">
-                        {upcomingExams.length}
-                      </p>
-                    </div>
+                <div className="grid w-full grid-cols-2 gap-3 sm:w-80">
+                  <div className="rounded-xl bg-[#FAF8FF] px-4 py-3">
+                    <p className="text-xs font-medium text-[#7C5BD9]">
+                      ข้อสอบทั้งหมด
+                    </p>
+                    <p className="mt-1 text-2xl font-semibold text-[#2F2A3A]">
+                      {exams.length}
+                    </p>
                   </div>
-                )}
+                  <div className="rounded-xl bg-[#FAF8FF] px-4 py-3">
+                    <p className="text-xs font-medium text-[#7C5BD9]">
+                      ใกล้เปิด
+                    </p>
+                    <p className="mt-1 text-2xl font-semibold text-[#2F2A3A]">
+                      {upcomingExams.length}
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </section>
@@ -290,82 +283,80 @@ export default function CoursePage() {
                 </button>
               )}
 
-              {canManageExams && (
-                <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#E7DDF8]">
-                  <h2 className="flex items-center gap-2 text-sm font-semibold text-[#2F2A3A]">
-                    <CalendarClock size={17} className="text-[#B7A3E3]" />
-                    ข้อสอบที่ใกล้เปิด
-                  </h2>
-                  <div className="mt-4 space-y-2">
-                    {upcomingExams.length > 0 ? (
-                      upcomingExams.map((exam) => (
-                        <button
-                          key={exam.course_exams_id}
-                          type="button"
-                          className="w-full rounded-xl bg-[#FAF8FF] px-3 py-2 text-left transition-colors hover:bg-[#F4EFFF]"
-                        >
-                          <p className="truncate text-sm font-medium text-[#2F2A3A]">
-                            {exam.title}
-                          </p>
-                          <p className="mt-1 text-xs font-normal text-[#7A7287]">
-                            {formatExamDate(exam.start_time)}
-                          </p>
-                        </button>
-                      ))
-                    ) : (
-                      <p className="rounded-xl bg-[#FAF8FF] px-3 py-3 text-sm font-normal text-[#7A7287]">
-                        ยังไม่มีข้อสอบที่ใกล้เปิด
-                      </p>
-                    )}
-                  </div>
+              <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#E7DDF8]">
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-[#2F2A3A]">
+                  <CalendarClock size={17} className="text-[#B7A3E3]" />
+                  ข้อสอบที่ใกล้เปิด
+                </h2>
+                <div className="mt-4 space-y-2">
+                  {upcomingExams.length > 0 ? (
+                    upcomingExams.map((exam) => (
+                      <button
+                        key={exam.course_exams_id}
+                        type="button"
+                        className="w-full rounded-xl bg-[#FAF8FF] px-3 py-2 text-left transition-colors hover:bg-[#F4EFFF]"
+                      >
+                        <p className="truncate text-sm font-medium text-[#2F2A3A]">
+                          {exam.title}
+                        </p>
+                        <p className="mt-1 text-xs font-normal text-[#7A7287]">
+                          {formatExamDate(exam.start_time)}
+                        </p>
+                      </button>
+                    ))
+                  ) : (
+                    <p className="rounded-xl bg-[#FAF8FF] px-3 py-3 text-sm font-normal text-[#7A7287]">
+                      ยังไม่มีข้อสอบที่ใกล้เปิด
+                    </p>
+                  )}
                 </div>
-              )}
+              </div>
             </aside>
 
-            {canManageExams && (
-              <section className="space-y-4">
-                {exams.length === 0 ? (
-                  <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-[#E7DDF8]">
-                    <FileText size={28} className="mx-auto text-[#B7A3E3]" />
-                    <p className="mt-3 text-sm font-medium text-[#7A7287]">
-                      ยังไม่มีข้อสอบ
-                    </p>
-                  </div>
-                ) : (
-                  exams.map((exam) => (
-                    <article
-                      key={exam.course_exams_id}
-                      className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] transition hover:shadow-md"
-                    >
-                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="min-w-0 flex-1">
-                          <h3 className="text-base font-semibold leading-6 text-[#2F2A3A] sm:text-lg">
-                            {exam.title}
-                          </h3>
-                          {exam.description && (
-                            <p className="mt-1 line-clamp-2 text-sm font-normal leading-6 text-[#7A7287]">
-                              {exam.description}
-                            </p>
-                          )}
+            <section className="space-y-4">
+              {exams.length === 0 ? (
+                <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-[#E7DDF8]">
+                  <FileText size={28} className="mx-auto text-[#B7A3E3]" />
+                  <p className="mt-3 text-sm font-medium text-[#7A7287]">
+                    ยังไม่มีข้อสอบ
+                  </p>
+                </div>
+              ) : (
+                exams.map((exam) => (
+                  <article
+                    key={exam.course_exams_id}
+                    className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] transition hover:shadow-md"
+                  >
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-base font-semibold leading-6 text-[#2F2A3A] sm:text-lg">
+                          {exam.title}
+                        </h3>
+                        {exam.description && (
+                          <p className="mt-1 line-clamp-2 text-sm font-normal leading-6 text-[#7A7287]">
+                            {exam.description}
+                          </p>
+                        )}
 
-                          <div className="mt-3 flex flex-wrap items-center gap-2">
-                            <span className="rounded-full bg-[#F4EFFF] px-3 py-1 text-xs font-semibold text-[#7C5BD9]">
-                              {formatExamDate(exam.start_time)}
-                            </span>
-                            <span className="rounded-full bg-[#FAF8FF] px-3 py-1 text-xs font-medium text-[#514667]">
-                              {exam.question_count} ข้อ
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex shrink-0 items-center gap-2">
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs font-semibold ${statusClass(
-                              exam.status,
-                            )}`}
-                          >
-                            {statusLabel(exam.status)}
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <span className="rounded-full bg-[#F4EFFF] px-3 py-1 text-xs font-semibold text-[#7C5BD9]">
+                            {formatExamDate(exam.start_time)}
                           </span>
+                          <span className="rounded-full bg-[#FAF8FF] px-3 py-1 text-xs font-medium text-[#514667]">
+                            {exam.question_count} ข้อ
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${statusClass(
+                            exam.status,
+                          )}`}
+                        >
+                          {statusLabel(exam.status)}
+                        </span>
+                        {canManageExams && (
                           <button
                             type="button"
                             onClick={() =>
@@ -379,13 +370,13 @@ export default function CoursePage() {
                           >
                             <Pencil size={16} />
                           </button>
-                        </div>
+                        )}
                       </div>
-                    </article>
-                  ))
-                )}
-              </section>
-            )}
+                    </div>
+                  </article>
+                ))
+              )}
+            </section>
           </div>
         </main>
       </div>
