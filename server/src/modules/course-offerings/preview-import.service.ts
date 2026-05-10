@@ -310,6 +310,17 @@ export class PreviewImportService {
         continue;
       }
 
+      // Skip rows with duplicate identity conflicts
+      if (row.status === 'DUPLICATE_IDENTITY') {
+        results.push({
+          student_code: row.student_code,
+          email: row.email,
+          status: 'skipped',
+          note: row.note || 'ข้อมูลซ้ำ/ขัดแย้ง',
+        });
+        continue;
+      }
+
       // Skip already enrolled
       if (row.status === 'ALREADY_ENROLLED') {
         results.push({

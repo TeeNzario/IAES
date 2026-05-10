@@ -80,19 +80,24 @@ interface DuplicateCheckResponse {
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof Error && error.message) return error.message;
-
   const apiError = error as {
     response?: { data?: { message?: unknown } };
     message?: unknown;
   };
-  const message = apiError.response?.data?.message ?? apiError.message;
 
-  if (Array.isArray(message) && typeof message[0] === "string") {
-    return message[0];
+  // Prefer the server's error message from the response body over the generic
+  // AxiosError.message (which is just "Request failed with status code N").
+  const serverMessage = apiError.response?.data?.message;
+  if (Array.isArray(serverMessage) && typeof serverMessage[0] === "string") {
+    return serverMessage[0];
   }
-  if (typeof message === "string" && message.trim()) {
-    return message;
+  if (typeof serverMessage === "string" && serverMessage.trim()) {
+    return serverMessage;
+  }
+
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof apiError.message === "string" && apiError.message.trim()) {
+    return apiError.message;
   }
 
   return fallback;

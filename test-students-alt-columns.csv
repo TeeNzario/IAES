@@ -1,0 +1,4 @@
+studentCode,email,faculty_code,prefix,curriculumCode,firstName,lastName,expected,note
+B6500201,alt.col1@kkumail.com,18,นาย,CUR067,นักศึกษา,อัลเทอร์เนทหนึ่ง,NEW,ทดสอบ camelCase + snake_case column names
+B6500202,alt.col2@kkumail.com,1,นางสาว,CUR003,สมปอง,อัลเทอร์เนทสอง,NEW,camelCase columns
+,alt.missing@kkumail.com,1,นาย,CUR067,,นามสกุลเดียว,MISSING,studentId ว่าง + ไม่มีชื่อ
