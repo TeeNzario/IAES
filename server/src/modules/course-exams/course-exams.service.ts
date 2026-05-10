@@ -179,7 +179,7 @@ export class CourseExamsService {
     }
   }
 
-  /** All exams of the offering, ordered by start_time ascending. */
+  /** All exams of the offering, ordered by start_time descending (latest first). */
   async listByOffering(offeringId: string, user: JwtPayload) {
     if (user.type === 'student') {
       await this.verifyStudentEnrollment(offeringId, user.sub);
@@ -195,7 +195,7 @@ export class CourseExamsService {
         course_offerings_id: BigInt(offeringId),
         is_active: true,
       },
-      orderBy: { start_time: 'asc' },
+      orderBy: { start_time: 'desc' },
       select: {
         course_exams_id: true,
         title: true,
