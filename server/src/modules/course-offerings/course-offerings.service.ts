@@ -338,18 +338,27 @@ export class CourseOfferingsService {
     return this.prisma.$transaction(async (tx) => {
       await this.assertInstructorForOffering(offeringBigInt, staffUserId, tx);
 
-      // 1. Check for email conflict: different student_code already uses this email
-      const emailOwner = await tx.students.findUnique({
-        where: { email: dto.email },
-        select: { student_code: true },
+      // 0. Look up existing student to detect email change (for directory cleanup)
+      const existingStudent = await tx.students.findUnique({
+        where: { student_code: dto.student_code },
+        select: { email: true },
       });
-      if (emailOwner && emailOwner.student_code !== dto.student_code) {
-        throw new ConflictException(
-          `อีเมลนี้ถูกใช้โดยนักศึกษารหัส ${emailOwner.student_code} แล้ว`,
-        );
+      const oldEmail = existingStudent?.email;
+
+      // 1. Check for email conflict: different student_code already uses this email
+      if (!oldEmail || oldEmail !== dto.email) {
+        const emailOwner = await tx.students.findUnique({
+          where: { email: dto.email },
+          select: { student_code: true },
+        });
+        if (emailOwner && emailOwner.student_code !== dto.student_code) {
+          throw new ConflictException(
+            `อีเมลนี้ถูกใช้โดยนักศึกษารหัส ${emailOwner.student_code} แล้ว`,
+          );
+        }
       }
 
-      // 2. Upsert student_directory (global identity — consistent with CSV import)
+      // 2. Upsert student_directory for the new email
       await tx.student_directory.upsert({
         where: { email: dto.email },
         update: {
@@ -364,6 +373,13 @@ export class CourseOfferingsService {
           last_name: dto.last_name,
         },
       });
+
+      // 2b. Clean up old student_directory entry when email changed
+      if (oldEmail && oldEmail !== dto.email) {
+        await tx.student_directory.deleteMany({
+          where: { email: oldEmail },
+        });
+      }
 
       // 3. Ensure student auth record exists (or update)
       await tx.students.upsert({
@@ -734,6 +750,7 @@ export class CourseOfferingsService {
     offeringId: string,
     email: string,
     staffUserId: string,
+    excludeStudentCode?: string,
   ): Promise<boolean> {
     if (!email?.trim() || !offeringId) return false;
 
@@ -741,7 +758,7 @@ export class CourseOfferingsService {
 
     await this.assertInstructorForOffering(id, staffUserId);
 
-    // Check enrollment in this offering
+    // Check enrollment in this offering (skip if same student_code is being re-added)
     const enrollment = await this.prisma.course_enrollments.findFirst({
       where: {
         course_offerings_id: id,
@@ -752,7 +769,9 @@ export class CourseOfferingsService {
       select: { student_code: true },
     });
 
-    if (enrollment) return true;
+    if (enrollment && enrollment.student_code !== excludeStudentCode) {
+      return true;
+    }
 
     // Also check global students table: email is @unique across all students
     const globalStudent = await this.prisma.students.findUnique({
@@ -760,7 +779,14 @@ export class CourseOfferingsService {
       select: { student_code: true },
     });
 
-    return globalStudent !== null;
+    if (!globalStudent) return false;
+
+    // If the email belongs to the same student_code being checked, it's not a duplicate
+    if (excludeStudentCode && globalStudent.student_code === excludeStudentCode) {
+      return false;
+    }
+
+    return true;
   }
 
   /**

@@ -178,11 +178,13 @@ export class CourseOfferingsController {
     @Param('offeringId') offeringId: string,
     @Req() req: AuthenticatedRequest,
     @Query('email') email: string,
+    @Query('exclude_student_code') excludeStudentCode?: string,
   ) {
     const exists = await this.courseOfferingsService.checkStudentEmailExists(
       offeringId,
       email,
       req.user.sub,
+      excludeStudentCode,
     );
     return { exists };
   }

@@ -39,10 +39,10 @@ const statusLabel: Record<ExamListItem["status"], string> = {
 
 const statusClass = (s: ExamListItem["status"]) =>
   s === "UPCOMING"
-    ? "bg-amber-100 text-amber-700"
+    ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
     : s === "ONGOING"
-    ? "bg-emerald-100 text-emerald-700"
-    : "bg-gray-200 text-gray-500";
+    ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+    : "bg-gray-200 text-gray-600 ring-1 ring-gray-300";
 
 const formatThaiDate = (iso: string) => {
   const d = new Date(iso);
@@ -289,7 +289,7 @@ export default function ExamSetsListPage() {
                       {e.title}
                     </h3>
                     <span
-                      className={`shrink-0 rounded-full px-3 py-0.5 text-xs ${statusClass(
+                      className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${statusClass(
                         e.status,
                       )}`}
                     >
@@ -349,7 +349,7 @@ export default function ExamSetsListPage() {
                     </div>
                     <div>
                       <span
-                        className={`inline-block rounded-full px-3 py-0.5 text-xs ${statusClass(
+                        className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${statusClass(
                           e.status,
                         )}`}
                       >

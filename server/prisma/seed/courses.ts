@@ -118,6 +118,8 @@ const OFFERINGS: OfferingSeed[] = [
       'instructor@iaes.local',
       'napat.ai@iaes.local',
       'somchai.engineer@iaes.local',
+      'suda.science@iaes.local',
+      'kanokwan.mgmt@iaes.local',
     ],
     studentCodes: [
       '66131319',
@@ -132,14 +134,24 @@ const OFFERINGS: OfferingSeed[] = [
     courseCode: 'COE64-361',
     academic_year: 2026,
     semester: 1,
-    instructorEmails: ['napat.ai@iaes.local'],
+    instructorEmails: [
+      'napat.ai@iaes.local',
+      'somchai.engineer@iaes.local',
+      'instructor@iaes.local',
+      'suda.science@iaes.local',
+    ],
     studentCodes: ['66250102', '66250103', '66250104'],
   },
   {
     courseCode: 'COE64-371',
     academic_year: 2026,
     semester: 1,
-    instructorEmails: ['instructor@iaes.local'],
+    instructorEmails: [
+      'instructor@iaes.local',
+      'somchai.engineer@iaes.local',
+      'napat.ai@iaes.local',
+      'pornchai.liberal@iaes.local',
+    ],
     studentCodes: ['66131319', '66220501', '66220502', '65220101'],
   },
   {
@@ -173,7 +185,12 @@ const OFFERINGS: OfferingSeed[] = [
     courseCode: 'COE64-325',
     academic_year: 2026,
     semester: 1,
-    instructorEmails: ['somchai.engineer@iaes.local'],
+    instructorEmails: [
+      'somchai.engineer@iaes.local',
+      'instructor@iaes.local',
+      'napat.ai@iaes.local',
+      'suda.science@iaes.local',
+    ],
     studentCodes: ['66250102', '66250103', '65250101', '66131319'],
   },
   {
@@ -195,7 +212,13 @@ const OFFERINGS: OfferingSeed[] = [
     courseCode: 'GED65-130',
     academic_year: 2026,
     semester: 1,
-    instructorEmails: ['kanokwan.mgmt@iaes.local'],
+    instructorEmails: [
+      'kanokwan.mgmt@iaes.local',
+      'pornchai.liberal@iaes.local',
+      'instructor@iaes.local',
+      'suda.science@iaes.local',
+      'napat.ai@iaes.local',
+    ],
     studentCodes: [
       '66131319',
       '66112233',

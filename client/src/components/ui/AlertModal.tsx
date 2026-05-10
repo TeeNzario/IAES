@@ -49,37 +49,37 @@ export default function AlertModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center"
+      className="fixed inset-0 bg-black/45 z-[100] flex items-center justify-center p-4"
       onClick={(e) => {
         e.stopPropagation();
         onClose();
       }}
     >
       <div
-        className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 mx-4"
+        className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl sm:p-8"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Icon */}
-        <div className="flex justify-center mb-5">
-          <div className={`p-4 rounded-full ${styles.iconBg}`}>
-            <Icon size={36} className={styles.icon} />
+        <div className="flex justify-center mb-4">
+          <div className={`p-3 rounded-full ${styles.iconBg}`}>
+            <Icon size={32} className={styles.icon} />
           </div>
         </div>
 
         {/* Title */}
-        <h3 className="text-xl font-bold text-gray-900 text-center mb-3">
+        <h3 className="text-lg font-bold text-gray-900 text-center mb-2">
           {title}
         </h3>
 
         {/* Message */}
-        <p className="text-gray-700 text-center text-base mb-8 leading-relaxed">
+        <p className="text-gray-600 text-center text-sm mb-6 leading-relaxed">
           {message}
         </p>
 
         {/* Button */}
         <button
           onClick={onClose}
-          className={`w-full px-5 py-3 text-white rounded-xl transition-colors font-semibold text-base ${styles.button}`}
+          className={`w-full px-5 py-2.5 text-white rounded-xl transition-colors font-semibold text-sm ${styles.button}`}
         >
           ตกลง
         </button>

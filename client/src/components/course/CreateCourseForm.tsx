@@ -281,18 +281,19 @@ export default function CreateCourseForm({
 
   return (
     <>
-      <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
-      <div className="text-center mb-3">
-        <div className="inline-flex items-center justify-center bg-opacity-30 rounded-2xl px-6 py-3 mb-2">
-          <h1 className="text-3xl font-medium text-[#000000]">สร้างรายวิชา</h1>
-        </div>
+      <div className="relative w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
+      <div className="mb-5">
+        <h2 className="text-xl font-bold text-gray-900">สร้างรายวิชา</h2>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-0">
         {/* รหัสวิชา */}
-        <div>
-          <label className="block text-[#000000] text-sm font-light mb-2">
-            รหัสวิชา <span className="text-red-500">*</span>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+            รหัสวิชา <span className="text-red-500">*</span>{" "}
+            <span className="text-xs font-medium text-gray-500">
+              ({formData.course_code.length}/{COURSE_CODE_MAX_LENGTH})
+            </span>
           </label>
           <input
             type="text"
@@ -300,28 +301,23 @@ export default function CreateCourseForm({
             value={formData.course_code}
             onChange={handleInputChange}
             maxLength={COURSE_CODE_MAX_LENGTH}
-            className={`w-full bg-white text-black px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-purple-600 ${
-              errors.course_code ? "border-red-500" : "border-[#B7A3E3]"
+            className={`w-full rounded-xl border-2 px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none ${
+              errors.course_code ? "border-red-500 focus:border-red-500" : "border-[#9264F5] focus:border-[#B7A3E3]"
             }`}
             placeholder=""
           />
-          {/* Character count hint */}
-          <div className="flex justify-between items-center mt-1">
-            {errors.course_code ? (
-              <p className="text-red-500 text-xs">{errors.course_code}</p>
-            ) : (
-              <span />
-            )}
-            <span className="text-xs text-gray-400">
-              {formData.course_code.length}/{COURSE_CODE_MAX_LENGTH}
-            </span>
-          </div>
+          {errors.course_code && (
+            <p className="text-red-500 text-xs mt-1">{errors.course_code}</p>
+          )}
         </div>
 
         {/* ชื่อรายวิชา (ภาษาไทย) */}
-        <div>
-          <label className="block text-[#000000] text-sm font-light mb-2">
-            ชื่อรายวิชา (ภาษาไทย) <span className="text-red-500">*</span>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+            ชื่อรายวิชา (ภาษาไทย) <span className="text-red-500">*</span>{" "}
+            <span className="text-xs font-medium text-gray-500">
+              ({formData.course_name_th.length}/{COURSE_NAME_MAX_LENGTH})
+            </span>
           </label>
           <input
             type="text"
@@ -329,28 +325,23 @@ export default function CreateCourseForm({
             value={formData.course_name_th}
             onChange={handleInputChange}
             maxLength={COURSE_NAME_MAX_LENGTH}
-            className={`w-full bg-white text-black px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-purple-600 ${
-              errors.course_name_th ? "border-red-500" : "border-[#B7A3E3]"
+            className={`w-full rounded-xl border-2 px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none ${
+              errors.course_name_th ? "border-red-500 focus:border-red-500" : "border-[#9264F5] focus:border-[#B7A3E3]"
             }`}
             placeholder=""
           />
-          {/* Character count hint */}
-          <div className="flex justify-between items-center mt-1">
-            {errors.course_name_th ? (
-              <p className="text-red-500 text-xs">{errors.course_name_th}</p>
-            ) : (
-              <span />
-            )}
-            <span className="text-xs text-gray-400">
-              {formData.course_name_th.length}/{COURSE_NAME_MAX_LENGTH}
-            </span>
-          </div>
+          {errors.course_name_th && (
+            <p className="text-red-500 text-xs mt-1">{errors.course_name_th}</p>
+          )}
         </div>
 
         {/* Course Name (English) */}
-        <div>
-          <label className="block text-[#000000] text-sm font-light mb-2">
-            ชื่อรายวิชา (ภาษาอังกฤษ) <span className="text-red-500">*</span>
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+            ชื่อรายวิชา (ภาษาอังกฤษ) <span className="text-red-500">*</span>{" "}
+            <span className="text-xs font-medium text-gray-500">
+              ({formData.course_name_en.length}/{COURSE_NAME_MAX_LENGTH})
+            </span>
           </label>
           <input
             type="text"
@@ -358,38 +349,29 @@ export default function CreateCourseForm({
             value={formData.course_name_en}
             onChange={handleInputChange}
             maxLength={COURSE_NAME_MAX_LENGTH}
-            className={`w-full bg-white text-black px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-purple-600 ${
-              errors.course_name_en ? "border-red-500" : "border-[#B7A3E3]"
+            className={`w-full rounded-xl border-2 px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none ${
+              errors.course_name_en ? "border-red-500 focus:border-red-500" : "border-[#9264F5] focus:border-[#B7A3E3]"
             }`}
             placeholder=""
           />
-          {/* Character count hint */}
-          <div className="flex justify-between items-center mt-1">
-            {errors.course_name_en ? (
-              <p className="text-red-500 text-xs">{errors.course_name_en}</p>
-            ) : (
-              <span />
-            )}
-            <span className="text-xs text-gray-400">
-              {formData.course_name_en.length}/{COURSE_NAME_MAX_LENGTH}
-            </span>
-          </div>
+          {errors.course_name_en && (
+            <p className="text-red-500 text-xs mt-1">{errors.course_name_en}</p>
+          )}
         </div>
 
-
         {/* Buttons */}
-        <div className="flex gap-4 pt-4 pl-25">
+        <div className="flex gap-3">
           <button
             onClick={handleCancel}
             disabled={isSubmitting}
-            className="flex-1 bg-white text-[#B7A3E3] border border-[#B7A3E3] font-medium py-2 rounded-2xl hover:bg-gray-50 transition-colors disabled:opacity-50 cursor-pointer"
+            className="flex-1 rounded-xl border-2 border-gray-300 px-6 py-2.5 font-semibold text-gray-900 transition-colors hover:bg-gray-50 disabled:opacity-50 cursor-pointer"
           >
             ย้อนกลับ
           </button>
           <button
             onClick={handleSubmit}
             disabled={isSubmitDisabled}
-            className="flex-1 bg-[#9264F5] text-white font-medium py-2 rounded-2xl hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-6 py-2.5 font-semibold text-white shadow-lg transition-colors hover:bg-[#9264F5] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {(isSubmitting || isCheckingCode) && (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -397,7 +379,7 @@ export default function CreateCourseForm({
             ยืนยัน
           </button>
         </div>
-        </div>
+      </div>
       </div>
 
       <AlertModal

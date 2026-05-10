@@ -66,6 +66,7 @@ export default function CreateFlatQuestionsPage() {
   const [tags, setTags] = useState<KnowledgeTag[]>([]);
   const [draft, setDraft] = useState<DraftQuestion>(makeEmptyDraft());
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadInit = useCallback(async () => {
@@ -118,6 +119,8 @@ export default function CreateFlatQuestionsPage() {
         },
       );
       setDraft(makeEmptyDraft());
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string | string[] } } })
@@ -153,8 +156,13 @@ export default function CreateFlatQuestionsPage() {
           </div>
 
           {error && (
-            <p className="mt-3 rounded-md bg-rose-100 px-3 py-2 text-sm text-rose-700">
+            <p role="alert" className="mt-3 rounded-md bg-rose-100 px-3 py-2 text-sm text-rose-700">
               {error}
+            </p>
+          )}
+          {saved && (
+            <p role="status" className="mt-3 rounded-md bg-emerald-100 px-3 py-2 text-sm text-emerald-700">
+              บันทึกสำเร็จ
             </p>
           )}
 

@@ -30,7 +30,7 @@ export default function CreateCourseModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/45 z-50 flex items-start justify-center overflow-y-auto p-4 py-6 sm:p-6"
       onClick={handleBackdropClick}
     >
       <CreateCourseForm onSuccess={handleSuccess} onCancel={onClose} />

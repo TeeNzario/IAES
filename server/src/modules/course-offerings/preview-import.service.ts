@@ -335,7 +335,24 @@ export class PreviewImportService {
 
       try {
         await this.prisma.$transaction(async (tx) => {
-          // Step 1: Upsert student_directory
+          // Step 0: Check email conflict — reject if email belongs to a different student
+          const emailOwner = await tx.students.findUnique({
+            where: { email: row.email },
+            select: { student_code: true },
+          });
+          if (emailOwner && emailOwner.student_code !== row.student_code) {
+            throw new Error(
+              `อีเมลนี้ถูกใช้โดยนักศึกษารหัส ${emailOwner.student_code} แล้ว`,
+            );
+          }
+
+          // Step 0b: Look up existing student to detect email change (for directory cleanup)
+          const existingStudent = await tx.students.findUnique({
+            where: { student_code: row.student_code },
+            select: { email: true },
+          });
+
+          // Step 1: Upsert student_directory for the new email
           await tx.student_directory.upsert({
             where: { email: row.email },
             update: {
@@ -350,6 +367,16 @@ export class PreviewImportService {
               last_name: row.last_name,
             },
           });
+
+          // Step 1b: Clean up old student_directory entry when email changed
+          if (
+            existingStudent &&
+            existingStudent.email !== row.email
+          ) {
+            await tx.student_directory.deleteMany({
+              where: { email: existingStudent.email },
+            });
+          }
 
           // Step 2: Upsert students table
           await tx.students.upsert({

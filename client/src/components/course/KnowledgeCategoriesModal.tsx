@@ -177,15 +177,15 @@ export default function KnowledgeCategoriesModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-lg">
-        <div className="text-center mb-3">
-          <h2 className="text-2xl font-light text-gray-800">
+    <div className="fixed inset-0 bg-black/45 z-50 flex items-start justify-center overflow-y-auto p-4 py-6 sm:p-6">
+      <div className="relative w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl sm:p-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
+        <div className="mb-5">
+          <h2 className="text-xl font-bold text-gray-900">
             หมวดหมู่ความรู้ — {course.name}
           </h2>
         </div>
 
-        <div className="space-y-4">
+        <div>
           {/* Tags display */}
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
@@ -241,7 +241,7 @@ export default function KnowledgeCategoriesModal({
                         }
                       }}
                       onKeyDown={handleKeyDown}
-                      className="w-full bg-white text-black px-4 py-3 rounded-xl border border-[#B7A3E3] focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      className="w-full rounded-xl border-2 border-[#9264F5] px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none focus:border-[#B7A3E3]"
                       placeholder="พิมพ์ชื่อหมวดหมู่ความรู้"
                     />
                     {showDropdown && suggestions.length > 0 && (
@@ -269,18 +269,18 @@ export default function KnowledgeCategoriesModal({
               </p>
 
               {/* Buttons */}
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-3">
                 <button
                   onClick={onClose}
                   disabled={isSubmitting}
-                  className="flex-1 bg-white text-[#B7A3E3] border border-[#B7A3E3] font-medium py-2 rounded-2xl hover:bg-gray-50 transition-colors disabled:opacity-50 cursor-pointer"
+                  className="flex-1 rounded-xl border-2 border-gray-300 px-6 py-2.5 font-semibold text-gray-900 transition-colors hover:bg-gray-50 disabled:opacity-50 cursor-pointer"
                 >
                   ยกเลิก
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={isSubmitting}
-                  className="flex-1 bg-[#9264F5] text-white font-medium py-2 rounded-2xl hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-6 py-2.5 font-semibold text-white shadow-lg transition-colors hover:bg-[#9264F5] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {isSubmitting && (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

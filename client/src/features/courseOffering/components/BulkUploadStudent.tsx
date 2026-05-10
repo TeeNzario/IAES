@@ -219,6 +219,29 @@ export default function BulkUploadModal({
     first_name: "",
     last_name: "",
   });
+  const [editErrors, setEditErrors] = useState<Record<string, string>>({});
+
+  const validateEditForm = (): boolean => {
+    const errs: Record<string, string> = {};
+    if (!/^\d{8}$/.test(editForm.student_code))
+      errs.student_code = "รหัสนักศึกษาต้องเป็นตัวเลข 8 หลัก";
+    if (!editForm.email.endsWith("@mail.wu.ac.th") || editForm.email.split("@").length !== 2 || !editForm.email.split("@")[0])
+      errs.email = "อีเมลต้องเป็น @mail.wu.ac.th";
+    if (!editForm.title.trim())
+      errs.title = "กรุณาเลือกคำนำหน้า";
+    if (!editForm.first_name.trim())
+      errs.first_name = "กรุณากรอกชื่อ";
+    else if (!/^[ก-๙\s]+$/.test(editForm.first_name))
+      errs.first_name = "ชื่อต้องเป็นภาษาไทยเท่านั้น";
+    if (!editForm.last_name.trim())
+      errs.last_name = "กรุณากรอกนามสกุล";
+    else if (!/^[ก-๙\s]+$/.test(editForm.last_name))
+      errs.last_name = "นามสกุลต้องเป็นภาษาไทยเท่านั้น";
+    if (!editForm.curriculumId)
+      errs.curriculumId = "กรุณาเลือกหลักสูตร";
+    setEditErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragDepthRef = useRef(0);
@@ -368,10 +391,12 @@ export default function BulkUploadModal({
       first_name: row.first_name,
       last_name: row.last_name,
     });
+    setEditErrors({});
   };
 
   const handleSaveEdit = async () => {
     if (editingRowIndex === null || !sessionId) return;
+    if (!validateEditForm()) return;
     setIsLoading(true);
     setError(null);
     try {
@@ -740,30 +765,35 @@ export default function BulkUploadModal({
                               <>
                                 <td className="px-4 py-2.5">
                                   <input type="text" value={editForm.student_code}
-                                    onChange={(e) => setEditForm((f) => ({ ...f, student_code: e.target.value }))}
-                                    className="w-full rounded-lg border border-[#B7A3E3] px-3 py-2.5 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+                                    onChange={(e) => { setEditForm((f) => ({ ...f, student_code: e.target.value })); if (editErrors.student_code) setEditErrors((p) => ({ ...p, student_code: "" })); }}
+                                    className={`w-full rounded-lg border px-3 py-2.5 font-sans text-sm focus:outline-none focus:ring-2 ${editErrors.student_code ? "border-red-400 focus:ring-red-300" : "border-[#B7A3E3] focus:ring-purple-300"}`} />
+                                  {editErrors.student_code && <p className="text-red-500 text-[11px] mt-0.5 leading-tight">{editErrors.student_code}</p>}
                                 </td>
                                 <td className="px-4 py-2.5">
                                   <select value={editForm.title}
-                                    onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
-                                    className="w-full rounded-lg border border-[#B7A3E3] px-2.5 py-2.5 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-purple-300">
+                                    onChange={(e) => { setEditForm((f) => ({ ...f, title: e.target.value })); if (editErrors.title) setEditErrors((p) => ({ ...p, title: "" })); }}
+                                    className={`w-full rounded-lg border px-2.5 py-2.5 font-sans text-sm focus:outline-none focus:ring-2 ${editErrors.title ? "border-red-400 focus:ring-red-300" : "border-[#B7A3E3] focus:ring-purple-300"}`}>
                                     {THAI_TITLES.map((t) => <option key={t} value={t}>{t}</option>)}
                                   </select>
+                                  {editErrors.title && <p className="text-red-500 text-[11px] mt-0.5 leading-tight">{editErrors.title}</p>}
                                 </td>
                                 <td className="px-4 py-2.5">
                                   <input type="text" value={editForm.first_name}
-                                    onChange={(e) => setEditForm((f) => ({ ...f, first_name: e.target.value }))}
-                                    className="w-full rounded-lg border border-[#B7A3E3] px-3 py-2.5 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+                                    onChange={(e) => { setEditForm((f) => ({ ...f, first_name: e.target.value })); if (editErrors.first_name) setEditErrors((p) => ({ ...p, first_name: "" })); }}
+                                    className={`w-full rounded-lg border px-3 py-2.5 font-sans text-sm focus:outline-none focus:ring-2 ${editErrors.first_name ? "border-red-400 focus:ring-red-300" : "border-[#B7A3E3] focus:ring-purple-300"}`} />
+                                  {editErrors.first_name && <p className="text-red-500 text-[11px] mt-0.5 leading-tight">{editErrors.first_name}</p>}
                                 </td>
                                 <td className="px-4 py-2.5">
                                   <input type="text" value={editForm.last_name}
-                                    onChange={(e) => setEditForm((f) => ({ ...f, last_name: e.target.value }))}
-                                    className="w-full rounded-lg border border-[#B7A3E3] px-3 py-2.5 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+                                    onChange={(e) => { setEditForm((f) => ({ ...f, last_name: e.target.value })); if (editErrors.last_name) setEditErrors((p) => ({ ...p, last_name: "" })); }}
+                                    className={`w-full rounded-lg border px-3 py-2.5 font-sans text-sm focus:outline-none focus:ring-2 ${editErrors.last_name ? "border-red-400 focus:ring-red-300" : "border-[#B7A3E3] focus:ring-purple-300"}`} />
+                                  {editErrors.last_name && <p className="text-red-500 text-[11px] mt-0.5 leading-tight">{editErrors.last_name}</p>}
                                 </td>
                                 <td className="px-4 py-2.5">
                                   <input type="text" value={editForm.email}
-                                    onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
-                                    className="w-full rounded-lg border border-[#B7A3E3] px-3 py-2.5 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+                                    onChange={(e) => { setEditForm((f) => ({ ...f, email: e.target.value })); if (editErrors.email) setEditErrors((p) => ({ ...p, email: "" })); }}
+                                    className={`w-full rounded-lg border px-3 py-2.5 font-sans text-sm focus:outline-none focus:ring-2 ${editErrors.email ? "border-red-400 focus:ring-red-300" : "border-[#B7A3E3] focus:ring-purple-300"}`} />
+                                  {editErrors.email && <p className="text-red-500 text-[11px] mt-0.5 leading-tight">{editErrors.email}</p>}
                                 </td>
                                 <td className="px-4 py-2.5">
                                   <select value={editForm.facultyCode}
@@ -774,10 +804,11 @@ export default function BulkUploadModal({
                                 </td>
                                 <td className="px-4 py-2.5">
                                   <select value={editForm.curriculumId}
-                                    onChange={(e) => setEditForm((f) => ({ ...f, curriculumId: e.target.value }))}
-                                    className="w-full rounded-lg border border-[#B7A3E3] px-2.5 py-2.5 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-purple-300">
+                                    onChange={(e) => { setEditForm((f) => ({ ...f, curriculumId: e.target.value })); if (editErrors.curriculumId) setEditErrors((p) => ({ ...p, curriculumId: "" })); }}
+                                    className={`w-full rounded-lg border px-2.5 py-2.5 font-sans text-sm focus:outline-none focus:ring-2 ${editErrors.curriculumId ? "border-red-400 focus:ring-red-300" : "border-[#B7A3E3] focus:ring-purple-300"}`}>
                                     {CURRICULUMS.map((c) => <option key={c.id} value={c.id}>{getCurriculumName(c.id)}</option>)}
                                   </select>
+                                  {editErrors.curriculumId && <p className="text-red-500 text-[11px] mt-0.5 leading-tight">{editErrors.curriculumId}</p>}
                                 </td>
                                 <td className="px-4 py-2.5 text-center">
                                   <span className="text-sm italic text-[#7A7287]">กำลังแก้ไข</span>
