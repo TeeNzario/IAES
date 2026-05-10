@@ -170,7 +170,6 @@ export default function ManageUserPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState("all");
   const [facultyFilter, setFacultyFilter] = useState("all");
   const [curriculumFilter, setCurriculumFilter] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
@@ -288,18 +287,13 @@ export default function ManageUserPage() {
         user.id.toLowerCase().includes(normalizedSearchTerm) ||
         Boolean(user.email?.toLowerCase().includes(normalizedSearchTerm));
 
-      const matchesStatus =
-        statusFilter === "all" ||
-        (statusFilter === "active" && user.is_active) ||
-        (statusFilter === "inactive" && !user.is_active);
-
       const matchesFaculty =
         facultyFilter === "all" || String(user.facultyCode) === facultyFilter;
       const matchesCurriculum =
         curriculumFilter === "all" ||
         (user.curriculumId ?? DEFAULT_CURRICULUM_ID) === curriculumFilter;
 
-      return matchesSearch && matchesStatus && matchesFaculty && matchesCurriculum;
+      return matchesSearch && matchesFaculty && matchesCurriculum;
     });
 
     const collator = new Intl.Collator(["th", "en"], {
@@ -321,7 +315,6 @@ export default function ManageUserPage() {
   }, [
     users,
     searchTerm,
-    statusFilter,
     facultyFilter,
     curriculumFilter,
     currentUser,
@@ -749,7 +742,6 @@ export default function ManageUserPage() {
 
   const showSequenceColumn = roleFilter !== "STUDENT";
   const activeFilterCount = [
-    statusFilter !== "all",
     facultyFilter !== "all",
     curriculumFilter !== "all",
   ].filter(Boolean).length;
@@ -779,7 +771,6 @@ export default function ManageUserPage() {
 
   function resetListFilters() {
     setSearchTerm("");
-    setStatusFilter("all");
     setFacultyFilter("all");
     setCurriculumFilter("all");
     setCurrentPage(1);
@@ -972,7 +963,7 @@ export default function ManageUserPage() {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className={labelClass}>สำนักวิชา</label>
                 <div className="relative">
@@ -1016,25 +1007,6 @@ export default function ManageUserPage() {
                   <ChevronDown className={dropdownIconClass} size={18} />
                 </div>
               </div>
-
-              <div>
-                <label className={labelClass}>สถานะ</label>
-                <div className="relative">
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => {
-                      setStatusFilter(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className={selectControlClass}
-                  >
-                    <option value="all">ทั้งหมด</option>
-                    <option value="active">เปิดใช้งานสิทธิ์</option>
-                    <option value="inactive">ระงับสิทธิ์</option>
-                  </select>
-                  <ChevronDown className={dropdownIconClass} size={18} />
-                </div>
-              </div>
             </div>
 
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:justify-end">
@@ -1058,7 +1030,7 @@ export default function ManageUserPage() {
           ) : filteredUsers.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <p className="text-sm font-medium text-[#7A7287]">
-                {searchTerm.trim() || statusFilter !== "all" || facultyFilter !== "all" || curriculumFilter !== "all"
+                {searchTerm.trim() || facultyFilter !== "all" || curriculumFilter !== "all"
                   ? "ไม่พบผลลัพธ์ที่ตรงกับการค้นหา"
                   : `ยังไม่มีข้อมูล${currentRoleLabel}`}
               </p>
