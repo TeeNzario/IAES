@@ -20,6 +20,7 @@ import {
   getUsers,
   updateUser as apiUpdateUser,
   checkStudentCodeExists,
+  checkStudentEmailExists,
   createStudent as apiCreateStudent,
 } from "@/features/student/student.api";
 import {
@@ -384,20 +385,17 @@ export default function ManageUserPage() {
   async function validateEditForm(): Promise<boolean> {
     const errors: FormErrors = {};
     const normalizedEmail = editEmail.trim();
-    const canEditEmail = editingUser?.role !== "STUDENT";
 
     if (!editTitle.trim()) {
       errors.title = "กรุณาเลือกคำนำหน้า";
     }
 
-    if (canEditEmail) {
-      if (!normalizedEmail) {
-        errors.email = ERROR_MESSAGES.email.required;
-      } else if (normalizedEmail.length > USER_VALIDATION_CONFIG.email.max) {
-        errors.email = ERROR_MESSAGES.email.maxLength;
-      } else if (!EMAIL_REGEX.test(normalizedEmail)) {
-        errors.email = ERROR_MESSAGES.email.invalid;
-      }
+    if (!normalizedEmail) {
+      errors.email = ERROR_MESSAGES.email.required;
+    } else if (normalizedEmail.length > USER_VALIDATION_CONFIG.email.max) {
+      errors.email = ERROR_MESSAGES.email.maxLength;
+    } else if (!EMAIL_REGEX.test(normalizedEmail)) {
+      errors.email = ERROR_MESSAGES.email.invalid;
     }
 
     if (!editFirstName.trim()) {
@@ -434,8 +432,11 @@ export default function ManageUserPage() {
     if (Object.keys(errors).length > 0) return false;
 
     const emailChanged = normalizedEmail !== (editingUser?.email ?? "");
-    if (editingUser && canEditEmail && emailChanged) {
-      const emailExists = await checkEmailExists(normalizedEmail, editingUser.id);
+    if (editingUser && emailChanged) {
+      const emailExists =
+        editingUser.role === "STUDENT"
+          ? await checkStudentEmailExists(normalizedEmail, editingUser.id)
+          : await checkEmailExists(normalizedEmail, editingUser.id);
 
       if (emailExists) {
         setEditErrors((p) => ({ ...p, email: ERROR_MESSAGES.email.duplicate }));
@@ -453,13 +454,12 @@ export default function ManageUserPage() {
 
     // Check if user is ADMIN (cannot change is_active)
     const isAdminUser = editingUser.role === "ADMINISTRATOR";
-    const canEditEmail = editingUser.role !== "STUDENT";
     const normalizedEmail = editEmail.trim();
     const passwordToUpdate = editPassword;
 
     const updatedUser: User = {
       ...editingUser,
-      email: canEditEmail ? normalizedEmail : editingUser.email,
+      email: normalizedEmail,
       title: editTitle,
       first_name: editFirstName.trim(),
       last_name: editLastName.trim(),
@@ -472,6 +472,7 @@ export default function ManageUserPage() {
     try {
       if (editingUser.role === "STUDENT") {
         const updatePayload = {
+          email: normalizedEmail,
           title: editTitle,
           first_name: editFirstName.trim(),
           last_name: editLastName.trim(),
@@ -745,7 +746,7 @@ export default function ManageUserPage() {
   const modalBackdropClass =
     "fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/45 p-4 py-6 sm:p-6";
   const modalPanelClass =
-    "w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl sm:p-6 max-h-[calc(100vh-3rem)] overflow-y-auto";
+    "relative w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl sm:p-6 max-h-[calc(100vh-3rem)] overflow-y-auto";
   const fieldGroupClass = "mb-4";
   const labelClass = "block text-sm font-semibold text-gray-800 mb-1.5";
   const baseFieldClass =
@@ -1189,13 +1190,24 @@ export default function ManageUserPage() {
         {editingUser && (
           <div className={modalBackdropClass}>
             <div className={modalPanelClass}>
-              <div className="mb-5">
+              <button
+                type="button"
+                onClick={() => setEditingUser(null)}
+                disabled={isSaving}
+                className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="ปิดหน้าต่างแก้ไข"
+                title="ปิด"
+              >
+                <X size={18} />
+              </button>
+
+              <div className="mb-5 pr-10">
                 <h2 className="text-xl font-bold text-gray-900">
                   แก้ไขข้อมูล{currentRoleLabel}
                 </h2>
               </div>
 
-              {editingUser.role === "STUDENT" ? (
+              {editingUser.role === "STUDENT" && (
                 <div className={fieldGroupClass}>
                   <label className={labelClass}>รหัสนักศึกษา</label>
                   <input
@@ -1205,34 +1217,34 @@ export default function ManageUserPage() {
                     className={`${baseFieldClass} cursor-not-allowed border-gray-200 bg-gray-50 text-gray-500`}
                   />
                 </div>
-              ) : (
-                <div className={fieldGroupClass}>
-                  <label className={labelClass}>
-                    อีเมล <span className="text-red-500">*</span>{" "}
-                    <span className="text-xs font-medium text-gray-500">
-                      ({editEmail.length}/{USER_VALIDATION_CONFIG.email.max})
-                    </span>
-                  </label>
-                  <input
-                    type="email"
-                    value={editEmail}
-                    onChange={(e) => {
-                      setEditEmail(e.target.value);
-                      if (editErrors.email)
-                        setEditErrors((p) => ({ ...p, email: undefined }));
-                    }}
-                    maxLength={USER_VALIDATION_CONFIG.email.max}
-                    className={`${baseFieldClass} ${
-                      editErrors.email ? errorFieldClass : validFieldClass
-                    }`}
-                  />
-                  {editErrors.email && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {editErrors.email}
-                    </p>
-                  )}
-                </div>
               )}
+
+              <div className={fieldGroupClass}>
+                <label className={labelClass}>
+                  อีเมล <span className="text-red-500">*</span>{" "}
+                  <span className="text-xs font-medium text-gray-500">
+                    ({editEmail.length}/{USER_VALIDATION_CONFIG.email.max})
+                  </span>
+                </label>
+                <input
+                  type="email"
+                  value={editEmail}
+                  onChange={(e) => {
+                    setEditEmail(e.target.value);
+                    if (editErrors.email)
+                      setEditErrors((p) => ({ ...p, email: undefined }));
+                  }}
+                  maxLength={USER_VALIDATION_CONFIG.email.max}
+                  className={`${baseFieldClass} ${
+                    editErrors.email ? errorFieldClass : validFieldClass
+                  }`}
+                />
+                {editErrors.email && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {editErrors.email}
+                  </p>
+                )}
+              </div>
 
               {/* Title Field */}
               <div className={fieldGroupClass}>
