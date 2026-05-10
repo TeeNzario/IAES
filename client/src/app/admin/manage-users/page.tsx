@@ -654,6 +654,8 @@ export default function ManageUserPage() {
 
     if (!studentCode.trim()) {
       errors.student_code = "กรุณาระบุรหัสนักศึกษา";
+    } else if (!/^\d{8}$/.test(studentCode.trim())) {
+      errors.student_code = "รหัสนักศึกษาต้องเป็นตัวเลข 8 หลัก";
     }
 
     if (!studentTitle.trim()) {
@@ -730,7 +732,13 @@ export default function ManageUserPage() {
       }
     } catch (error: unknown) {
       if (getApiStatus(error) === 409) {
-        setStudentErrors((p) => ({ ...p, student_code: "รหัสนักศึกษานี้ถูกใช้งานแล้ว" }));
+        const errData = (error as { response?: { data?: { message?: string } } }).response?.data;
+        const msg = errData?.message ?? "";
+        if (msg.includes("email")) {
+          setStudentErrors((p) => ({ ...p, email: ERROR_MESSAGES.email.duplicate }));
+        } else {
+          setStudentErrors((p) => ({ ...p, student_code: "รหัสนักศึกษานี้ถูกใช้งานแล้ว" }));
+        }
       } else {
         console.error("Error creating student:", error);
       }
