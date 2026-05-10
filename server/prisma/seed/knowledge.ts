@@ -1,6 +1,5 @@
 import { knowledge_categories } from '../../src/generated/prisma/client';
 import { prisma } from '../../src/lib/prisma';
-import { SeededCourses } from './courses';
 import { SeededStaff } from './staff';
 
 type KnowledgeSeed = {
@@ -39,7 +38,7 @@ export const KNOWLEDGE_SEEDS: KnowledgeSeed[] = [
   },
   {
     name: 'นักศึกษาเข้าใจสถาปัตยกรรมของโครงข่ายประสาทเทียมแบบคอนโวลูชันและการประมวลผลภาพ',
-    courseCodes: ['COE64-361'],
+    courseCodes: ['COE64-361', 'COE64-335'],
   },
   {
     name: 'นักศึกษาเข้าใจหลักการออกแบบส่วนติดต่อผู้ใช้งานและการเขียนโปรแกรมบนฝั่งหน้าบ้านด้วยเฟรมเวิร์กสมัยใหม่',
@@ -98,7 +97,6 @@ export interface SeededKnowledge {
 
 export async function seedKnowledge(
   staff: SeededStaff,
-  _offerings: SeededCourses['offerings'],
 ): Promise<SeededKnowledge> {
   const creator =
     staff.instructors.find((i) => i.email === 'instructor@iaes.local') ??

@@ -12,10 +12,10 @@ async function main() {
   const staff = await seedStaff();
   const students = await seedStudents();
   const { offerings } = await seedCourses(staff);
-  await seedKnowledge(staff, offerings);
-  const questions = await seedQuestions(staff, offerings);
+  await seedKnowledge(staff);
+  const questions = await seedQuestions(staff);
   const exams = await seedExams(offerings, questions);
-  await seedAttempts(exams, students);
+  await seedAttempts(exams);
 
   console.log('\nSeed completed');
   console.log(`Admin: ${staff.admins[0].email} / ${DEMO_PASSWORD}`);

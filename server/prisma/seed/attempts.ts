@@ -1,7 +1,4 @@
-import {
-  exam_attempt_status,
-  students,
-} from '../../src/generated/prisma/client';
+import { exam_attempt_status } from '../../src/generated/prisma/client';
 import { prisma } from '../../src/lib/prisma';
 import { SeededExam } from './exams';
 
@@ -195,6 +192,124 @@ const PLANS: AttemptPlan[] = [
     mode: { status: 'SUBMITTED', correctness: 'mixed' },
     seed: 27,
   },
+
+  // --- Mobile Development (COE64-233)
+  {
+    examTitle: 'ปลายภาค Mobile Development',
+    student_code: '65220101',
+    mode: { status: 'SUBMITTED', correctness: 'most' },
+    seed: 28,
+  },
+  {
+    examTitle: 'ปลายภาค Mobile Development',
+    student_code: '66220501',
+    mode: { status: 'SUBMITTED', correctness: 'mixed' },
+    seed: 29,
+  },
+  {
+    examTitle: 'ปลายภาค Mobile Development',
+    student_code: '66131319',
+    mode: { status: 'IN_PROGRESS' },
+    seed: 30,
+  },
+
+  // --- Signals and Systems (COE64-305)
+  {
+    examTitle: 'กลางภาค Signals and Systems',
+    student_code: '64121201',
+    mode: { status: 'SUBMITTED', correctness: 'all' },
+    seed: 31,
+  },
+  {
+    examTitle: 'กลางภาค Signals and Systems',
+    student_code: '64121202',
+    mode: { status: 'SUBMITTED', correctness: 'most' },
+    seed: 32,
+  },
+  {
+    examTitle: 'กลางภาค Signals and Systems',
+    student_code: '66121212',
+    mode: { status: 'SUBMITTED', correctness: 'mixed' },
+    seed: 33,
+  },
+  {
+    examTitle: 'กลางภาค Signals and Systems',
+    student_code: '65250101',
+    mode: { status: 'SUBMITTED', correctness: 'few' },
+    seed: 34,
+  },
+
+  // --- Sociology (GED65-130)
+  {
+    examTitle: 'กลางภาค สังคมวิทยาเบื้องต้น',
+    student_code: '66170201',
+    mode: { status: 'SUBMITTED', correctness: 'all' },
+    seed: 35,
+  },
+  {
+    examTitle: 'กลางภาค สังคมวิทยาเบื้องต้น',
+    student_code: '66112233',
+    mode: { status: 'SUBMITTED', correctness: 'most' },
+    seed: 36,
+  },
+  {
+    examTitle: 'กลางภาค สังคมวิทยาเบื้องต้น',
+    student_code: '63131101',
+    mode: { status: 'SUBMITTED', correctness: 'mixed' },
+    seed: 37,
+  },
+  {
+    examTitle: 'กลางภาค สังคมวิทยาเบื้องต้น',
+    student_code: '66140101',
+    mode: { status: 'IN_PROGRESS' },
+    seed: 38,
+  },
+  {
+    examTitle: 'กลางภาค สังคมวิทยาเบื้องต้น',
+    student_code: '66110701',
+    mode: { status: 'SUBMITTED', correctness: 'most' },
+    seed: 45,
+  },
+
+  // --- Standard Thai (STD-003)
+  {
+    examTitle: 'แบบทดสอบมาตรฐาน ภาษาไทย',
+    student_code: '63131102',
+    mode: { status: 'SUBMITTED', correctness: 'all' },
+    seed: 39,
+  },
+  {
+    examTitle: 'แบบทดสอบมาตรฐาน ภาษาไทย',
+    student_code: '66110701',
+    mode: { status: 'SUBMITTED', correctness: 'most' },
+    seed: 40,
+  },
+  {
+    examTitle: 'แบบทดสอบมาตรฐาน ภาษาไทย',
+    student_code: '66131319',
+    mode: { status: 'SUBMITTED', correctness: 'mixed' },
+    seed: 41,
+  },
+
+  // --- CNN (COE64-361)
+  {
+    examTitle: 'กลางภาค Convolutional Neural Networks',
+    student_code: '66250102',
+    mode: { status: 'SUBMITTED', correctness: 'all' },
+    seed: 42,
+  },
+  {
+    examTitle: 'กลางภาค Convolutional Neural Networks',
+    student_code: '66250103',
+    mode: { status: 'SUBMITTED', correctness: 'most' },
+    seed: 43,
+  },
+  {
+    examTitle: 'กลางภาค Convolutional Neural Networks',
+    student_code: '66250104',
+    mode: { status: 'IN_PROGRESS' },
+    seed: 44,
+  },
 ];
 
 function mulberry32(a: number) {
@@ -219,7 +334,6 @@ function pickCorrectness(
 
 export async function seedAttempts(
   exams: SeededExam[],
-  _students: students[],
 ): Promise<void> {
   const examByTitle = new Map(exams.map((e) => [e.exam.title, e]));
 
