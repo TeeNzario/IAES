@@ -150,6 +150,19 @@ const OFFERINGS: OfferingSeed[] = [
     studentCodes: ['66131319', '66220501', '66250102'],
   },
   {
+    courseCode: 'COE64-305',
+    academic_year: 2026,
+    semester: 1,
+    instructorEmails: ['suda.science@iaes.local'],
+    studentCodes: [
+      '64121201',
+      '64121202',
+      '66121212',
+      '65250101',
+      '66250102',
+    ],
+  },
+  {
     courseCode: 'COE64-233',
     academic_year: 2025,
     semester: 2,

@@ -4,7 +4,6 @@ import {
   question_collections,
 } from '../../src/generated/prisma/client';
 import { prisma } from '../../src/lib/prisma';
-import { SeededCourses } from './courses';
 import { SeededStaff } from './staff';
 
 type QuestionSeed = {
@@ -95,6 +94,41 @@ const COLLECTIONS: CollectionSeed[] = [
     courseCode: 'STD-001',
     academic_year: 2026,
     title: 'ชุดมาตรฐาน',
+  },
+  {
+    key: 'MOB-2025-FIN',
+    courseCode: 'COE64-233',
+    academic_year: 2025,
+    title: 'ปลายภาค',
+    description: 'แบบทดสอบปลายภาค รายวิชา Mobile Device Application Development ปีการศึกษา 2025',
+  },
+  {
+    key: 'SIG-2026-MID',
+    courseCode: 'COE64-305',
+    academic_year: 2026,
+    title: 'กลางภาค',
+    description: 'แบบทดสอบกลางภาค รายวิชา Introduction to Signals and System',
+  },
+  {
+    key: 'SOC-2026-MID',
+    courseCode: 'GED65-130',
+    academic_year: 2026,
+    title: 'กลางภาค',
+    description: 'แบบทดสอบกลางภาค รายวิชาสังคมวิทยาเบื้องต้น',
+  },
+  {
+    key: 'STD-TH-MAIN',
+    courseCode: 'STD-003',
+    academic_year: 2026,
+    title: 'ชุดมาตรฐาน',
+    description: 'ชุดข้อสอบมาตรฐานด้านภาษาไทย',
+  },
+  {
+    key: 'CNN-2026-MID',
+    courseCode: 'COE64-361',
+    academic_year: 2026,
+    title: 'กลางภาค',
+    description: 'แบบทดสอบกลางภาค รายวิชา Convolutional Neural Networks',
   },
 ];
 
@@ -264,7 +298,7 @@ const QUESTIONS: QuestionSeed[] = [
   // ============ CNN ============
   {
     externalKey: 'CNN-001',
-    courseCode: 'COE64-361',
+    courseCode: 'COE64-335',
     collectionKey: 'ML-2026-FIN',
     question_type: 'MCQ_SINGLE',
     question_text: 'ข้อใดเป็นเหตุผลหลักที่ CNN เหมาะกับงานประมวลผลภาพ',
@@ -795,6 +829,317 @@ const QUESTIONS: QuestionSeed[] = [
       { text: 'I am visiting Japan three times.', is_correct: false },
     ],
   },
+  // ============ Mobile Development (COE64-233) ============
+  {
+    externalKey: 'MOB-FIN-001',
+    courseCode: 'COE64-233',
+    collectionKey: 'MOB-2025-FIN',
+    question_type: 'MCQ_SINGLE',
+    question_text:
+      'ข้อใดเป็น Cross-platform Framework สำหรับพัฒนา Mobile Application',
+    difficulty_param: -0.5,
+    discrimination_param: 1.0,
+    guessing_param: 0.25,
+    knowledgeNames: [
+      'นักศึกษาสามารถออกแบบและพัฒนาแอปพลิเคชันบนอุปกรณ์เคลื่อนที่ได้อย่างเหมาะสมกับผู้ใช้',
+    ],
+    choices: [
+      { text: 'React Native', is_correct: true },
+      { text: 'SwiftUI', is_correct: false },
+      { text: 'Windows Forms', is_correct: false },
+      { text: 'Android XML', is_correct: false },
+    ],
+  },
+  {
+    externalKey: 'MOB-FIN-002',
+    courseCode: 'COE64-233',
+    collectionKey: 'MOB-2025-FIN',
+    question_type: 'MCQ_SINGLE',
+    question_text:
+      'หลัก Responsive Design ใน Mobile App หมายถึงข้อใด',
+    difficulty_param: -0.2,
+    discrimination_param: 1.1,
+    guessing_param: 0.2,
+    knowledgeNames: [
+      'นักศึกษาสามารถออกแบบและพัฒนาแอปพลิเคชันบนอุปกรณ์เคลื่อนที่ได้อย่างเหมาะสมกับผู้ใช้',
+    ],
+    choices: [
+      { text: 'การออกแบบให้รองรับหน้าจอหลายขนาด', is_correct: true },
+      { text: 'การใช้สีสันสดใสเพื่อดึงดูดผู้ใช้', is_correct: false },
+      { text: 'การตอบสนองต่อคำสั่งภายใน 1 วินาที', is_correct: false },
+      { text: 'การใช้ AI ในการประมวลผล', is_correct: false },
+    ],
+  },
+  {
+    externalKey: 'MOB-FIN-003',
+    courseCode: 'COE64-233',
+    collectionKey: 'MOB-2025-FIN',
+    question_type: 'MCQ_MULTI',
+    question_text:
+      'ข้อใดเป็นข้อดีของการใช้ REST API ใน Mobile App (เลือกทุกข้อที่ถูก)',
+    difficulty_param: 0.2,
+    discrimination_param: 1.3,
+    guessing_param: 0.1,
+    knowledgeNames: [
+      'นักศึกษาสามารถออกแบบและพัฒนาแอปพลิเคชันบนอุปกรณ์เคลื่อนที่ได้อย่างเหมาะสมกับผู้ใช้',
+    ],
+    choices: [
+      { text: 'สามารถเปลี่ยน UI ได้โดยไม่กระทบ Backend', is_correct: true },
+      { text: 'รองรับการทำงานข้าม Platform ได้ดี', is_correct: true },
+      { text: 'ใช้หน่วยความจำน้อยกว่า Local Database', is_correct: false },
+      { text: 'ลดการกินแบตเตอรี่ของแอปพลิเคชัน', is_correct: false },
+    ],
+  },
+  // ============ Signals and Systems (COE64-305) ============
+  {
+    externalKey: 'SIG-MID-001',
+    courseCode: 'COE64-305',
+    collectionKey: 'SIG-2026-MID',
+    question_type: 'MCQ_SINGLE',
+    question_text:
+      'สัญญาณที่นิยามเฉพาะที่เวลาไม่ต่อเนื่องเรียกว่าสัญญาณประเภทใด',
+    difficulty_param: -0.8,
+    discrimination_param: 1.0,
+    guessing_param: 0.25,
+    knowledgeNames: [
+      'นักศึกษาเข้าใจพื้นฐานของสัญญาณเชิงเวลาต่อเนื่องและเชิงเวลาไม่ต่อเนื่อง',
+    ],
+    choices: [
+      { text: 'Discrete-time Signal', is_correct: true },
+      { text: 'Continuous-time Signal', is_correct: false },
+      { text: 'Analog Signal', is_correct: false },
+      { text: 'Digital Image', is_correct: false },
+    ],
+  },
+  {
+    externalKey: 'SIG-MID-002',
+    courseCode: 'COE64-305',
+    collectionKey: 'SIG-2026-MID',
+    question_type: 'MCQ_SINGLE',
+    question_text:
+      'การแปลงฟูริเยร์ (Fourier Transform) มีประโยชน์หลักคือข้อใด',
+    difficulty_param: 0.3,
+    discrimination_param: 1.2,
+    guessing_param: 0.2,
+    knowledgeNames: [
+      'นักศึกษาเข้าใจพื้นฐานของสัญญาณเชิงเวลาต่อเนื่องและเชิงเวลาไม่ต่อเนื่อง',
+    ],
+    choices: [
+      {
+        text: 'แปลงสัญญาณจากโดเมนเวลาไปเป็นโดเมนความถี่',
+        is_correct: true,
+      },
+      { text: 'บีบอัดข้อมูลภาพและเสียง', is_correct: false },
+      { text: 'เข้ารหัสข้อมูลเพื่อความปลอดภัย', is_correct: false },
+      { text: 'ขยายขนาดแอมพลิจูดของสัญญาณ', is_correct: false },
+    ],
+  },
+  {
+    externalKey: 'SIG-MID-003',
+    courseCode: 'COE64-305',
+    collectionKey: 'SIG-2026-MID',
+    question_type: 'MCQ_MULTI',
+    question_text:
+      'ข้อใดคือคุณสมบัติของระบบ LTI (Linear Time-Invariant) (เลือกทุกข้อที่ถูก)',
+    difficulty_param: 0.7,
+    discrimination_param: 1.4,
+    guessing_param: 0.15,
+    knowledgeNames: [
+      'นักศึกษาเข้าใจพื้นฐานของสัญญาณเชิงเวลาต่อเนื่องและเชิงเวลาไม่ต่อเนื่อง',
+    ],
+    choices: [
+      { text: 'Superposition — ผลรวมของอินพุตให้ผลรวมของเอาต์พุต', is_correct: true },
+      { text: 'Time-invariance — การเลื่อนเวลาอินพุตเลื่อนเอาต์พุตเท่ากัน', is_correct: true },
+      { text: 'ระบบ LTI ทุกระบบต้องเป็น Causal เสมอ', is_correct: false },
+      { text: 'ระบบ LTI ทุกระบบต้องเสถียรเสมอ', is_correct: false },
+    ],
+  },
+  // ============ Sociology (GED65-130) ============
+  {
+    externalKey: 'SOC-MID-001',
+    courseCode: 'GED65-130',
+    collectionKey: 'SOC-2026-MID',
+    question_type: 'MCQ_SINGLE',
+    question_text:
+      'สังคมวิทยาคือการศึกษาเกี่ยวกับอะไรเป็นหลัก',
+    difficulty_param: -1.0,
+    discrimination_param: 0.9,
+    guessing_param: 0.25,
+    knowledgeNames: [
+      'นักศึกษาเข้าใจแนวคิดพื้นฐานทางสังคมวิทยาและการวิเคราะห์โครงสร้างทางสังคม',
+    ],
+    choices: [
+      {
+        text: 'โครงสร้างทางสังคม ความสัมพันธ์ และพฤติกรรมมนุษย์ในสังคม',
+        is_correct: true,
+      },
+      { text: 'เซลล์ จุลินทรีย์ และสิ่งมีชีวิต', is_correct: false },
+      { text: 'ระบบเศรษฐกิจและการค้าระหว่างประเทศ', is_correct: false },
+      { text: 'การปกครองและกฎหมายรัฐธรรมนูญ', is_correct: false },
+    ],
+  },
+  {
+    externalKey: 'SOC-MID-002',
+    courseCode: 'GED65-130',
+    collectionKey: 'SOC-2026-MID',
+    question_type: 'MCQ_SINGLE',
+    question_text:
+      'ตามแนวคิดทางสังคมวิทยา ข้อใดคือ Social Institution',
+    difficulty_param: -0.6,
+    discrimination_param: 1.0,
+    guessing_param: 0.2,
+    knowledgeNames: [
+      'นักศึกษาเข้าใจแนวคิดพื้นฐานทางสังคมวิทยาและการวิเคราะห์โครงสร้างทางสังคม',
+    ],
+    choices: [
+      { text: 'ครอบครัว', is_correct: true },
+      { text: 'ภูเขาและแม่น้ำ', is_correct: false },
+      { text: 'โครงข่ายอินเทอร์เน็ต', is_correct: false },
+      { text: 'รหัสพันธุกรรม (DNA)', is_correct: false },
+    ],
+  },
+  {
+    externalKey: 'SOC-MID-003',
+    courseCode: 'GED65-130',
+    collectionKey: 'SOC-2026-MID',
+    question_type: 'MCQ_MULTI',
+    question_text:
+      'ข้อใดเป็นปัจจัยที่ส่งผลต่อการเปลี่ยนแปลงทางสังคม (เลือกทุกข้อที่ถูก)',
+    difficulty_param: 0.5,
+    discrimination_param: 1.5,
+    guessing_param: 0.1,
+    knowledgeNames: [
+      'นักศึกษาเข้าใจแนวคิดพื้นฐานทางสังคมวิทยาและการวิเคราะห์โครงสร้างทางสังคม',
+    ],
+    choices: [
+      { text: 'การพัฒนาเทคโนโลยี', is_correct: true },
+      { text: 'การแพร่กระจายทางวัฒนธรรม', is_correct: true },
+      { text: 'สภาพภูมิอากาศที่คงที่ไม่เปลี่ยนแปลง', is_correct: false },
+      { text: 'การเปลี่ยนแปลงจำนวนและโครงสร้างประชากร', is_correct: true },
+    ],
+  },
+  // ============ Standard Thai (STD-003) ============
+  {
+    externalKey: 'STD-TH-001',
+    courseCode: 'STD-003',
+    collectionKey: 'STD-TH-MAIN',
+    question_type: 'MCQ_SINGLE',
+    question_text: 'คำว่า "กตัญญู" มีความหมายตรงกับข้อใด',
+    difficulty_param: -1.6,
+    discrimination_param: 0.7,
+    guessing_param: 0.25,
+    knowledgeNames: [
+      'นักศึกษาสามารถอ่าน เขียน และเข้าใจภาษาไทยในระดับที่ใช้ในการสื่อสารทางวิชาการได้',
+    ],
+    choices: [
+      { text: 'รู้คุณค่าและตอบแทนบุญคุณ', is_correct: true },
+      { text: 'ขยันขันแข็งในการทำงาน', is_correct: false },
+      { text: 'สามัคคีปรองดอง', is_correct: false },
+      { text: 'ประหยัดอดออม', is_correct: false },
+    ],
+  },
+  {
+    externalKey: 'STD-TH-002',
+    courseCode: 'STD-003',
+    collectionKey: 'STD-TH-MAIN',
+    question_type: 'MCQ_SINGLE',
+    question_text: 'ประโยคใดใช้ราชาศัพท์ได้ถูกต้อง',
+    difficulty_param: 0.4,
+    discrimination_param: 1.2,
+    guessing_param: 0.2,
+    knowledgeNames: [
+      'นักศึกษาสามารถอ่าน เขียน และเข้าใจภาษาไทยในระดับที่ใช้ในการสื่อสารทางวิชาการได้',
+    ],
+    choices: [
+      {
+        text: 'พระบาทสมเด็จพระเจ้าอยู่หัวทรงพระประชวร',
+        is_correct: true,
+      },
+      { text: 'ในหลวงเสวยข้าวเที่ยงแล้ว', is_correct: false },
+      { text: 'พระองค์ท่านเสด็จไปเที่ยวทะเล', is_correct: false },
+      { text: 'สมเด็จพระบรมโอรสาธิราชกินข้าว', is_correct: false },
+    ],
+  },
+  {
+    externalKey: 'STD-TH-003',
+    courseCode: 'STD-003',
+    collectionKey: 'STD-TH-MAIN',
+    question_type: 'MCQ_SINGLE',
+    question_text: 'ข้อใดใช้คำเชื่อมประโยคได้ถูกต้องตามหลักภาษาไทย',
+    difficulty_param: 0.1,
+    discrimination_param: 1.0,
+    guessing_param: 0.25,
+    knowledgeNames: [
+      'นักศึกษาสามารถอ่าน เขียน และเข้าใจภาษาไทยในระดับที่ใช้ในการสื่อสารทางวิชาการได้',
+    ],
+    choices: [
+      { text: 'เขาขยันเรียน เพราะฉะนั้นเขาจึงสอบผ่าน', is_correct: true },
+      { text: 'เขาไม่มาแต่ว่าเขาป่วยหนัก', is_correct: false },
+      { text: 'ฝนตกดังนั้นถนนเปียก', is_correct: false },
+      { text: 'ฉันชอบหมาแต่แมวไม่ชอบ', is_correct: false },
+    ],
+  },
+  // ============ CNN (COE64-361) ============
+  {
+    externalKey: 'CNN-MID-001',
+    courseCode: 'COE64-361',
+    collectionKey: 'CNN-2026-MID',
+    question_type: 'MCQ_SINGLE',
+    question_text:
+      'ชั้นใดของ CNN ทำหน้าที่ลดขนาด spatial dimension ของ feature map',
+    difficulty_param: -0.3,
+    discrimination_param: 1.0,
+    guessing_param: 0.25,
+    knowledgeNames: [
+      'นักศึกษาเข้าใจสถาปัตยกรรมของโครงข่ายประสาทเทียมแบบคอนโวลูชันและการประมวลผลภาพ',
+    ],
+    choices: [
+      { text: 'Pooling Layer', is_correct: true },
+      { text: 'Fully Connected Layer', is_correct: false },
+      { text: 'ReLU Activation Layer', is_correct: false },
+      { text: 'Input Layer', is_correct: false },
+    ],
+  },
+  {
+    externalKey: 'CNN-MID-002',
+    courseCode: 'COE64-361',
+    collectionKey: 'CNN-2026-MID',
+    question_type: 'MCQ_SINGLE',
+    question_text:
+      'Convolution Operation ใน CNN มีหน้าที่หลักคืออะไร',
+    difficulty_param: 0.1,
+    discrimination_param: 1.1,
+    guessing_param: 0.2,
+    knowledgeNames: [
+      'นักศึกษาเข้าใจสถาปัตยกรรมของโครงข่ายประสาทเทียมแบบคอนโวลูชันและการประมวลผลภาพ',
+    ],
+    choices: [
+      { text: 'สกัดคุณลักษณะ (Feature Extraction) จากภาพ', is_correct: true },
+      { text: 'ลดจำนวนพารามิเตอร์ของโมเดล', is_correct: false },
+      { text: 'เพิ่มขนาดภาพให้ใหญ่ขึ้น', is_correct: false },
+      { text: 'เปลี่ยนภาพสีเป็นภาพขาวดำ', is_correct: false },
+    ],
+  },
+  {
+    externalKey: 'CNN-MID-003',
+    courseCode: 'COE64-361',
+    collectionKey: 'CNN-2026-MID',
+    question_type: 'MCQ_MULTI',
+    question_text:
+      'ข้อใดคือเทคนิคที่ช่วยลด Overfitting ใน CNN (เลือกทุกข้อที่ถูก)',
+    difficulty_param: 0.8,
+    discrimination_param: 1.4,
+    guessing_param: 0.1,
+    knowledgeNames: [
+      'นักศึกษาเข้าใจสถาปัตยกรรมของโครงข่ายประสาทเทียมแบบคอนโวลูชันและการประมวลผลภาพ',
+    ],
+    choices: [
+      { text: 'Dropout', is_correct: true },
+      { text: 'Batch Normalization', is_correct: true },
+      { text: 'การเพิ่มจำนวน Fully Connected Layer', is_correct: false },
+      { text: 'Data Augmentation', is_correct: true },
+    ],
+  },
 ];
 
 export interface SeededQuestions {
@@ -806,7 +1151,6 @@ export interface SeededQuestions {
 
 export async function seedQuestions(
   staff: SeededStaff,
-  _offerings: SeededCourses['offerings'],
 ): Promise<SeededQuestions> {
   const creator =
     staff.instructors.find((i) => i.email === 'instructor@iaes.local') ??
