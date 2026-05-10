@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code when working with this repository.
 
+## Important: Commit and PR Rules
+
+- **NEVER** add `Co-Authored-By: Claude` or any Claude attribution to commit messages.
+- **NEVER** add `🤖 Generated with Claude Code` or similar to PR descriptions.
+- All commits and PRs must appear as the user's own work with no Claude footprint.
+
 ## Project Overview
 
 IAES (Intelligent Adaptive Examination System) is a monorepo for adaptive examination management. It has a Next.js frontend, a NestJS backend, PostgreSQL, and Prisma ORM.
