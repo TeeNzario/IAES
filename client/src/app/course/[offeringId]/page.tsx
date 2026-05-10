@@ -41,7 +41,14 @@ export default function CoursePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [authLoaded, setAuthLoaded] = useState(false);
   const [exams, setExams] = useState<ExamListItem[]>([]);
+
+  const userType = String(user?.type ?? user?.userType ?? "").toUpperCase();
+  const staffRole = String(user?.staff_role ?? user?.role ?? "").toUpperCase();
+  const canManageExams =
+    userType === "STAFF" &&
+    (staffRole === "INSTRUCTOR" || staffRole === "ADMIN");
 
   useEffect(() => {
     if (!offeringId) return;
@@ -66,28 +73,45 @@ export default function CoursePage() {
 
   useEffect(() => {
     if (!offeringId) return;
+    if (!authLoaded) return;
 
+    if (!canManageExams) {
+      setExams([]);
+      return;
+    }
+
+    let isMounted = true;
     apiFetch<ExamListItem[]>(`/course-offerings/${offeringId}/exams`)
-      .then(setExams)
-      .catch(() => setExams([]));
-  }, [offeringId]);
+      .then((data) => {
+        if (isMounted) setExams(data);
+      })
+      .catch(() => {
+        if (isMounted) setExams([]);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [authLoaded, canManageExams, offeringId]);
 
   useEffect(() => {
+    let isMounted = true;
+
     apiFetch<AuthUser>("/auth/me")
       .then((user) => {
-        setUser(user);
+        if (isMounted) setUser(user);
       })
       .catch((err) => {
         console.error("Failed to fetch user", err);
+      })
+      .finally(() => {
+        if (isMounted) setAuthLoaded(true);
       });
-  }, []);
 
-  const userType = String(user?.type ?? user?.userType ?? "").toUpperCase();
-  const isStudent = userType === "STUDENT";
-  const isInstructor =
-    userType === "STAFF" &&
-    String(user?.staff_role ?? user?.role ?? "").toUpperCase() ===
-      "INSTRUCTOR";
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const upcomingExams = exams
     .filter((exam) => exam.status !== "ENDED")
@@ -240,7 +264,7 @@ export default function CoursePage() {
 
           <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
             <aside className="space-y-4">
-              {!isStudent && (
+              {canManageExams && (
                 <button
                   onClick={() => router.push(`/course/${offeringId}/exam/create`)}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#A48FD6] cursor-pointer"
@@ -250,7 +274,7 @@ export default function CoursePage() {
                 </button>
               )}
 
-              {!isStudent && (
+              {canManageExams && (
                 <button
                   onClick={() => setActiveTab("analytics")}
                   className={`flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-colors cursor-pointer ${
@@ -337,7 +361,7 @@ export default function CoursePage() {
                         >
                           {statusLabel(exam.status)}
                         </span>
-                        {isInstructor && (
+                        {canManageExams && (
                           <button
                             type="button"
                             onClick={() =>

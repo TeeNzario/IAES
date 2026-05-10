@@ -4,17 +4,19 @@ IAES (Intelligent Adaptive Examination System) is a web application for adaptive
 
 ## Features
 
+- Role-aware course home for instructors and students
 - Manage staff users, students, courses, course offerings, and enrollments
 - Import students through CSV preview and confirm workflow
-- Manage question banks, knowledge categories, exam sets, and attempts
+- Manage course members, instructors, question banks, knowledge categories, exam sets, and attempts
 - JWT authentication with httpOnly cookies
 - Role-based access for ADMIN, INSTRUCTOR, and STUDENT users
 - Audit logging for sensitive user and enrollment changes
+- Results summary page is present as a "กำลังพัฒนา" placeholder
 
 ## Tech Stack
 
-- Frontend: Next.js 16, React 19, Tailwind CSS 4, TypeScript
-- Backend: NestJS 11, Passport JWT, Prisma 7
+- Frontend: Next.js 16.0.10, React 19.2.1, Tailwind CSS 4, TypeScript
+- Backend: NestJS 11, Passport JWT, Prisma 7.3.0
 - Database: PostgreSQL
 - Authentication: httpOnly cookie JWT flow
 
@@ -76,6 +78,8 @@ cd server
 npm run seed
 ```
 
+The seed is idempotent. It currently creates 2 admin accounts, 7 instructor accounts, 25 students, 13 courses, 12 course offerings, 20 knowledge categories, 10 question collections, 33 questions, 10 exam sets, and demo exam attempts.
+
 6. Run backend and frontend together from the repository root.
 
 ```bash
@@ -97,6 +101,24 @@ The seed script creates these demo accounts with password `1234`:
 Admin:      admin@iaes.local / 1234
 Instructor: instructor@iaes.local / 1234
 Student:    66131319 / 1234
+```
+
+Use the unified login page at `http://localhost:3000/login`. The form accepts either an 8-digit student code or a staff email.
+
+## Main Routes
+
+```text
+/login                         Unified login page
+/                              Role-aware course home
+/admin/manage-users            Admin user management
+/course                        Instructor course catalog and course setup
+/course/[offeringId]           Course dashboard
+/course/[offeringId]/members   Course member and CSV enrollment management
+/exam-bank                     Instructor course picker for question bank work
+/exam-bank/[offeringId]        Question bank and exam set entry page
+/exam-bank/[offeringId]/questions
+/exam-bank/[offeringId]/exam-sets
+/results                       Results summary placeholder
 ```
 
 ## Database Workflows
@@ -151,6 +173,8 @@ Never run `migrate reset` against shared or production databases.
 - The frontend stores only non-sensitive user profile data in `localStorage`; it does not store the access token.
 - Axios sends cookies with `withCredentials: true`.
 - Next.js middleware reads `access_token` and `user` cookies to protect routes and enforce role access.
+- ADMIN users can access admin pages. INSTRUCTOR users can access course management, course dashboards, course members, and exam bank pages. STUDENT users can access the role-aware home and enrolled course dashboards.
+- Course exam management endpoints are staff-only; the course dashboard avoids calling them for students.
 - Password changes update `password_changed_at`; older JWTs are rejected after a password change.
 - Student API responses use explicit selects so `password_hash` is not returned by list/detail endpoints.
 - Audit logs are written to `audit_logs` for sensitive user and enrollment actions.
@@ -193,6 +217,12 @@ Build client:
 npm run build --prefix client
 ```
 
+Lint client:
+
+```bash
+npm run lint --prefix client
+```
+
 Open Prisma Studio:
 
 ```bash
@@ -216,6 +246,7 @@ Use `npm.cmd`:
 ```powershell
 npm.cmd install
 npm.cmd run dev
+npm.cmd run build --prefix client
 ```
 
 Use the same `.cmd` form for `npx` if PowerShell blocks scripts:
@@ -262,6 +293,10 @@ Check that:
 - Backend CORS allows the frontend origin
 - API requests use credentials
 - Browser cookies for `localhost` are not blocked
+
+### Next.js Build Warnings
+
+Next.js 16 may warn that the `middleware` file convention is deprecated in favor of `proxy`, and `baseline-browser-mapping` may warn when its browser baseline data is older than two months. These warnings do not block the current build.
 
 ### PostgreSQL Schema Permission Error
 

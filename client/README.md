@@ -4,8 +4,8 @@ Next.js frontend for IAES (Intelligent Adaptive Examination System).
 
 ## Tech Stack
 
-- Next.js 16
-- React 19
+- Next.js 16.0.10
+- React 19.2.1
 - TypeScript
 - Tailwind CSS 4
 - Axios
@@ -80,13 +80,34 @@ npm run lint
 
 - Login page: `/login`
 - Staff login route redirects through the unified login page: `/staff/login`
+- The unified login form accepts either an 8-digit student code or a staff email.
 - The API sets JWTs in httpOnly cookies; the frontend does not store access tokens in `localStorage`.
 - `client/src/lib/auth.ts` stores only non-sensitive user profile data for UI rendering.
 - `client/src/lib/api.ts` uses Axios with `withCredentials: true` so cookies are sent to the backend.
 - `clearAuth()` calls `POST /auth/logout` and clears legacy client-written cookies.
 - Middleware protects authenticated routes and checks role access from the auth cookies.
 - ADMIN users visiting `/` are redirected to `/admin/manage-users`.
+- INSTRUCTOR users can access `/course`, `/course/[offeringId]`, course members, and `/exam-bank`.
+- STUDENT users can access `/` and enrolled course detail pages under `/course/[offeringId]`.
 - Static public assets, such as `/IAES_logo.png`, are allowed through middleware.
+
+## Current App Routes
+
+```text
+src/app/page.tsx                              Role-aware course home
+src/app/login/page.tsx                        Unified login page
+src/app/staff/login/page.tsx                  Redirect to /login
+src/app/admin/manage-users/page.tsx           Admin staff/student management
+src/app/course/page.tsx                       Instructor course catalog
+src/app/course/[offeringId]/page.tsx          Course dashboard
+src/app/course/[offeringId]/members/page.tsx  Course members and CSV import
+src/app/course/[offeringId]/exam/create       Open an exam from an exam set
+src/app/exam-bank/page.tsx                    Course picker for exam bank
+src/app/exam-bank/[offeringId]/page.tsx       Exam bank entry page
+src/app/exam-bank/[offeringId]/questions      Question bank list/create/edit flow
+src/app/exam-bank/[offeringId]/exam-sets      Exam set list/create/edit flow
+src/app/results/page.tsx                      Results summary placeholder
+```
 
 ## Important Paths
 
@@ -102,6 +123,14 @@ src/types/               Shared frontend TypeScript types
 src/config/curriculums.ts Curriculum definitions
 public/IAES_logo.png     Login/logo asset
 ```
+
+## UI Notes
+
+- The app uses a purple IAES theme centered around `#B7A3E3`, `#7C5BD9`, and `#F4EFFF`.
+- Course cards are shown in three columns on wide screens and collapse responsively.
+- Course dashboards fetch exam management data only for staff users with exam-management access.
+- The sidebar keeps "ผลสรุปการสอบ" as the final menu item.
+- `/results` intentionally shows a "กำลังพัฒนา" state until the summary feature is implemented.
 
 ## Verification
 
