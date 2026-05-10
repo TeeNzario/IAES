@@ -10,9 +10,9 @@ IAES (Intelligent Adaptive Examination System) is a monorepo for adaptive examin
 
 ```text
 IAES/
-|-- client/       Next.js frontend (React 19, Tailwind CSS 4, TypeScript)
-|-- server/       NestJS backend (TypeScript, Prisma, Passport JWT auth)
-|-- shared/       Shared code between client and server
+|-- client/       Next.js frontend (Next.js 16.0.10, React 19.2.1, Tailwind CSS 4, TypeScript)
+|-- server/       NestJS backend (NestJS 11, TypeScript, Prisma 7.3.0, Passport JWT auth)
+|-- shared/       Shared validation configuration between client and server
 |-- package.json  Root scripts for running both apps concurrently
 ```
 
@@ -101,7 +101,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3002
 
 ### Backend
 
-The server is a modular NestJS application.
+The server is a modular NestJS 11 application wired through `server/src/app.module.ts`.
 
 - `server/src/auth/` - JWT login, guards, roles, strategy, cookie auth, JWT secret validation
 - `server/src/modules/audit/` - audit logging into `audit_logs`
@@ -110,7 +110,7 @@ The server is a modular NestJS application.
 - `server/src/modules/courses/` - course management
 - `server/src/modules/course-offerings/` - course offerings, enrollments, CSV preview/import
 - `server/src/modules/knowledge-categories/` - knowledge category links
-- `server/src/modules/question-bank/` - question bank, choices, knowledge tagging
+- `server/src/modules/question-bank/` - question bank years, collections, choices, knowledge tagging
 - `server/src/modules/course-exams/` - exam set creation and management
 - `server/src/prisma/` - global Prisma service provider
 - `server/src/lib/password.ts` - bcrypt hashing, verification, and `BCRYPT_COST`
@@ -120,20 +120,28 @@ Key backend patterns:
 - Controllers use the `@Auth()` decorator for protected routes.
 - `RolesGuard` enforces ADMIN and INSTRUCTOR access.
 - Login routes use `@nestjs/throttler` with a 5 attempts per minute limit.
+- `POST /auth/login` is the unified login endpoint and accepts a staff email or an 8-digit student code through `identifier`.
 - JWTs are accepted from Bearer tokens or the httpOnly `access_token` cookie.
+- `course-offerings/:offeringId/exams` routes are staff-only and require INSTRUCTOR or ADMIN.
 - Password changes update `password_changed_at`; tokens issued before that timestamp are rejected.
 - Sensitive changes write audit records through `AuditService`.
 - Student list/detail responses must keep using explicit selects that exclude `password_hash`.
 
 ### Frontend
 
-- Uses Next.js 16 App Router, React 19, Tailwind CSS 4, and TypeScript.
+- Uses Next.js 16.0.10 App Router, React 19.2.1, Tailwind CSS 4, and TypeScript.
 - `client/src/middleware.ts` reads `access_token` and `user` cookies for route protection and role access.
 - `client/src/lib/api.ts` creates an Axios instance with `withCredentials: true`.
 - `client/src/lib/auth.ts` stores only non-sensitive user profile data in `localStorage`; it does not store JWTs.
 - Feature code lives under `client/src/features/`.
 - Shared UI lives under `client/src/components/`.
 - Shared frontend types live under `client/src/types/`.
+- `/` is the role-aware course home for instructors and students.
+- `/admin/manage-users` is ADMIN-only.
+- `/course` is the instructor course catalog/management page.
+- `/course/[offeringId]` and `/course/[offeringId]/members` are course dashboard/member pages.
+- `/exam-bank` and nested exam-bank pages are instructor workflows for questions and exam sets.
+- `/results` is intentionally a "กำลังพัฒนา" placeholder.
 
 ## Database Schema Notes
 
@@ -146,10 +154,15 @@ Important Prisma models include:
 - `question_bank`, `question_choices`, `knowledge_categories`, `question_knowledge`, `course_knowledge` - question bank and tagging
 - `course_exams`, `exam_questions`, `exam_attempts`, `attempt_items`, `attempt_answers` - exam and attempt tracking
 - `import_preview_sessions`, `import_preview_rows` - CSV import preview workflow
+- `question_bank_years`, `question_collections` - question collection organization
 
 `staff_users` and `students` include `password_changed_at` to invalidate old JWTs after password changes.
 
 Curriculum IDs are defined in `client/src/config/curriculums.ts`. When inserting staff or students, code paths must supply `title`, `curriculumId`, and `facultyCode`; service layers provide defaults where DTOs omit allowed values.
+
+## Seed Data Notes
+
+`server/prisma/seed.ts` delegates to modular seed files under `server/prisma/seed/`. The seed is idempotent and currently creates 2 admin accounts, 7 instructor accounts, 25 students, 13 courses, 12 course offerings, 20 knowledge categories, 10 question collections, 33 questions, 10 exam sets, and demo attempts. Demo accounts use password `1234`.
 
 ## Setup Flow After Pulling Latest `master`
 

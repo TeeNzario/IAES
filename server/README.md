@@ -7,7 +7,7 @@ NestJS backend for IAES (Intelligent Adaptive Examination System).
 - NestJS 11
 - TypeScript
 - PostgreSQL
-- Prisma 7
+- Prisma 7.3.0
 - Passport JWT authentication
 - NestJS Throttler
 
@@ -74,12 +74,14 @@ The Prisma client is generated to `src/generated/prisma`.
 
 The seed script is idempotent and creates:
 
-- 1 admin staff account
-- 1 instructor staff account
-- 5 students
-- 1 course and 1 course offering
-- 2 knowledge categories linked to the course
-- Enrollments for active demo students
+- 2 admin staff accounts
+- 7 instructor staff accounts, including one inactive instructor
+- 25 students, including inactive demo students
+- 13 courses and 12 course offerings
+- 20 knowledge categories mapped across courses
+- 10 question collections and 33 seeded questions
+- 10 exam sets with linked exam questions
+- Demo exam attempts and answers for result/history data
 
 Demo login accounts use password `1234`:
 
@@ -154,12 +156,15 @@ http://localhost:3002
 ## Auth And Security Flow
 
 - `POST /auth/login`, `POST /auth/student/login`, and `POST /auth/staff/login` are throttled to 5 attempts per minute by the `short` throttler.
+- `POST /auth/login` is the unified login endpoint and accepts either an 8-digit student code or a staff email through `identifier`.
 - Successful login sets httpOnly cookies: `access_token` and `user`.
 - JWT extraction supports both Bearer tokens and the `access_token` cookie.
 - `JWT_SECRET` validation happens during boot through `src/auth/jwt-secret.ts`.
 - Password changes update `password_changed_at` for staff and students.
 - JWT validation rejects tokens issued before the latest password change.
 - `BCRYPT_COST` is read from environment by `src/lib/password.ts`.
+- `@Auth()` protects authenticated routes. `@Roles('INSTRUCTOR')` and `@Roles('ADMIN')` apply to staff-only routes.
+- Course exam management under `course-offerings/:offeringId/exams` is limited to INSTRUCTOR and ADMIN staff.
 - Sensitive actions are recorded through `AuditService` into the `audit_logs` table.
 - Student list/detail service methods use explicit selects that exclude `password_hash`.
 
@@ -232,13 +237,15 @@ src/modules/staff/            Staff CRUD and password changes
 src/modules/students/         Student CRUD and password changes
 src/modules/courses/          Course management
 src/modules/course-offerings/ Course offerings, enrollments, CSV preview
-src/modules/question-bank/    Question bank years, collections, questions
-src/modules/course-exams/     Course exam management
+src/modules/knowledge-categories/ Knowledge category lookup and links
+src/modules/question-bank/    Question bank years, collections, choices, tags
+src/modules/course-exams/     Course exam set management
 src/prisma/                   Prisma service module
 src/generated/prisma/         Generated Prisma client
 prisma/schema.prisma          Database schema
 prisma/migrations/            Database migrations
-prisma/seed.ts                Demo data seed
+prisma/seed.ts                Demo data seed entrypoint
+prisma/seed/                  Idempotent modular seed data
 prisma/rehash-passwords.ts    Password rehash utility
 ```
 
