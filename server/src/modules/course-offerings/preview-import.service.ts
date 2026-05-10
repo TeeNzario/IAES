@@ -25,6 +25,8 @@ import { hashPassword } from '../../lib/password';
 import { AuditActor, AuditService } from '../audit/audit.service';
 
 const THAI_NAME_REGEX = /^[ก-๙\s]+$/;
+const STUDENT_CODE_REGEX = /^\d{8}$/;
+const EMAIL_DOMAIN = '@mail.wu.ac.th';
 
 @Injectable()
 export class PreviewImportService {
@@ -457,6 +459,16 @@ export class PreviewImportService {
       return { status: 'MISSING', note: 'ข้อมูลที่จำเป็นไม่ครบ' };
     }
 
+    // 1a. Validate student_code: exactly 8 digits
+    if (!STUDENT_CODE_REGEX.test(studentCode)) {
+      return { status: 'MISSING', note: 'รหัสนักศึกษาต้องเป็นตัวเลข 8 หลักเท่านั้น' };
+    }
+
+    // 1b. Validate email domain: @mail.wu.ac.th only
+    if (!email.endsWith(EMAIL_DOMAIN) || email.split('@').length !== 2 || !email.split('@')[0]) {
+      return { status: 'MISSING', note: 'อีเมลต้องเป็น @mail.wu.ac.th เท่านั้น' };
+    }
+
     if (!title) {
       return { status: 'MISSING', note: 'จำเป็นต้องระบุคำนำหน้า' };
     }
@@ -467,11 +479,6 @@ export class PreviewImportService {
 
     if (!THAI_NAME_REGEX.test(firstName) || !THAI_NAME_REGEX.test(lastName)) {
       return { status: 'MISSING', note: 'ชื่อและนามสกุลต้องเป็นภาษาไทย' };
-    }
-
-    // 1b. Validate email format
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return { status: 'MISSING', note: 'รูปแบบอีเมลไม่ถูกต้อง' };
     }
 
     // 2. Check required facultyCode

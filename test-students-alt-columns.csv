@@ -1,4 +1,7 @@
 studentCode,email,faculty_code,prefix,curriculumCode,firstName,lastName,expected,note
-B6500201,alt.col1@kkumail.com,18,นาย,CUR067,นักศึกษา,อัลเทอร์เนทหนึ่ง,NEW,ทดสอบ camelCase + snake_case column names
-B6500202,alt.col2@kkumail.com,1,นางสาว,CUR003,สมปอง,อัลเทอร์เนทสอง,NEW,camelCase columns
-,alt.missing@kkumail.com,1,นาย,CUR067,,นามสกุลเดียว,MISSING,studentId ว่าง + ไม่มีชื่อ
+66130031,alt.col1@mail.wu.ac.th,18,นาย,CUR067,นักศึกษา,อัลเทอร์เนทหนึ่ง,NEW,ทดสอบ camelCase + snake_case column names
+66130032,alt.col2@mail.wu.ac.th,1,นางสาว,CUR003,สมปอง,อัลเทอร์เนทสอง,NEW,camelCase columns ถูกต้อง
+66130033,alt.col3@mail.wu.ac.th,12,นาย,CUR042,นักศึกษา,อัลเทอร์เนทสาม,NEW,camelCase columns คนที่ 3
+,alt.missing@mail.wu.ac.th,1,นาย,CUR067,,นามสกุลเดียว,MISSING,studentCode ว่าง + ไม่มีชื่อ
+66130034,alt.bad.email@mail.wu.ac.th,1,นาย,CUR067,ชื่อดี,,MISSING,ไม่มีนามสกุล
+66130035,not.wu.ac.th@gmail.com,1,นาย,CUR067,ผิด,โดเมน,MISSING,อีเมล gmail.com
