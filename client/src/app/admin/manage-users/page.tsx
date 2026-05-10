@@ -222,6 +222,7 @@ export default function ManageUserPage() {
   const [isCreatingStudent, setIsCreatingStudent] = useState(false);
 
   const [refreshKey, setRefreshKey] = useState(0);
+  const [fetching, setFetching] = useState(false);
 
   // Fetch current user on mount
   useEffect(() => {
@@ -234,6 +235,7 @@ export default function ManageUserPage() {
   useEffect(() => {
     let cancelled = false;
     async function fetchUsers() {
+      setFetching(true);
       try {
         if (roleFilter === "STUDENT") {
           const res = await getUsers({ role: "" });
@@ -254,6 +256,8 @@ export default function ManageUserPage() {
       } catch (err) {
         if (cancelled) return;
         console.error("fetch users error:", err);
+      } finally {
+        if (!cancelled) setFetching(false);
       }
     }
 
@@ -582,7 +586,7 @@ export default function ManageUserPage() {
 
     // If basic validation passes, check email duplicate
     if (Object.keys(errors).length === 0) {
-      const emailExists = await checkEmailExists(createEmail);
+      const emailExists = await checkEmailExists(createEmail.trim());
       if (emailExists) {
         setCreateErrors((p) => ({ ...p, email: ERROR_MESSAGES.email.duplicate }));
         return false;
@@ -688,6 +692,12 @@ export default function ManageUserPage() {
       const codeExists = await checkStudentCodeExists(studentCode);
       if (codeExists) {
         setStudentErrors((p) => ({ ...p, student_code: "รหัสนักศึกษานี้ถูกใช้งานแล้ว" }));
+        return false;
+      }
+
+      const emailExists = await checkStudentEmailExists(studentEmail.trim());
+      if (emailExists) {
+        setStudentErrors((p) => ({ ...p, email: ERROR_MESSAGES.email.duplicate }));
         return false;
       }
     }
@@ -1031,101 +1041,115 @@ export default function ManageUserPage() {
           </div>
         )}
 
-        {/* Table for desktop */}
+        {/* Table area: loading / empty / data */}
         <div className="w-full overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-[#E7DDF8]">
-          <div className="overflow-auto max-h-[calc(100vh-280px)]">
-            <table className="w-full min-w-[820px] hidden table-fixed sm:table">
-              <colgroup>
-                <col className={showSequenceColumn ? "w-[7%]" : "w-[13%]"} />
-                <col className={showSequenceColumn ? "w-[22%]" : "w-[20%]"} />
-                <col className={showSequenceColumn ? "w-[23%]" : "w-[22%]"} />
-                <col className={showSequenceColumn ? "w-[21%]" : "w-[18%]"} />
-                <col className="w-[20%]" />
-                <col className="w-[7%]" />
-              </colgroup>
-              <thead className="sticky top-0 z-10">
-                <tr className="bg-[#B7A3E3] text-white">
-                  <th className="px-5 py-4 text-left text-sm font-semibold">
-                    {showSequenceColumn ? "ลำดับ" : "รหัสนักศึกษา"}
-                  </th>
-                  <th className="px-5 py-4 text-left text-sm font-semibold">ชื่อ-นามสกุล</th>
-                  <th className="px-5 py-4 text-left text-sm font-semibold">สำนักวิชา</th>
-                  <th className="px-5 py-4 text-left text-sm font-semibold">หลักสูตร</th>
-                  <th className="px-5 py-4 text-left text-sm font-semibold">สถานะ</th>
-                  <th className="px-3 py-4 text-center text-sm font-semibold">แก้ไข</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#EFE8FB]">
+          {fetching ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 size={28} className="animate-spin text-[#B7A3E3]" />
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <p className="text-sm font-medium text-[#7A7287]">
+                {searchTerm.trim() || statusFilter !== "all" || facultyFilter !== "all" || curriculumFilter !== "all"
+                  ? "ไม่พบผลลัพธ์ที่ตรงกับการค้นหา"
+                  : `ยังไม่มีข้อมูล${currentRoleLabel}`}
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-auto max-h-[calc(100vh-280px)]">
+              <table className="w-full min-w-[820px] hidden table-fixed sm:table">
+                <colgroup>
+                  <col className={showSequenceColumn ? "w-[7%]" : "w-[13%]"} />
+                  <col className={showSequenceColumn ? "w-[22%]" : "w-[20%]"} />
+                  <col className={showSequenceColumn ? "w-[23%]" : "w-[22%]"} />
+                  <col className={showSequenceColumn ? "w-[21%]" : "w-[18%]"} />
+                  <col className="w-[20%]" />
+                  <col className="w-[7%]" />
+                </colgroup>
+                <thead className="sticky top-0 z-10">
+                  <tr className="bg-[#B7A3E3] text-white">
+                    <th className="px-5 py-4 text-left text-sm font-semibold">
+                      {showSequenceColumn ? "ลำดับ" : "รหัสนักศึกษา"}
+                    </th>
+                    <th className="px-5 py-4 text-left text-sm font-semibold">ชื่อ-นามสกุล</th>
+                    <th className="px-5 py-4 text-left text-sm font-semibold">สำนักวิชา</th>
+                    <th className="px-5 py-4 text-left text-sm font-semibold">หลักสูตร</th>
+                    <th className="px-5 py-4 text-left text-sm font-semibold">สถานะ</th>
+                    <th className="px-3 py-4 text-center text-sm font-semibold">แก้ไข</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#EFE8FB]">
+                  {paginatedUsers.map((user, index) => (
+                    <tr key={user.id} className="text-[15px] hover:bg-[#FAF8FF]">
+                      <td className="px-5 py-4 font-normal text-[#2F2A3A]">
+                        {showSequenceColumn ? (currentPage - 1) * itemsPerPage + index + 1 : user.id}
+                      </td>
+                      <td className="px-5 py-4 font-normal text-[#2F2A3A]">{`${user.title} ${user.first_name} ${user.last_name}`}</td>
+                      <td className="px-5 py-4 font-normal text-[#514667]">{getFacultyName(user.facultyCode ?? DEFAULT_FACULTY_CODE)}</td>
+                      <td className="px-5 py-4 font-normal text-[#514667]">{getCurriculumName(user.curriculumId)}</td>
+                      <td className="px-5 py-4">
+                        <span
+                          className={`inline-flex min-w-28 justify-center rounded-full px-3 py-1 text-sm font-normal ${user.is_active
+                            ? "bg-[#B7A3E3] text-white"
+                            : "border border-[#D9CCF2] bg-white text-[#7C5BD9]"
+                            }`}
+                        >
+                          {statusLabel(user.is_active)}
+                        </span>
+                      </td>
+                      <td className="px-3 py-4 text-center">
+                        <button
+                          onClick={() => openEdit(user)}
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#D9CCF2] text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF]"
+                          title="แก้ไขข้อมูล"
+                          aria-label="แก้ไขข้อมูล"
+                        >
+                          <Pencil size={20} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Mobile list */}
+              <div className="sm:hidden">
                 {paginatedUsers.map((user, index) => (
-                  <tr key={user.id} className="text-[15px] hover:bg-[#FAF8FF]">
-                    <td className="px-5 py-4 font-normal text-[#2F2A3A]">
-                      {showSequenceColumn ? (currentPage - 1) * itemsPerPage + index + 1 : user.id}
-                    </td>
-                    <td className="px-5 py-4 font-normal text-[#2F2A3A]">{`${user.title} ${user.first_name} ${user.last_name}`}</td>
-                    <td className="px-5 py-4 font-normal text-[#514667]">{getFacultyName(user.facultyCode ?? DEFAULT_FACULTY_CODE)}</td>
-                    <td className="px-5 py-4 font-normal text-[#514667]">{getCurriculumName(user.curriculumId)}</td>
-                    <td className="px-5 py-4">
+                  <div
+                    key={user.id}
+                    className="flex items-start justify-between gap-4 border-b border-[#EFE8FB] p-4"
+                  >
+                    <div className="flex-1">
+                      <div className="text-sm font-normal text-[#7A7287]">
+                        {user.role === "STUDENT"
+                          ? `รหัสนักศึกษา: ${user.id}`
+                          : `ลำดับ: ${(currentPage - 1) * itemsPerPage + index + 1}`}
+                      </div>
+                      <div className="text-[15px] font-normal text-[#2F2A3A]">{`${user.title} ${user.first_name} ${user.last_name}`}</div>
                       <span
-                        className={`inline-flex min-w-28 justify-center rounded-full px-3 py-1 text-sm font-normal ${user.is_active
+                        className={`mt-1 inline-block rounded-full px-2.5 py-1 text-sm font-normal ${user.is_active
                           ? "bg-[#B7A3E3] text-white"
                           : "border border-[#D9CCF2] bg-white text-[#7C5BD9]"
                           }`}
                       >
                         {statusLabel(user.is_active)}
                       </span>
-                    </td>
-                    <td className="px-3 py-4 text-center">
+                    </div>
+                    <div className="flex flex-col gap-2 items-end">
                       <button
                         onClick={() => openEdit(user)}
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#D9CCF2] text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF]"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#D9CCF2] text-[#7C5BD9] hover:bg-[#F4EFFF]"
                         title="แก้ไขข้อมูล"
                         aria-label="แก้ไขข้อมูล"
                       >
                         <Pencil size={20} />
                       </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* Mobile list */}
-            <div className="sm:hidden">
-              {paginatedUsers.map((user, index) => (
-                <div
-                  key={user.id}
-                  className="flex items-start justify-between gap-4 border-b border-[#EFE8FB] p-4"
-                >
-                  <div className="flex-1">
-                    <div className="text-sm font-normal text-[#7A7287]">
-                      {user.role === "STUDENT"
-                        ? `รหัสนักศึกษา: ${user.id}`
-                        : `ลำดับ: ${(currentPage - 1) * itemsPerPage + index + 1}`}
                     </div>
-                    <div className="text-[15px] font-normal text-[#2F2A3A]">{`${user.title} ${user.first_name} ${user.last_name}`}</div>
-                    <span
-                      className={`mt-1 inline-block rounded-full px-2.5 py-1 text-sm font-normal ${user.is_active
-                        ? "bg-[#B7A3E3] text-white"
-                        : "border border-[#D9CCF2] bg-white text-[#7C5BD9]"
-                        }`}
-                    >
-                      {statusLabel(user.is_active)}
-                    </span>
                   </div>
-                  <div className="flex flex-col gap-2 items-end">
-                    <button
-                      onClick={() => openEdit(user)}
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#D9CCF2] text-[#7C5BD9] hover:bg-[#F4EFFF]"
-                      title="แก้ไขข้อมูล"
-                      aria-label="แก้ไขข้อมูล"
-                    >
-                      <Pencil size={20} />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Pagination */}
