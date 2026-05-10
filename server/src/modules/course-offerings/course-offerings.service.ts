@@ -26,6 +26,8 @@ import type { RequestUser } from 'src/auth/types/jwt-payload.type';
 import { AuditActor, AuditService } from '../audit/audit.service';
 
 const THAI_NAME_REGEX = /^[ก-๙\s]+$/;
+const STUDENT_CODE_REGEX = /^\d{8}$/;
+const EMAIL_DOMAIN = '@mail.wu.ac.th';
 
 const courseOfferingSelect = {
   course_offerings_id: true,
@@ -317,6 +319,16 @@ export class CourseOfferingsService {
     staffUserId: string,
   ) {
     const offeringBigInt = BigInt(offeringId);
+
+    // Validate student_code: exactly 8 digits
+    if (!STUDENT_CODE_REGEX.test(dto.student_code)) {
+      throw new BadRequestException('รหัสนักศึกษาต้องเป็นตัวเลข 8 หลักเท่านั้น');
+    }
+
+    // Validate email domain: @mail.wu.ac.th only
+    if (!dto.email.endsWith(EMAIL_DOMAIN) || dto.email.split('@').length !== 2 || !dto.email.split('@')[0]) {
+      throw new BadRequestException('อีเมลต้องเป็น @mail.wu.ac.th เท่านั้น');
+    }
 
     // Validate Thai-only names (consistent with CSV import validation)
     if (!THAI_NAME_REGEX.test(dto.first_name) || !THAI_NAME_REGEX.test(dto.last_name)) {

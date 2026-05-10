@@ -28,13 +28,14 @@ import { DEFAULT_TITLE, THAI_TITLES } from "@/config/titles";
 // ============================================================
 // CONFIGURATION CONSTANTS — Adjust limits here
 // ============================================================
-const STUDENT_CODE_MAX_LENGTH = 8;
-const EMAIL_MAX_LENGTH = 50;
+const STUDENT_CODE_LENGTH = 8;
+const STUDENT_CODE_REGEX = /^\d{8}$/;
+const EMAIL_DOMAIN = "@mail.wu.ac.th";
 const FIRST_NAME_MAX_LENGTH = 50;
 const LAST_NAME_MAX_LENGTH = 50;
 
 // Email and Name validation regex pattern
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_REGEX = /^[^\s@]+@mail\.wu\.ac\.th$/;
 const NAME_REGEX = /^[ก-๙\s]+$/;
 
 
@@ -44,14 +45,12 @@ const NAME_REGEX = /^[ก-๙\s]+$/;
 const ERROR_MESSAGES = {
   student_code: {
     required: "กรุณากรอกรหัสนักศึกษา",
-    maxLength: `รหัสนักศึกษาไม่เกิน ${STUDENT_CODE_MAX_LENGTH} ตัวอักษร`,
+    format: `รหัสนักศึกษาต้องเป็นตัวเลข 8 หลักเท่านั้น`,
     duplicate: "รหัสนักศึกษานี้มีอยู่แล้ว",
-    length: `รหัสนักศึกษาต้องมี ${STUDENT_CODE_MAX_LENGTH} หลัก`,
   },
   email: {
     required: "กรุณากรอกอีเมล",
-    maxLength: `อีเมลไม่เกิน ${EMAIL_MAX_LENGTH} ตัวอักษร`,
-    invalid: "รูปแบบอีเมลไม่ถูกต้อง",
+    invalid: "อีเมลต้องเป็น @mail.wu.ac.th เท่านั้น",
     duplicate: "อีเมลนี้ถูกใช้แล้ว",
   },
   first_name: {
@@ -179,24 +178,22 @@ export default function SimpleShowUsers() {
   // ============================================================
 
   /**
-   * Validates student code synchronously (required + max length)
+   * Validates student code synchronously (required + 8 digits format)
    */
   const validateStudentCode = (value: string): string | undefined => {
     const trimmed = value.trim();
     if (!trimmed) return ERROR_MESSAGES.student_code.required;
-    if (trimmed.length !== STUDENT_CODE_MAX_LENGTH)
-      return ERROR_MESSAGES.student_code.length;
+    if (!STUDENT_CODE_REGEX.test(trimmed))
+      return ERROR_MESSAGES.student_code.format;
     return undefined;
   };
 
   /**
-   * Validates email synchronously (required + max length + format)
+   * Validates email synchronously (required + @mail.wu.ac.th domain)
    */
   const validateEmail = (value: string): string | undefined => {
     const trimmed = value.trim();
     if (!trimmed) return ERROR_MESSAGES.email.required;
-    if (trimmed.length > EMAIL_MAX_LENGTH)
-      return ERROR_MESSAGES.email.maxLength;
     if (!EMAIL_REGEX.test(trimmed)) return ERROR_MESSAGES.email.invalid;
     return undefined;
   };
@@ -320,11 +317,9 @@ export default function SimpleShowUsers() {
   // ============================================================
 
   const handleStudentIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //only number
-    const value = e.target.value.replace(/\D/g, "");
-
+    // Only allow digits, max 8
+    const value = e.target.value.replace(/\D/g, "").slice(0, STUDENT_CODE_LENGTH);
     setStudentId(value);
-    // Clear error and re-validate synchronously
     setErrors((prev) => ({
       ...prev,
       student_code: validateStudentCode(value),
@@ -857,7 +852,8 @@ const isStudent =
                     pattern="[0-9]*"
                     value={studentId}
                     onChange={handleStudentIdChange}
-                    maxLength={STUDENT_CODE_MAX_LENGTH}
+                    maxLength={STUDENT_CODE_LENGTH}
+                    placeholder="12345678"
                     className={`w-full px-4 py-3.5 border rounded-xl focus:outline-none transition-colors text-base ${
                       errors.student_code
                         ? "border-red-500 focus:border-red-500"
@@ -873,7 +869,7 @@ const isStudent =
                       <span />
                     )}
                     <span className="text-xs text-gray-400">
-                      {studentId.length}/{STUDENT_CODE_MAX_LENGTH}
+                      {studentId.length}/{STUDENT_CODE_LENGTH}
                     </span>
                   </div>
                 </div>
@@ -884,10 +880,10 @@ const isStudent =
                     อีเมล <span className="text-red-500">*</span>
                   </label>
                   <input
-                    type="email"
+                    type="text"
                     value={email}
                     onChange={handleEmailChange}
-                    maxLength={EMAIL_MAX_LENGTH}
+                    placeholder="student@mail.wu.ac.th"
                     className={`w-full px-4 py-3.5 border rounded-xl focus:outline-none transition-colors text-base ${
                       errors.email
                         ? "border-red-500 focus:border-red-500"
@@ -901,7 +897,7 @@ const isStudent =
                       <span />
                     )}
                     <span className="text-xs text-gray-400">
-                      {email.length}/{EMAIL_MAX_LENGTH}
+                      @mail.wu.ac.th
                     </span>
                   </div>
                 </div>
