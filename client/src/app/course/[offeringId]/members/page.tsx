@@ -30,7 +30,6 @@ import { DEFAULT_TITLE, THAI_TITLES } from "@/config/titles";
 // ============================================================
 const STUDENT_CODE_LENGTH = 8;
 const STUDENT_CODE_REGEX = /^\d{8}$/;
-const EMAIL_DOMAIN = "@mail.wu.ac.th";
 const FIRST_NAME_MAX_LENGTH = 50;
 const LAST_NAME_MAX_LENGTH = 50;
 
