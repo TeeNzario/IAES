@@ -28,12 +28,12 @@ function staffActor(req: AuthenticatedRequest) {
 
 @Controller('course-offerings/:offeringId/exams')
 @Auth()
-@Roles('INSTRUCTOR', 'ADMIN')
 export class CourseExamsController {
   constructor(private readonly service: CourseExamsService) {}
 
   /** Create an exam with an ordered question list. */
   @Post()
+  @Roles('INSTRUCTOR', 'ADMIN')
   create(
     @Req() req: AuthenticatedRequest,
     @Param('offeringId') offeringId: string,
@@ -48,7 +48,7 @@ export class CourseExamsController {
     @Req() req: AuthenticatedRequest,
     @Param('offeringId') offeringId: string,
   ) {
-    return this.service.listByOffering(offeringId, staffActor(req));
+    return this.service.listByOffering(offeringId, req.user);
   }
 
   /** Full exam detail including its ordered questions. */
@@ -58,11 +58,12 @@ export class CourseExamsController {
     @Param('offeringId') offeringId: string,
     @Param('examId') examId: string,
   ) {
-    return this.service.getById(offeringId, examId, staffActor(req));
+    return this.service.getById(offeringId, examId, req.user);
   }
 
   /** Full-replace update (core fields + exam_questions). */
   @Patch(':examId')
+  @Roles('INSTRUCTOR', 'ADMIN')
   update(
     @Req() req: AuthenticatedRequest,
     @Param('offeringId') offeringId: string,
@@ -74,6 +75,7 @@ export class CourseExamsController {
 
   /** Soft delete (is_active = false). */
   @Delete(':examId')
+  @Roles('INSTRUCTOR', 'ADMIN')
   softDelete(
     @Req() req: AuthenticatedRequest,
     @Param('offeringId') offeringId: string,

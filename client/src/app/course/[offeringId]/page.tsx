@@ -75,11 +75,6 @@ export default function CoursePage() {
     if (!offeringId) return;
     if (!authLoaded) return;
 
-    if (!canManageExams) {
-      setExams([]);
-      return;
-    }
-
     let isMounted = true;
     apiFetch<ExamListItem[]>(`/course-offerings/${offeringId}/exams`)
       .then((data) => {
@@ -92,7 +87,7 @@ export default function CoursePage() {
     return () => {
       isMounted = false;
     };
-  }, [authLoaded, canManageExams, offeringId]);
+  }, [authLoaded, offeringId]);
 
   useEffect(() => {
     let isMounted = true;
