@@ -169,24 +169,20 @@ export default function CoursePage() {
             >
               หน้าหลัก
             </button>
-            {canManageExams && (
-              <>
-                <div className="h-4 w-px bg-[#D4C7ED]" />
-                <button
-                  onClick={() => {
-                    setActiveTopTab("student");
-                    handleNavigateToStudents();
-                  }}
-                  className={`text-sm font-medium transition-colors cursor-pointer ${
-                    activeTopTab === "student"
-                      ? "text-[#7C5BD9]"
-                      : "text-[#7A7287] hover:text-[#7C5BD9]"
-                  }`}
-                >
-                  สมาชิก
-                </button>
-              </>
-            )}
+            <div className="h-4 w-px bg-[#D4C7ED]" />
+            <button
+              onClick={() => {
+                setActiveTopTab("student");
+                handleNavigateToStudents();
+              }}
+              className={`text-sm font-medium transition-colors cursor-pointer ${
+                activeTopTab === "student"
+                  ? "text-[#7C5BD9]"
+                  : "text-[#7A7287] hover:text-[#7C5BD9]"
+              }`}
+            >
+              สมาชิก
+            </button>
           </div>
 
           <section className="mb-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6 lg:p-8">
