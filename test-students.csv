@@ -1,6 +1,22 @@
-student_code,email,facultyCode,first_name,last_name
-6501000001,somchai@kkumail.com,1,สมชาย,ใจดี
-6501000002,suda@kkumail.com,2,สุภา,รักเรียน
-6501000003,prasert@kkumail.com,3,พรวัด,เก่งกาจ
-6501000004,nattaya@kkumail.com,1,ณัฐยา,สุขใจ
-6501000005,wichai@kkumail.com,2,วิชัย,มุ่งมั่น
+student_code,email,facultyCode,title,curriculumId,first_name,last_name,expected_status,description
+B6500001,new.student1@kkumail.com,18,นาย,CUR067,นักศึกษา,ใหม่หนึ่ง,NEW,นักศึกษาใหม่ทั้งหมด ไม่เคยมีในระบบ
+B6500002,new.student2@kkumail.com,12,นางสาว,CUR042,สมหญิง,เรียนดี,NEW,นักศึกษาใหม่อีกคน
+64250101,anuwat.civil@example.com,12,นาย,CUR046,อนุวัฒน์,สร้างตึก,EXISTS_NOT_ENROLLED,มีใน students แล้ว แต่ยังไม่ enroll ใน offering นี้
+66131313,phakhin.logistics@example.com,1,นาย,CUR002,ภาคิน,โลจิสติกส์,EXISTS_NOT_ENROLLED,มีใน students + student_directory แต่ยังไม่ enroll
+65210301,sirilak.marketing@example.com,1,นางสาว,CUR003,ศิริลักษณ์,ชื่อสกุลต่าง,NEW,student_directory มีชื่อเดิมว่าตลาดสด → ชื่อใหม่ไม่ตรง จะขึ้น EXISTS_NOT_ENROLLED พร้อม note
+66131319,thanakrit.jaidee@example.com,18,นาย,CUR067,ธนกฤต,ใจดี,ALREADY_ENROLLED,นักศึกษานี้ enroll ในหลาย offering แล้ว (แล้วแต่ offering ที่ import)
+63131101,wrong.email@kkumail.com,13,นาย,CUR049,ชื่อใหม่,นามสกุลใหม่,DUPLICATE_IDENTITY,รหัส 63131101 มีอีเมล tharadon.english@example.com แล้ว
+B6599999,tharadon.english@example.com,13,นาย,CUR049,ธราดล,อิงลิช,DUPLICATE_IDENTITY,อีเมล tharadon.english@example.com เป็นของรหัส 63131101
+63131101,napaporn.thai@example.com,13,นางสาว,CUR048,นภาพร,อักษรศาสตร์,DUPLICATE_IDENTITY,รหัสตรงกับ email นึง แต่อีเมลตรงกับอีกรหัส (cross conflict)
+,missing.code@kkumail.com,1,นาย,CUR067,นักศึกษา,โค้ดหาย,MISSING,ไม่มีรหัสนักศึกษา
+B6500003,,1,นาย,CUR067,นักศึกษา,เมลหาย,MISSING,ไม่มีอีเมล
+B6500004,no.firstname@kkumail.com,1,นาย,CUR067,,ชื่อหาย,MISSING,ไม่มีชื่อ
+B6500005,no.lastname@kkumail.com,1,นาย,CUR067,นักศึกษา,,MISSING,ไม่มีนามสกุล
+B6500006,not-an-email,1,นาย,CUR067,นักศึกษา,อีเมลผิด,MISSING,รูปแบบอีเมลไม่ถูกต้อง
+B6500007,english.name@kkumail.com,1,นาย,CUR067,John,Smith,MISSING,ชื่อ-นามสกุลไม่ใช่ภาษาไทย
+B6500008,no.faculty@kkumail.com,,นาย,CUR067,นักศึกษา,ไม่มีคณะ,MISSING,ไม่มีรหัสสำนักวิชา
+B6500009,no.title@kkumail.com,1,,CUR067,นักศึกษา,ไม่มีคำนำหน้า,MISSING,ไม่มีคำนำหน้า
+B6500010,no.curriculum@kkumail.com,1,นาย,,นักศึกษา,ไม่มีหลักสูตร,MISSING,ไม่มีหลักสูตร
+B6500011,legacy.curriculum@kkumail.com,18,นาย,6501220601,นักศึกษา,รหัสเก่า,NEW,ใช้ legacy curriculum code (6501220601 → CUR067)
+B6500012,faculty.by.name@kkumail.com,สำนักวิชาวิศวกรรมศาสตร์และเทคโนโลยี,นาย,CUR042,นักศึกษา,คณะชื่อ,NEW,ระบุ facultyCode เป็นชื่อสำนักวิชาแทนตัวเลข
+B6500013,thai.columns@kkumail.com,1,นาย,CUR067,นักศึกษา,ไทยคอลัมน์,NEW,ทดสอบการ parse ปกติทุกคอลัมน์ถูกต้อง

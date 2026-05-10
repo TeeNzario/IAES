@@ -25,6 +25,8 @@ import { hashPassword } from '../../lib/password';
 import type { RequestUser } from 'src/auth/types/jwt-payload.type';
 import { AuditActor, AuditService } from '../audit/audit.service';
 
+const THAI_NAME_REGEX = /^[ก-๙\s]+$/;
+
 const courseOfferingSelect = {
   course_offerings_id: true,
   academic_year: true,
@@ -316,11 +318,43 @@ export class CourseOfferingsService {
   ) {
     const offeringBigInt = BigInt(offeringId);
 
+    // Validate Thai-only names (consistent with CSV import validation)
+    if (!THAI_NAME_REGEX.test(dto.first_name) || !THAI_NAME_REGEX.test(dto.last_name)) {
+      throw new BadRequestException('ชื่อและนามสกุลต้องเป็นภาษาไทยเท่านั้น');
+    }
+
     return this.prisma.$transaction(async (tx) => {
       await this.assertInstructorForOffering(offeringBigInt, staffUserId, tx);
 
-      // 1. Ensure student exists (or create)
-      const student = await tx.students.upsert({
+      // 1. Check for email conflict: different student_code already uses this email
+      const emailOwner = await tx.students.findUnique({
+        where: { email: dto.email },
+        select: { student_code: true },
+      });
+      if (emailOwner && emailOwner.student_code !== dto.student_code) {
+        throw new ConflictException(
+          `อีเมลนี้ถูกใช้โดยนักศึกษารหัส ${emailOwner.student_code} แล้ว`,
+        );
+      }
+
+      // 2. Upsert student_directory (global identity — consistent with CSV import)
+      await tx.student_directory.upsert({
+        where: { email: dto.email },
+        update: {
+          student_code: dto.student_code,
+          first_name: dto.first_name,
+          last_name: dto.last_name,
+        },
+        create: {
+          student_code: dto.student_code,
+          email: dto.email,
+          first_name: dto.first_name,
+          last_name: dto.last_name,
+        },
+      });
+
+      // 3. Ensure student auth record exists (or update)
+      await tx.students.upsert({
         where: { student_code: dto.student_code },
         update: {
           email: dto.email,
@@ -342,17 +376,29 @@ export class CourseOfferingsService {
         },
       });
 
-      // 2. Enroll student (unique constraint prevents duplicates)
-      await tx.course_enrollments.create({
-        data: {
-          course_offerings_id: offeringBigInt,
-          student_code: student.student_code,
+      // 4. Check if already enrolled (idempotent)
+      const existingEnrollment = await tx.course_enrollments.findUnique({
+        where: {
+          course_offerings_id_student_code: {
+            course_offerings_id: offeringBigInt,
+            student_code: dto.student_code,
+          },
         },
       });
 
-      return {
-        success: true,
-      };
+      if (existingEnrollment) {
+        throw new ConflictException('นักศึกษานี้ลงทะเบียนในรายวิชานี้แล้ว');
+      }
+
+      // 5. Enroll student
+      await tx.course_enrollments.create({
+        data: {
+          course_offerings_id: offeringBigInt,
+          student_code: dto.student_code,
+        },
+      });
+
+      return { success: true };
     });
   }
 
@@ -669,10 +715,8 @@ export class CourseOfferingsService {
   }
 
   /**
-   * Check if an email already exists in a specific course offering
-   * @param offeringId - The course offering ID to check within
-   * @param email - The email to check
-   * @returns true if exists, false otherwise
+   * Check if an email already exists in a specific course offering OR is used
+   * by a different student_code globally (email is unique across all students).
    */
   async checkStudentEmailExists(
     offeringId: string,
@@ -685,7 +729,7 @@ export class CourseOfferingsService {
 
     await this.assertInstructorForOffering(id, staffUserId);
 
-    // First find all student_codes enrolled in this offering
+    // Check enrollment in this offering
     const enrollment = await this.prisma.course_enrollments.findFirst({
       where: {
         course_offerings_id: id,
@@ -696,7 +740,15 @@ export class CourseOfferingsService {
       select: { student_code: true },
     });
 
-    return enrollment !== null;
+    if (enrollment) return true;
+
+    // Also check global students table: email is @unique across all students
+    const globalStudent = await this.prisma.students.findUnique({
+      where: { email: email.trim() },
+      select: { student_code: true },
+    });
+
+    return globalStudent !== null;
   }
 
   /**
