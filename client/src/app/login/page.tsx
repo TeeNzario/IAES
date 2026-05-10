@@ -219,7 +219,7 @@ const LoginPage = () => {
                   aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
                   title={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
                 </button>
               </div>
             </label>
