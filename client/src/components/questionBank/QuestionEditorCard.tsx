@@ -177,9 +177,12 @@ export default function QuestionEditorCard({
   const [snapshot, setSnapshot] = useState<DraftQuestion>(draft);
   const [showAddKnowledgeDropdown, setShowAddKnowledgeDropdown] =
     useState(false);
+  const [dirty, setDirty] = useState(false);
 
-  const update = (patch: Partial<DraftQuestion>) =>
+  const update = (patch: Partial<DraftQuestion>) => {
+    setDirty(true);
     onChange({ ...draft, ...patch });
+  };
 
   const setChoice = (i: number, patch: Partial<Choice>) => {
     const next = draft.choices.map((c, idx) =>
@@ -472,7 +475,7 @@ export default function QuestionEditorCard({
             const valid = reason === null;
             return (
               <>
-                {!valid && (
+                {!valid && dirty && (
                   <span className="mr-2 text-sm font-medium text-rose-500">
                     {reason}
                   </span>
