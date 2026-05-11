@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Tags, Trash2 } from "lucide-react";
 import TagSelect, { KnowledgeTag } from "./TagSelect";
 import type { Choice, Question, QuestionType } from "./types";
 import { FIELD_LIMITS, maxLengthMessage } from "@/config/fieldLimits";
@@ -153,8 +153,6 @@ interface Props {
   fixedChoiceCount?: number;
   /** Use dropdown for difficulty instead of free number input. */
   difficultyOptions?: DifficultyOption[];
-  /** Knowledge categories visual style in both edit and view mode. */
-  knowledgeDisplayMode?: "badge" | "list";
 }
 
 export default function QuestionEditorCard({
@@ -170,13 +168,10 @@ export default function QuestionEditorCard({
   onCancel,
   fixedChoiceCount,
   difficultyOptions,
-  knowledgeDisplayMode = "badge",
 }: Props) {
   const [editing, setEditing] = useState(initialEditing);
   // Snapshot for cancel.
   const [snapshot, setSnapshot] = useState<DraftQuestion>(draft);
-  const [showAddKnowledgeDropdown, setShowAddKnowledgeDropdown] =
-    useState(false);
   const [dirty, setDirty] = useState(false);
 
   const update = (patch: Partial<DraftQuestion>) => {
@@ -216,31 +211,15 @@ export default function QuestionEditorCard({
     .map((id) => tags.find((tg) => tg.knowledge_category_id === id))
     .filter((t): t is KnowledgeTag => Boolean(t));
 
-  const availableKnowledgeTags = tags.filter(
-    (tg) => !draft.knowledge_category_ids.includes(tg.knowledge_category_id),
-  );
-
-  const addKnowledgeCategory = (id: string) => {
-    if (!id) return;
-    if (draft.knowledge_category_ids.includes(id)) return;
-    update({ knowledge_category_ids: [...draft.knowledge_category_ids, id] });
-  };
-
-  const removeKnowledgeCategory = (id: string) => {
-    update({
-      knowledge_category_ids: draft.knowledge_category_ids.filter(
-        (item) => item !== id,
-      ),
-    });
-  };
-
   const startEdit = () => {
     setSnapshot(draft);
+    setDirty(false);
     setEditing(true);
   };
 
   const cancelEdit = () => {
     onChange(snapshot);
+    setDirty(false);
     setEditing(false);
     onCancel?.();
   };
@@ -389,82 +368,54 @@ export default function QuestionEditorCard({
       </div>
 
       {/* Tags */}
-      <div className="mt-8">
-        <label className="mb-2 block text-sm font-medium text-[#514667]">
-          หมวดหมู่ความรู้
-        </label>
-        {editing && knowledgeDisplayMode === "badge" ? (
+      <div className="mt-8 rounded-2xl bg-[#FAF8FF] p-4 ring-1 ring-[#E7DDF8]">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-[#7C5BD9] ring-1 ring-[#E7DDF8]">
+              <Tags size={16} />
+            </span>
+            <label className="text-sm font-semibold text-[#2F2A3A]">
+              หมวดหมู่ความรู้
+            </label>
+          </div>
+          {selectedKnowledgeTags.length > 0 && (
+            <span className="shrink-0 rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+              มี {selectedKnowledgeTags.length} หมวดหมู่
+            </span>
+          )}
+        </div>
+
+        {editing ? (
           <TagSelect
             options={tags}
             value={draft.knowledge_category_ids}
             onChange={(ids) => update({ knowledge_category_ids: ids })}
           />
         ) : (
-          <>
+          <div className="max-h-44 overflow-y-auto rounded-xl bg-white p-2 ring-1 ring-[#EFE8FB]">
             {selectedKnowledgeTags.length === 0 ? (
-              <span className="text-sm font-medium text-[#B7AFC6]">-</span>
+              <p className="px-2.5 py-2 text-sm font-medium text-[#7A7287]">
+                ไม่มีหมวดหมู่ความรู้
+              </p>
             ) : (
-              <ul className="space-y-2">
-                {selectedKnowledgeTags.map((t) => (
+              <ol className="space-y-1.5">
+                {selectedKnowledgeTags.map((t, idx) => (
                   <li
                     key={t.knowledge_category_id}
-                    className="flex items-center justify-between gap-3 rounded-xl bg-[#FAF8FF] px-4 py-2.5 text-sm font-medium text-[#514667] ring-1 ring-[#EFE8FB]"
+                    className="flex items-start gap-2 rounded-lg px-2.5 py-2"
+                    title={t.name}
                   >
-                    <span>{t.name}</span>
-                    {editing && knowledgeDisplayMode === "list" && (
-                      <button
-                        type="button"
-                        onClick={() => removeKnowledgeCategory(t.knowledge_category_id)}
-                        className="text-[#B7AFC6] transition-colors hover:text-rose-500 cursor-pointer"
-                        aria-label={`ลบ ${t.name}`}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    )}
+                    <span className="mt-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#F4EFFF] text-[11px] font-semibold text-[#7C5BD9]">
+                      {idx + 1}
+                    </span>
+                    <span className="min-w-0 flex-1 break-words text-sm font-medium leading-relaxed text-[#2F2A3A]">
+                      {t.name}
+                    </span>
                   </li>
                 ))}
-              </ul>
+              </ol>
             )}
-
-            {editing && knowledgeDisplayMode === "list" && (
-              <div className="mt-3 space-y-2">
-                {!showAddKnowledgeDropdown ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowAddKnowledgeDropdown(true)}
-                    disabled={availableKnowledgeTags.length === 0}
-                    className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold ${
-                      availableKnowledgeTags.length > 0
-                        ? "bg-[#B7A3E3] text-white hover:bg-[#A48FD6] cursor-pointer"
-                        : "bg-[#B7A3E3] text-white opacity-50 cursor-not-allowed"
-                    }`}
-                  >
-                    <Plus size={16} /> เพิ่มหมวดหมู่ความรู้
-                  </button>
-                ) : (
-                  <select
-                    value=""
-                    onChange={(e) => {
-                      const id = e.target.value;
-                      if (id) addKnowledgeCategory(id);
-                      setShowAddKnowledgeDropdown(false);
-                    }}
-                    className="w-full rounded-xl bg-white px-4 py-3 text-sm font-normal text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
-                  >
-                    <option value="">เลือกหมวดหมู่ความรู้</option>
-                    {availableKnowledgeTags.map((t) => (
-                      <option
-                        key={t.knowledge_category_id}
-                        value={t.knowledge_category_id}
-                      >
-                        {t.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-            )}
-          </>
+          </div>
         )}
       </div>
 

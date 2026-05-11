@@ -233,6 +233,7 @@ export class QuestionsService {
       year?: number;
       collection_id?: string;
       category_ids?: string[];
+      difficulty?: string;
     } = {},
   ) {
     const coursesId = await this.resolveCourseAndAuthorize(offeringId, actor);
@@ -274,6 +275,13 @@ export class QuestionsService {
             },
           }
         : {}),
+      ...(opts.difficulty === 'easy'
+        ? { difficulty_param: { lt: 0 } }
+        : opts.difficulty === 'medium'
+          ? { difficulty_param: { equals: 0 } }
+          : opts.difficulty === 'hard'
+            ? { difficulty_param: { gt: 0 } }
+            : {}),
     };
 
     const [items, total] = await Promise.all([

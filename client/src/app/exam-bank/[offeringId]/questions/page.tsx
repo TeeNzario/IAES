@@ -1,19 +1,24 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
+  CheckCircle2,
   ChevronDown,
   ChevronLeft,
   Eye,
+  Filter,
   Inbox,
   Pencil,
   Plus,
   Search,
+  Tags,
   Trash2,
+  Upload,
 } from "lucide-react";
 import Navbar from "@/components/layout/NavBar";
 import { apiFetch } from "@/lib/api";
+import KnowledgeCategoriesCell from "@/components/course/KnowledgeCategoriesCell";
 import Pagination from "@/components/questionBank/Pagination";
 import { difficultyLabel, Question } from "@/components/questionBank/types";
 import QuestionEditorCard, {
@@ -50,6 +55,8 @@ export default function FlatQuestionBankPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const [categorySearch, setCategorySearch] = useState("");
   const [difficultyFilter, setDifficultyFilter] =
     useState<DifficultyFilter>("");
   const [loading, setLoading] = useState(true);
@@ -57,6 +64,7 @@ export default function FlatQuestionBankPage() {
   const [expanded, setExpanded] = useState<
     { id: string; mode: "view" | "edit" } | null
   >(null);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 300);
@@ -89,21 +97,11 @@ export default function FlatQuestionBankPage() {
       if (debouncedSearch) params.set("search", debouncedSearch);
       if (categoryFilter.length > 0)
         params.set("category_ids", categoryFilter.join(","));
+      if (difficultyFilter) params.set("difficulty", difficultyFilter);
       const data = await apiFetch<ListResponse>(
         `/course-offerings/${offeringId}/question-bank/questions?${params}`,
       );
-      let rows = data.data;
-      // Difficulty filter is client-side (server only filters by category/search).
-      if (difficultyFilter) {
-        rows = rows.filter((q) => {
-          const v = q.difficulty_param;
-          if (v === null || v === undefined) return false;
-          if (difficultyFilter === "easy") return v < 0;
-          if (difficultyFilter === "medium") return v === 0;
-          return v > 0;
-        });
-      }
-      setQuestions(rows);
+      setQuestions(data.data);
       setTotalPages(Math.max(1, data.pagination.totalPages));
     } catch (err: unknown) {
       const msg =
@@ -118,6 +116,47 @@ export default function FlatQuestionBankPage() {
   useEffect(() => {
     loadTags();
   }, [loadTags]);
+
+  useEffect(() => {
+    if (!isCategoryDropdownOpen) setCategorySearch("");
+  }, [isCategoryDropdownOpen]);
+
+  useEffect(() => {
+    if (!isCategoryDropdownOpen) return;
+
+    loadTags();
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (
+        categoryDropdownRef.current &&
+        !categoryDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsCategoryDropdownOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsCategoryDropdownOpen(false);
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isCategoryDropdownOpen, loadTags]);
+
+  useEffect(() => {
+    if (tags.length === 0) return;
+
+    setCategoryFilter((prev) => {
+      const availableIds = new Set(tags.map((tag) => tag.knowledge_category_id));
+      const next = prev.filter((id) => availableIds.has(id));
+      return next.length === prev.length ? prev : next;
+    });
+  }, [tags]);
 
   useEffect(() => {
     loadQuestions();
@@ -141,6 +180,26 @@ export default function FlatQuestionBankPage() {
 
   const startIndex = useMemo(() => (page - 1) * PAGE_SIZE, [page]);
 
+  const selectedCategoryNames = useMemo(() => {
+    const selectedIds = new Set(categoryFilter);
+    return tags
+      .filter((tag) => selectedIds.has(tag.knowledge_category_id))
+      .map((tag) => tag.name);
+  }, [categoryFilter, tags]);
+
+  const filteredTags = useMemo(() => {
+    const query = categorySearch.trim().toLowerCase();
+    if (!query) return tags;
+    return tags.filter((tag) => tag.name.toLowerCase().includes(query));
+  }, [categorySearch, tags]);
+
+  const categoryFilterLabel =
+    categoryFilter.length === 0
+      ? "ทุกหมวดหมู่ความรู้"
+      : selectedCategoryNames.length === 1
+        ? selectedCategoryNames[0]
+        : `${categoryFilter.length} หมวดหมู่ที่เลือก`;
+
   const toggleCategory = (id: string) =>
     setCategoryFilter((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
@@ -149,113 +208,244 @@ export default function FlatQuestionBankPage() {
   return (
     <Navbar>
       <div className="min-h-screen w-full bg-[#F4EFFF]">
-        <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
+        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-8 lg:px-10 lg:py-8">
+          <div className="mb-4 flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex min-w-0 flex-wrap items-center gap-3">
               <button
                 type="button"
                 onClick={() => router.push(`/exam-bank/${offeringId}`)}
-                className="flex h-9 w-9 items-center justify-center rounded-xl text-[#514667] transition-colors hover:bg-white cursor-pointer"
+                className="flex h-10 w-10 items-center justify-center rounded-xl text-[#514667] ring-1 ring-transparent transition-colors hover:bg-[#FAF8FF] hover:ring-[#E7DDF8] cursor-pointer"
                 aria-label="กลับ"
               >
                 <ChevronLeft size={18} />
               </button>
-              <h1 className="flex items-center gap-2 text-lg font-semibold text-[#2F2A3A] sm:text-xl">
-                <Inbox size={22} className="text-[#7C5BD9]" />
+              <h1 className="flex items-center gap-2 text-xl font-semibold text-[#2F2A3A] sm:text-2xl">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#F4EFFF] text-[#7C5BD9]">
+                  <Inbox size={22} />
+                </span>
                 คลังคำถาม
               </h1>
+            </div>
+
+            <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-end xl:w-auto">
               <button
                 type="button"
                 onClick={() =>
                   router.push(`/exam-bank/${offeringId}/questions/create`)
                 }
-                className="ml-2 flex items-center gap-2 rounded-xl bg-[#B7A3E3] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#A48FD6] cursor-pointer"
+                className="inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[#B7A3E3] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#A48FD6] cursor-pointer"
               >
-                <Plus size={14} />
+                <Plus size={16} />
                 สร้างคำถาม
               </button>
-            </div>
-
-            <div className="relative">
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="ค้นหาคำถาม"
-                className="w-64 rounded-xl bg-white px-4 py-3 pr-10 text-sm font-normal text-[#2F2A3A] placeholder:text-[#B7AFC6] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
-              />
-              <Search
-                size={18}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A7287]"
-              />
+              <button
+                type="button"
+                onClick={() =>
+                  alert("Import CSV สำหรับข้อสอบยังอยู่ระหว่างเตรียมใช้งาน")
+                }
+                className="inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-[#D9CCF2] bg-white px-5 text-sm font-semibold text-[#7C5BD9] shadow-sm transition-colors hover:bg-[#F4EFFF] cursor-pointer"
+              >
+                <Upload size={16} />
+                Import CSV
+              </button>
+              <div className="relative flex-1 sm:w-80 sm:flex-none lg:w-96">
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="ค้นหาคำถาม"
+                  className="h-11 w-full rounded-xl bg-[#FAF8FF] px-4 pr-11 text-sm font-medium text-[#2F2A3A] placeholder:text-[#B7AFC6] outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
+                />
+                <Search
+                  size={18}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A7287]"
+                />
+              </div>
             </div>
           </div>
 
           {/* Filters */}
-          <div className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl bg-white px-5 py-4 shadow-sm ring-1 ring-[#E7DDF8]">
-            <span className="text-sm font-medium text-[#514667]">
-              ระดับความยาก:
-            </span>
-            {(
-              [
-                ["", "ทั้งหมด"],
-                ["easy", "ง่าย"],
-                ["medium", "กลาง"],
-                ["hard", "ยาก"],
-              ] as [DifficultyFilter, string][]
-            ).map(([v, label]) => (
-              <button
-                key={v || "all"}
-                type="button"
-                onClick={() => setDifficultyFilter(v)}
-                className={`rounded-full px-3 py-1 text-xs font-semibold cursor-pointer transition-colors ${
-                  difficultyFilter === v
-                    ? "bg-[#B7A3E3] text-white"
-                    : "bg-[#F4EFFF] text-[#514667] hover:bg-[#E9E0FA]"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-
-            {tags.length > 0 && (
-              <>
-                <span className="ml-3 text-sm font-medium text-[#514667]">
-                  หมวดหมู่:
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {tags.map((t) => {
-                    const active = categoryFilter.includes(
-                      t.knowledge_category_id,
-                    );
-                    return (
-                      <button
-                        key={t.knowledge_category_id}
-                        type="button"
-                        onClick={() => toggleCategory(t.knowledge_category_id)}
-                        className={`rounded-full px-3 py-1 text-xs font-semibold cursor-pointer transition-colors ${
-                          active
-                            ? "bg-[#B7A3E3] text-white"
-                            : "bg-[#F4EFFF] text-[#514667] hover:bg-[#E9E0FA]"
-                        }`}
-                      >
-                        {t.name}
-                      </button>
-                    );
-                  })}
+          <div className="mb-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#E7DDF8] sm:p-5">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
+              <section className="shrink-0 lg:w-[330px]">
+                <div className="mb-3 flex items-center gap-2.5 text-base font-semibold text-[#2F2A3A]">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F4EFFF] text-[#7C5BD9]">
+                    <Filter size={18} />
+                  </span>
+                  <span>ระดับความยาก</span>
                 </div>
-              </>
-            )}
+                <div className="flex flex-wrap gap-2">
+                  {(
+                    [
+                      ["", "ทั้งหมด"],
+                      ["easy", "ง่าย"],
+                      ["medium", "กลาง"],
+                      ["hard", "ยาก"],
+                    ] as [DifficultyFilter, string][]
+                  ).map(([v, label]) => (
+                    <button
+                      key={v || "all"}
+                      type="button"
+                      onClick={() => setDifficultyFilter(v)}
+                      className={`inline-flex h-9 items-center rounded-full px-4 text-sm font-semibold cursor-pointer transition-colors ${
+                        difficultyFilter === v
+                          ? "bg-[#B7A3E3] text-white shadow-sm"
+                          : "bg-[#FAF8FF] text-[#514667] ring-1 ring-[#E7DDF8] hover:bg-[#F4EFFF]"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </section>
+
+              <section className="min-w-0 flex-1 border-t border-[#EFE8FB] pt-5 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
+                <div className="mb-3 flex items-center gap-2.5 text-base font-semibold text-[#2F2A3A]">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F4EFFF] text-[#7C5BD9]">
+                    <Tags size={18} />
+                  </span>
+                  <span>หมวดหมู่ความรู้</span>
+                </div>
+                <div ref={categoryDropdownRef} className="relative max-w-xl">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setIsCategoryDropdownOpen((open) => !open)
+                    }
+                    className="flex h-11 w-full items-center justify-between gap-3 rounded-xl bg-[#FAF8FF] px-4 text-left text-sm font-semibold text-[#2F2A3A] ring-1 ring-[#E7DDF8] transition hover:bg-[#F4EFFF] focus:outline-none focus:ring-2 focus:ring-[#B7A3E3] cursor-pointer"
+                    aria-expanded={isCategoryDropdownOpen}
+                  >
+                    <span className="min-w-0 flex-1 truncate">
+                      {categoryFilterLabel}
+                    </span>
+                    {categoryFilter.length > 0 && (
+                      <span className="rounded-full bg-[#B7A3E3] px-2 py-0.5 text-xs font-semibold text-white">
+                        {categoryFilter.length}
+                      </span>
+                    )}
+                    <ChevronDown
+                      size={18}
+                      className={`shrink-0 text-[#7C5BD9] transition-transform ${
+                        isCategoryDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {isCategoryDropdownOpen && (
+                    <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-20 overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-[#D9CCF2]">
+                      <div className="border-b border-[#EFE8FB] p-3">
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-[#2F2A3A]">
+                              เลือกหมวดหมู่ความรู้
+                            </p>
+                            <p className="mt-0.5 text-xs font-medium text-[#7A7287]">
+                              {categoryFilter.length === 0
+                                ? "กำลังแสดงทุกหมวดหมู่"
+                                : `เลือกอยู่ ${categoryFilter.length} หมวดหมู่`}
+                            </p>
+                          </div>
+                          {categoryFilter.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setCategoryFilter([])}
+                              className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
+                            >
+                              ล้าง
+                            </button>
+                          )}
+                        </div>
+                        <div className="relative">
+                          <Search
+                            size={16}
+                            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8F84A3]"
+                          />
+                          <input
+                            type="search"
+                            value={categorySearch}
+                            onChange={(event) =>
+                              setCategorySearch(event.target.value)
+                            }
+                            placeholder="ค้นหาหมวดหมู่ความรู้"
+                            className="h-9 w-full rounded-lg bg-[#FAF8FF] pl-9 pr-3 text-sm font-medium text-[#2F2A3A] placeholder:text-[#B7AFC6] outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
+                            autoComplete="off"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="max-h-72 overflow-y-auto p-2">
+                        <button
+                          type="button"
+                          onClick={() => setCategoryFilter([])}
+                          className={`mb-1 flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold transition-colors cursor-pointer ${
+                            categoryFilter.length === 0
+                              ? "bg-[#F4EFFF] text-[#7C5BD9]"
+                              : "text-[#514667] hover:bg-[#FAF8FF]"
+                          }`}
+                        >
+                          <span>ทุกหมวดหมู่ความรู้</span>
+                          {categoryFilter.length === 0 && (
+                            <span className="text-xs">เลือกอยู่</span>
+                          )}
+                        </button>
+
+                        {filteredTags.length > 0 ? (
+                          filteredTags.map((t) => {
+                            const active = categoryFilter.includes(
+                              t.knowledge_category_id,
+                            );
+                            return (
+                              <button
+                                key={t.knowledge_category_id}
+                                type="button"
+                                onClick={() =>
+                                  toggleCategory(t.knowledge_category_id)
+                                }
+                                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors cursor-pointer ${
+                                  active
+                                    ? "bg-[#F4EFFF] text-[#7C5BD9]"
+                                    : "text-[#2F2A3A] hover:bg-[#FAF8FF]"
+                                }`}
+                                title={t.name}
+                              >
+                                <span
+                                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+                                    active
+                                      ? "border-[#7C5BD9] bg-[#7C5BD9]"
+                                      : "border-[#D9CCF2] bg-white"
+                                  }`}
+                                >
+                                  {active && (
+                                    <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                                  )}
+                                </span>
+                                <span className="min-w-0 flex-1 truncate">
+                                  {t.name}
+                                </span>
+                              </button>
+                            );
+                          })
+                        ) : (
+                          <p className="px-3 py-3 text-sm font-medium text-[#7A7287]">
+                            ไม่พบหมวดหมู่ความรู้
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </section>
+            </div>
           </div>
 
           {/* Table */}
           <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-[#E7DDF8]">
-            <div className="grid grid-cols-[60px_1fr_240px_140px_120px] items-center bg-[#B7A3E3] px-6 py-4 text-sm font-semibold text-white">
+            <div className="grid grid-cols-[60px_1fr_200px_140px_132px] items-center bg-[#B7A3E3] px-6 py-4 text-base font-semibold text-white [&>div:nth-child(3)]:text-center [&>div:nth-child(4)]:text-center">
               <div>ลำดับ</div>
               <div>คำถาม</div>
               <div>หมวดหมู่ความรู้</div>
               <div>ระดับความยาก</div>
-              <div className="text-center">ACTION</div>
+              <div className="text-center">จัดการ</div>
             </div>
 
             {loading ? (
@@ -271,84 +461,77 @@ export default function FlatQuestionBankPage() {
                   const isOpen = expanded?.id === q.question_id;
                   const isViewOpen = isOpen && expanded?.mode === "view";
                   const isEditOpen = isOpen && expanded?.mode === "edit";
-                  const visibleTags = q.knowledge_categories.slice(0, 2);
-                  const remaining =
-                    q.knowledge_categories.length - visibleTags.length;
                   return (
                     <li key={q.question_id}>
-                      <div className="grid grid-cols-[60px_1fr_240px_140px_120px] items-center px-6 py-4 text-sm font-medium text-[#514667] hover:bg-[#FAF8FF]">
+                      <div className="grid grid-cols-[60px_1fr_200px_140px_132px] items-center px-6 py-4 text-[15px] font-normal text-[#514667] hover:bg-[#FAF8FF]">
                         <div>{startIndex + idx + 1}</div>
-                        <div className="truncate pr-3 text-[#2F2A3A]">{q.question_text}</div>
-                        <div className="flex flex-wrap items-center gap-1">
-                          {visibleTags.map((t) => (
-                            <span
-                              key={t.knowledge_category_id}
-                              className="rounded-full bg-[#B7A3E3] px-2.5 py-1 text-[11px] font-medium text-white"
-                            >
-                              {t.name}
-                            </span>
-                          ))}
-                          {remaining > 0 && (
-                            <span className="rounded-full bg-[#D9CCF2] px-2.5 py-1 text-[11px] font-medium text-white">
-                              +{remaining}
-                            </span>
-                          )}
-                          {q.knowledge_categories.length === 0 && (
-                            <span className="text-xs text-gray-400">-</span>
-                          )}
+                        <div className="truncate pr-3 font-semibold text-[#2F2A3A]">{q.question_text}</div>
+                        <div className="flex justify-center">
+                          <KnowledgeCategoriesCell
+                            categories={q.knowledge_categories}
+                          />
                         </div>
-                        <div>
+                        <div className="text-center">
                           <span
-                            className={`inline-block rounded-full px-3 py-0.5 text-xs ${diff.className}`}
+                            className={`inline-block rounded-full px-3.5 py-1 text-sm font-semibold ${diff.className}`}
                           >
                             {diff.label}
                           </span>
                         </div>
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setExpanded(
+                        <div className="flex justify-center">
+                          <div className="flex items-center rounded-xl border border-[#E7DDF8] bg-[#FAF8FF] p-1">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setExpanded(
+                                  isViewOpen
+                                    ? null
+                                    : { id: q.question_id, mode: "view" },
+                                )
+                              }
+                              className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors cursor-pointer ${
                                 isViewOpen
-                                  ? null
-                                  : { id: q.question_id, mode: "view" },
-                              )
-                            }
-                            className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#B7A3E3] text-white transition-colors hover:bg-[#A48FD6] cursor-pointer"
-                            aria-label="ดูรายละเอียด"
-                          >
-                            {isViewOpen ? (
-                              <ChevronDown size={14} />
-                            ) : (
-                              <Eye size={14} />
-                            )}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setExpanded(
+                                  ? "bg-white text-[#7C5BD9] shadow-sm"
+                                  : "text-[#7C5BD9] hover:bg-white"
+                              }`}
+                              title="ดูรายละเอียด"
+                              aria-label="ดูรายละเอียด"
+                            >
+                              {isViewOpen ? (
+                                <ChevronDown size={18} />
+                              ) : (
+                                <Eye size={18} />
+                              )}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setExpanded(
+                                  isEditOpen
+                                    ? null
+                                    : { id: q.question_id, mode: "edit" },
+                                )
+                              }
+                              className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors cursor-pointer ${
                                 isEditOpen
-                                  ? null
-                                  : { id: q.question_id, mode: "edit" },
-                              )
-                            }
-                            className={`flex h-8 w-8 items-center justify-center rounded-lg cursor-pointer transition-colors ${
-                              isEditOpen
-                                ? "bg-[#B7A3E3] text-white hover:bg-[#A48FD6]"
-                                : "border border-[#D9CCF2] text-[#7C5BD9] hover:bg-[#F4EFFF]"
-                            }`}
-                            aria-label="แก้ไข"
-                          >
-                            <Pencil size={14} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(q.question_id)}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
-                            aria-label="ลบ"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                                  ? "bg-white text-[#7C5BD9] shadow-sm"
+                                  : "text-[#7C5BD9] hover:bg-white"
+                              }`}
+                              title="แก้ไข"
+                              aria-label="แก้ไข"
+                            >
+                              <Pencil size={18} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(q.question_id)}
+                              className="flex h-9 w-9 items-center justify-center rounded-lg text-red-500 transition-colors hover:bg-red-50 cursor-pointer"
+                              title="ลบ"
+                              aria-label="ลบ"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
                         </div>
                       </div>
 
@@ -387,68 +570,145 @@ export default function FlatQuestionBankPage() {
 
 function ExpandedRow({ question }: { question: Question }) {
   const longText = question.question_text.length > 280;
-  const textCls = longText ? "text-xs" : "text-sm";
+  const questionTextSize = longText ? "text-sm" : "text-base";
+  const parameterItems = [
+    {
+      label: "ความยาก",
+      value: question.difficulty_param ?? "-",
+    },
+    {
+      label: "อำนาจการจำแนก",
+      value: question.discrimination_param ?? "-",
+    },
+    {
+      label: "โอกาสการเดา",
+      value: question.guessing_param ?? "-",
+    },
+  ];
+  const correctChoiceCount = question.choices.filter(
+    (choice) => choice.is_correct,
+  ).length;
 
   return (
-    <div className="border-t border-[#F4EFFF] bg-[#FBF8FF] px-6 py-4">
-      <div className="mb-3">
-        <p className="mb-1 text-[11px] font-medium text-[#B7A3E3]">คำถาม</p>
-        <p
-          className={`whitespace-pre-wrap font-normal leading-relaxed text-[#2F3542] ${textCls}`}
-        >
-          {question.question_text}
-        </p>
-      </div>
-      <div className="mb-3">
-        <p className="mb-1 text-[11px] font-medium text-[#B7A3E3]">ตัวเลือก</p>
-        <ul className="space-y-1">
-          {question.choices.map((c, i) => (
-            <li
-              key={c.choice_id ?? i}
-              className={`flex items-start gap-2 ${textCls}`}
+    <div className="border-t border-[#EFE8FB] bg-[#FBF8FF] px-6 py-5">
+      <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8]">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <section className="min-w-0">
+            <p className="text-sm font-semibold text-[#7C5BD9]">คำถาม</p>
+            <p
+              className={`mt-2 whitespace-pre-wrap break-words font-medium leading-relaxed text-[#2F2A3A] ${questionTextSize}`}
             >
-              <span
-                className={`mt-1 inline-block h-2 w-2 flex-shrink-0 rounded-full ${
-                  c.is_correct ? "bg-emerald-500" : "bg-gray-300"
-                }`}
-              />
-              <span
-                className={`font-normal text-[#2F3542] ${
-                  c.is_correct ? "font-semibold" : ""
-                }`}
-              >
-                {c.choice_text}
+              {question.question_text}
+            </p>
+          </section>
+
+          <aside className="rounded-xl bg-[#FAF8FF] p-4 ring-1 ring-[#E7DDF8]">
+            <p className="text-sm font-semibold text-[#2F2A3A]">
+              ค่าพารามิเตอร์ข้อสอบ
+            </p>
+            <dl className="mt-3 grid gap-2">
+              {parameterItems.map((item) => (
+                <div
+                  key={item.label}
+                  className="flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2 ring-1 ring-[#EFE8FB]"
+                >
+                  <dt className="text-sm font-medium text-[#7A7287]">
+                    {item.label}
+                  </dt>
+                  <dd className="text-sm font-semibold text-[#2F2A3A]">
+                    {item.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </aside>
+        </div>
+
+        <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <section className="min-w-0">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-[#2F2A3A]">ตัวเลือก</p>
+              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
+                เฉลย {correctChoiceCount} ข้อ
               </span>
-            </li>
-          ))}
-        </ul>
+            </div>
+            <ul className="mt-3 grid gap-2">
+              {question.choices.map((choice, index) => (
+                <li
+                  key={choice.choice_id ?? index}
+                  className={`flex items-start gap-3 rounded-xl px-4 py-3 ring-1 ${
+                    choice.is_correct
+                      ? "bg-emerald-50 text-emerald-900 ring-emerald-200"
+                      : "bg-[#FAF8FF] text-[#2F2A3A] ring-[#EFE8FB]"
+                  }`}
+                >
+                  <span
+                    className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                      choice.is_correct
+                        ? "bg-emerald-500 text-white"
+                        : "bg-white text-[#7C5BD9] ring-1 ring-[#D9CCF2]"
+                    }`}
+                  >
+                    {index + 1}
+                  </span>
+                  <span className="min-w-0 flex-1 break-words text-sm font-medium leading-relaxed">
+                    {choice.choice_text}
+                  </span>
+                  {choice.is_correct && (
+                    <span className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
+                      <CheckCircle2 size={14} />
+                      คำตอบถูก
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <aside className="rounded-xl bg-[#FAF8FF] p-4 ring-1 ring-[#E7DDF8]">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-[#7C5BD9] ring-1 ring-[#E7DDF8]">
+                  <Tags size={16} />
+                </span>
+                <p className="text-sm font-semibold text-[#2F2A3A]">
+                  หมวดหมู่ความรู้
+                </p>
+              </div>
+              {question.knowledge_categories.length > 0 && (
+                <span className="shrink-0 rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                  มี {question.knowledge_categories.length} หมวดหมู่
+                </span>
+              )}
+            </div>
+
+            <div className="mt-3 max-h-44 overflow-y-auto rounded-xl bg-white p-2 ring-1 ring-[#EFE8FB]">
+              {question.knowledge_categories.length > 0 ? (
+                <ol className="space-y-1.5">
+                  {question.knowledge_categories.map((tag, index) => (
+                    <li
+                      key={tag.knowledge_category_id}
+                      className="flex items-start gap-2 rounded-lg px-2.5 py-2 transition-colors hover:bg-[#FAF8FF]"
+                      title={tag.name}
+                    >
+                      <span className="mt-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#F4EFFF] text-[11px] font-semibold text-[#7C5BD9]">
+                        {index + 1}
+                      </span>
+                      <span className="min-w-0 flex-1 break-words text-sm font-medium leading-relaxed text-[#2F2A3A]">
+                        {tag.name}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="px-2.5 py-2 text-sm font-medium text-[#7A7287]">
+                  ไม่มีหมวดหมู่ความรู้
+                </p>
+              )}
+            </div>
+          </aside>
+        </div>
       </div>
-      <div className="grid grid-cols-3 gap-4 text-xs font-normal text-[#575757]">
-        <div>
-          <span className="text-[11px] text-gray-400">ความยาก: </span>
-          {question.difficulty_param ?? "-"}
-        </div>
-        <div>
-          <span className="text-[11px] text-gray-400">อำนาจการจำแนก: </span>
-          {question.discrimination_param ?? "-"}
-        </div>
-        <div>
-          <span className="text-[11px] text-gray-400">โอกาสการเดา: </span>
-          {question.guessing_param ?? "-"}
-        </div>
-      </div>
-      {question.knowledge_categories.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {question.knowledge_categories.map((t) => (
-            <span
-              key={t.knowledge_category_id}
-              className="rounded-full bg-[#B7A3E3] px-2.5 py-0.5 text-[11px] text-white"
-            >
-              {t.name}
-            </span>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
