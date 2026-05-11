@@ -12,6 +12,10 @@ import {
 } from "lucide-react";
 import ExamQuestionPickerModal from "@/components/exam/ExamQuestionPickerModal";
 import {
+  dateOnlyMs,
+  parseDateTimeLocalInput,
+} from "@/lib/examScheduleValidation";
+import {
   difficultyLabel,
   Question,
 } from "@/components/questionBank/types";
@@ -46,6 +50,15 @@ export function isoToLocalInput(iso: string): string {
   )}:${pad(d.getMinutes())}`;
 }
 
+const dateTimeFormatMessage = (part?: "date" | "time") =>
+  part === "time" ? "รูปแบบเวลาไม่ถูกต้อง" : "รูปแบบวันที่ไม่ถูกต้อง";
+
+const dateTimeLocalToIso = (value: string) => {
+  const result = parseDateTimeLocalInput(value);
+  if (!result.date) throw new Error("Invalid local date/time");
+  return result.date.toISOString();
+};
+
 /**
  * Validation rules — mirror of the server-side rules so the bottom-right save
  * button can stay disabled until the draft is valid.
@@ -64,13 +77,27 @@ export function validate(
   if (!opts.hideSchedule) {
     if (!cfg.start_time) return "ต้องกรอกเวลาเริ่ม";
     if (!cfg.end_time) return "ต้องกรอกเวลาสิ้นสุด";
-    const start = new Date(cfg.start_time);
-    const end = new Date(cfg.end_time);
-    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()))
-      return "รูปแบบเวลาไม่ถูกต้อง";
-    if (start >= end) return "เวลาเริ่มต้องก่อนเวลาสิ้นสุด";
-    if (opts.mode === "create" && start.getTime() < Date.now() - 60_000)
-      return "เวลาเริ่มต้องไม่ใช่เวลาในอดีต";
+    const startResult = parseDateTimeLocalInput(cfg.start_time);
+    const endResult = parseDateTimeLocalInput(cfg.end_time);
+    if (!startResult.date) {
+      return dateTimeFormatMessage(startResult.invalidPart);
+    }
+    if (!endResult.date) {
+      return dateTimeFormatMessage(endResult.invalidPart);
+    }
+    const start = startResult.date;
+    const end = endResult.date;
+    if (dateOnlyMs(end) < dateOnlyMs(start)) {
+      return "วันสิ้นสุดสอบต้องไม่อยู่ก่อนวันเริ่มสอบ";
+    }
+    if (start >= end) return "เวลาสิ้นสุดสอบต้องอยู่หลังเวลาเริ่มสอบ";
+    if (opts.mode === "create" && start.getTime() < Date.now() - 60_000) {
+      const now = new Date();
+      if (dateOnlyMs(start) < dateOnlyMs(now)) {
+        return "วันเริ่มสอบต้องไม่ใช่วันในอดีต";
+      }
+      return "เวลาเริ่มสอบต้องไม่ใช่เวลาในอดีต";
+    }
   }
   if (questions.length < 1) return "ต้องเลือกคำถามอย่างน้อย 1 ข้อ";
   return null;
@@ -147,23 +174,33 @@ export default function ExamEditor({
     if (!config.start_time) {
       out.start = "กรุณาเลือกวันและเวลาเริ่มสอบ";
     } else {
-      const s = new Date(config.start_time);
-      if (Number.isNaN(s.getTime())) {
-        out.start = "รูปแบบวันที่ไม่ถูกต้อง";
+      const startResult = parseDateTimeLocalInput(config.start_time);
+      const s = startResult.date;
+      if (!s) {
+        out.start = dateTimeFormatMessage(startResult.invalidPart);
       } else if (mode === "create" && s.getTime() < Date.now() - 60_000) {
-        out.start = "วันสอบต้องไม่ใช่เวลาในอดีต";
+        const now = new Date();
+        out.start =
+          dateOnlyMs(s) < dateOnlyMs(now)
+            ? "วันเริ่มสอบต้องไม่ใช่วันในอดีต"
+            : "เวลาเริ่มสอบต้องไม่ใช่เวลาในอดีต";
       }
     }
     if (!config.end_time) {
       out.end = "กรุณาเลือกวันและเวลาสิ้นสุด";
     } else {
-      const e = new Date(config.end_time);
-      if (Number.isNaN(e.getTime())) {
-        out.end = "รูปแบบวันที่ไม่ถูกต้อง";
+      const endResult = parseDateTimeLocalInput(config.end_time);
+      const e = endResult.date;
+      if (!e) {
+        out.end = dateTimeFormatMessage(endResult.invalidPart);
       } else if (config.start_time) {
-        const s = new Date(config.start_time);
-        if (!Number.isNaN(s.getTime()) && s >= e) {
-          out.end = "วันสิ้นสุดต้องอยู่หลังวันเริ่ม";
+        const s = parseDateTimeLocalInput(config.start_time).date;
+        if (s) {
+          if (dateOnlyMs(e) < dateOnlyMs(s)) {
+            out.end = "วันสิ้นสุดสอบต้องไม่อยู่ก่อนวันเริ่มสอบ";
+          } else if (s >= e) {
+            out.end = "เวลาสิ้นสุดสอบต้องอยู่หลังเวลาเริ่มสอบ";
+          }
         }
       }
     }
@@ -261,11 +298,11 @@ export default function ExamEditor({
       const startIso =
         hideSchedule && !config.start_time
           ? PLACEHOLDER_START()
-          : new Date(config.start_time).toISOString();
+          : dateTimeLocalToIso(config.start_time);
       const endIso =
         hideSchedule && !config.end_time
           ? PLACEHOLDER_END()
-          : new Date(config.end_time).toISOString();
+          : dateTimeLocalToIso(config.end_time);
       await onSubmit({
         title: config.title.trim(),
         description: config.description.trim() || undefined,

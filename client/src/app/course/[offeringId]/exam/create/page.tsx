@@ -16,6 +16,12 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/layout/NavBar";
 import { apiFetch } from "@/lib/api";
+import {
+  createLocalDateTime,
+  dateOnlyMs,
+  parseDateInput,
+  parseTimeInput,
+} from "@/lib/examScheduleValidation";
 
 interface ExamListItem {
   course_exams_id: string;
@@ -55,7 +61,11 @@ const statusClass = (s: ExamListItem["status"]) =>
     ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
     : "bg-gray-200 text-gray-600 ring-1 ring-gray-300";
 
-const localToIso = (local: string) => new Date(local).toISOString();
+const localToIso = (dateInput: string, timeInput: string) => {
+  const date = createLocalDateTime(dateInput, timeInput);
+  if (!date) throw new Error("Invalid local date/time");
+  return date.toISOString();
+};
 
 const todayDateString = () => {
   const d = new Date();
@@ -159,17 +169,29 @@ export default function CreateExamSchedulePage() {
     if (!endDate) out.endDate = "กรุณาเลือกวันปิดสอบ";
     if (!endTime) out.endTime = "กรุณาเลือกเวลาปิดสอบ";
 
-    const dateOnly = (d: Date) =>
-      new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const startDateValue = startDate ? parseDateInput(startDate) : null;
+    const startTimeValue = startTime ? parseTimeInput(startTime) : null;
+    const endDateValue = endDate ? parseDateInput(endDate) : null;
+    const endTimeValue = endTime ? parseTimeInput(endTime) : null;
 
-    if (startDate && startTime) {
-      const start = new Date(`${startDate}T${startTime}`);
-      if (Number.isNaN(start.getTime())) {
-        out.startDate = "รูปแบบวันที่ไม่ถูกต้อง";
-        out.startTime = "รูปแบบเวลาไม่ถูกต้อง";
-      } else {
+    if (startDate && !startDateValue) {
+      out.startDate = "รูปแบบวันที่ไม่ถูกต้อง";
+    }
+    if (startTime && !startTimeValue) {
+      out.startTime = "รูปแบบเวลาไม่ถูกต้อง";
+    }
+    if (endDate && !endDateValue) {
+      out.endDate = "รูปแบบวันที่ไม่ถูกต้อง";
+    }
+    if (endTime && !endTimeValue) {
+      out.endTime = "รูปแบบเวลาไม่ถูกต้อง";
+    }
+
+    if (startDateValue && startTimeValue) {
+      const start = createLocalDateTime(startDate, startTime);
+      if (start) {
         const now = new Date();
-        if (dateOnly(start) < dateOnly(now)) {
+        if (dateOnlyMs(start) < dateOnlyMs(now)) {
           out.startDate = "วันเปิดสอบต้องไม่ใช่วันในอดีต";
         } else if (start.getTime() < now.getTime() - 60_000) {
           out.startTime = "เวลาเปิดสอบต้องไม่ใช่เวลาในอดีต";
@@ -183,17 +205,18 @@ export default function CreateExamSchedulePage() {
       endDate &&
       endTime &&
       !out.startDate &&
-      !out.startTime
+      !out.startTime &&
+      !out.endDate &&
+      !out.endTime
     ) {
-      const start = new Date(`${startDate}T${startTime}`);
-      const end = new Date(`${endDate}T${endTime}`);
-      if (Number.isNaN(end.getTime())) {
-        out.endDate = "รูปแบบวันที่ไม่ถูกต้อง";
-        out.endTime = "รูปแบบเวลาไม่ถูกต้อง";
-      } else if (dateOnly(end) < dateOnly(start)) {
-        out.endDate = "วันปิดสอบต้องไม่อยู่ก่อนวันเปิดสอบ";
-      } else if (end.getTime() <= start.getTime()) {
-        out.endTime = "เวลาปิดสอบต้องอยู่หลังเวลาเปิดสอบ";
+      const start = createLocalDateTime(startDate, startTime);
+      const end = createLocalDateTime(endDate, endTime);
+      if (start && end) {
+        if (dateOnlyMs(end) < dateOnlyMs(start)) {
+          out.endDate = "วันปิดสอบต้องไม่อยู่ก่อนวันเปิดสอบ";
+        } else if (end.getTime() <= start.getTime()) {
+          out.endTime = "เวลาปิดสอบต้องอยู่หลังเวลาเปิดสอบ";
+        }
       }
     }
     return out;
@@ -215,8 +238,8 @@ export default function CreateExamSchedulePage() {
         data: {
           title: detail.title,
           description: detail.description ?? "",
-          start_time: localToIso(`${startDate}T${startTime}`),
-          end_time: localToIso(`${endDate}T${endTime}`),
+          start_time: localToIso(startDate, startTime),
+          end_time: localToIso(endDate, endTime),
           question_ids: [...detail.questions]
             .sort((a, b) => a.sequence_index - b.sequence_index)
             .map((q) => q.question_id),
