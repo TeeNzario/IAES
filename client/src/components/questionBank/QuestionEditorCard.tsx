@@ -238,10 +238,10 @@ export default function QuestionEditorCard({
   };
 
   return (
-    <div className="rounded-3xl bg-white p-7 sm:p-8 shadow-sm">
+    <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6">
       {!hideHeader && (
         <div className="mb-5 flex items-start justify-between">
-          <h3 className="text-xl font-medium text-[#575757]">
+          <h3 className="text-base font-semibold text-[#2F2A3A] sm:text-lg">
             คำถามข้อ {index + 1}
           </h3>
           <div className="flex items-center gap-2">
@@ -249,7 +249,7 @@ export default function QuestionEditorCard({
               <button
                 type="button"
                 onClick={startEdit}
-                className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#B7A3E3] text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#D9CCF2] text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
                 aria-label="แก้ไข"
               >
                 <Pencil size={18} />
@@ -258,7 +258,7 @@ export default function QuestionEditorCard({
             <button
               type="button"
               onClick={onDelete}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#B7A3E3] text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#D9CCF2] text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
               aria-label="ลบ"
             >
               <Trash2 size={18} />
@@ -274,10 +274,10 @@ export default function QuestionEditorCard({
           onChange={(e) => update({ question_text: e.target.value })}
           rows={6}
           placeholder="พิมพ์ข้อความคำถามที่นี่..."
-          className="mb-6 w-full min-h-40 resize-y rounded-2xl bg-[#F4EFFF] px-5 py-4 text-base font-light leading-relaxed text-[#575757] outline-none focus:ring-2 focus:ring-[#B7A3E3]"
+          className="mb-6 w-full min-h-40 resize-y rounded-2xl bg-white px-5 py-4 text-base font-normal leading-relaxed text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition placeholder:text-[#B7AFC6] focus:ring-2 focus:ring-[#B7A3E3]"
         />
       ) : (
-        <p className="mb-6 whitespace-pre-wrap text-base font-light leading-relaxed text-[#575757]">
+        <p className="mb-6 whitespace-pre-wrap text-base font-normal leading-relaxed text-[#514667]">
           {draft.question_text || "(ไม่มีข้อความ)"}
         </p>
       )}
@@ -300,10 +300,10 @@ export default function QuestionEditorCard({
                 onChange={(e) => setChoice(i, { choice_text: e.target.value })}
                 rows={2}
                 placeholder={`ตัวเลือก ${i + 1}`}
-                className="flex-1 min-h-16 rounded-xl bg-[#F4EFFF] px-4 py-3 text-base font-light leading-relaxed text-[#575757] outline-none focus:ring-2 focus:ring-[#B7A3E3]"
+                className="flex-1 min-h-16 rounded-xl bg-white px-4 py-3 text-sm font-normal leading-relaxed text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition placeholder:text-[#B7AFC6] focus:ring-2 focus:ring-[#B7A3E3]"
               />
             ) : (
-              <span className="flex-1 text-base font-light text-[#575757]">
+              <span className="flex-1 text-sm font-normal text-[#514667]">
                 {c.choice_text || `ตัวเลือก ${i + 1}`}
               </span>
             )}
@@ -311,7 +311,7 @@ export default function QuestionEditorCard({
               <button
                 type="button"
                 onClick={() => removeChoice(i)}
-                className="text-gray-400 hover:text-rose-500 cursor-pointer"
+                className="text-[#B7AFC6] transition-colors hover:text-rose-500 cursor-pointer"
                 aria-label="ลบตัวเลือก"
               >
                 <Trash2 size={18} />
@@ -325,7 +325,7 @@ export default function QuestionEditorCard({
         <button
           type="button"
           onClick={addChoice}
-          className="mt-5 inline-flex items-center gap-1.5 rounded-lg bg-[#B7A3E3] px-4 py-2 text-sm font-medium text-white hover:bg-[#A48FD6] cursor-pointer"
+          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#B7A3E3] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#A48FD6] cursor-pointer"
         >
           <Plus size={16} /> เพิ่มตัวเลือก
         </button>
@@ -365,7 +365,7 @@ export default function QuestionEditorCard({
 
       {/* Tags */}
       <div className="mt-8">
-        <label className="mb-2 block text-sm font-medium text-[#575757]">
+        <label className="mb-2 block text-sm font-medium text-[#514667]">
           หมวดหมู่ความรู้
         </label>
         {editing && knowledgeDisplayMode === "badge" ? (
@@ -377,20 +377,20 @@ export default function QuestionEditorCard({
         ) : (
           <>
             {selectedKnowledgeTags.length === 0 ? (
-              <span className="text-sm text-gray-400">-</span>
+              <span className="text-sm font-medium text-[#B7AFC6]">-</span>
             ) : (
               <ul className="space-y-2">
                 {selectedKnowledgeTags.map((t) => (
                   <li
                     key={t.knowledge_category_id}
-                    className="flex items-center justify-between gap-3 rounded-xl bg-[#F4EFFF] px-4 py-2.5 text-sm text-[#575757]"
+                    className="flex items-center justify-between gap-3 rounded-xl bg-[#FAF8FF] px-4 py-2.5 text-sm font-medium text-[#514667] ring-1 ring-[#EFE8FB]"
                   >
                     <span>{t.name}</span>
                     {editing && knowledgeDisplayMode === "list" && (
                       <button
                         type="button"
                         onClick={() => removeKnowledgeCategory(t.knowledge_category_id)}
-                        className="text-gray-400 hover:text-rose-500 cursor-pointer"
+                        className="text-[#B7AFC6] transition-colors hover:text-rose-500 cursor-pointer"
                         aria-label={`ลบ ${t.name}`}
                       >
                         <Trash2 size={16} />
@@ -408,7 +408,7 @@ export default function QuestionEditorCard({
                     type="button"
                     onClick={() => setShowAddKnowledgeDropdown(true)}
                     disabled={availableKnowledgeTags.length === 0}
-                    className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium ${
+                    className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold ${
                       availableKnowledgeTags.length > 0
                         ? "bg-[#B7A3E3] text-white hover:bg-[#A48FD6] cursor-pointer"
                         : "bg-[#B7A3E3] text-white opacity-50 cursor-not-allowed"
@@ -424,7 +424,7 @@ export default function QuestionEditorCard({
                       if (id) addKnowledgeCategory(id);
                       setShowAddKnowledgeDropdown(false);
                     }}
-                    className="w-full rounded-xl bg-[#F4EFFF] px-4 py-3 text-base font-light text-[#575757] outline-none focus:ring-2 focus:ring-[#B7A3E3]"
+                    className="w-full rounded-xl bg-white px-4 py-3 text-sm font-normal text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
                   >
                     <option value="">เลือกหมวดหมู่ความรู้</option>
                     {availableKnowledgeTags.map((t) => (
@@ -451,14 +451,14 @@ export default function QuestionEditorCard({
             return (
               <>
                 {!valid && (
-                  <span className="mr-2 text-sm font-light text-rose-500">
+                  <span className="mr-2 text-sm font-medium text-rose-500">
                     {reason}
                   </span>
                 )}
                 <button
                   type="button"
                   onClick={cancelEdit}
-                  className="rounded-xl border border-[#B7A3E3] px-6 py-2.5 text-base font-medium text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
+                  className="rounded-xl border border-[#D9CCF2] bg-white px-5 py-2.5 text-sm font-semibold text-[#514667] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
                 >
                   ยกเลิก
                 </button>
@@ -467,7 +467,7 @@ export default function QuestionEditorCard({
                   onClick={confirmEdit}
                   disabled={!valid || saving}
                   aria-disabled={!valid || saving}
-                  className={`rounded-xl px-6 py-2.5 text-base font-medium text-white ${
+                  className={`rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors ${
                     valid && !saving
                       ? "bg-[#B7A3E3] hover:bg-[#A48FD6] cursor-pointer"
                       : "bg-[#B7A3E3] opacity-50 cursor-not-allowed"
@@ -502,7 +502,7 @@ function DifficultySelectField({
 
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-[#575757]">
+      <label className="mb-2 block text-sm font-medium text-[#514667]">
         {label}
       </label>
       {editing ? (
@@ -512,7 +512,7 @@ function DifficultySelectField({
             const raw = e.target.value;
             onChange(raw === "" ? "" : Number(raw));
           }}
-          className="w-full rounded-xl bg-[#F4EFFF] px-4 py-3 text-base font-light text-[#575757] outline-none focus:ring-2 focus:ring-[#B7A3E3]"
+          className="w-full rounded-xl bg-white px-4 py-3 text-sm font-normal text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
         >
           <option value="">เลือกระดับความยาก</option>
           {options.map((op) => (
@@ -522,7 +522,7 @@ function DifficultySelectField({
           ))}
         </select>
       ) : (
-        <div className="w-full rounded-xl bg-gray-100 px-4 py-3 text-base font-light text-[#575757]">
+        <div className="w-full rounded-xl bg-[#FAF8FF] px-4 py-3 text-sm font-medium text-[#514667] ring-1 ring-[#EFE8FB]">
           {selected?.label ?? "-"}
         </div>
       )}
@@ -543,7 +543,7 @@ function NumberField({
 }) {
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-[#575757]">
+      <label className="mb-2 block text-sm font-medium text-[#514667]">
         {label}
       </label>
       <input
@@ -555,7 +555,7 @@ function NumberField({
           const raw = e.target.value;
           onChange(raw === "" ? "" : Number(raw));
         }}
-        className="w-full rounded-xl bg-[#F4EFFF] px-4 py-3 text-base font-light text-[#575757] outline-none focus:ring-2 focus:ring-[#B7A3E3] read-only:bg-gray-100"
+        className="w-full rounded-xl bg-white px-4 py-3 text-sm font-normal text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3] read-only:bg-[#FAF8FF]"
       />
     </div>
   );

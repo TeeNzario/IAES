@@ -195,8 +195,8 @@ export default function ExamQuestionPickerModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/45 p-4 py-6 sm:p-6">
-      <div className="relative w-full max-w-4xl rounded-2xl bg-white p-5 shadow-2xl sm:p-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
-        <h2 className="mb-5 text-xl font-bold text-gray-900">
+      <div className="relative max-h-[calc(100vh-3rem)] w-full max-w-6xl overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl ring-1 ring-[#E7DDF8] sm:p-6">
+        <h2 className="mb-5 text-lg font-semibold text-[#2F2A3A] sm:text-xl">
           เลือกคำถาม
         </h2>
 
@@ -205,8 +205,8 @@ export default function ExamQuestionPickerModal({
           <span
             className={`inline-flex items-center rounded-full border px-3 py-0.5 text-xs ${
               filterActive
-                ? "border-[#B7A3E3] bg-[#F4EFFF] text-[#B7A3E3]"
-                : "border-[#B7A3E3] text-[#B7A3E3]"
+                ? "border-[#B7A3E3] bg-[#F4EFFF] font-semibold text-[#7C5BD9]"
+                : "border-[#D9CCF2] font-semibold text-[#7C5BD9]"
             }`}
           >
             {activeChipLabel}
@@ -226,14 +226,14 @@ export default function ExamQuestionPickerModal({
             <button
               type="button"
               onClick={() => setFilterOpen((v) => !v)}
-              className="flex h-7 w-7 items-center justify-center rounded-full border border-[#B7A3E3] text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#D9CCF2] text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
               aria-label="กรอง"
             >
-              <Filter size={14} />
+              <Filter size={16} />
             </button>
 
             {filterOpen && (
-              <div className="absolute left-0 top-full z-10 mt-2 w-[420px] max-w-[92vw] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
+              <div className="absolute left-0 top-full z-10 mt-2 w-[420px] max-w-[92vw] overflow-hidden rounded-2xl border border-[#E7DDF8] bg-white shadow-lg">
                 <div className="flex">
                   <FilterColumn
                     title="ปีการศึกษา"
@@ -263,9 +263,9 @@ export default function ExamQuestionPickerModal({
                     onSelect={(v) => setCollectionFilter(v)}
                   />
                 </div>
-                <div className="border-t border-gray-200 px-3 py-3">
+                <div className="border-t border-[#E7DDF8] px-3 py-3">
                   <div className="mb-2 flex items-center justify-between">
-                    <span className="text-xs font-medium text-[#575757]">
+                    <span className="text-xs font-semibold text-[#514667]">
                       หมวดหมู่ความรู้
                     </span>
                     {categoryFilter.length > 0 && (
@@ -295,18 +295,18 @@ export default function ExamQuestionPickerModal({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="ค้นหา"
-              className="w-48 rounded-full bg-[#F4EFFF] px-3 py-1 pr-8 text-xs font-light text-[#575757] outline-none focus:ring-2 focus:ring-[#B7A3E3]"
+              className="w-64 rounded-xl bg-white px-4 py-3 pr-10 text-sm font-normal text-[#2F2A3A] placeholder:text-[#B7AFC6] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
             />
             <Search
-              size={12}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={18}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A7287]"
             />
           </div>
         </div>
 
         {/* Table */}
-        <div className="max-h-[420px] overflow-y-auto rounded-xl bg-white">
-          <div className="grid grid-cols-[40px_1fr_240px_120px_120px] items-center rounded-md bg-[#B7A3E3] px-4 py-2 text-xs font-light text-white">
+        <div className="max-h-[420px] overflow-y-auto rounded-2xl bg-white ring-1 ring-[#E7DDF8]">
+          <div className="grid grid-cols-[48px_1fr_240px_140px_120px] items-center bg-[#B7A3E3] px-5 py-3 text-sm font-semibold text-white">
             <div></div>
             <div>คำถาม</div>
             <div>หมวดหมู่ความรู้</div>
@@ -315,13 +315,13 @@ export default function ExamQuestionPickerModal({
           </div>
 
           {loading ? (
-            <p className="px-4 py-6 text-sm text-gray-400">กำลังโหลด...</p>
+            <p className="px-5 py-6 text-sm font-medium text-[#7A7287]">กำลังโหลด...</p>
           ) : error ? (
-            <p className="px-4 py-6 text-sm text-red-500">{error}</p>
+            <p className="px-5 py-6 text-sm font-medium text-red-500">{error}</p>
           ) : questions.length === 0 ? (
-            <p className="px-4 py-6 text-sm text-gray-400">ไม่พบคำถาม</p>
+            <p className="px-5 py-6 text-sm font-medium text-[#7A7287]">ไม่พบคำถาม</p>
           ) : (
-            <ul className="divide-y divide-[#F4EFFF]">
+            <ul className="divide-y divide-[#EFE8FB]">
               {questions.map((q, idx) => {
                 const diff = difficultyLabel(q.difficulty_param);
                 const isChecked = selected.has(q.question_id);
@@ -331,25 +331,25 @@ export default function ExamQuestionPickerModal({
                 const remaining = tags.length - visible.length;
                 return (
                   <li key={q.question_id}>
-                    <div className="grid grid-cols-[40px_1fr_240px_120px_120px] items-center px-4 py-2 text-xs font-light text-[#575757] hover:bg-[#F4EFFF]/40">
+                    <div className="grid grid-cols-[48px_1fr_240px_140px_120px] items-center px-5 py-3 text-sm font-normal text-[#514667] hover:bg-[#F4EFFF]/40">
                       <div>{(page - 1) * PAGE_SIZE + idx + 1}</div>
                       <div className="truncate pr-3">{q.question_text}</div>
                       <div className="flex flex-wrap items-center gap-1">
                         {visible.map((t) => (
                           <span
                             key={t.knowledge_category_id}
-                            className="rounded-full bg-[#B7A3E3] px-2 py-0.5 text-[10px] text-white"
+                            className="rounded-full bg-[#B7A3E3] px-2.5 py-0.5 text-xs font-semibold text-white"
                           >
                             {t.name}
                           </span>
                         ))}
                         {remaining > 0 && (
-                          <span className="rounded-full bg-[#D9CCF2] px-2 py-0.5 text-[10px] text-white">
+                          <span className="rounded-full bg-[#D9CCF2] px-2.5 py-0.5 text-xs font-semibold text-white">
                             +{remaining}
                           </span>
                         )}
                         {tags.length === 0 && (
-                          <span className="text-[10px] text-gray-400">-</span>
+                          <span className="text-xs font-medium text-[#B7AFC6]">-</span>
                         )}
                       </div>
                       <div>
@@ -365,16 +365,16 @@ export default function ExamQuestionPickerModal({
                           onClick={() =>
                             setExpanded(isOpen ? null : q.question_id)
                           }
-                          className="flex h-6 w-6 items-center justify-center rounded-md bg-[#B7A3E3] text-white hover:bg-[#A48FD6] cursor-pointer"
+                          className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#B7A3E3] text-white transition-colors hover:bg-[#A48FD6] cursor-pointer"
                           aria-label="ดูรายละเอียด"
                         >
                           {isOpen ? (
-                            <ChevronDown size={12} />
+                            <ChevronDown size={14} />
                           ) : (
-                            <Eye size={12} />
+                            <Eye size={14} />
                           )}
                         </button>
-                        <label className="flex h-6 w-6 cursor-pointer items-center justify-center">
+                        <label className="flex h-8 w-8 cursor-pointer items-center justify-center">
                           <input
                             type="checkbox"
                             checked={isChecked}
@@ -397,7 +397,7 @@ export default function ExamQuestionPickerModal({
 
         {/* Footer */}
         <div className="mt-4 flex items-center justify-between">
-          <div className="text-xs text-gray-500">
+          <div className="text-xs font-medium text-[#7A7287]">
             เลือกแล้ว {selectedCount} ข้อ
           </div>
           <Pagination
@@ -411,7 +411,7 @@ export default function ExamQuestionPickerModal({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-xl border-2 border-gray-300 px-6 py-2.5 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors cursor-pointer"
+            className="rounded-xl border border-[#D9CCF2] bg-white px-6 py-2.5 text-sm font-semibold text-[#514667] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
           >
             ยกเลิก
           </button>
@@ -422,7 +422,7 @@ export default function ExamQuestionPickerModal({
             className={`rounded-xl px-8 py-2.5 text-sm font-semibold text-white shadow-lg transition-colors ${
               selectedCount < 1
                 ? "bg-[#B7A3E3] opacity-50 cursor-not-allowed"
-                : "bg-[#B7A3E3] hover:bg-[#9264F5] cursor-pointer"
+                : "bg-[#B7A3E3] hover:bg-[#A48FD6] cursor-pointer"
             }`}
           >
             ยืนยัน
@@ -448,11 +448,11 @@ function FilterColumn({
 }) {
   return (
     <div
-      className={`w-1/2 border-r border-gray-200 last:border-r-0 ${
+      className={`w-1/2 border-r border-[#E7DDF8] last:border-r-0 ${
         disabled ? "opacity-50 pointer-events-none" : ""
       }`}
     >
-      <div className="border-b border-gray-200 px-3 py-1.5 text-xs text-[#575757]">
+      <div className="border-b border-[#E7DDF8] px-3 py-2 text-xs font-semibold text-[#514667]">
         {title}
       </div>
       <ul className="max-h-56 overflow-y-auto py-1">
@@ -464,7 +464,7 @@ function FilterColumn({
               className={`block w-full truncate px-3 py-1 text-left text-xs cursor-pointer ${
                 value === o.value
                   ? "bg-[#B7A3E3] text-white"
-                  : "text-[#575757] hover:bg-[#F4EFFF]"
+                  : "font-medium text-[#514667] hover:bg-[#F4EFFF]"
               }`}
             >
               {o.label}
@@ -478,7 +478,7 @@ function FilterColumn({
 
 function QuestionPreview({ question }: { question: Question }) {
   return (
-    <div className="border-t border-[#F4EFFF] bg-[#FBF8FF] px-6 py-3 text-xs font-light text-[#575757]">
+    <div className="border-t border-[#EFE8FB] bg-[#FAF8FF] px-6 py-4 text-sm font-normal text-[#514667]">
       <p className="mb-2 whitespace-pre-wrap">{question.question_text}</p>
       <ul className="space-y-1">
         {question.choices.map((c, i) => (
