@@ -171,40 +171,50 @@ const NavBar = ({ children }: PageLayoutProps) => {
 
   // Style helpers
   const getMenuButtonStyle = (isActive: boolean) => {
+    const sizeClass = isSidebarOpen
+      ? "px-4 py-3.5 rounded-xl"
+      : "h-12 justify-center rounded-xl p-0";
+
     if (isActive) {
-      return `w-full flex items-center gap-3 text-sm font-medium ${isSidebarOpen ? "px-4 py-3 rounded-lg" : "p-3 rounded-lg justify-center"} bg-[#B7A3E3] text-white mb-3 hover:bg-[#B7A3E3]/80 transition-colors cursor-pointer`;
+      return `w-full flex items-center gap-3 text-base font-medium ${sizeClass} bg-[#B7A3E3] text-white mb-3 hover:bg-[#B7A3E3]/80 transition-colors cursor-pointer`;
     }
-    return `w-full flex items-center gap-3 text-sm font-medium ${isSidebarOpen ? "px-4 py-3 rounded-lg" : "p-3 rounded-lg justify-center"} text-[#575757] mb-3 hover:bg-gray-100 transition-colors cursor-pointer`;
+    return `w-full flex items-center gap-3 text-base font-medium ${sizeClass} text-[#575757] mb-3 hover:bg-gray-100 transition-colors cursor-pointer`;
   };
 
   const getSideMenuStyle = (isActive: boolean) => {
+    const sizeClass = isSidebarOpen
+      ? "px-4 py-3.5"
+      : "h-12 justify-center p-0";
+
     if (isActive) {
-      return `w-full flex items-center gap-3 text-sm font-medium ${isSidebarOpen ? "px-4" : "justify-center"} py-3 bg-[#B7A3E3] text-white rounded-lg transition-colors cursor-pointer`;
+      return `w-full flex items-center gap-3 text-base font-medium ${sizeClass} bg-[#B7A3E3] text-white rounded-xl transition-colors cursor-pointer`;
     }
-    return `w-full flex items-center gap-3 text-sm font-medium ${isSidebarOpen ? "px-4" : "justify-center"} py-3 text-[#575757] hover:bg-gray-100 rounded-lg transition-colors cursor-pointer`;
+    return `w-full flex items-center gap-3 text-base font-medium ${sizeClass} text-[#575757] hover:bg-gray-100 rounded-xl transition-colors cursor-pointer`;
   };
 
   const getCourseItemStyle = (courseOfferingId: string) => {
     const isActive = activeCourseOfferingId === courseOfferingId;
     if (isActive) {
-      return "group w-full text-left px-4 py-2 bg-[#B7A3E3]/80 text-white rounded-lg transition-colors cursor-pointer";
+      return "group w-full text-left px-4 py-3 bg-[#B7A3E3]/80 text-white rounded-xl transition-colors cursor-pointer";
     }
-    return "group w-full text-left px-4 py-2 text-[#575757] hover:bg-[#B7A3E3]/80 hover:text-white rounded-lg transition-colors cursor-pointer";
+    return "group w-full text-left px-4 py-3 text-[#575757] hover:bg-[#B7A3E3]/80 hover:text-white rounded-xl transition-colors cursor-pointer";
   };
 
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <div
-        className={`${isSidebarOpen ? "w-64" : "w-16 sm:w-20"} h-screen overflow-y-auto transition-all duration-300 bg-white shadow-lg flex-shrink-0`}
+        className={`${isSidebarOpen ? "w-72" : "w-20 sm:w-24"} h-screen overflow-y-auto transition-all duration-300 bg-white shadow-lg flex-shrink-0`}
       >
-        <div className="p-4">
+        <div className={isSidebarOpen ? "p-5" : "p-3"}>
           {/* Burger Button */}
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 mb-4 hover:bg-gray-100 rounded-lg transition-colors w-full flex justify-start"
+            className={`mb-4 flex w-full rounded-xl transition-colors hover:bg-gray-100 ${
+              isSidebarOpen ? "justify-start p-2.5" : "h-12 items-center justify-center p-0"
+            }`}
           >
-            <Menu size={24} className="text-gray-700" />
+            <Menu size={28} className="text-gray-700" />
           </button>
 
           {/* ADMIN-only menu: Show only "จัดการผู้ใช้" */}
@@ -213,7 +223,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
               onClick={() => router.push("/admin/manage-users")}
               className={getMenuButtonStyle(isManageUsersActive)}
             >
-              <Users size={20} />
+              <Users size={22} />
               {isSidebarOpen && (
                 <span className="font-medium">จัดการผู้ใช้</span>
               )}
@@ -226,7 +236,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
                 onClick={() => router.push("/")}
                 className={getMenuButtonStyle(isHomeActive)}
               >
-                <Home size={20} />
+                <Home size={22} />
                 {isSidebarOpen && <span className="font-medium">หน้าแรก</span>}
               </button>
 
@@ -234,19 +244,23 @@ const NavBar = ({ children }: PageLayoutProps) => {
               <div className="mb-3">
                 <button
                   onClick={() => setIsCoursesExpanded(!isCoursesExpanded)}
-                  className={`w-full flex items-center ${isSidebarOpen ? "justify-between px-4" : "justify-center"} py-3 ${
+                  className={`w-full flex items-center text-base font-medium ${
+                    isSidebarOpen
+                      ? "justify-between px-4 py-3.5"
+                      : "h-12 justify-center p-0"
+                  } ${
                     isCourseSectionActive
                       ? "bg-[#B7A3E3]/80 text-white"
                       : "text-[#575757] hover:bg-gray-100"
-                  } rounded-lg transition-colors cursor-pointer`}
+                  } rounded-xl transition-colors cursor-pointer`}
                 >
                   <div className="flex items-center gap-3">
-                    <FileText size={20} />
-                    {isSidebarOpen && <span className="text-sm font-medium">รายวิชา</span>}
+                    <FileText size={22} />
+                    {isSidebarOpen && <span>รายวิชา</span>}
                   </div>
                   {isSidebarOpen && (
                     <ChevronDown
-                      size={16}
+                      size={18}
                       className={`transition-transform ${isCoursesExpanded ? "rotate-180" : ""}`}
                     />
                   )}
@@ -256,11 +270,11 @@ const NavBar = ({ children }: PageLayoutProps) => {
                 {isCoursesExpanded && isSidebarOpen && (
                   <div className="ml-4 mt-2 space-y-1">
                     {loadingCourses ? (
-                      <div className="px-4 py-2 text-gray-400 text-sm">
+                      <div className="px-4 py-2 text-sm font-medium text-gray-400">
                         กำลังโหลด...
                       </div>
                     ) : courses.length === 0 ? (
-                      <div className="px-4 py-2 text-gray-400 text-sm">
+                      <div className="px-4 py-2 text-sm font-medium text-gray-400">
                         ไม่มีรายวิชา
                       </div>
                     ) : (
@@ -274,11 +288,11 @@ const NavBar = ({ children }: PageLayoutProps) => {
                             course.course_offerings_id,
                           )}
                         >
-                          <span className="block text-sm font-semibold">
+                          <span className="block text-base font-semibold">
                             {course.courses.course_code}
                           </span>
                           <span
-                            className={`mt-0.5 block truncate text-xs ${
+                            className={`mt-1 block truncate text-sm font-medium ${
                               activeCourseOfferingId ===
                               course.course_offerings_id
                                 ? "text-white/80"
@@ -301,7 +315,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
                     onClick={() => router.push("/course")}
                     className={getSideMenuStyle(isCourseManageActive)}
                   >
-                    <Settings size={20} />
+                    <Settings size={22} />
                     {isSidebarOpen && <span>จัดการรายวิชา</span>}
                   </button>
 
@@ -309,7 +323,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
                     onClick={() => router.push("/exam-bank")}
                     className={getSideMenuStyle(isExamBankActive)}
                   >
-                    <Database size={20} />
+                    <Database size={22} />
                     {isSidebarOpen && <span>คลังข้อสอบ</span>}
                   </button>
                 </>
@@ -320,7 +334,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
                 onClick={() => router.push("/results")}
                 className={getSideMenuStyle(isResultsActive)}
               >
-                <BookOpen size={20} />
+                <BookOpen size={22} />
                 {isSidebarOpen && <span>ผลสรุปการสอบ</span>}
               </button>
             </>
@@ -359,57 +373,57 @@ const NavBar = ({ children }: PageLayoutProps) => {
                 <button
                   type="button"
                   onClick={() => setIsUserMenuOpen(true)}
-                  className="flex min-w-0 items-center gap-2 rounded-2xl border border-transparent bg-white px-2 py-1.5 transition-colors cursor-pointer hover:border-[#E7DDF8] hover:bg-[#FAF8FF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7A3E3] sm:gap-3 sm:px-3"
+                  className="flex min-w-0 items-center gap-2.5 rounded-2xl border border-transparent bg-white px-2.5 py-2 transition-colors cursor-pointer hover:border-[#E7DDF8] hover:bg-[#FAF8FF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7A3E3] sm:gap-3.5 sm:px-3.5"
                   aria-expanded={isUserMenuOpen}
                   aria-haspopup="menu"
                 >
-                  <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#F4EFFF] text-sm font-semibold text-[#7C5BD9] ring-1 ring-[#E7DDF8]">
+                  <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#F4EFFF] text-base font-semibold text-[#7C5BD9] ring-1 ring-[#E7DDF8]">
                     {profileInitials ? (
                       profileInitials
                     ) : (
-                      <UserRound size={18} aria-hidden="true" />
+                      <UserRound size={20} aria-hidden="true" />
                     )}
                   </span>
                   <span className="hidden min-w-0 text-left sm:block">
-                    <span className="block max-w-44 truncate text-sm font-semibold leading-5 text-[#2F2A3A] lg:max-w-64">
+                    <span className="block max-w-48 truncate text-base font-semibold leading-6 text-[#2F2A3A] lg:max-w-72">
                       {getDisplayName()}
                     </span>
-                    <span className="block max-w-44 truncate text-xs font-medium leading-4 text-[#7A7287] lg:max-w-64">
+                    <span className="block max-w-48 truncate text-sm font-medium leading-5 text-[#7A7287] lg:max-w-72">
                       {getProfileSubtitle()}
                     </span>
                   </span>
                   <ChevronDown
-                    size={16}
+                    size={18}
                     className={`flex-shrink-0 text-[#7A7287] transition-transform ${isUserMenuOpen ? "rotate-180" : ""}`}
                   />
                 </button>
 
                 {/* Dropdown Menu */}
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-[#E7DDF8] bg-white shadow-xl">
-                    <div className="flex items-center gap-3 border-b border-[#EFE8FB] bg-[#FAF8FF] px-4 py-3">
-                      <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#F4EFFF] text-sm font-semibold text-[#7C5BD9] ring-1 ring-[#E7DDF8]">
+                  <div className="absolute right-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-2xl border border-[#E7DDF8] bg-white shadow-xl">
+                    <div className="flex items-center gap-3.5 border-b border-[#EFE8FB] bg-[#FAF8FF] px-4 py-3.5">
+                      <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-[#F4EFFF] text-base font-semibold text-[#7C5BD9] ring-1 ring-[#E7DDF8]">
                         {profileInitials ? (
                           profileInitials
                         ) : (
-                          <UserRound size={18} aria-hidden="true" />
+                          <UserRound size={20} aria-hidden="true" />
                         )}
                       </span>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-[#2F2A3A]">
+                        <p className="truncate text-base font-semibold text-[#2F2A3A]">
                           {getDisplayName()}
                         </p>
-                        <p className="truncate text-xs font-medium text-[#7A7287]">
+                        <p className="truncate text-sm font-medium text-[#7A7287]">
                           {getProfileSubtitle()}
                         </p>
                       </div>
                     </div>
                     <button
                       onClick={handleLogout}
-                      className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-[#514667] transition-colors cursor-pointer hover:bg-[#F4EFFF] hover:text-[#7C5BD9]"
+                      className="flex w-full items-center gap-2.5 px-4 py-3.5 text-base font-medium text-[#514667] transition-colors cursor-pointer hover:bg-[#F4EFFF] hover:text-[#7C5BD9]"
                       role="menuitem"
                     >
-                      <LogOut size={16} />
+                      <LogOut size={18} />
                       ออกจากระบบ
                     </button>
                   </div>

@@ -118,18 +118,18 @@ export default function CourseManagement() {
     }
   }, [searchTerm, rowsPerPage]);
 
+  const commitSearch = useCallback(() => {
+    setCurrentPage(1);
+    setSearchTerm(searchInput.trim());
+  }, [searchInput]);
+
   // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
-      setSearchTerm(searchInput);
-    }, 400);
+      commitSearch();
+    }, 300);
     return () => clearTimeout(timer);
-  }, [searchInput]);
-
-  // Handle explicit search button click
-  const handleSearch = () => {
-    setSearchTerm(searchInput);
-  };
+  }, [commitSearch]);
 
   // Fetch courses on mount or when search changes
   useEffect(() => {
@@ -279,29 +279,6 @@ export default function CourseManagement() {
               </div>
 
               <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-end xl:w-auto">
-                <div className="relative flex-1">
-                  <Search
-                    size={18}
-                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#8F84A3]"
-                  />
-                  <input
-                    type="text"
-                    placeholder="ค้นหารหัสหรือชื่อวิชา"
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleSearch();
-                    }}
-                    className="h-11 w-full rounded-xl bg-[#FAF8FF] py-3 pl-11 pr-4 text-sm font-medium text-[#2F2A3A] placeholder:text-[#B7AFC6] outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3] sm:w-[320px] lg:w-[380px]"
-                  />
-                </div>
-                <button
-                  onClick={handleSearch}
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#A48FD6] cursor-pointer sm:w-[112px]"
-                >
-                  <Search size={16} />
-                  ค้นหา
-                </button>
                 <button
                   onClick={() => setIsCreateModalOpen(true)}
                   className="inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[#B7A3E3] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#A48FD6] cursor-pointer sm:w-fit"
@@ -309,6 +286,26 @@ export default function CourseManagement() {
                   <Plus size={18} />
                   สร้างรายวิชา
                 </button>
+                <div className="relative flex-1 sm:w-[320px] sm:flex-none lg:w-[380px]">
+                  <Search
+                    size={18}
+                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#8F84A3]"
+                  />
+                  <input
+                    type="search"
+                    placeholder="ค้นหารหัสหรือชื่อวิชา"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        commitSearch();
+                      }
+                    }}
+                    autoComplete="off"
+                    className="h-11 w-full rounded-xl bg-[#FAF8FF] py-3 pl-11 pr-4 text-sm font-medium text-[#2F2A3A] placeholder:text-[#B7AFC6] outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
+                  />
+                </div>
               </div>
             </div>
           </section>
@@ -364,19 +361,19 @@ export default function CourseManagement() {
                 </colgroup>
                 <thead className="bg-[#B7A3E3] text-white">
                   <tr>
-                    <th className="px-5 py-4 text-left text-sm font-semibold">
+                    <th className="px-5 py-4 text-left text-base font-semibold">
                       รหัสวิชา
                     </th>
-                    <th className="px-5 py-4 text-left text-sm font-semibold">
+                    <th className="px-5 py-4 text-left text-base font-semibold">
                       ชื่อวิชา
                     </th>
-                    <th className="px-5 py-4 text-center text-sm font-semibold">
+                    <th className="px-5 py-4 text-center text-base font-semibold">
                       หมวดหมู่ความรู้
                     </th>
-                    <th className="px-5 py-4 text-center text-sm font-semibold">
+                    <th className="px-5 py-4 text-center text-base font-semibold">
                       สถานะ
                     </th>
-                    <th className="px-5 py-4 text-center text-sm font-semibold">
+                    <th className="px-5 py-4 text-center text-base font-semibold">
                       จัดการ
                     </th>
                   </tr>

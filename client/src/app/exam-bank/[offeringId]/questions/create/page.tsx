@@ -174,7 +174,6 @@ export default function CreateFlatQuestionsPage() {
               tags={tags}
               fixedChoiceCount={FIXED_CHOICE_COUNT}
               difficultyOptions={DIFFICULTY_LEVEL_CONFIG}
-              knowledgeDisplayMode="list"
               saving={saving}
               onChange={setDraft}
               onConfirm={handleConfirmDraft}
