@@ -34,7 +34,6 @@ export default function KnowledgeCategoriesModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Alert state
   const [alertState, setAlertState] = useState<{
     isOpen: boolean;
     title: string;
@@ -43,7 +42,7 @@ export default function KnowledgeCategoriesModal({
   }>({ isOpen: false, title: "", message: "", variant: "error" });
 
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Load existing categories when modal opens
   useEffect(() => {
@@ -88,8 +87,8 @@ export default function KnowledgeCategoriesModal({
     setCategories((prev) => prev.filter((cat) => cat !== name));
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       addCategory(searchQuery);
     }
@@ -101,7 +100,6 @@ export default function KnowledgeCategoriesModal({
   };
 
   const handleSave = async () => {
-    // If there's text in the input that hasn't been added yet, add it
     const trimmed = searchQuery.trim();
     const finalCategories =
       trimmed.length > 0 &&
@@ -182,37 +180,46 @@ export default function KnowledgeCategoriesModal({
 
   return (
     <div className="fixed inset-0 bg-black/45 z-50 flex items-start justify-center overflow-y-auto p-4 py-6 sm:p-6">
-      <div className="relative w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl sm:p-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
+      <div className="relative w-full max-w-xl rounded-2xl bg-white p-5 shadow-2xl sm:p-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
+        {/* Header */}
         <div className="mb-5">
           <h2 className="text-xl font-bold text-gray-900">
-            หมวดหมู่ความรู้ — {course.name}
+            จัดการหมวดหมู่ความรู้
           </h2>
+          <p className="mt-1 text-sm text-gray-500">
+            รายวิชา: <span className="font-semibold text-[#7C5BD9]">{course.name}</span>
+          </p>
         </div>
 
         <div>
-          {/* Tags display */}
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="w-6 h-6 border-3 border-[#B7A3E3] border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
             <>
+              {/* Category list with sequence numbers */}
               {categories.length === 0 ? (
-                <p className="rounded-xl bg-[#F8F5FF] px-4 py-3 text-sm text-gray-500">
-                  ยังไม่มีหมวดหมู่ความรู้
-                </p>
+                <div className="rounded-xl bg-[#F8F5FF] px-4 py-6 text-center text-sm text-gray-500">
+                  ยังไม่มีหมวดหมู่ความรู้ — เพิ่มหมวดหมู่แรกด้านล่าง
+                </div>
               ) : (
-                <ul className="space-y-2">
-                  {categories.map((cat) => (
+                <ul className="space-y-2 mb-4">
+                  {categories.map((cat, index) => (
                     <li
                       key={cat}
-                      className="flex items-center justify-between gap-3 rounded-xl bg-[#F4EFFF] px-4 py-2.5 text-sm text-[#575757]"
+                      className="flex items-center gap-3 rounded-xl bg-[#F4EFFF] px-4 py-3"
                     >
-                      <span>{cat}</span>
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#B7A3E3] text-xs font-semibold text-white">
+                        {index + 1}
+                      </span>
+                      <span className="flex-1 text-sm text-[#2F2A3A] font-medium break-all">
+                        {cat}
+                      </span>
                       <button
                         type="button"
                         onClick={() => removeCategory(cat)}
-                        className="text-gray-400 hover:text-rose-500 transition-colors"
+                        className="shrink-0 flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer"
                         aria-label={`ลบ ${cat}`}
                       >
                         <X size={14} />
@@ -222,7 +229,8 @@ export default function KnowledgeCategoriesModal({
                 </ul>
               )}
 
-              <div className="space-y-2">
+              {/* Add category section */}
+              <div className="border-t border-[#EFE8FB] pt-4 space-y-3">
                 {!showAddInput ? (
                   <button
                     type="button"
@@ -230,13 +238,20 @@ export default function KnowledgeCategoriesModal({
                       setShowAddInput(true);
                       setTimeout(() => inputRef.current?.focus(), 0);
                     }}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-[#B7A3E3] px-4 py-2 text-sm font-medium text-white hover:bg-[#A48FD6]"
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#B7A3E3] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#A48FD6] transition-colors cursor-pointer"
                   >
-                    <Plus size={16} /> เพิ่มหมวดหมู่ความรู้
+                    <Plus size={16} />
+                    เพิ่มหมวดหมู่ความรู้
                   </button>
                 ) : (
                   <div className="relative">
-                    <input
+                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                      ชื่อหมวดหมู่{" "}
+                      <span className="text-xs font-normal text-gray-500">
+                        ({searchQuery.length}/{MAX_KNOWLEDGE_LENGTH})
+                      </span>
+                    </label>
+                    <textarea
                       ref={inputRef}
                       value={searchQuery}
                       maxLength={MAX_KNOWLEDGE_LENGTH}
@@ -246,8 +261,9 @@ export default function KnowledgeCategoriesModal({
                         }
                       }}
                       onKeyDown={handleKeyDown}
-                      className="w-full rounded-xl border-2 border-[#9264F5] px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none focus:border-[#B7A3E3]"
-                      placeholder="พิมพ์ชื่อหมวดหมู่ความรู้"
+                      rows={2}
+                      className="w-full rounded-xl border-2 border-[#9264F5] px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none focus:border-[#B7A3E3] resize-none"
+                      placeholder="พิมพ์ชื่อหมวดหมู่ความรู้ แล้วกด Enter เพื่อเพิ่ม"
                     />
                     {showDropdown && suggestions.length > 0 && (
                       <div
@@ -259,22 +275,22 @@ export default function KnowledgeCategoriesModal({
                             key={s.knowledge_category_id}
                             type="button"
                             onClick={() => handleSuggestionClick(s.name)}
-                            className="w-full text-left px-4 py-2 hover:bg-purple-50 transition-colors text-black first:rounded-t-xl last:rounded-b-xl"
+                            className="w-full text-left px-4 py-2.5 hover:bg-purple-50 transition-colors text-sm text-[#2F2A3A] first:rounded-t-xl last:rounded-b-xl cursor-pointer"
                           >
                             {s.name}
                           </button>
                         ))}
                       </div>
                     )}
+                    <p className="text-xs text-gray-400 mt-1.5">
+                      กด Enter เพื่อเพิ่มหมวดหมู่
+                    </p>
                   </div>
                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                สูงสุด {MAX_KNOWLEDGE_LENGTH} ตัวอักษรต่อหมวดหมู่
-              </p>
 
               {/* Buttons */}
-              <div className="flex gap-3">
+              <div className="flex gap-3 mt-6">
                 <button
                   onClick={onClose}
                   disabled={isSubmitting}
