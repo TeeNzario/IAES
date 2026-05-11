@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -13,6 +13,7 @@ import {
   Database,
   LogOut,
   Users,
+  UserRound,
 } from "lucide-react";
 import { AuthUser, getUser, clearAuth } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
@@ -40,6 +41,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
   const [courses, setCourses] = useState<CourseOffering[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Read user from localStorage on client mount only.
   // Must use useEffect to avoid reading during SSR (window guard).
@@ -106,6 +108,24 @@ const NavBar = ({ children }: PageLayoutProps) => {
     fetchCourses();
   }, [user, user?.type]);
 
+  useEffect(() => {
+    if (!isUserMenuOpen) return;
+
+    const closeOnOutsidePointer = (event: MouseEvent | TouchEvent) => {
+      if (!userMenuRef.current?.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", closeOnOutsidePointer);
+    document.addEventListener("touchstart", closeOnOutsidePointer);
+
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutsidePointer);
+      document.removeEventListener("touchstart", closeOnOutsidePointer);
+    };
+  }, [isUserMenuOpen]);
+
   const isInstructor = user?.type === "STAFF" && user?.staff_role === "INSTRUCTOR";
   const isAdmin = user?.type === "STAFF" && user?.staff_role === "ADMIN";
 
@@ -122,6 +142,27 @@ const NavBar = ({ children }: PageLayoutProps) => {
     // STAFF
     return `${user.title ?? ""} ${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() || "บุคลากร";
   };
+
+  const getProfileSubtitle = () => {
+    if (!user) return "IAES";
+    if (user.type === "STUDENT") return user.student_code ?? "นักศึกษา";
+    if (user.staff_role === "ADMIN") return "ผู้ดูแลระบบ";
+    if (user.staff_role === "INSTRUCTOR") return "อาจารย์";
+    return user.email ?? "บุคลากร";
+  };
+
+  const getProfileInitials = () => {
+    if (!user) return "";
+    const firstInitial = Array.from(user.first_name?.trim() ?? "")[0] ?? "";
+    const lastInitial = Array.from(user.last_name?.trim() ?? "")[0] ?? "";
+    const initials = `${firstInitial}${lastInitial}`.trim();
+
+    if (initials) return initials;
+    if (user.type === "STUDENT") return (user.student_code ?? "").slice(0, 2);
+    return Array.from(getDisplayName().trim())[0] ?? "";
+  };
+
+  const profileInitials = getProfileInitials();
 
   const handleLogout = () => {
     clearAuth();
@@ -310,26 +351,63 @@ const NavBar = ({ children }: PageLayoutProps) => {
             {/* Right Section - User Info with Dropdown */}
             <div className="flex min-w-0 items-center gap-2 sm:gap-4">
               <div
+                ref={userMenuRef}
                 className="relative"
                 onMouseEnter={() => setIsUserMenuOpen(true)}
                 onMouseLeave={() => setIsUserMenuOpen(false)}
               >
-                <button className="flex min-w-0 items-center gap-2 rounded-lg px-2 py-2 transition-colors cursor-pointer hover:bg-gray-100 sm:px-3">
-                  <span className="hidden max-w-28 truncate text-sm font-medium text-[#484848] sm:block sm:max-w-none sm:text-base">
-                    {getDisplayName()}
+                <button
+                  type="button"
+                  onClick={() => setIsUserMenuOpen(true)}
+                  className="flex min-w-0 items-center gap-2 rounded-2xl border border-transparent bg-white px-2 py-1.5 transition-colors cursor-pointer hover:border-[#E7DDF8] hover:bg-[#FAF8FF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B7A3E3] sm:gap-3 sm:px-3"
+                  aria-expanded={isUserMenuOpen}
+                  aria-haspopup="menu"
+                >
+                  <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#F4EFFF] text-sm font-semibold text-[#7C5BD9] ring-1 ring-[#E7DDF8]">
+                    {profileInitials ? (
+                      profileInitials
+                    ) : (
+                      <UserRound size={18} aria-hidden="true" />
+                    )}
+                  </span>
+                  <span className="hidden min-w-0 text-left sm:block">
+                    <span className="block max-w-44 truncate text-sm font-semibold leading-5 text-[#2F2A3A] lg:max-w-64">
+                      {getDisplayName()}
+                    </span>
+                    <span className="block max-w-44 truncate text-xs font-medium leading-4 text-[#7A7287] lg:max-w-64">
+                      {getProfileSubtitle()}
+                    </span>
                   </span>
                   <ChevronDown
                     size={16}
-                    className={`text-gray-400 transition-transform ${isUserMenuOpen ? "rotate-180" : ""}`}
+                    className={`flex-shrink-0 text-[#7A7287] transition-transform ${isUserMenuOpen ? "rotate-180" : ""}`}
                   />
                 </button>
 
                 {/* Dropdown Menu */}
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 top-full w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                  <div className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-[#E7DDF8] bg-white shadow-xl">
+                    <div className="flex items-center gap-3 border-b border-[#EFE8FB] bg-[#FAF8FF] px-4 py-3">
+                      <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#F4EFFF] text-sm font-semibold text-[#7C5BD9] ring-1 ring-[#E7DDF8]">
+                        {profileInitials ? (
+                          profileInitials
+                        ) : (
+                          <UserRound size={18} aria-hidden="true" />
+                        )}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-[#2F2A3A]">
+                          {getDisplayName()}
+                        </p>
+                        <p className="truncate text-xs font-medium text-[#7A7287]">
+                          {getProfileSubtitle()}
+                        </p>
+                      </div>
+                    </div>
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-400 transition-colors cursor-pointer"
+                      className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-[#514667] transition-colors cursor-pointer hover:bg-[#F4EFFF] hover:text-[#7C5BD9]"
+                      role="menuitem"
                     >
                       <LogOut size={16} />
                       ออกจากระบบ
