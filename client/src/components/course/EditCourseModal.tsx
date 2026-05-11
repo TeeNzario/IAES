@@ -270,7 +270,7 @@ export default function EditCourseModal({
   // INPUT HANDLERS
   // ============================================================
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     const field = name as "course_code" | "course_name_th" | "course_name_en";
 
@@ -342,6 +342,24 @@ export default function EditCourseModal({
   // COMPUTED VALUES
   // ============================================================
 
+  /**
+   * Returns Tailwind color classes for the character counter based on
+   * how close the current length is to the max limit.
+   */
+  const getCounterColor = (current: number, max: number) => {
+    if (current >= max) return "text-red-500 font-semibold";
+    if (current >= max * 0.9) return "text-amber-500 font-semibold";
+    return "text-gray-500";
+  };
+
+  /**
+   * Returns a warning message when at the character limit.
+   */
+  const getLimitWarning = (current: number, max: number) => {
+    if (current >= max) return "ถึงจำนวนอักษรสูงสุดแล้ว";
+    return null;
+  };
+
   const hasErrors = Object.values(errors).some((error) => !!error);
   const isFormEmpty =
     !formData.course_code.trim() || !formData.course_name_th.trim() || !formData.course_name_en.trim();
@@ -363,7 +381,7 @@ export default function EditCourseModal({
       className="fixed inset-0 bg-black/45 z-50 flex items-start justify-center overflow-y-auto p-4 py-6 sm:p-6"
       onClick={handleBackdropClick}
     >
-      <div className="relative w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl sm:p-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
+      <div className="relative w-full max-w-xl rounded-2xl bg-white p-5 shadow-2xl sm:p-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
         <div className="mb-5">
           <h2 className="text-xl font-bold text-gray-900">แก้ไขรายวิชา</h2>
         </div>
@@ -373,7 +391,9 @@ export default function EditCourseModal({
           <div className="mb-4">
             <label className="block text-sm font-semibold text-gray-800 mb-1.5">
               รหัสวิชา <span className="text-red-500">*</span>{" "}
-              <span className="text-xs font-medium text-gray-500">
+              <span
+                className={`text-xs font-medium ${getCounterColor(formData.course_code.length, COURSE_CODE_MAX_LENGTH)}`}
+              >
                 ({formData.course_code.length}/{COURSE_CODE_MAX_LENGTH})
               </span>
             </label>
@@ -397,23 +417,31 @@ export default function EditCourseModal({
           <div className="mb-4">
             <label className="block text-sm font-semibold text-gray-800 mb-1.5">
               ชื่อรายวิชา (ภาษาไทย) <span className="text-red-500">*</span>{" "}
-              <span className="text-xs font-medium text-gray-500">
+              <span
+                className={`text-xs font-medium ${getCounterColor(formData.course_name_th.length, COURSE_NAME_MAX_LENGTH)}`}
+              >
                 ({formData.course_name_th.length}/{COURSE_NAME_MAX_LENGTH})
               </span>
             </label>
-            <input
-              type="text"
+            <textarea
               name="course_name_th"
               value={formData.course_name_th}
               onChange={handleInputChange}
               maxLength={COURSE_NAME_MAX_LENGTH}
-              className={`w-full rounded-xl border-2 px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none ${
+              rows={3}
+              className={`w-full rounded-xl border-2 px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none resize-none ${
                 errors.course_name_th ? "border-red-500 focus:border-red-500" : "border-[#9264F5] focus:border-[#B7A3E3]"
               }`}
               placeholder=""
             />
-            {errors.course_name_th && (
+            {errors.course_name_th ? (
               <p className="text-red-500 text-xs mt-1">{errors.course_name_th}</p>
+            ) : (
+              getLimitWarning(formData.course_name_th.length, COURSE_NAME_MAX_LENGTH) && (
+                <p className="text-amber-500 text-xs mt-1">
+                  {getLimitWarning(formData.course_name_th.length, COURSE_NAME_MAX_LENGTH)}
+                </p>
+              )
             )}
           </div>
 
@@ -421,23 +449,31 @@ export default function EditCourseModal({
           <div className="mb-4">
             <label className="block text-sm font-semibold text-gray-800 mb-1.5">
               ชื่อรายวิชา (ภาษาอังกฤษ) <span className="text-red-500">*</span>{" "}
-              <span className="text-xs font-medium text-gray-500">
+              <span
+                className={`text-xs font-medium ${getCounterColor(formData.course_name_en.length, COURSE_NAME_MAX_LENGTH)}`}
+              >
                 ({formData.course_name_en.length}/{COURSE_NAME_MAX_LENGTH})
               </span>
             </label>
-            <input
-              type="text"
+            <textarea
               name="course_name_en"
               value={formData.course_name_en}
               onChange={handleInputChange}
               maxLength={COURSE_NAME_MAX_LENGTH}
-              className={`w-full rounded-xl border-2 px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none ${
+              rows={3}
+              className={`w-full rounded-xl border-2 px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none resize-none ${
                 errors.course_name_en ? "border-red-500 focus:border-red-500" : "border-[#9264F5] focus:border-[#B7A3E3]"
               }`}
               placeholder=""
             />
-            {errors.course_name_en && (
+            {errors.course_name_en ? (
               <p className="text-red-500 text-xs mt-1">{errors.course_name_en}</p>
+            ) : (
+              getLimitWarning(formData.course_name_en.length, COURSE_NAME_MAX_LENGTH) && (
+                <p className="text-amber-500 text-xs mt-1">
+                  {getLimitWarning(formData.course_name_en.length, COURSE_NAME_MAX_LENGTH)}
+                </p>
+              )
             )}
           </div>
 
