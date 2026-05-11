@@ -159,6 +159,11 @@ function mapStaffToUser(staff: StaffUserResponse): User {
   };
 }
 
+function getStudentCohort(user: User) {
+  if (user.role !== "STUDENT") return "";
+  return user.id.match(/^\d{2}/)?.[0] ?? "";
+}
+
 // Email and Name validation regex pattern
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const NAME_REGEX = /^[ก-๙\s]+$/;
@@ -172,6 +177,7 @@ export default function ManageUserPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [facultyFilter, setFacultyFilter] = useState("all");
   const [curriculumFilter, setCurriculumFilter] = useState("all");
+  const [cohortFilter, setCohortFilter] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
   // Default to STUDENT (no "all" option per requirement)
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("STUDENT");
@@ -292,8 +298,10 @@ export default function ManageUserPage() {
       const matchesCurriculum =
         curriculumFilter === "all" ||
         (user.curriculumId ?? DEFAULT_CURRICULUM_ID) === curriculumFilter;
+      const matchesCohort =
+        cohortFilter === "all" || getStudentCohort(user) === cohortFilter;
 
-      return matchesSearch && matchesFaculty && matchesCurriculum;
+      return matchesSearch && matchesFaculty && matchesCurriculum && matchesCohort;
     });
 
     const collator = new Intl.Collator(["th", "en"], {
@@ -317,6 +325,7 @@ export default function ManageUserPage() {
     searchTerm,
     facultyFilter,
     curriculumFilter,
+    cohortFilter,
     currentUser,
   ]);
 
@@ -345,6 +354,17 @@ export default function ManageUserPage() {
       name: getCurriculumName(curriculum.id),
     })).sort((a, b) => collator.compare(a.name, b.name));
   }, []);
+
+  const cohortFilterOptions = useMemo(() => {
+    const collator = new Intl.Collator(["th", "en"], {
+      sensitivity: "base",
+      numeric: true,
+    });
+
+    return Array.from(new Set(users.map(getStudentCohort).filter(Boolean))).sort(
+      (a, b) => collator.compare(a, b),
+    );
+  }, [users]);
 
   const totalPages = Math.max(
     1,
@@ -744,6 +764,7 @@ export default function ManageUserPage() {
   const activeFilterCount = [
     facultyFilter !== "all",
     curriculumFilter !== "all",
+    roleFilter === "STUDENT" && cohortFilter !== "all",
   ].filter(Boolean).length;
   const currentRoleLabel =
     roleFilter === "STUDENT"
@@ -773,6 +794,7 @@ export default function ManageUserPage() {
     setSearchTerm("");
     setFacultyFilter("all");
     setCurriculumFilter("all");
+    setCohortFilter("all");
     setCurrentPage(1);
   }
 
@@ -963,7 +985,35 @@ export default function ManageUserPage() {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div
+              className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${
+                roleFilter === "STUDENT" ? "lg:grid-cols-3" : ""
+              }`}
+            >
+              {roleFilter === "STUDENT" && (
+                <div>
+                  <label className={labelClass}>รุ่น</label>
+                  <div className="relative">
+                    <select
+                      value={cohortFilter}
+                      onChange={(e) => {
+                        setCohortFilter(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      className={selectControlClass}
+                    >
+                      <option value="all">ทั้งหมด</option>
+                      {cohortFilterOptions.map((cohort) => (
+                        <option key={cohort} value={cohort}>
+                          {cohort}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className={dropdownIconClass} size={18} />
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className={labelClass}>สำนักวิชา</label>
                 <div className="relative">
@@ -1030,7 +1080,10 @@ export default function ManageUserPage() {
           ) : filteredUsers.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <p className="text-sm font-medium text-[#7A7287]">
-                {searchTerm.trim() || facultyFilter !== "all" || curriculumFilter !== "all"
+                {searchTerm.trim() ||
+                facultyFilter !== "all" ||
+                curriculumFilter !== "all" ||
+                (roleFilter === "STUDENT" && cohortFilter !== "all")
                   ? "ไม่พบผลลัพธ์ที่ตรงกับการค้นหา"
                   : `ยังไม่มีข้อมูล${currentRoleLabel}`}
               </p>
