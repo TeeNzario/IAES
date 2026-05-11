@@ -909,13 +909,30 @@ export default function BulkUploadModal({
             {/* Bottom actions */}
             <div className="flex-shrink-0 border-t border-[#EFE8FB] px-6 py-4">
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  className="h-11 min-w-28 cursor-pointer rounded-xl border border-[#B7A3E3] px-6 text-sm font-medium text-[#7C5BD9] transition-colors hover:bg-purple-50"
-                >
-                  ยกเลิก
-                </button>
+                <div className="flex items-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStep("upload");
+                      setSessionId(null);
+                      setRows([]);
+                      setFilterStatus("all");
+                      setError(null);
+                      setEditingRowIndex(null);
+                      setSelectedFileName(null);
+                    }}
+                    className="h-11 min-w-28 cursor-pointer rounded-xl border border-[#D9CCF2] bg-white px-6 text-sm font-medium text-[#514667] transition-colors hover:bg-[#F4EFFF]"
+                  >
+                    ย้อนกลับ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="h-11 min-w-28 cursor-pointer rounded-xl border border-[#B7A3E3] px-6 text-sm font-medium text-[#7C5BD9] transition-colors hover:bg-purple-50"
+                  >
+                    ยกเลิก
+                  </button>
+                </div>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   {editingRowIndex !== null ? (
                     <p className="text-sm text-amber-600">บันทึกหรือยกเลิกการแก้ไขแถวก่อนยืนยัน</p>

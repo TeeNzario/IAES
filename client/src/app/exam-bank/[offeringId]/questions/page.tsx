@@ -30,6 +30,7 @@ import {
   FIXED_CHOICE_COUNT,
 } from "@/components/questionBank/questionEditorConfig";
 import type { KnowledgeTag } from "@/components/questionBank/TagSelect";
+import BulkUploadQuestion from "@/features/questionBank/components/BulkUploadQuestion";
 
 interface ListResponse {
   data: Question[];
@@ -64,6 +65,7 @@ export default function FlatQuestionBankPage() {
   const [expanded, setExpanded] = useState<
     { id: string; mode: "view" | "edit" } | null
   >(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -240,9 +242,7 @@ export default function FlatQuestionBankPage() {
               </button>
               <button
                 type="button"
-                onClick={() =>
-                  alert("Import CSV สำหรับข้อสอบยังอยู่ระหว่างเตรียมใช้งาน")
-                }
+                onClick={() => setShowUploadModal(true)}
                 className="inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-[#D9CCF2] bg-white px-5 text-sm font-semibold text-[#7C5BD9] shadow-sm transition-colors hover:bg-[#F4EFFF] cursor-pointer"
               >
                 <Upload size={16} />
@@ -564,6 +564,12 @@ export default function FlatQuestionBankPage() {
           </div>
         </main>
       </div>
+      <BulkUploadQuestion
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        offeringId={offeringId}
+        onSuccess={() => loadQuestions()}
+      />
     </Navbar>
   );
 }
