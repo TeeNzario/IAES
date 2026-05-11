@@ -15,6 +15,7 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
+import { FIELD_LENGTHS, maxLengthMessage } from 'src/lib/field-lengths';
 
 export enum QuestionTypeDto {
   MCQ_SINGLE = 'MCQ_SINGLE',
@@ -24,7 +25,9 @@ export enum QuestionTypeDto {
 export class CreateChoiceDto {
   @IsString()
   @MinLength(1)
-  @MaxLength(2000)
+  @MaxLength(FIELD_LENGTHS.choiceText, {
+    message: maxLengthMessage('ข้อความตัวเลือก', FIELD_LENGTHS.choiceText),
+  })
   choice_text!: string;
 
   @IsBoolean()
@@ -39,7 +42,9 @@ export class CreateChoiceDto {
 export class CreateQuestionDto {
   @IsString()
   @MinLength(1)
-  @MaxLength(5000)
+  @MaxLength(FIELD_LENGTHS.questionText, {
+    message: maxLengthMessage('ข้อความคำถาม', FIELD_LENGTHS.questionText),
+  })
   question_text!: string;
 
   /**

@@ -14,6 +14,7 @@ import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
+import { UpdateKnowledgeCategoriesDto } from './dto/update-knowledge-categories.dto';
 import { Auth, Roles } from 'src/auth/guards';
 import type { AuthenticatedRequest } from 'src/auth/types/jwt-payload.type';
 
@@ -116,7 +117,7 @@ export class CoursesController {
   updateKnowledgeCategories(
     @Req() req: AuthenticatedRequest,
     @Param('id') id: string,
-    @Body() dto: { names: string[] },
+    @Body() dto: UpdateKnowledgeCategoriesDto,
   ) {
     console.log('[DEBUG] PUT knowledge-categories, id:', id, 'names:', dto.names, 'user:', req.user.sub);
     return this.coursesService.updateKnowledgeCategories(

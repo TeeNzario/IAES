@@ -5,20 +5,26 @@
 export const USER_VALIDATION_CONFIG = {
   firstName: {
     min: 1,
-    max: 50,
+    max: 100,
   },
   lastName: {
     min: 1,
-    max: 50,
+    max: 100,
   },
   email: {
-    max: 100,
+    max: 255,
   },
   password: {
     min: 8,
   },
   studentCode: {
     max: 50,
+  },
+  title: {
+    max: 50,
+  },
+  curriculumId: {
+    max: 20,
   },
 } as const;
 

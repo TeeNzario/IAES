@@ -9,6 +9,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { FIELD_LENGTHS, maxLengthMessage } from 'src/lib/field-lengths';
 
 /**
  * Full-replace update payload. Same shape as CreateExamDto — the UI always
@@ -18,12 +19,16 @@ import {
 export class UpdateExamDto {
   @IsString()
   @MinLength(1)
-  @MaxLength(255)
+  @MaxLength(FIELD_LENGTHS.examTitle, {
+    message: maxLengthMessage('ชื่อชุดข้อสอบ', FIELD_LENGTHS.examTitle),
+  })
   title!: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(5000)
+  @MaxLength(FIELD_LENGTHS.examDescription, {
+    message: maxLengthMessage('คำอธิบายชุดข้อสอบ', FIELD_LENGTHS.examDescription),
+  })
   description?: string;
 
   @IsISO8601()

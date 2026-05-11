@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { FIELD_LIMITS, maxLengthMessage } from "@/config/fieldLimits";
 
 interface CreateModalProps {
   isOpen: boolean;
@@ -13,6 +14,10 @@ interface CreateModalProps {
   withDescription?: boolean;
   /** Optional description placeholder. */
   descriptionPlaceholder?: string;
+  /** Maximum length for the required name/title input. */
+  maxLength?: number;
+  /** Maximum length for the optional description textarea. */
+  descriptionMaxLength?: number;
   /** Initial values (used for edit mode). */
   initialValue?: string;
   initialDescription?: string;
@@ -32,6 +37,8 @@ export default function CreateModal({
   confirmLabel = "ยืนยัน",
   withDescription = false,
   descriptionPlaceholder = "คำอธิบาย (ไม่บังคับ)",
+  maxLength = FIELD_LIMITS.collectionTitle,
+  descriptionMaxLength = FIELD_LIMITS.collectionDescription,
   initialValue = "",
   initialDescription = "",
   onSubmit,
@@ -65,6 +72,14 @@ export default function CreateModal({
       setError("กรุณากรอกข้อมูล");
       return;
     }
+    if (trimmed.length > maxLength) {
+      setError(maxLengthMessage("ข้อมูล", maxLength));
+      return;
+    }
+    if (withDescription && description.trim().length > descriptionMaxLength) {
+      setError(maxLengthMessage("คำอธิบาย", descriptionMaxLength));
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -94,6 +109,7 @@ export default function CreateModal({
           ref={inputRef}
           type="text"
           value={value}
+          maxLength={maxLength}
           onChange={(e) => setValue(e.target.value)}
           placeholder={inputPlaceholder}
           disabled={submitting}
@@ -107,6 +123,7 @@ export default function CreateModal({
         {withDescription && (
           <textarea
             value={description}
+            maxLength={descriptionMaxLength}
             onChange={(e) => setDescription(e.target.value)}
             placeholder={descriptionPlaceholder}
             disabled={submitting}

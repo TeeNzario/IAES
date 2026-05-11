@@ -9,16 +9,21 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { FIELD_LENGTHS, maxLengthMessage } from 'src/lib/field-lengths';
 
 export class CreateExamDto {
   @IsString()
   @MinLength(1)
-  @MaxLength(255)
+  @MaxLength(FIELD_LENGTHS.examTitle, {
+    message: maxLengthMessage('ชื่อชุดข้อสอบ', FIELD_LENGTHS.examTitle),
+  })
   title!: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(5000)
+  @MaxLength(FIELD_LENGTHS.examDescription, {
+    message: maxLengthMessage('คำอธิบายชุดข้อสอบ', FIELD_LENGTHS.examDescription),
+  })
   description?: string;
 
   /** ISO-8601 datetime strings; service converts to Date and validates range. */

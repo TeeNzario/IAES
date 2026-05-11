@@ -12,12 +12,15 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { CreateChoiceDto, QuestionTypeDto } from './create-question.dto';
+import { FIELD_LENGTHS, maxLengthMessage } from 'src/lib/field-lengths';
 
 export class UpdateQuestionDto {
   @IsOptional()
   @IsString()
   @MinLength(1)
-  @MaxLength(5000)
+  @MaxLength(FIELD_LENGTHS.questionText, {
+    message: maxLengthMessage('ข้อความคำถาม', FIELD_LENGTHS.questionText),
+  })
   question_text?: string;
 
   @IsOptional()

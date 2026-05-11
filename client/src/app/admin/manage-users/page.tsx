@@ -31,14 +31,15 @@ import {
 } from "@/features/staff/staff.api";
 import { apiFetch } from "@/lib/api";
 import { AuthUser } from "@/lib/auth";
+import { FIELD_LIMITS } from "@/config/fieldLimits";
 
 // ============================================================
 // VALIDATION CONFIG — Centralized limits and messages
 // ============================================================
 const USER_VALIDATION_CONFIG = {
-  firstName: { min: 1, max: 50 },
-  lastName: { min: 1, max: 50 },
-  email: { max: 100 },
+  firstName: { min: 1, max: FIELD_LIMITS.firstName },
+  lastName: { min: 1, max: FIELD_LIMITS.lastName },
+  email: { max: FIELD_LIMITS.email },
   password: { min: 8 },
 };
 
@@ -1576,12 +1577,15 @@ export default function ManageUserPage() {
                 </label>
                 <input
                   type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={studentCode}
                   onChange={(e) => {
-                    setStudentCode(e.target.value);
+                    setStudentCode(e.target.value.replace(/\D/g, "").slice(0, 8));
                     if (studentErrors.student_code)
                       setStudentErrors((p) => ({ ...p, student_code: undefined }));
                   }}
+                  maxLength={8}
                   className={`${baseFieldClass} ${
                     studentErrors.student_code
                       ? errorFieldClass

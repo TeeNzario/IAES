@@ -4,6 +4,10 @@ import React, { useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import TagSelect, { KnowledgeTag } from "./TagSelect";
 import type { Choice, Question, QuestionType } from "./types";
+import { FIELD_LIMITS, maxLengthMessage } from "@/config/fieldLimits";
+
+const QUESTION_TEXT_MAX_LENGTH = FIELD_LIMITS.questionText;
+const CHOICE_TEXT_MAX_LENGTH = FIELD_LIMITS.choiceText;
 
 export interface DraftQuestion {
   /** Local-only id; not sent to the backend. */
@@ -79,8 +83,13 @@ export function draftFromQuestion(q: Question): DraftQuestion {
  */
 export function isDraftValid(d: DraftQuestion): boolean {
   if (!d.question_text.trim()) return false;
+  if (d.question_text.trim().length > QUESTION_TEXT_MAX_LENGTH) return false;
   if (d.choices.length < 2) return false;
   if (d.choices.some((c) => !c.choice_text.trim())) return false;
+  if (
+    d.choices.some((c) => c.choice_text.trim().length > CHOICE_TEXT_MAX_LENGTH)
+  )
+    return false;
   const correctCount = d.choices.filter((c) => c.is_correct).length;
   if (correctCount !== 1) return false;
   for (const v of [
@@ -100,11 +109,17 @@ export function firstInvalidReason(
   fixedChoiceCount?: number,
 ): string | null {
   if (!d.question_text.trim()) return "ต้องกรอกข้อความคำถาม";
+  if (d.question_text.trim().length > QUESTION_TEXT_MAX_LENGTH)
+    return maxLengthMessage("ข้อความคำถาม", QUESTION_TEXT_MAX_LENGTH);
   if (fixedChoiceCount != null && d.choices.length !== fixedChoiceCount)
     return `ต้องมี ${fixedChoiceCount} ตัวเลือก`;
   if (d.choices.length < 2) return "ต้องมีอย่างน้อย 2 ตัวเลือก";
   if (d.choices.some((c) => !c.choice_text.trim()))
     return "ตัวเลือกต้องไม่ว่าง";
+  if (
+    d.choices.some((c) => c.choice_text.trim().length > CHOICE_TEXT_MAX_LENGTH)
+  )
+    return maxLengthMessage("ข้อความตัวเลือก", CHOICE_TEXT_MAX_LENGTH);
   const correct = d.choices.filter((c) => c.is_correct).length;
   if (correct !== 1) return "ต้องเลือกคำตอบที่ถูกเพียง 1 ข้อ";
   if (
@@ -269,13 +284,19 @@ export default function QuestionEditorCard({
 
       {/* Question text */}
       {editing ? (
-        <textarea
-          value={draft.question_text}
-          onChange={(e) => update({ question_text: e.target.value })}
-          rows={6}
-          placeholder="พิมพ์ข้อความคำถามที่นี่..."
-          className="mb-6 w-full min-h-40 resize-y rounded-2xl bg-white px-5 py-4 text-base font-normal leading-relaxed text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition placeholder:text-[#B7AFC6] focus:ring-2 focus:ring-[#B7A3E3]"
-        />
+        <div className="mb-6">
+          <textarea
+            value={draft.question_text}
+            onChange={(e) => update({ question_text: e.target.value })}
+            maxLength={QUESTION_TEXT_MAX_LENGTH}
+            rows={6}
+            placeholder="พิมพ์ข้อความคำถามที่นี่..."
+            className="w-full min-h-40 resize-y rounded-2xl bg-white px-5 py-4 text-base font-normal leading-relaxed text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition placeholder:text-[#B7AFC6] focus:ring-2 focus:ring-[#B7A3E3]"
+          />
+          <p className="mt-1 text-right text-[11px] font-medium text-[#7A7287]">
+            {draft.question_text.length}/{QUESTION_TEXT_MAX_LENGTH}
+          </p>
+        </div>
       ) : (
         <p className="mb-6 whitespace-pre-wrap text-base font-normal leading-relaxed text-[#514667]">
           {draft.question_text || "(ไม่มีข้อความ)"}
@@ -298,6 +319,7 @@ export default function QuestionEditorCard({
               <textarea
                 value={c.choice_text}
                 onChange={(e) => setChoice(i, { choice_text: e.target.value })}
+                maxLength={CHOICE_TEXT_MAX_LENGTH}
                 rows={2}
                 placeholder={`ตัวเลือก ${i + 1}`}
                 className="flex-1 min-h-16 rounded-xl bg-white px-4 py-3 text-sm font-normal leading-relaxed text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition placeholder:text-[#B7AFC6] focus:ring-2 focus:ring-[#B7A3E3]"

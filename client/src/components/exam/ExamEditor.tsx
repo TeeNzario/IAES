@@ -15,6 +15,7 @@ import {
   dateOnlyMs,
   parseDateTimeLocalInput,
 } from "@/lib/examScheduleValidation";
+import { FIELD_LIMITS, maxLengthMessage } from "@/config/fieldLimits";
 import {
   difficultyLabel,
   Question,
@@ -59,6 +60,9 @@ const dateTimeLocalToIso = (value: string) => {
   return result.date.toISOString();
 };
 
+const EXAM_TITLE_MAX_LENGTH = FIELD_LIMITS.examTitle;
+const EXAM_DESCRIPTION_MAX_LENGTH = FIELD_LIMITS.examDescription;
+
 /**
  * Validation rules — mirror of the server-side rules so the bottom-right save
  * button can stay disabled until the draft is valid.
@@ -74,6 +78,12 @@ export function validate(
   opts: { mode: "create" | "edit"; hideSchedule?: boolean },
 ): string | null {
   if (!cfg.title.trim()) return "ต้องกรอกชื่อข้อสอบ";
+  if (cfg.title.trim().length > EXAM_TITLE_MAX_LENGTH) {
+    return maxLengthMessage("ชื่อชุดข้อสอบ", EXAM_TITLE_MAX_LENGTH);
+  }
+  if (cfg.description.trim().length > EXAM_DESCRIPTION_MAX_LENGTH) {
+    return maxLengthMessage("คำอธิบายชุดข้อสอบ", EXAM_DESCRIPTION_MAX_LENGTH);
+  }
   if (!opts.hideSchedule) {
     if (!cfg.start_time) return "ต้องกรอกเวลาเริ่ม";
     if (!cfg.end_time) return "ต้องกรอกเวลาสิ้นสุด";
@@ -417,12 +427,16 @@ export default function ExamEditor({
               <input
                 type="text"
                 value={config.title}
+                maxLength={EXAM_TITLE_MAX_LENGTH}
                 onChange={(e) =>
                   setConfig({ ...config, title: e.target.value })
                 }
                 placeholder="สร้างชุดข้อสอบ"
                 className="w-full rounded-xl bg-white px-4 py-3 text-sm font-normal text-[#2F2A3A] placeholder:text-[#B7AFC6] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
               />
+              <span className="mt-1 block text-right text-[11px] font-medium text-[#7A7287]">
+                {config.title.length}/{EXAM_TITLE_MAX_LENGTH}
+              </span>
             </label>
             <label className="block">
               <span className="mb-1.5 block text-sm font-medium text-[#514667]">
@@ -431,12 +445,16 @@ export default function ExamEditor({
               <input
                 type="text"
                 value={config.description}
+                maxLength={EXAM_DESCRIPTION_MAX_LENGTH}
                 onChange={(e) =>
                   setConfig({ ...config, description: e.target.value })
                 }
                 placeholder="เช่น REST API, Database, Security"
                 className="w-full rounded-xl bg-white px-4 py-3 text-sm font-normal text-[#2F2A3A] placeholder:text-[#B7AFC6] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
               />
+              <span className="mt-1 block text-right text-[11px] font-medium text-[#7A7287]">
+                {config.description.length}/{EXAM_DESCRIPTION_MAX_LENGTH}
+              </span>
             </label>
           </div>
         </section>

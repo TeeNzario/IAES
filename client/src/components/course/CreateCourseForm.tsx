@@ -3,12 +3,13 @@
 import React, { useState, useCallback } from "react";
 import { apiFetch } from "@/lib/api";
 import AlertModal from "@/components/ui/AlertModal";
+import { FIELD_LIMITS } from "@/config/fieldLimits";
 
 // ============================================================
 // CONFIGURATION CONSTANTS — Adjust limits here
 // ============================================================
-const COURSE_CODE_MAX_LENGTH = 10;
-const COURSE_NAME_MAX_LENGTH = 100;
+const COURSE_CODE_MAX_LENGTH = FIELD_LIMITS.courseCode;
+const COURSE_NAME_MAX_LENGTH = FIELD_LIMITS.courseName;
 
 // ============================================================
 // LANGUAGE VALIDATION REGEX
@@ -246,12 +247,15 @@ export default function CreateCourseForm({
       setErrors({});
 
       onSuccess?.();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setAlertState({
         isOpen: true,
         title: "เกิดข้อผิดพลาด",
-        message: err?.message || "ไม่สามารถสร้างรายวิชาได้ กรุณาลองใหม่อีกครั้ง",
+        message:
+          err instanceof Error
+            ? err.message
+            : "ไม่สามารถสร้างรายวิชาได้ กรุณาลองใหม่อีกครั้ง",
         variant: "error",
       });
     } finally {

@@ -4,8 +4,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { Plus, X } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import AlertModal from "@/components/ui/AlertModal";
+import { FIELD_LIMITS } from "@/config/fieldLimits";
 
-const MAX_KNOWLEDGE_LENGTH = 100;
+const MAX_KNOWLEDGE_LENGTH = FIELD_LIMITS.knowledgeCategoryName;
 
 interface KnowledgeCategory {
   knowledge_category_id: string;
@@ -51,7 +52,7 @@ export default function KnowledgeCategoriesModal({
     const loadCategories = async () => {
       setIsLoading(true);
       try {
-        const data = await apiFetch<any[]>(
+        const data = await apiFetch<KnowledgeCategory[]>(
           `/courses/${course.courses_id}/knowledge-categories`,
         );
         setCategories(data.map((d) => d.name));
@@ -117,12 +118,15 @@ export default function KnowledgeCategoriesModal({
       });
       onSuccess?.();
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setAlertState({
         isOpen: true,
         title: "เกิดข้อผิดพลาด",
-        message: err?.message || "ไม่สามารถบันทึกหมวดหมู่ความรู้ได้ กรุณาลองใหม่อีกครั้ง",
+        message:
+          err instanceof Error
+            ? err.message
+            : "ไม่สามารถบันทึกหมวดหมู่ความรู้ได้ กรุณาลองใหม่อีกครั้ง",
         variant: "error",
       });
     } finally {
@@ -235,6 +239,7 @@ export default function KnowledgeCategoriesModal({
                     <input
                       ref={inputRef}
                       value={searchQuery}
+                      maxLength={MAX_KNOWLEDGE_LENGTH}
                       onChange={(e) => {
                         if (e.target.value.length <= MAX_KNOWLEDGE_LENGTH) {
                           setSearchQuery(e.target.value);

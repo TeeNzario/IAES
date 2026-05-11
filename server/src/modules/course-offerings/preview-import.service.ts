@@ -23,10 +23,15 @@ import {
 } from './dto/preview-import.dto';
 import { hashPassword } from '../../lib/password';
 import { AuditActor, AuditService } from '../audit/audit.service';
+import { FIELD_LENGTHS, maxLengthMessage } from 'src/lib/field-lengths';
 
 const THAI_NAME_REGEX = /^[ก-๙\s]+$/;
 const STUDENT_CODE_REGEX = /^\d{8}$/;
 const EMAIL_DOMAIN = '@mail.wu.ac.th';
+
+function previewStorageValue(value: string, max: number) {
+  return value.length > max ? value.slice(0, max) : value;
+}
 
 @Injectable()
 export class PreviewImportService {
@@ -108,31 +113,38 @@ export class PreviewImportService {
             const n = Number(row.facultyCode);
             return Number.isInteger(n) ? n : undefined;
           })();
+          const studentCode = String(row.student_code ?? '').trim();
+          const email = String(row.email ?? '').trim();
           const title = String(row.title ?? '').trim();
           const curriculumId = String(row.curriculumId ?? '').trim();
+          const firstName = String(row.first_name ?? '').trim();
+          const lastName = String(row.last_name ?? '').trim();
 
           const { status, note } = await this.validateRow(
             tx,
             offeringBigInt,
-            row.student_code ?? '',
-            row.email ?? '',
+            studentCode,
+            email,
             facultyCodeNum,
             title,
             curriculumId,
-            row.first_name ?? '',
-            row.last_name ?? '',
+            firstName,
+            lastName,
           );
 
           return {
             session_id: newSession.id,
             row_index: index,
-            student_code: row.student_code || '',
-            email: row.email || '',
+            student_code: studentCode,
+            email,
             facultyCode: facultyCodeNum,
-            title,
-            curriculumId,
-            first_name: row.first_name || '',
-            last_name: row.last_name || '',
+            title: previewStorageValue(title, FIELD_LENGTHS.title),
+            curriculumId: previewStorageValue(
+              curriculumId,
+              FIELD_LENGTHS.curriculumId,
+            ),
+            first_name: firstName,
+            last_name: lastName,
             status,
             note,
           };
@@ -186,13 +198,13 @@ export class PreviewImportService {
 
     // Merge edits
     const updatedData = {
-      student_code: dto.student_code ?? row.student_code,
-      email: dto.email ?? row.email,
+      student_code: String(dto.student_code ?? row.student_code).trim(),
+      email: String(dto.email ?? row.email).trim(),
       facultyCode: dto.facultyCode ?? row.facultyCode,
-      title: dto.title ?? row.title ?? '',
-      curriculumId: dto.curriculumId ?? row.curriculumId ?? '',
-      first_name: dto.first_name ?? row.first_name ?? '',
-      last_name: dto.last_name ?? row.last_name ?? '',
+      title: String(dto.title ?? row.title ?? '').trim(),
+      curriculumId: String(dto.curriculumId ?? row.curriculumId ?? '').trim(),
+      first_name: String(dto.first_name ?? row.first_name ?? '').trim(),
+      last_name: String(dto.last_name ?? row.last_name ?? '').trim(),
     };
 
     // Revalidate with new data
@@ -215,6 +227,11 @@ export class PreviewImportService {
       },
       data: {
         ...updatedData,
+        title: previewStorageValue(updatedData.title, FIELD_LENGTHS.title),
+        curriculumId: previewStorageValue(
+          updatedData.curriculumId,
+          FIELD_LENGTHS.curriculumId,
+        ),
         status,
         note,
         updated_at: new Date(),
@@ -492,6 +509,13 @@ export class PreviewImportService {
     }
 
     // 1b. Validate email domain: @mail.wu.ac.th only
+    if (email.length > FIELD_LENGTHS.email) {
+      return {
+        status: 'MISSING',
+        note: maxLengthMessage('อีเมล', FIELD_LENGTHS.email),
+      };
+    }
+
     if (!email.endsWith(EMAIL_DOMAIN) || email.split('@').length !== 2 || !email.split('@')[0]) {
       return { status: 'MISSING', note: 'อีเมลต้องเป็น @mail.wu.ac.th เท่านั้น' };
     }
@@ -500,8 +524,36 @@ export class PreviewImportService {
       return { status: 'MISSING', note: 'จำเป็นต้องระบุคำนำหน้า' };
     }
 
+    if (title.length > FIELD_LENGTHS.title) {
+      return {
+        status: 'MISSING',
+        note: maxLengthMessage('คำนำหน้า', FIELD_LENGTHS.title),
+      };
+    }
+
     if (!curriculumId) {
       return { status: 'MISSING', note: 'จำเป็นต้องระบุหลักสูตร' };
+    }
+
+    if (curriculumId.length > FIELD_LENGTHS.curriculumId) {
+      return {
+        status: 'MISSING',
+        note: maxLengthMessage('รหัสหลักสูตร', FIELD_LENGTHS.curriculumId),
+      };
+    }
+
+    if (firstName.length > FIELD_LENGTHS.firstName) {
+      return {
+        status: 'MISSING',
+        note: maxLengthMessage('ชื่อ', FIELD_LENGTHS.firstName),
+      };
+    }
+
+    if (lastName.length > FIELD_LENGTHS.lastName) {
+      return {
+        status: 'MISSING',
+        note: maxLengthMessage('นามสกุล', FIELD_LENGTHS.lastName),
+      };
     }
 
     if (!THAI_NAME_REGEX.test(firstName) || !THAI_NAME_REGEX.test(lastName)) {

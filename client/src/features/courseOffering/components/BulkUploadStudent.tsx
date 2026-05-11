@@ -26,6 +26,7 @@ import {
   resolveCurriculumId,
 } from "@/config/curriculums";
 import { DEFAULT_TITLE, THAI_TITLES } from "@/config/titles";
+import { FIELD_LIMITS, maxLengthMessage } from "@/config/fieldLimits";
 
 // Row data from preview session
 interface PreviewRow {
@@ -97,6 +98,11 @@ const REQUIRED_COLUMNS = [
   "facultyCode",
   "curriculumId",
 ];
+
+const STUDENT_CODE_LENGTH = 8;
+const EMAIL_MAX_LENGTH = FIELD_LIMITS.email;
+const FIRST_NAME_MAX_LENGTH = FIELD_LIMITS.firstName;
+const LAST_NAME_MAX_LENGTH = FIELD_LIMITS.lastName;
 
 const CSV_TEMPLATE_ROWS = [
   {
@@ -225,16 +231,22 @@ export default function BulkUploadModal({
     const errs: Record<string, string> = {};
     if (!/^\d{8}$/.test(editForm.student_code))
       errs.student_code = "รหัสนักศึกษาต้องเป็นตัวเลข 8 หลัก";
-    if (!editForm.email.endsWith("@mail.wu.ac.th") || editForm.email.split("@").length !== 2 || !editForm.email.split("@")[0])
+    if (editForm.email.length > EMAIL_MAX_LENGTH)
+      errs.email = maxLengthMessage("อีเมล", EMAIL_MAX_LENGTH);
+    else if (!editForm.email.endsWith("@mail.wu.ac.th") || editForm.email.split("@").length !== 2 || !editForm.email.split("@")[0])
       errs.email = "อีเมลต้องเป็น @mail.wu.ac.th";
     if (!editForm.title.trim())
       errs.title = "กรุณาเลือกคำนำหน้า";
     if (!editForm.first_name.trim())
       errs.first_name = "กรุณากรอกชื่อ";
+    else if (editForm.first_name.length > FIRST_NAME_MAX_LENGTH)
+      errs.first_name = maxLengthMessage("ชื่อ", FIRST_NAME_MAX_LENGTH);
     else if (!/^[ก-๙\s]+$/.test(editForm.first_name))
       errs.first_name = "ชื่อต้องเป็นภาษาไทยเท่านั้น";
     if (!editForm.last_name.trim())
       errs.last_name = "กรุณากรอกนามสกุล";
+    else if (editForm.last_name.length > LAST_NAME_MAX_LENGTH)
+      errs.last_name = maxLengthMessage("นามสกุล", LAST_NAME_MAX_LENGTH);
     else if (!/^[ก-๙\s]+$/.test(editForm.last_name))
       errs.last_name = "นามสกุลต้องเป็นภาษาไทยเท่านั้น";
     if (!editForm.curriculumId)
@@ -763,8 +775,9 @@ export default function BulkUploadModal({
                           <tr key={row.id} className={`${getRowBg(row, index)} transition-colors hover:bg-[#FAF8FF]`}>
                             {isEditing ? (
                               <>
-                                <td className="px-4 py-2.5">
+                                 <td className="px-4 py-2.5">
                                   <input type="text" value={editForm.student_code}
+                                    maxLength={STUDENT_CODE_LENGTH}
                                     onChange={(e) => { setEditForm((f) => ({ ...f, student_code: e.target.value })); if (editErrors.student_code) setEditErrors((p) => ({ ...p, student_code: "" })); }}
                                     className={`w-full rounded-lg border px-3 py-2.5 font-sans text-sm focus:outline-none focus:ring-2 ${editErrors.student_code ? "border-red-400 focus:ring-red-300" : "border-[#B7A3E3] focus:ring-purple-300"}`} />
                                   {editErrors.student_code && <p className="text-red-500 text-[11px] mt-0.5 leading-tight">{editErrors.student_code}</p>}
@@ -777,20 +790,23 @@ export default function BulkUploadModal({
                                   </select>
                                   {editErrors.title && <p className="text-red-500 text-[11px] mt-0.5 leading-tight">{editErrors.title}</p>}
                                 </td>
-                                <td className="px-4 py-2.5">
+                                 <td className="px-4 py-2.5">
                                   <input type="text" value={editForm.first_name}
+                                    maxLength={FIRST_NAME_MAX_LENGTH}
                                     onChange={(e) => { setEditForm((f) => ({ ...f, first_name: e.target.value })); if (editErrors.first_name) setEditErrors((p) => ({ ...p, first_name: "" })); }}
                                     className={`w-full rounded-lg border px-3 py-2.5 font-sans text-sm focus:outline-none focus:ring-2 ${editErrors.first_name ? "border-red-400 focus:ring-red-300" : "border-[#B7A3E3] focus:ring-purple-300"}`} />
                                   {editErrors.first_name && <p className="text-red-500 text-[11px] mt-0.5 leading-tight">{editErrors.first_name}</p>}
                                 </td>
-                                <td className="px-4 py-2.5">
+                                 <td className="px-4 py-2.5">
                                   <input type="text" value={editForm.last_name}
+                                    maxLength={LAST_NAME_MAX_LENGTH}
                                     onChange={(e) => { setEditForm((f) => ({ ...f, last_name: e.target.value })); if (editErrors.last_name) setEditErrors((p) => ({ ...p, last_name: "" })); }}
                                     className={`w-full rounded-lg border px-3 py-2.5 font-sans text-sm focus:outline-none focus:ring-2 ${editErrors.last_name ? "border-red-400 focus:ring-red-300" : "border-[#B7A3E3] focus:ring-purple-300"}`} />
                                   {editErrors.last_name && <p className="text-red-500 text-[11px] mt-0.5 leading-tight">{editErrors.last_name}</p>}
                                 </td>
-                                <td className="px-4 py-2.5">
+                                 <td className="px-4 py-2.5">
                                   <input type="text" value={editForm.email}
+                                    maxLength={EMAIL_MAX_LENGTH}
                                     onChange={(e) => { setEditForm((f) => ({ ...f, email: e.target.value })); if (editErrors.email) setEditErrors((p) => ({ ...p, email: "" })); }}
                                     className={`w-full rounded-lg border px-3 py-2.5 font-sans text-sm focus:outline-none focus:ring-2 ${editErrors.email ? "border-red-400 focus:ring-red-300" : "border-[#B7A3E3] focus:ring-purple-300"}`} />
                                   {editErrors.email && <p className="text-red-500 text-[11px] mt-0.5 leading-tight">{editErrors.email}</p>}

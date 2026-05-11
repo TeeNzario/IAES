@@ -9,6 +9,7 @@ import {
   IsOptional,
   IsBoolean,
 } from 'class-validator';
+import { FIELD_LENGTHS, maxLengthMessage } from 'src/lib/field-lengths';
 
 export enum StaffRole {
   INSTRUCTOR = 'INSTRUCTOR',
@@ -18,7 +19,9 @@ export enum StaffRole {
 export class CreateStaffDto {
   @IsEmail()
   @IsNotEmpty()
-  @MaxLength(100)
+  @MaxLength(FIELD_LENGTHS.email, {
+    message: maxLengthMessage('อีเมล', FIELD_LENGTHS.email),
+  })
   email: string;
 
   @IsString()
@@ -36,12 +39,16 @@ export class CreateStaffDto {
 
   @IsString()
   @IsNotEmpty()
-  @MaxLength(50)
+  @MaxLength(FIELD_LENGTHS.firstName, {
+    message: maxLengthMessage('ชื่อ', FIELD_LENGTHS.firstName),
+  })
   first_name: string;
 
   @IsString()
   @IsNotEmpty()
-  @MaxLength(50)
+  @MaxLength(FIELD_LENGTHS.lastName, {
+    message: maxLengthMessage('นามสกุล', FIELD_LENGTHS.lastName),
+  })
   last_name: string;
 
   @IsEnum(StaffRole)
@@ -50,10 +57,15 @@ export class CreateStaffDto {
 
   @IsString()
   @IsOptional()
-  @MaxLength(50)
+  @MaxLength(FIELD_LENGTHS.title, {
+    message: maxLengthMessage('คำนำหน้า', FIELD_LENGTHS.title),
+  })
   title?: string;
 
   @IsString()
   @IsOptional()
+  @MaxLength(FIELD_LENGTHS.curriculumId, {
+    message: maxLengthMessage('รหัสหลักสูตร', FIELD_LENGTHS.curriculumId),
+  })
   curriculumId?: string;
 }

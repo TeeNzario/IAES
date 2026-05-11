@@ -1,14 +1,22 @@
 import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { FIELD_LENGTHS, maxLengthMessage } from 'src/lib/field-lengths';
 
 export class UpdateQuestionCollectionDto {
   @IsOptional()
   @IsString()
   @MinLength(1)
-  @MaxLength(255)
+  @MaxLength(FIELD_LENGTHS.collectionTitle, {
+    message: maxLengthMessage('ชื่อชุดคำถาม', FIELD_LENGTHS.collectionTitle),
+  })
   title?: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(2000)
+  @MaxLength(FIELD_LENGTHS.collectionDescription, {
+    message: maxLengthMessage(
+      'คำอธิบายชุดคำถาม',
+      FIELD_LENGTHS.collectionDescription,
+    ),
+  })
   description?: string;
 }

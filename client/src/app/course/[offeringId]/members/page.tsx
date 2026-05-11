@@ -26,14 +26,16 @@ import { AuthUser } from "@/types/auth";
 import { DEFAULT_FACULTY_CODE, FACULTY_MAP, getFacultyName } from "@/lib/faculty-map";
 import { CURRICULUMS, DEFAULT_CURRICULUM_ID, getCurriculumName } from "@/config/curriculums";
 import { DEFAULT_TITLE, THAI_TITLES } from "@/config/titles";
+import { FIELD_LIMITS } from "@/config/fieldLimits";
 
 // ============================================================
 // CONFIGURATION CONSTANTS — Adjust limits here
 // ============================================================
 const STUDENT_CODE_LENGTH = 8;
 const STUDENT_CODE_REGEX = /^\d{8}$/;
-const FIRST_NAME_MAX_LENGTH = 50;
-const LAST_NAME_MAX_LENGTH = 50;
+const EMAIL_MAX_LENGTH = FIELD_LIMITS.email;
+const FIRST_NAME_MAX_LENGTH = FIELD_LIMITS.firstName;
+const LAST_NAME_MAX_LENGTH = FIELD_LIMITS.lastName;
 
 // Email and Name validation regex pattern
 const EMAIL_REGEX = /^[^\s@]+@mail\.wu\.ac\.th$/;
@@ -51,6 +53,7 @@ const ERROR_MESSAGES = {
   },
   email: {
     required: "กรุณากรอกอีเมล",
+    maxLength: `อีเมลไม่เกิน ${EMAIL_MAX_LENGTH} ตัวอักษร`,
     invalid: "อีเมลต้องเป็น @mail.wu.ac.th เท่านั้น",
     duplicate: "อีเมลนี้ถูกใช้แล้ว",
   },
@@ -199,6 +202,7 @@ export default function SimpleShowUsers() {
   const validateEmail = (value: string): string | undefined => {
     const trimmed = value.trim();
     if (!trimmed) return ERROR_MESSAGES.email.required;
+    if (trimmed.length > EMAIL_MAX_LENGTH) return ERROR_MESSAGES.email.maxLength;
     if (!EMAIL_REGEX.test(trimmed)) return ERROR_MESSAGES.email.invalid;
     return undefined;
   };
@@ -895,11 +899,15 @@ const isStudent =
                 <label className="block text-sm font-semibold text-gray-800 mb-1.5">
                   อีเมล <span className="text-red-500">*</span>{" "}
                   <span className="text-xs font-medium text-gray-500">@mail.wu.ac.th</span>
+                  <span className="ml-1 text-xs font-medium text-gray-500">
+                    ({email.length}/{EMAIL_MAX_LENGTH})
+                  </span>
                 </label>
                 <input
                   type="text"
                   value={email}
                   onChange={handleEmailChange}
+                  maxLength={EMAIL_MAX_LENGTH}
                   placeholder="student@mail.wu.ac.th"
                   className={`w-full rounded-xl border-2 px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none ${
                     errors.email
