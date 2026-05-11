@@ -24,7 +24,7 @@ export default function CourseOfferingModal({
   onSuccess,
 }: CourseOfferingModalProps) {
   // Form state
-  const [academicYear, setAcademicYear] = useState("2025");
+  const [academicYear, setAcademicYear] = useState(String(new Date().getFullYear()));
   const [semester, setSemester] = useState("1");
   const [status, setStatus] = useState("เปิดใช้งาน");
 
@@ -55,6 +55,7 @@ export default function CourseOfferingModal({
   // Fetch creator (me) and all instructors on mount
   useEffect(() => {
     if (!isOpen) return;
+    let isMounted = true;
 
     async function fetchData() {
       setIsLoading(true);
@@ -64,16 +65,18 @@ export default function CourseOfferingModal({
           apiFetch<Instructor>("/staff/me"),
           apiFetch<Instructor[]>("/staff/instructors"),
         ]);
-        setCreatorInstructor(me);
-        setAllInstructors(instructors);
-      } catch (err) {
-        console.error("Failed to fetch instructors:", err);
-        setError("ไม่สามารถโหลดข้อมูลอาจารย์ได้");
+        if (isMounted) {
+          setCreatorInstructor(me);
+          setAllInstructors(instructors);
+        }
+      } catch {
+        if (isMounted) setError("ไม่สามารถโหลดข้อมูลอาจารย์ได้");
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     }
     fetchData();
+    return () => { isMounted = false; };
   }, [isOpen]);
 
   // Get available instructors for a slot (exclude creator + already selected)
@@ -170,30 +173,30 @@ export default function CourseOfferingModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 relative">
+    <div className="fixed inset-0 bg-black/45 z-50 flex items-start justify-center overflow-y-auto p-4 py-6 sm:p-6">
+      <div className="relative w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl sm:p-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
         {/* Course Name */}
-        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+        <h2 className="text-xl font-bold text-gray-900 mb-5">
           {courseName}
         </h2>
 
         {/* Error Message */}
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
             {error}
           </div>
         )}
 
         {/* Academic Year Dropdown */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-800 mb-1.5">
             ปีการศึกษา
           </label>
           <div className="relative">
             <select
               value={academicYear}
               onChange={(e) => setAcademicYear(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 appearance-none cursor-pointer"
+              className="w-full rounded-xl border-2 border-[#9264F5] px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none focus:border-[#B7A3E3] appearance-none bg-white pr-10 cursor-pointer"
             >
               {academicYears.map((year) => (
                 <option key={year} value={year}>
@@ -202,22 +205,22 @@ export default function CourseOfferingModal({
               ))}
             </select>
             <ChevronDown
-              className="absolute right-3 top-2.5 text-gray-400 pointer-events-none"
-              size={20}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+              size={18}
             />
           </div>
         </div>
 
         {/* Semester Dropdown */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-800 mb-1.5">
             ภาคการศึกษา
           </label>
           <div className="relative">
             <select
               value={semester}
               onChange={(e) => setSemester(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 appearance-none cursor-pointer"
+              className="w-full rounded-xl border-2 border-[#9264F5] px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none focus:border-[#B7A3E3] appearance-none bg-white pr-10 cursor-pointer"
             >
               {semesters.map((sem) => (
                 <option key={sem} value={sem}>
@@ -226,15 +229,15 @@ export default function CourseOfferingModal({
               ))}
             </select>
             <ChevronDown
-              className="absolute right-3 top-2.5 text-gray-400 pointer-events-none"
-              size={20}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+              size={18}
             />
           </div>
         </div>
 
         {/* Status Toggle Buttons */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-800 mb-1.5">
             สถานะ
           </label>
           <div className="flex gap-6">
@@ -249,23 +252,23 @@ export default function CourseOfferingModal({
                   value={stat}
                   checked={status === stat}
                   onChange={() => setStatus(stat)}
-                  className="w-4 h-4 accent-purple-600 cursor-pointer"
+                  className="w-4 h-4 accent-[#B7A3E3] cursor-pointer"
                 />
-                <span className="text-gray-700 font-medium">{stat}</span>
+                <span className="text-sm text-gray-700">{stat}</span>
               </label>
             ))}
           </div>
         </div>
 
         {/* Instructor Selection */}
-        <div className="mb-8">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="mb-6">
+          <label className="block text-sm font-semibold text-gray-800 mb-1.5">
             อาจารย์ผู้สอน
           </label>
 
           {isLoading ? (
             <div className="flex items-center justify-center py-4">
-              <div className="w-6 h-6 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-[#B7A3E3] border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
             <div className="max-h-48 overflow-y-auto space-y-3 pr-1">
@@ -275,7 +278,7 @@ export default function CourseOfferingModal({
                   <select
                     disabled
                     value={creatorInstructor?.staff_users_id || ""}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-2xl bg-gray-100 text-gray-600 appearance-none cursor-not-allowed"
+                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-500 appearance-none cursor-not-allowed text-[15px]"
                   >
                     <option value={creatorInstructor?.staff_users_id || ""}>
                       {creatorInstructor
@@ -289,7 +292,6 @@ export default function CourseOfferingModal({
                     size={18}
                   />
                 </div>
-                {/* No delete button for locked slot */}
               </div>
 
               {/* Additional instructor slots (editable) */}
@@ -301,7 +303,7 @@ export default function CourseOfferingModal({
                       onChange={(e) =>
                         handleInstructorChange(index, e.target.value)
                       }
-                      className="w-full px-4 py-3 border-2 border-purple-400 rounded-2xl bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 appearance-none cursor-pointer"
+                      className="w-full rounded-xl border-2 border-[#9264F5] px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none focus:border-[#B7A3E3] appearance-none bg-white pr-10 cursor-pointer"
                     >
                       <option value="">เลือกอาจารย์</option>
                       {getAvailableInstructors(slotValue).map((instructor) => (
@@ -312,7 +314,6 @@ export default function CourseOfferingModal({
                           {formatInstructorName(instructor)}
                         </option>
                       ))}
-                      {/* Keep current selection visible even if it would be filtered */}
                       {slotValue &&
                         !getAvailableInstructors(slotValue).find(
                           (i) => i.staff_users_id === slotValue,
@@ -328,47 +329,45 @@ export default function CourseOfferingModal({
                     </select>
                     <ChevronDown
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                      size={20}
+                      size={18}
                     />
                   </div>
-                  {/* Delete button */}
                   <button
                     type="button"
                     onClick={() => handleRemoveSlot(index)}
-                    className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
+                    className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   >
-                    <X size={20} />
+                    <X size={18} />
                   </button>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Add instructor button */}
           {!isLoading && (
             <button
               type="button"
               onClick={handleAddSlot}
-              className="w-full mt-3 py-3 border-2 border-purple-400 rounded-2xl bg-white text-purple-500 hover:bg-purple-50 transition-colors flex items-center justify-center gap-1"
+              className="w-full mt-3 py-2.5 border-2 border-dashed border-[#B7A3E3] rounded-xl bg-white text-[#7C5BD9] hover:bg-[#F4EFFF] transition-colors flex items-center justify-center gap-1.5 text-sm font-medium"
             >
-              <Plus size={20} />
+              <Plus size={18} />
             </button>
           )}
         </div>
 
         {/* Buttons */}
-        <div className="flex gap-3 justify-center">
+        <div className="flex gap-3">
           <button
             onClick={handleClose}
             disabled={isSubmitting}
-            className="px-8 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium disabled:opacity-50"
+            className="flex-1 rounded-xl border-2 border-gray-300 px-6 py-2.5 font-semibold text-gray-900 transition-colors hover:bg-gray-50 disabled:opacity-50"
           >
-            CANCEL
+            ยกเลิก
           </button>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting || isLoading}
-            className="px-8 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50 flex items-center gap-2"
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-6 py-2.5 font-semibold text-white shadow-lg transition-colors hover:bg-[#9264F5] disabled:opacity-50"
           >
             {isSubmitting && (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

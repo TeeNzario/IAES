@@ -1,6 +1,23 @@
-student_code,email,facultyCode,first_name,last_name
-6501000001,somchai@kkumail.com,1,สมชาย,ใจดี
-6501000002,suda@kkumail.com,2,สุภา,รักเรียน
-6501000003,prasert@kkumail.com,3,พรวัด,เก่งกาจ
-6501000004,nattaya@kkumail.com,1,ณัฐยา,สุขใจ
-6501000005,wichai@kkumail.com,2,วิชัย,มุ่งมั่น
+student_code,email,facultyCode,title,curriculumId,first_name,last_name,expected_status,description
+66130001,pongsak.k@mail.wu.ac.th,18,นาย,CUR067,พงศักดิ์,โค้ดดี,NEW,นักศึกษาใหม่ทั้งหมด (8 หลัก + @mail.wu.ac.th)
+66130002,supatra.c@mail.wu.ac.th,12,นางสาว,CUR042,สุพัตรา,เขียนโค้ด,NEW,นักศึกษาใหม่อีกคน
+66130003,tanakorn.d@mail.wu.ac.th,1,นาย,CUR003,ธนากร,ฐานข้อมูล,NEW,นักศึกษาใหม่คนที่ 3
+66130004,nutcha.ai@mail.wu.ac.th,18,นางสาว,CUR068,ณัชชา,ปัญญา,NEW,นักศึกษาใหม่คนที่ 4
+66130005,kriangkrai.m@mail.wu.ac.th,12,นาย,CUR046,เกรียงไกร,แมชชีน,NEW,นักศึกษาใหม่คนที่ 5
+,missing.code@mail.wu.ac.th,1,นาย,CUR067,นักศึกษา,โค้ดหาย,MISSING,ไม่มีรหัสนักศึกษา
+66130006,,1,นาย,CUR067,นักศึกษา,อีเมลหาย,MISSING,ไม่มีอีเมล
+66130007,no.firstname@mail.wu.ac.th,1,นาย,CUR067,,ชื่อหาย,MISSING,ไม่มีชื่อ
+66130008,no.lastname@mail.wu.ac.th,1,นาย,CUR067,นักศึกษา,,MISSING,ไม่มีนามสกุล
+66130009,not-an-email,1,นาย,CUR067,นักศึกษา,อีเมลผิดฟอร์แมต,MISSING,อีเมลไม่ใช่ @mail.wu.ac.th
+66130010,wrong.domain@gmail.com,1,นาย,CUR067,นักศึกษา,ผิดโดเมน,MISSING,อีเมลเป็น gmail.com (ต้อง @mail.wu.ac.th)
+66130011,english.name@mail.wu.ac.th,1,นาย,CUR067,John,Smith,MISSING,ชื่อ-นามสกุลไม่ใช่ภาษาไทย
+66130012,no.faculty@mail.wu.ac.th,,นาย,CUR067,นักศึกษา,ไม่มีคณะ,MISSING,ไม่มีรหัสสำนักวิชา
+66130013,no.title@mail.wu.ac.th,1,,CUR067,นักศึกษา,ไม่มีคำนำหน้า,MISSING,ไม่มีคำนำหน้า
+66130014,no.curriculum@mail.wu.ac.th,1,นาย,,นักศึกษา,ไม่มีหลักสูตร,MISSING,ไม่มีหลักสูตร
+1234567,too.short@mail.wu.ac.th,1,นาย,CUR067,นักศึกษา,รหัสสั้น,MISSING,รหัสนักศึกษา 7 หลัก (ต้อง 8 หลัก)
+123456789,too.long@mail.wu.ac.th,1,นาย,CUR067,นักศึกษา,รหัสยาว,MISSING,รหัสนักศึกษา 9 หลัก (ต้อง 8 หลัก)
+66130015,no.at.sign.mail.wu.ac.th,1,นาย,CUR067,นักศึกษา,ไม่มีแอท,MISSING,อีเมลไม่มี @
+66131319,test.duplicate@mail.wu.ac.th,18,นาย,CUR067,ธนกฤต,ใจดี,DUPLICATE_IDENTITY,รหัส 66131319 มีในระบบแล้วด้วยอีเมลอื่น (thanakrit.jaidee@example.com)
+66130016,faculty.by.name@mail.wu.ac.th,สำนักวิชาวิศวกรรมศาสตร์และเทคโนโลยี,นาย,CUR042,นักศึกษา,คณะชื่อ,NEW,ระบุ facultyCode เป็นชื่อสำนักวิชาแทนตัวเลข
+66130017,legacy.curriculum@mail.wu.ac.th,18,นาย,6501220601,นักศึกษา,รหัสเก่า,NEW,ใช้ legacy curriculum code (6501220601 → CUR067)
+66130018,multi.word.name@mail.wu.ac.th,1,นาย,CUR003,นักศึกษา,นามสกุลยาวมากครับ,NEW,ทดสอบชื่อยาว

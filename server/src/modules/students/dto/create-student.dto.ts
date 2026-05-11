@@ -1,5 +1,11 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export class CreateStudentDto {
   @IsString()
@@ -12,7 +18,8 @@ export class CreateStudentDto {
 
   @IsOptional()
   @IsString()
-  password_hash?: string;
+  @MinLength(8)
+  password?: string;
 
   @Type(() => Number)
   @IsInt()
@@ -26,4 +33,12 @@ export class CreateStudentDto {
   @IsString()
   @IsNotEmpty()
   last_name: string;
+
+  @IsString()
+  @IsOptional()
+  title?: string;
+
+  @IsString()
+  @IsOptional()
+  curriculumId?: string;
 }

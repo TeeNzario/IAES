@@ -7,7 +7,7 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
-import type { StaffRole } from 'src/auth/types/jwt-payload.type';
+import type { JwtPayload, StaffRole } from 'src/auth/types/jwt-payload.type';
 
 function serializeBigInt<T>(data: T): T {
   return JSON.parse(
@@ -160,16 +160,42 @@ export class CourseExamsService {
 
   // ======================== LIST ========================
 
-  /** All exams of the offering, ordered by start_time ascending. */
-  async listByOffering(offeringId: string, actor: StaffActor) {
-    await this.resolveCourseAndAuthorize(offeringId, actor);
+  /**
+   * Verify a student is enrolled in the given offering.
+   */
+  private async verifyStudentEnrollment(offeringId: string, studentCode: string) {
+    const enrollment = await this.prisma.course_enrollments.findFirst({
+      where: {
+        course_offerings_id: BigInt(offeringId),
+        students: {
+          student_code: studentCode,
+          is_active: true,
+        },
+      },
+      select: { course_enrollments_id: true },
+    });
+    if (!enrollment) {
+      throw new ForbiddenException('You are not enrolled in this course');
+    }
+  }
+
+  /** All exams of the offering, ordered by start_time descending (latest first). */
+  async listByOffering(offeringId: string, user: JwtPayload) {
+    if (user.type === 'student') {
+      await this.verifyStudentEnrollment(offeringId, user.sub);
+    } else {
+      await this.resolveCourseAndAuthorize(offeringId, {
+        staffUserId: user.sub,
+        role: user.role,
+      });
+    }
 
     const rows = await this.prisma.course_exams.findMany({
       where: {
         course_offerings_id: BigInt(offeringId),
         is_active: true,
       },
-      orderBy: { start_time: 'asc' },
+      orderBy: { start_time: 'desc' },
       select: {
         course_exams_id: true,
         title: true,
@@ -202,8 +228,15 @@ export class CourseExamsService {
 
   // ======================== DETAIL ========================
 
-  async getById(offeringId: string, examId: string, actor: StaffActor) {
-    await this.resolveCourseAndAuthorize(offeringId, actor);
+  async getById(offeringId: string, examId: string, user: JwtPayload) {
+    if (user.type === 'student') {
+      await this.verifyStudentEnrollment(offeringId, user.sub);
+    } else {
+      await this.resolveCourseAndAuthorize(offeringId, {
+        staffUserId: user.sub,
+        role: user.role,
+      });
+    }
 
     const exam = await this.prisma.course_exams.findUnique({
       where: { course_exams_id: BigInt(examId) },

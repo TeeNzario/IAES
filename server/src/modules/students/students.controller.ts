@@ -21,11 +21,15 @@ export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
   @Post()
+  @Auth()
+  @Roles('ADMIN')
   create(@Body() createStudentDto: CreateStudentDto) {
     return this.studentsService.create(createStudentDto);
   }
 
   @Get()
+  @Auth()
+  @Roles('ADMIN')
   findAll() {
     return this.studentsService.findAll();
   }
@@ -35,12 +39,32 @@ export class StudentsController {
    * Used for frontend validation
    */
   @Get('check-code')
+  @Auth()
+  @Roles('ADMIN')
   async checkCodeExists(
     @Query('student_code') studentCode: string,
     @Query('excludeCode') excludeCode?: string,
   ) {
     const exists = await this.studentsService.checkStudentCodeExists(
       studentCode,
+      excludeCode,
+    );
+    return { exists };
+  }
+
+  /**
+   * Check if student email already exists
+   * Used for frontend validation
+   */
+  @Get('check-email')
+  @Auth()
+  @Roles('ADMIN')
+  async checkEmailExists(
+    @Query('email') email: string,
+    @Query('excludeCode') excludeCode?: string,
+  ) {
+    const exists = await this.studentsService.checkStudentEmailExists(
+      email,
       excludeCode,
     );
     return { exists };
@@ -62,7 +86,10 @@ export class StudentsController {
   @Auth()
   @AuthType('student')
   updateMe(@Req() req: AuthenticatedRequest, @Body() dto: UpdateStudentDto) {
-    return this.studentsService.updateByStudentCode(req.user.sub, dto);
+    return this.studentsService.updateByStudentCode(req.user.sub, dto, {
+      type: req.user.type,
+      id: req.user.sub,
+    });
   }
 
   @Get('me/enrollments')
@@ -89,13 +116,19 @@ export class StudentsController {
       throw new ForbiddenException('Only admin staff can update students');
     }
 
-    return this.studentsService.update(id, updateStudentDto);
+    return this.studentsService.update(id, updateStudentDto, {
+      type: req.user.type,
+      id: req.user.sub,
+    });
   }
 
   @Delete(':id')
   @Auth()
   @Roles('ADMIN')
-  remove(@Param('id') id: string) {
-    return this.studentsService.remove(id);
+  remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    return this.studentsService.remove(id, {
+      type: req.user.type,
+      id: req.user.sub,
+    });
   }
 }

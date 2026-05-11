@@ -2,27 +2,31 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuthTypeGuard } from './guards/auth-type.guard';
 import { RolesGuard } from './guards/roles.guard';
-import { DEFAULT_JWT_SECRET } from './constants';
+import { resolveJwtSecret } from './jwt-secret';
 
 @Module({
   imports: [
     PassportModule,
-    // registerAsync (instead of register) so the secret is resolved AFTER
-    // ConfigModule.forRoot has loaded .env / .env.local. Using
-    // process.env.JWT_SECRET at module-import time was racing the env loader
-    // and falling back to DEFAULT_JWT_SECRET, which then disagreed with
-    // JwtStrategy (constructed later, when env was populated) and produced
-    // 401s on every request right after a successful login.
+    ThrottlerModule.forRoot([
+      {
+        name: 'short',
+        ttl: 60_000,
+        limit: 5,
+      },
+    ]),
+    // registerAsync (instead of register) so JWT_SECRET is resolved after
+    // ConfigModule.forRoot has loaded .env / .env.local.
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        secret: config.get<string>('JWT_SECRET') || DEFAULT_JWT_SECRET,
+        secret: resolveJwtSecret(config),
         signOptions: { expiresIn: '1d' },
       }),
     }),

@@ -1,22 +1,26 @@
 # IAES
 
-IAES (Intelligent Adaptive Examination System) is a web application for adaptive examination management.
+IAES (Intelligent Adaptive Examination System) is a web application for adaptive examination management. The repository is a monorepo with a Next.js frontend, a NestJS backend, PostgreSQL, and Prisma.
 
 ## Features
 
-- Create and manage courses
-- Create and manage students
-- Create and manage staff users
-- Create course offerings and enroll students
-- Create exams and question banks
+- Role-aware course home for instructors and students
+- Manage staff users, students, courses, course offerings, and enrollments
+- Admin user management supports role tabs plus faculty, curriculum, and student cohort filtering; student cohorts are derived from the first two digits of student codes.
+- Import students through CSV preview and confirm workflow
+- Manage course members, instructors, question banks, knowledge categories, exam sets, and attempts
+- JWT authentication with httpOnly cookies
+- Role-based access for ADMIN, INSTRUCTOR, and STUDENT users
+- Shared navigation includes a profile menu with an initials-based avatar fallback for accounts without profile images.
+- Audit logging for sensitive user and enrollment changes
+- Results summary page is present as a "กำลังพัฒนา" placeholder
 
 ## Tech Stack
 
-- Frontend: Next.js
-- Backend: NestJS
+- Frontend: Next.js 16.0.10, React 19.2.1, Tailwind CSS 4, TypeScript
+- Backend: NestJS 11, Passport JWT, Prisma 7.3.0
 - Database: PostgreSQL
-- ORM: Prisma
-- Authentication: Passport JWT
+- Authentication: httpOnly cookie JWT flow
 
 ## Prerequisites
 
@@ -24,82 +28,76 @@ IAES (Intelligent Adaptive Examination System) is a web application for adaptive
 - npm
 - PostgreSQL
 
-## Install Dependencies
+## Quick Start
 
-Install dependencies for the root workspace, backend, and frontend.
+1. Install dependencies.
 
 ```bash
 npm install
-
-cd server
-npm install
-
-cd ../client
-npm install
+npm install --prefix server
+npm install --prefix client
 ```
 
-## Environment Files
+Run the `--prefix` commands only from the repository root. If your terminal is already in `server/` or `client/`, run plain `npm install` there instead.
 
-### Backend
-
-Create `server/.env`.
+2. Create backend environment file at `server/.env`.
 
 ```env
-PORT=3002
-DATABASE_URL="postgresql://postgres:your_password@localhost:5432/iaes_db"
-JWT_SECRET="local-dev-jwt-secret-change-me-2026-iaes-64-characters-minimum"
+PORT="3002"
+DATABASE_URL="postgresql://user:password@localhost:5432/iaes_db"
+JWT_SECRET="replace-this-with-a-random-secret-at-least-32-characters"
+BCRYPT_COST="10"
 ```
 
-Change `postgres`, `your_password`, and `iaes_db` to match your PostgreSQL setup. Keep the `DATABASE_URL` in quotes if your password contains special characters such as `!`, `@`, or `#`.
+`JWT_SECRET` must be at least 32 characters. Production refuses missing, short, or known placeholder secrets. `BCRYPT_COST` must be an integer from `10` to `31`.
 
-`JWT_SECRET` is used to sign login tokens. For production, replace the example with a long random value and keep it private.
-
-Generate a random secret with PowerShell:
+Generate a random JWT secret with PowerShell:
 
 ```powershell
 [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
 ```
 
-### Frontend
-
-Create `client/.env.local`.
+3. Create frontend environment file at `client/.env.local`.
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3002
 ```
 
-## Database Setup Options
-
-Choose the workflow that matches your database state.
-
-### Option A: Fresh Empty Database
-
-Use this when the database exists but has no IAES tables/data yet.
-
-Create a database if needed:
-
-```bash
-createdb iaes_db
-```
-
-Or with `psql`:
-
-```bash
-psql -U postgres -c "CREATE DATABASE iaes_db;"
-```
-
-Push the Prisma schema, generate the Prisma client, and insert demo data:
+4. Apply database migrations and generate the Prisma client.
 
 ```bash
 cd server
-npx prisma db push
+npx prisma migrate deploy
 npx prisma generate
+```
+
+The generated Prisma client lives at `server/src/generated/prisma`. It is gitignored and can be regenerated at any time.
+
+5. Optional: seed demo data.
+
+```bash
+cd server
 npm run seed
 ```
 
-The seed is safe to run more than once. It creates demo staff users, demo students, one course, one course offering, and enrollments.
+The seed is idempotent. It currently creates 2 admin accounts, 7 instructor accounts, 25 students, 13 courses, 12 course offerings, 20 knowledge categories, 10 question collections, 33 questions, 10 exam sets, and demo exam attempts.
 
-Demo login accounts:
+6. Run backend and frontend together from the repository root.
+
+```bash
+npm run dev
+```
+
+Open:
+
+```text
+Frontend: http://localhost:3000
+Backend:  http://localhost:3002
+```
+
+## Demo Accounts
+
+The seed script creates these demo accounts with password `1234`:
 
 ```text
 Admin:      admin@iaes.local / 1234
@@ -107,95 +105,124 @@ Instructor: instructor@iaes.local / 1234
 Student:    66131319 / 1234
 ```
 
-### Option B: Database Already Has Schema and Data
+Use the unified login page at `http://localhost:3000/login`. The form accepts either an 8-digit student code or a staff email.
 
-Use this when the database already has IAES tables and existing data.
+## Main Routes
 
-```bash
-cd server
-npx prisma generate
+```text
+/login                         Unified login page
+/                              Role-aware course home
+/admin/manage-users            Admin user management with role, faculty, curriculum, and student cohort filters
+/course                        Instructor course catalog and course setup
+/course/[offeringId]           Course dashboard
+/course/[offeringId]/members   Course member and CSV enrollment management
+/exam-bank                     Instructor course picker for question bank work
+/exam-bank/[offeringId]        Question bank and exam set entry page
+/exam-bank/[offeringId]/questions
+/exam-bank/[offeringId]/exam-sets
+/results                       Results summary placeholder
 ```
 
-Then run the app. Do not run `npx prisma db push --force-reset` because it will reset data. Run `npm run seed` only if you intentionally want the demo accounts/data inserted or refreshed.
+## Database Workflows
 
-### Option C: Schema Changed After Pulling New Code
+Run database commands from `server/`.
 
-Use this when `server/prisma/schema.prisma` changed and the database must be updated.
+### Fresh Empty Database
 
 ```bash
-cd server
-npx prisma db push
+npx prisma migrate deploy
 npx prisma generate
-```
-
-For a shared or production-like database, back up the database first and read any Prisma warning before continuing. Do not use `--force-reset` on a database with important data.
-
-### Option D: Reset Local Development Database
-
-Use this only for a local throwaway database.
-
-```bash
-cd server
-npx prisma db push --force-reset
 npm run seed
 ```
 
-This resets the schema and data, then recreates the demo data.
+### Existing Database After Pulling Latest Code
 
-## Run The Project
+If new migration files were pulled:
 
-### Run Backend and Frontend Together
+```bash
+npx prisma migrate deploy
+npx prisma generate
+```
 
-From the repository root:
+If no schema or migration files changed:
+
+```bash
+npx prisma generate
+```
+
+### Create A New Migration
+
+After editing `server/prisma/schema.prisma`:
+
+```bash
+npx prisma migrate dev --name <short_descriptive_name>
+```
+
+### Reset Local Development Database
+
+Danger: this drops all local data.
+
+```bash
+npx prisma migrate reset
+```
+
+Never run `migrate reset` against shared or production databases.
+
+## Security And Auth Notes
+
+- Login endpoints are throttled at 5 attempts per minute for the configured `short` throttler.
+- JWTs are set by the API in httpOnly `access_token` cookies.
+- The frontend stores only non-sensitive user profile data in `localStorage`; it does not store the access token.
+- Axios sends cookies with `withCredentials: true`.
+- Next.js middleware reads `access_token` and `user` cookies to protect routes and enforce role access.
+- ADMIN users can access admin pages. INSTRUCTOR users can access course management, course dashboards, course members, and exam bank pages. STUDENT users can access the role-aware home and enrolled course dashboards.
+- Course exam management endpoints are staff-only; the course dashboard avoids calling them for students.
+- Password changes update `password_changed_at`; older JWTs are rejected after a password change.
+- Student API responses use explicit selects so `password_hash` is not returned by list/detail endpoints.
+- Audit logs are written to `audit_logs` for sensitive user and enrollment actions.
+
+## Useful Commands
+
+Run both apps:
 
 ```bash
 npm run dev
 ```
 
-The app will be available at:
-
-```text
-Frontend: http://localhost:3000
-Backend:  http://localhost:3002
-```
-
-### Run Frontend Only
-
-From the repository root:
+Run only the client:
 
 ```bash
 npm run dev:client
 ```
 
-Or from `client/`:
-
-```bash
-cd client
-npm run dev
-```
-
-### Run Backend Only
-
-From the repository root:
+Run only the server:
 
 ```bash
 npm run dev:server
 ```
 
-Or from `server/`:
+Build server:
 
 ```bash
-cd server
-npm run start:dev
+npm run build --prefix server
 ```
 
-## Useful Commands
-
-Generate Prisma client:
+Run server tests:
 
 ```bash
-cd server
-npx prisma generate
+npm run test --prefix server -- --runInBand
+```
+
+Build client:
+
+```bash
+npm run build --prefix client
+```
+
+Lint client:
+
+```bash
+npm run lint --prefix client
 ```
 
 Open Prisma Studio:
@@ -205,41 +232,77 @@ cd server
 npx prisma studio
 ```
 
-Run backend tests:
+Rehash existing plaintext or lower-cost passwords after changing `BCRYPT_COST`:
 
 ```bash
 cd server
-npm run test
-```
-
-Build backend:
-
-```bash
-cd server
-npm run build
-```
-
-Build frontend:
-
-```bash
-cd client
-npm run build
+npm run rehash-passwords
 ```
 
 ## Troubleshooting
 
 ### PowerShell Blocks npm
 
-If PowerShell blocks `npm` with an execution policy error, use `npm.cmd` instead:
+Use `npm.cmd`:
 
 ```powershell
 npm.cmd install
 npm.cmd run dev
+npm.cmd run build --prefix client
 ```
+
+Use the same `.cmd` form for `npx` if PowerShell blocks scripts:
+
+```powershell
+npx.cmd prisma generate
+```
+
+### Prisma Client Cannot Be Imported
+
+If the server shows TypeScript errors such as:
+
+```text
+Cannot find module '../generated/prisma/client'
+Property '$transaction' does not exist on type 'PrismaService'
+Property 'students' does not exist on type 'PrismaService'
+```
+
+the generated Prisma client is missing or incomplete. From `server/`, stop the watch process and regenerate it:
+
+```powershell
+Remove-Item -LiteralPath .\src\generated\prisma -Recurse -Force
+npx.cmd prisma generate
+npm.cmd run build
+```
+
+If you accidentally ran `npm install --prefix server` while already inside `server/`, remove the accidental nested folder from the repository root:
+
+```powershell
+Remove-Item -LiteralPath .\server\server -Recurse -Force
+```
+
+Then run the correct install command for your current directory.
+
+### JWT_SECRET Boot Error
+
+Set `JWT_SECRET` in `server/.env` to a value with at least 32 characters. In production, do not use example placeholders from documentation or `.env.example`.
+
+### Frontend Cannot Stay Logged In
+
+Check that:
+
+- Backend is running on `NEXT_PUBLIC_API_URL`
+- Backend CORS allows the frontend origin
+- API requests use credentials
+- Browser cookies for `localhost` are not blocked
+
+### Next.js Build Warnings
+
+Next.js 16 may warn that the `middleware` file convention is deprecated in favor of `proxy`, and `baseline-browser-mapping` may warn when its browser baseline data is older than two months. These warnings do not block the current build.
 
 ### PostgreSQL Schema Permission Error
 
-If `npx prisma db push` fails with `permission denied for schema public`, the PostgreSQL user in `DATABASE_URL` does not have schema privileges. Ask a database owner or superuser to connect to the target database first, then grant access:
+If `npx prisma migrate deploy` fails with `permission denied for schema public`, grant privileges from a database owner or superuser:
 
 ```sql
 \c iaes_db
@@ -250,7 +313,7 @@ GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO iaes;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO iaes;
 ```
 
-Confirm privileges from the application user:
+Verify:
 
 ```sql
 SELECT

@@ -8,6 +8,21 @@ datasource db {
   provider = "postgresql"
 }
 
+model audit_logs {
+  audit_logs_id BigInt   @id @default(autoincrement())
+  actor_type    String?  @db.VarChar(20)
+  actor_id      String?  @db.VarChar(100)
+  action        String   @db.VarChar(100)
+  entity_type   String   @db.VarChar(100)
+  entity_id     String   @db.VarChar(100)
+  metadata      Json?
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([action], map: "idx_audit_logs_action")
+  @@index([entity_type, entity_id], map: "idx_audit_logs_entity")
+  @@index([created_at], map: "idx_audit_logs_created_at")
+}
+
 model attempt_answers {
   attempt_answers_id BigInt            @id @default(autoincrement())
   attempt_items_id   BigInt
@@ -20,17 +35,17 @@ model attempt_answers {
 }
 
 model attempt_items {
-  attempt_items_id      BigInt            @id @default(autoincrement())
-  exam_attempts_id      BigInt
-  question_id           BigInt
-  sequence_index        Int
-  shown_at              DateTime          @default(now()) @db.Timestamptz(6)
-  answered_at           DateTime?         @db.Timestamptz(6)
-  time_per_item         Int?
-  choice_selection_log  Json?
-  attempt_answers       attempt_answers[]
-  exam_attempts         exam_attempts     @relation(fields: [exam_attempts_id], references: [exam_attempts_id], onDelete: Cascade)
-  question_bank         question_bank     @relation(fields: [question_id], references: [question_id], onDelete: Cascade)
+  attempt_items_id     BigInt            @id @default(autoincrement())
+  exam_attempts_id     BigInt
+  question_id          BigInt
+  sequence_index       Int
+  shown_at             DateTime          @default(now()) @db.Timestamptz(6)
+  answered_at          DateTime?         @db.Timestamptz(6)
+  time_per_item        Int?
+  choice_selection_log Json?
+  attempt_answers      attempt_answers[]
+  exam_attempts        exam_attempts     @relation(fields: [exam_attempts_id], references: [exam_attempts_id], onDelete: Cascade)
+  question_bank        question_bank     @relation(fields: [question_id], references: [question_id], onDelete: Cascade)
 
   @@unique([exam_attempts_id, question_id])
 }
@@ -75,26 +90,26 @@ model course_offerings {
 }
 
 model courses {
-  courses_id                BigInt                    @id @default(autoincrement())
-  course_code               String                    @db.VarChar(50)
-  course_name               String                    @db.VarChar(255)
-  course_name_th            String                    @db.VarChar(255)
-  course_name_en            String                    @db.VarChar(255)
+  courses_id                BigInt                @id @default(autoincrement())
+  course_code               String                @db.VarChar(50)
+  course_name               String                @db.VarChar(255)
+  course_name_th            String                @db.VarChar(255)
+  course_name_en            String                @db.VarChar(255)
   description               String?
   course_image              String?
-  is_active                 Boolean                   @default(true)
+  is_active                 Boolean               @default(true)
   created_by_instructors_id BigInt
-  created_at                DateTime                  @default(now()) @db.Timestamptz(6)
-  updated_at                DateTime                  @default(now()) @db.Timestamptz(6)
+  created_at                DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime              @default(now()) @db.Timestamptz(6)
   course_offerings          course_offerings[]
-  course_knowledge     course_knowledge[]
-  question_knowledge   question_knowledge[]
-  question_bank_years  question_bank_years[]
+  course_knowledge          course_knowledge[]
+  question_knowledge        question_knowledge[]
+  question_bank_years       question_bank_years[]
 }
 
 model exam_attempts {
   exam_attempts_id BigInt              @id @default(autoincrement())
-  course_exams_id         BigInt
+  course_exams_id  BigInt
   student_code     String
   status           exam_attempt_status @default(IN_PROGRESS)
   started_at       DateTime            @default(now()) @db.Timestamptz(6)
@@ -203,13 +218,13 @@ model question_bank {
   created_at DateTime @default(now()) @db.Timestamptz(6)
   updated_at DateTime @default(now()) @db.Timestamptz(6)
 
-  choices                 question_choices[]
+  choices            question_choices[]
   question_knowledge question_knowledge[]
-  exam_questions          exam_questions[]
+  exam_questions     exam_questions[]
 
   staff_users          staff_users           @relation(fields: [created_by_staff_id], references: [staff_users_id])
   question_collections question_collections? @relation(fields: [question_collection_id], references: [question_collection_id], onDelete: SetNull)
-  attemptItems attempt_items[]
+  attemptItems         attempt_items[]
 
   @@index([question_collection_id], map: "idx_qbank_collection")
 }
@@ -221,10 +236,11 @@ model staff_users {
   password_hash           String
   role                    user_role
   facultyCode             Int                       @map("faculty_code")
-  title                   String                   @db.VarChar(50)
-  curriculumId            Int                      @map("curriculum_id")
+  curriculumId            String                    @default("CUR067") @map("curriculum_id") @db.VarChar(20)
+  title                   String                    @default("นาย") @db.VarChar(50)
   first_name              String                    @db.VarChar(100)
   last_name               String                    @db.VarChar(100)
+  passwordChangedAt       DateTime                  @default(now()) @map("password_changed_at") @db.Timestamptz(6)
   is_active               Boolean                   @default(true)
   created_at              DateTime                  @default(now()) @db.Timestamptz(6)
   updated_at              DateTime                  @default(now()) @db.Timestamptz(6)
@@ -261,6 +277,8 @@ model import_preview_rows {
   student_code String
   email        String
   facultyCode  Int?
+  title        String?  @db.VarChar(50)
+  curriculumId String?  @map("curriculum_id") @db.VarChar(20)
   first_name   String?
   last_name    String?
   status       String // NEW, EXISTS_NOT_ENROLLED, ALREADY_ENROLLED, DUPLICATE_IDENTITY, MISSING
@@ -293,10 +311,11 @@ model students {
   email              String               @unique @db.VarChar(255)
   password_hash      String
   facultyCode        Int                  @map("faculty_code")
-  title              String               @db.VarChar(50)
-  curriculumId       Int                 @map("curriculum_id")
+  curriculumId       String               @default("CUR067") @map("curriculum_id") @db.VarChar(20)
+  title              String               @default("นาย") @db.VarChar(50)
   first_name         String               @db.VarChar(100)
   last_name          String               @db.VarChar(100)
+  passwordChangedAt  DateTime             @default(now()) @map("password_changed_at") @db.Timestamptz(6)
   is_active          Boolean              @default(true)
   created_at         DateTime             @default(now()) @db.Timestamptz(6)
   updated_at         DateTime             @default(now()) @db.Timestamptz(6)
@@ -305,8 +324,8 @@ model students {
 }
 
 model exam_questions {
-  course_exams_id    BigInt
-  question_id BigInt
+  course_exams_id BigInt
+  question_id     BigInt
 
   sequence_index Int
 

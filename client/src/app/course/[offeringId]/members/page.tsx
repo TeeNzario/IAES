@@ -3,7 +3,17 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Navbar from "@/components/layout/NavBar";
 import { useRouter } from "next/navigation";
-import { UserPlus, Upload, ChevronDown } from "lucide-react";
+import {
+  UserPlus,
+  Upload,
+  ChevronDown,
+  Trash2,
+  UsersRound,
+  Lock,
+  AlertTriangle,
+  X,
+  Loader2,
+} from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { useParams } from "next/navigation";
 import { Student } from "@/types/student";
@@ -13,19 +23,21 @@ import BulkUploadModal from "@/features/courseOffering/components/BulkUploadStud
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import AlertModal from "@/components/ui/AlertModal";
 import { AuthUser } from "@/types/auth";
-import { FACULTY_MAP } from "@/lib/faculty-map";
+import { DEFAULT_FACULTY_CODE, FACULTY_MAP, getFacultyName } from "@/lib/faculty-map";
+import { CURRICULUMS, DEFAULT_CURRICULUM_ID, getCurriculumName } from "@/config/curriculums";
+import { DEFAULT_TITLE, THAI_TITLES } from "@/config/titles";
 
 // ============================================================
 // CONFIGURATION CONSTANTS — Adjust limits here
 // ============================================================
-const STUDENT_CODE_MAX_LENGTH = 8;
-const EMAIL_MAX_LENGTH = 50;
+const STUDENT_CODE_LENGTH = 8;
+const STUDENT_CODE_REGEX = /^\d{8}$/;
 const FIRST_NAME_MAX_LENGTH = 50;
 const LAST_NAME_MAX_LENGTH = 50;
 
 // Email and Name validation regex pattern
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const NAME_REGEX = /^[A-Za-zก-๙\s]+$/;
+const EMAIL_REGEX = /^[^\s@]+@mail\.wu\.ac\.th$/;
+const NAME_REGEX = /^[ก-๙\s]+$/;
 
 
 // ============================================================
@@ -34,14 +46,12 @@ const NAME_REGEX = /^[A-Za-zก-๙\s]+$/;
 const ERROR_MESSAGES = {
   student_code: {
     required: "กรุณากรอกรหัสนักศึกษา",
-    maxLength: `รหัสนักศึกษาไม่เกิน ${STUDENT_CODE_MAX_LENGTH} ตัวอักษร`,
+    format: `รหัสนักศึกษาต้องเป็นตัวเลข 8 หลักเท่านั้น`,
     duplicate: "รหัสนักศึกษานี้มีอยู่แล้ว",
-    length: `รหัสนักศึกษาต้องมี ${STUDENT_CODE_MAX_LENGTH} หลัก`,
   },
   email: {
     required: "กรุณากรอกอีเมล",
-    maxLength: `อีเมลไม่เกิน ${EMAIL_MAX_LENGTH} ตัวอักษร`,
-    invalid: "รูปแบบอีเมลไม่ถูกต้อง",
+    invalid: "อีเมลต้องเป็น @mail.wu.ac.th เท่านั้น",
     duplicate: "อีเมลนี้ถูกใช้แล้ว",
   },
   first_name: {
@@ -60,6 +70,7 @@ const ERROR_MESSAGES = {
 interface FormErrors {
   student_code?: string;
   email?: string;
+  title?: string;
   first_name?: string;
   last_name?: string;
 }
@@ -68,8 +79,31 @@ interface DuplicateCheckResponse {
   exists: boolean;
 }
 
+function getErrorMessage(error: unknown, fallback: string): string {
+  const apiError = error as {
+    response?: { data?: { message?: unknown } };
+    message?: unknown;
+  };
+
+  // Prefer the server's error message from the response body over the generic
+  // AxiosError.message (which is just "Request failed with status code N").
+  const serverMessage = apiError.response?.data?.message;
+  if (Array.isArray(serverMessage) && typeof serverMessage[0] === "string") {
+    return serverMessage[0];
+  }
+  if (typeof serverMessage === "string" && serverMessage.trim()) {
+    return serverMessage;
+  }
+
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof apiError.message === "string" && apiError.message.trim()) {
+    return apiError.message;
+  }
+
+  return fallback;
+}
+
 export default function SimpleShowUsers() {
-  const [activeTab, setActiveTab] = useState("learn");
   const [activeTopTab, setActiveTopTab] = useState("student");
   const [showAddModal, setShowAddModal] = useState(false);
 
@@ -78,9 +112,11 @@ export default function SimpleShowUsers() {
   // Form state
   const [studentId, setStudentId] = useState("");
   const [email, setEmail] = useState("");
+  const [title, setTitle] = useState(DEFAULT_TITLE);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [addFacultyCode, setAddFacultyCode] = useState<number>(1);
+  const [addFacultyCode, setAddFacultyCode] = useState<number>(DEFAULT_FACULTY_CODE);
+  const [addCurriculumId, setAddCurriculumId] = useState<string>(DEFAULT_CURRICULUM_ID);
 
   // Validation errors state
   const [errors, setErrors] = useState<FormErrors>({});
@@ -96,6 +132,13 @@ export default function SimpleShowUsers() {
   const [isUnenrollModalOpen, setIsUnenrollModalOpen] = useState(false);
   const [unenrollingStudent, setUnenrollingStudent] = useState<{ code: string; name: string } | null>(null);
   const [isUnenrolling, setIsUnenrolling] = useState(false);
+  const [isRemoveInstructorModalOpen, setIsRemoveInstructorModalOpen] =
+    useState(false);
+  const [removingInstructor, setRemovingInstructor] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [isRemovingInstructor, setIsRemovingInstructor] = useState(false);
 
   // Alert state
   const [alertState, setAlertState] = useState<{
@@ -106,51 +149,56 @@ export default function SimpleShowUsers() {
   }>({ isOpen: false, title: "", message: "", variant: "error" });
 
   const [offering, setOffering] = useState<CourseOffering | null>(null);
-  const [students, setStudents] = useState<any[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(true);
+  const hasCourseExams = (offering?._count?.course_exams ?? 0) > 0;
+  const deleteBlockedMessage =
+    "มีการสร้างชุดสอบหรือการสอบในรายวิชานี้แล้ว ระบบไม่อนุญาตให้ลบอาจารย์หรือนักศึกษาออกจากรายวิชา";
 
   const router = useRouter();
 
   const { offeringId } = useParams<{ offeringId: string }>();
-  console.log(offering);
 
-  const fetchStudents = async () => {
+  const fetchStudents = useCallback(async () => {
     if (!offeringId) return;
-
-    const data = await apiFetch<Student[]>(
-      `course-offerings/${offeringId}/students`,
-    );
-    setStudents(data);
-    setLoadingStudents(false);
-  };
+    try {
+      setLoadingStudents(true);
+      const data = await apiFetch<Student[]>(
+        `course-offerings/${offeringId}/students`,
+      );
+      setStudents(data);
+    } catch {
+      setStudents([]);
+    } finally {
+      setLoadingStudents(false);
+    }
+  }, [offeringId]);
 
   useEffect(() => {
     fetchStudents();
-  }, [offeringId]);
+  }, [fetchStudents]);
 
   // ============================================================
   // VALIDATION HELPERS
   // ============================================================
 
   /**
-   * Validates student code synchronously (required + max length)
+   * Validates student code synchronously (required + 8 digits format)
    */
   const validateStudentCode = (value: string): string | undefined => {
     const trimmed = value.trim();
     if (!trimmed) return ERROR_MESSAGES.student_code.required;
-    if (trimmed.length !== STUDENT_CODE_MAX_LENGTH)
-      return ERROR_MESSAGES.student_code.length;
+    if (!STUDENT_CODE_REGEX.test(trimmed))
+      return ERROR_MESSAGES.student_code.format;
     return undefined;
   };
 
   /**
-   * Validates email synchronously (required + max length + format)
+   * Validates email synchronously (required + @mail.wu.ac.th domain)
    */
   const validateEmail = (value: string): string | undefined => {
     const trimmed = value.trim();
     if (!trimmed) return ERROR_MESSAGES.email.required;
-    if (trimmed.length > EMAIL_MAX_LENGTH)
-      return ERROR_MESSAGES.email.maxLength;
     if (!EMAIL_REGEX.test(trimmed)) return ERROR_MESSAGES.email.invalid;
     return undefined;
   };
@@ -164,7 +212,7 @@ export default function SimpleShowUsers() {
     if (trimmed.length > FIRST_NAME_MAX_LENGTH)
       return ERROR_MESSAGES.first_name.maxLength;
     if (!NAME_REGEX.test(trimmed))
-      return "ชื่อต้องเป็นตัวอักษรเท่านั้น";
+      return "ชื่อต้องเป็นภาษาไทยเท่านั้น";
     return undefined;
   };
 
@@ -177,7 +225,7 @@ export default function SimpleShowUsers() {
     if (trimmed.length > LAST_NAME_MAX_LENGTH)
       return ERROR_MESSAGES.last_name.maxLength;
     if (!NAME_REGEX.test(trimmed))
-      return "นามสกุลต้องเป็นตัวอักษรเท่านั้น";
+      return "นามสกุลต้องเป็นภาษาไทยเท่านั้น";
     return undefined;
   };
 
@@ -213,8 +261,11 @@ export default function SimpleShowUsers() {
 
       try {
         setIsCheckingEmail(true);
+        const codeParam = studentId.trim()
+          ? `&exclude_student_code=${encodeURIComponent(studentId.trim())}`
+          : "";
         const response = await apiFetch<DuplicateCheckResponse>(
-          `/course-offerings/${offeringId}/students/check-email?email=${encodeURIComponent(emailValue.trim())}`,
+          `/course-offerings/${offeringId}/students/check-email?email=${encodeURIComponent(emailValue.trim())}${codeParam}`,
         );
         return response.exists;
       } catch (err) {
@@ -224,7 +275,7 @@ export default function SimpleShowUsers() {
         setIsCheckingEmail(false);
       }
     },
-    [offeringId],
+    [offeringId, studentId],
   );
 
   /**
@@ -241,6 +292,7 @@ export default function SimpleShowUsers() {
 
     if (codeError) newErrors.student_code = codeError;
     if (emailError) newErrors.email = emailError;
+    if (!title.trim()) newErrors.title = "กรุณาเลือกคำนำหน้า";
     if (firstNameError) newErrors.first_name = firstNameError;
     if (lastNameError) newErrors.last_name = lastNameError;
 
@@ -273,11 +325,9 @@ export default function SimpleShowUsers() {
   // ============================================================
 
   const handleStudentIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //only number
-    const value = e.target.value.replace(/\D/g, "");
-
+    // Only allow digits, max 8
+    const value = e.target.value.replace(/\D/g, "").slice(0, STUDENT_CODE_LENGTH);
     setStudentId(value);
-    // Clear error and re-validate synchronously
     setErrors((prev) => ({
       ...prev,
       student_code: validateStudentCode(value),
@@ -297,7 +347,7 @@ export default function SimpleShowUsers() {
 
     const rawValue = e.target.value;
     //only letter and space
-    const value = rawValue.replace(/[^A-Za-zก-๙\s]/g, "");
+    const value = rawValue.replace(/[^ก-๙\s]/g, "");
 
     setFirstName(value);
     setErrors((prev) => ({
@@ -310,7 +360,7 @@ export default function SimpleShowUsers() {
 
     const rawValue = e.target.value;
     //only letter and space
-    const value = rawValue.replace(/[^A-Za-zก-๙\s]/g, "");
+    const value = rawValue.replace(/[^ก-๙\s]/g, "");
 
     setLastName(value);
     setErrors((prev) => ({
@@ -328,9 +378,11 @@ export default function SimpleShowUsers() {
     setShowAddModal(false);
     setStudentId("");
     setEmail("");
+    setTitle(DEFAULT_TITLE);
     setFirstName("");
     setLastName("");
-    setAddFacultyCode(1);
+    setAddFacultyCode(DEFAULT_FACULTY_CODE);
+    setAddCurriculumId(DEFAULT_CURRICULUM_ID);
     setErrors({}); // Clear errors when closing modal
   };
 
@@ -351,18 +403,23 @@ export default function SimpleShowUsers() {
           student_code: studentId.trim(),
           email: email.trim(),
           facultyCode: addFacultyCode,
+          curriculumId: addCurriculumId,
+          title,
           first_name: firstName.trim(),
           last_name: lastName.trim(),
         },
       });
       await fetchStudents();
       handleCancelAddStudent();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setAlertState({
         isOpen: true,
         title: "เกิดข้อผิดพลาด",
-        message: err?.message || "ไม่สามารถเพิ่มนักศึกษาได้ กรุณาลองใหม่อีกครั้ง",
+        message: getErrorMessage(
+          err,
+          "ไม่สามารถเพิ่มนักศึกษาได้ กรุณาลองใหม่อีกครั้ง",
+        ),
         variant: "error",
       });
     } finally {
@@ -375,6 +432,16 @@ export default function SimpleShowUsers() {
     studentCode: string,
     studentName: string,
   ) => {
+    if (hasCourseExams) {
+      setAlertState({
+        isOpen: true,
+        title: "ไม่สามารถลบได้",
+        message: deleteBlockedMessage,
+        variant: "warning",
+      });
+      return;
+    }
+
     setUnenrollingStudent({ code: studentCode, name: studentName });
     setIsUnenrollModalOpen(true);
   };
@@ -390,12 +457,15 @@ export default function SimpleShowUsers() {
       await fetchStudents(); // Refresh list
       setIsUnenrollModalOpen(false);
       setUnenrollingStudent(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to unenroll student:", err);
       setAlertState({
         isOpen: true,
         title: "เกิดข้อผิดพลาด",
-        message: err?.message || "ไม่สามารถลบนักศึกษาได้ กรุณาลองใหม่อีกครั้ง",
+        message: getErrorMessage(
+          err,
+          "ไม่สามารถลบนักศึกษาได้ กรุณาลองใหม่อีกครั้ง",
+        ),
         variant: "error",
       });
     } finally {
@@ -403,17 +473,67 @@ export default function SimpleShowUsers() {
     }
   };
 
-  //fetch instructors name
-  useEffect(() => {
-    const fetchOffering = async () => {
-      if (!offeringId) return;
+  const handleRemoveInstructor = (staffUserId: string, instructorName: string) => {
+    if (hasCourseExams) {
+      setAlertState({
+        isOpen: true,
+        title: "ไม่สามารถลบได้",
+        message: deleteBlockedMessage,
+        variant: "warning",
+      });
+      return;
+    }
+
+    setRemovingInstructor({ id: staffUserId, name: instructorName });
+    setIsRemoveInstructorModalOpen(true);
+  };
+
+  const handleRemoveInstructorConfirm = async () => {
+    if (!removingInstructor) return;
+
+    setIsRemovingInstructor(true);
+    try {
+      await apiFetch(
+        `course-offerings/${offeringId}/instructors/${removingInstructor.id}`,
+        {
+          method: "DELETE",
+        },
+      );
+      await fetchOffering();
+      setIsRemoveInstructorModalOpen(false);
+      setRemovingInstructor(null);
+    } catch (err: unknown) {
+      console.error("Failed to remove instructor:", err);
+      setAlertState({
+        isOpen: true,
+        title: "เกิดข้อผิดพลาด",
+        message: getErrorMessage(
+          err,
+          "ไม่สามารถลบอาจารย์ออกจากรายวิชาได้ กรุณาลองใหม่อีกครั้ง",
+        ),
+        variant: "error",
+      });
+    } finally {
+      setIsRemovingInstructor(false);
+    }
+  };
+
+  const fetchOffering = useCallback(async () => {
+    if (!offeringId) return;
+    try {
       const data = await apiFetch<CourseOffering>(
         `course-offerings/${offeringId}`,
       );
       setOffering(data);
-    };
-    fetchOffering();
+    } catch {
+      setOffering(null);
+    }
   }, [offeringId]);
+
+  //fetch instructors name
+  useEffect(() => {
+    fetchOffering();
+  }, [fetchOffering]);
 
    useEffect(() => {
   apiFetch<AuthUser>("/auth/me")
@@ -425,7 +545,8 @@ export default function SimpleShowUsers() {
     });
 }, []);
 
-const isStudent = user?.userType === "STUDENT";
+const isStudent =
+  String(user?.type ?? user?.userType ?? "").toUpperCase() === "STUDENT";
 
   // ============================================================
   // COMPUTED VALUES
@@ -444,32 +565,32 @@ const isStudent = user?.userType === "STUDENT";
 
   return (
     <Navbar>
-      <div className="min-h-screen bg-[#F4EFFF] p-4">
-        <div className="max-w-5xl mx-auto">
-          <div className="border-b border-gray-200/50 px-6 lg:px-8 pt-4">
+      <div className="min-h-screen bg-[#F4EFFF] px-4 py-6 sm:px-8 lg:px-10">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-5 border-b border-[#DDD1F6] pb-3">
             <div className="flex items-center gap-6 pb-3">
               <button
                 onClick={() => {
                   setActiveTopTab("home");
                   handleBackToCourse();
                 }}
-                className={`font-light text-sm transition-colors cursor-pointer ${
+                className={`text-sm font-medium transition-colors cursor-pointer ${
                   activeTopTab === "home"
-                    ? "text-[##B7A3E3]"
-                    : "text-gray-500 hover:text-[#B7A3E3]"
+                    ? "text-[#7C5BD9]"
+                    : "text-[#7A7287] hover:text-[#7C5BD9]"
                 }`}
               >
                 หน้าหลัก
               </button>
-              <div className="h-4 w-px bg-gray-300"></div>
+              <div className="h-4 w-px bg-[#D4C7ED]"></div>
               <button
                 onClick={() => {
                   setActiveTopTab("student");
                 }}
-                className={`font-light text-sm transition-colors cursor-pointer ${
+                className={`text-sm font-medium transition-colors cursor-pointer ${
                   activeTopTab === "student"
-                    ? "text-[#B7A3E3]"
-                    : "text-gray-500 hover:text-[#B7A3E3]"
+                    ? "text-[#7C5BD9]"
+                    : "text-[#7A7287] hover:text-[#7C5BD9]"
                 }`}
               >
                 สมาชิก
@@ -478,102 +599,229 @@ const isStudent = user?.userType === "STUDENT";
           </div>
 
           {/* Main Flex Container */}
-          <div className="flex gap-4 mt-4">
+          <div className="flex flex-col gap-4 lg:flex-row">
             {/* Left Section - Lists */}
-            <div className="flex-1 bg-white rounded-3xl p-10">
-              {/* Header Card */}
-              <div className=" rounded-lg mb-4">
-                <div className="px-5 py-4 border-b border-[#D9D9D9] flex items-center justify-between">
-                  <h3 className="text-sm text-[#575757] font-light">อาจารย์</h3>
-                </div>
-                <div className="p-5">
-                  <div className="flex gap-3">
-                    {offering && (
-                      <div className="flex flex-col gap-2">
-                        {offering.course_instructors.map((ci) => (
-                          <div
-                            key={ci.staff_users_id}
-                            className="text-base text-[#575757]"
-                          >
-                            {formatInstructorName(ci.staff_users)}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+            <div className="min-w-0 flex-1 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6 lg:p-8">
+              {hasCourseExams && !isStudent && (
+                <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
+                  <AlertTriangle size={18} className="mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold">ล็อกการลบสมาชิก</p>
+                    <p className="mt-1 text-sm font-normal leading-6">
+                      {deleteBlockedMessage}
+                    </p>
                   </div>
+                </div>
+              )}
+
+              {/* Header Card */}
+              <div className="mb-6 rounded-xl border border-[#EFE8FB]">
+                <div className="flex items-center justify-between border-b border-[#EFE8FB] px-5 py-4">
+                  <h3 className="flex items-center gap-2 text-sm font-semibold text-[#2F2A3A]">
+                    <UsersRound size={16} className="text-[#B7A3E3]" />
+                    อาจารย์
+                  </h3>
+                  <span className="text-sm font-semibold tabular-nums text-[#514667]">
+                    {offering?.course_instructors.length ?? 0} คน
+                  </span>
+                </div>
+                <div className="hidden border-b border-[#EFE8FB] bg-[#F7F3FF] px-5 py-4 md:grid md:grid-cols-[minmax(10rem,1fr)_minmax(12rem,1.35fr)_minmax(12rem,1.35fr)_2.25rem] md:items-center md:gap-4">
+                  <span className="text-sm font-semibold text-[#5B4A73]">
+                    ชื่อ-นามสกุล
+                  </span>
+                  <span className="text-sm font-semibold text-[#5B4A73]">
+                    สำนักวิชา
+                  </span>
+                  <span className="text-sm font-semibold text-[#5B4A73]">
+                    หลักสูตร
+                  </span>
+                  <span aria-hidden />
+                </div>
+                <div>
+                  {offering?.course_instructors.map((ci, instructorIndex) => {
+                    const instructorName = formatInstructorName(ci.staff_users);
+                    const isPrimaryInstructor = instructorIndex === 0;
+
+                    return (
+                    <div
+                      key={ci.staff_users_id}
+                      className="flex items-center gap-3 px-5 py-3 md:grid md:grid-cols-[minmax(10rem,1fr)_minmax(12rem,1.35fr)_minmax(12rem,1.35fr)_2.25rem] md:items-start md:gap-4"
+                    >
+                      <div className="flex flex-col flex-1 min-w-0 md:contents">
+                        <span className="truncate text-sm font-normal text-[#2F2A3A] md:min-w-0 md:whitespace-normal md:text-clip md:wrap-break-word">
+                          {instructorName}
+                        </span>
+                        <span className="truncate text-xs text-[#7A7287] md:hidden">
+                          {getFacultyName(ci.staff_users.facultyCode ?? 1)}
+                          {" · "}
+                          {getCurriculumName(ci.staff_users.curriculumId)}
+                        </span>
+                        <span className="hidden min-w-0 text-sm font-normal text-[#514667] wrap-break-word md:block">
+                          {getFacultyName(ci.staff_users.facultyCode ?? 1)}
+                        </span>
+                        <span className="hidden min-w-0 text-sm font-normal text-[#514667] wrap-break-word md:block">
+                          {getCurriculumName(ci.staff_users.curriculumId)}
+                        </span>
+                      </div>
+                      {!isStudent && (
+                        isPrimaryInstructor ? (
+                          <span
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#B7A3E3] md:justify-self-end md:self-start"
+                            title="อาจารย์คนแรกไม่สามารถลบได้"
+                            aria-label="อาจารย์คนแรกไม่สามารถลบได้"
+                          >
+                            <Lock size={16} />
+                          </span>
+                        ) : hasCourseExams ? (
+                          <button
+                            onClick={() =>
+                              setAlertState({
+                                isOpen: true,
+                                title: "ไม่สามารถลบได้",
+                                message: deleteBlockedMessage,
+                                variant: "warning",
+                              })
+                            }
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-300 transition-colors hover:bg-amber-50 hover:text-amber-500 md:justify-self-end md:self-start"
+                            title="มีการสอบแล้ว ไม่สามารถลบได้"
+                            aria-label="มีการสอบแล้ว ไม่สามารถลบได้"
+                          >
+                            <Trash2 size={17} />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              handleRemoveInstructor(
+                                ci.staff_users_id,
+                                instructorName,
+                              )
+                            }
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-red-400 transition-colors hover:bg-red-50 hover:text-red-500 md:justify-self-end md:self-start"
+                            title="นำอาจารย์ออกจากรายวิชา"
+                            aria-label="นำอาจารย์ออกจากรายวิชา"
+                          >
+                            <Trash2 size={17} />
+                          </button>
+                        )
+                      )}
+                    </div>
+                    );
+                  })}
                 </div>
               </div>
               {/* Users List */}
-              <div className=" rounded-lg">
+              <div className="overflow-hidden rounded-xl border border-[#EFE8FB]">
                 {/* Title */}
-                <div className="px-5 py-4 border-b border-[#D9D9D9] flex items-center justify-between">
-                  <div className="flex items-center gap-4 w-full justify-between">
-                    <h3 className="text-sm text-[#575757] font-light">
+                <div className="flex items-center justify-between border-b border-[#EFE8FB] px-5 py-4">
+                  <div className="flex w-full items-center justify-between gap-4">
+                    <h3 className="flex items-center gap-2 text-sm font-semibold text-[#2F2A3A]">
+                      <UsersRound size={16} className="text-[#B7A3E3]" />
                       นักศึกษา
                     </h3>
-                    <span className="text-sm text-[#575757]">
+                    <span className="text-sm font-semibold tabular-nums text-[#514667]">
                       {students.length} คน
                     </span>
                   </div>
                 </div>
 
+                {/* Desktop column header */}
+                <div className="hidden border-b border-[#EFE8FB] bg-[#F7F3FF] px-5 py-4 md:grid md:grid-cols-[8.5rem_minmax(10rem,1fr)_minmax(12rem,1.35fr)_minmax(12rem,1.35fr)_2.25rem] md:items-center md:gap-4">
+                  <span className="text-sm font-semibold text-[#5B4A73]">รหัสนักศึกษา</span>
+                  <span className="text-sm font-semibold text-[#5B4A73]">ชื่อ-นามสกุล</span>
+                  <span className="text-sm font-semibold text-[#5B4A73]">สำนักวิชา</span>
+                  <span className="text-sm font-semibold text-[#5B4A73]">หลักสูตร</span>
+                  <span aria-hidden />
+                </div>
+
                 {/* List */}
-                <div>
-                  {students.map((student) => (
+                <div className="divide-y divide-[#EFE8FB]">
+                  {loadingStudents ? (
+                    <div className="px-5 py-8 text-center text-sm font-medium text-[#7A7287]">
+                      กำลังโหลดรายชื่อนักศึกษา...
+                    </div>
+                  ) : students.length === 0 ? (
+                    <div className="px-5 py-8 text-center text-sm font-medium text-[#7A7287]">
+                      ยังไม่มีนักศึกษาในรายวิชานี้
+                    </div>
+                  ) : (
+                    students.map((student) => (
                     <div
                       key={student.student_code}
-                      className={`px-5 py-4 hover:bg-gray-50 transition-colors cursor-pointer flex items-center justify-between group`}
+                      className="group flex items-center gap-3 px-5 py-4 transition-colors hover:bg-[#FAF8FF] md:grid md:grid-cols-[8.5rem_minmax(10rem,1fr)_minmax(12rem,1.35fr)_minmax(12rem,1.35fr)_2.25rem] md:items-start md:gap-4"
                     >
-                      <div className="flex items-center gap-3">
-                        {student.student_code}
-                        <span className="text-base text-[#575757]">
-                          {student.first_name} {student.last_name}
+                      <div className="flex flex-col flex-1 min-w-0 md:contents">
+                        <div className="flex items-center gap-3 md:contents">
+                          <span className="text-sm font-normal text-[#2F2A3A] md:min-w-0 md:truncate">
+                            {student.student_code}
+                          </span>
+                          <span className="text-sm font-normal text-[#2F2A3A] md:min-w-0 md:whitespace-normal md:wrap-break-word">
+                            {student.title} {student.first_name} {student.last_name}
+                          </span>
+                        </div>
+                        <span className="mt-0.5 truncate text-xs text-[#7A7287] md:hidden">
+                          {getFacultyName(student.facultyCode ?? 1)}
+                          {" · "}
+                          {getCurriculumName(student.curriculumId)}
+                        </span>
+                        <span className="hidden min-w-0 text-sm font-normal text-[#514667] wrap-break-word md:block">
+                          {getFacultyName(student.facultyCode ?? 1)}
+                        </span>
+                        <span className="hidden min-w-0 text-sm font-normal text-[#514667] wrap-break-word md:block">
+                          {getCurriculumName(student.curriculumId)}
                         </span>
                       </div>
                       {/* Delete button - visible on hover */}
-                      {!isStudent && (
-                      <button
-                        onClick={() =>
-                          handleUnenrollStudent(
-                            student.student_code,
-                            `${student.first_name} ${student.last_name}`,
-                          )
-                        }
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-50 rounded"
-                        title="นำออกจากรายวิชา"
-                      >
-                        <svg
-                          className="w-5 h-5 text-red-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      </button>
+                      {!isStudent ? (
+                        hasCourseExams ? (
+                          <button
+                            onClick={() =>
+                              setAlertState({
+                                isOpen: true,
+                                title: "ไม่สามารถลบได้",
+                                message: deleteBlockedMessage,
+                                variant: "warning",
+                              })
+                            }
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-300 transition-colors hover:bg-amber-50 hover:text-amber-500 md:justify-self-end md:self-start"
+                            title="มีการสอบแล้ว ไม่สามารถลบได้"
+                            aria-label="มีการสอบแล้ว ไม่สามารถลบได้"
+                          >
+                            <Trash2 size={17} />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              handleUnenrollStudent(
+                                student.student_code,
+                                `${student.title} ${student.first_name} ${student.last_name}`,
+                              )
+                            }
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-red-400 transition-colors hover:bg-red-50 hover:text-red-500 md:justify-self-end md:self-start"
+                            title="นำออกจากรายวิชา"
+                          >
+                            <Trash2 size={17} />
+                          </button>
+                        )
+                      ) : (
+                        <span aria-hidden className="hidden md:block" />
                       )}
                     </div>
-                  ))}
+                  )))}
                 </div>
               </div>
             </div>
 
             {/* Right Section - Action Buttons */}
             {!isStudent && (
-            <div className="flex flex-col gap-3 ">
+            <div className="flex flex-row gap-3 lg:flex-col">
               {/* Add Student Button */}
-              <div className="bg-red-500 flex flex-col bg-white rounded-2xl py-1">
+              <div className="flex flex-row rounded-2xl bg-white p-1 shadow-sm ring-1 ring-[#E7DDF8] lg:flex-col">
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer"
+                  className="flex h-12 w-12 items-center justify-center rounded-xl text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
                   title="เพิ่มนักศึกษา"
                 >
-                  <UserPlus className="w-5 h-5 text-[#1E1E1E]" />
+                  <UserPlus className="h-5 w-5" />
                 </button>
 
                 {/* CSV Upload Button */}
@@ -582,8 +830,8 @@ const isStudent = user?.userType === "STUDENT";
                   className="cursor-pointer"
                   title="อัพโหลด CSV"
                 >
-                  <div className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer">
-                    <Upload className="w-5 h-5 text-[#1E1E1E]" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer">
+                    <Upload className="h-5 w-5" />
                   </div>
                 </button>
               </div>
@@ -594,175 +842,209 @@ const isStudent = user?.userType === "STUDENT";
 
         {/* Add Student Modal */}
         {showAddModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg px-6">
-              {/* Modal Header */}
-              <div className="text-center pt-8 pb-6 px-8">
-                <h3 className="text-2xl font-light text-gray-900">
+          <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/45 p-4 py-6 sm:p-6">
+            <div className="relative w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl sm:p-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
+              {/* Close button */}
+              <button
+                type="button"
+                onClick={handleCancelAddStudent}
+                disabled={isSubmitting}
+                className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="ปิดหน้าต่างเพิ่มนักศึกษา"
+                title="ปิด"
+              >
+                <X size={18} />
+              </button>
+
+              {/* Header */}
+              <div className="mb-5 pr-10">
+                <h2 className="text-xl font-bold text-gray-900">
                   เพิ่มนักศึกษา
-                </h3>
+                </h2>
               </div>
 
-              {/* Modal Body */}
-              <div className="px-8 pb-8 space-y-4">
-                {/* รหัสนักศึกษา */}
-                <div>
-                  <label className="block text-base font-normal text-gray-900 mb-2">
-                    รหัสนักศึกษา <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={studentId}
-                    onChange={handleStudentIdChange}
-                    maxLength={STUDENT_CODE_MAX_LENGTH}
-                    className={`w-full px-4 py-3.5 border rounded-xl focus:outline-none transition-colors text-base ${
-                      errors.student_code
-                        ? "border-red-500 focus:border-red-500"
-                        : "border-[#B7A3E3] focus:border-purple-500"
-                    }`}
-                  />
-                  <div className="flex justify-between items-center mt-1">
-                    {errors.student_code ? (
-                      <p className="text-red-500 text-xs">
-                        {errors.student_code}
-                      </p>
-                    ) : (
-                      <span />
-                    )}
-                    <span className="text-xs text-gray-400">
-                      {studentId.length}/{STUDENT_CODE_MAX_LENGTH}
-                    </span>
-                  </div>
-                </div>
+              {/* Student Code */}
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                  รหัสนักศึกษา <span className="text-red-500">*</span>{" "}
+                  <span className="text-xs font-medium text-gray-500">
+                    ({studentId.length}/{STUDENT_CODE_LENGTH})
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={studentId}
+                  onChange={handleStudentIdChange}
+                  maxLength={STUDENT_CODE_LENGTH}
+                  placeholder="12345678"
+                  className={`w-full rounded-xl border-2 px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none ${
+                    errors.student_code
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-[#9264F5] focus:border-[#B7A3E3]"
+                  }`}
+                />
+                {errors.student_code && (
+                  <p className="text-red-500 text-xs mt-1">{errors.student_code}</p>
+                )}
+              </div>
 
-                {/* อีเมล */}
-                <div>
-                  <label className="block text-base font-normal text-gray-900 mb-2">
-                    อีเมล <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={handleEmailChange}
-                    maxLength={EMAIL_MAX_LENGTH}
-                    className={`w-full px-4 py-3.5 border rounded-xl focus:outline-none transition-colors text-base ${
-                      errors.email
-                        ? "border-red-500 focus:border-red-500"
-                        : "border-[#B7A3E3] focus:border-purple-500"
-                    }`}
-                  />
-                  <div className="flex justify-between items-center mt-1">
-                    {errors.email ? (
-                      <p className="text-red-500 text-xs">{errors.email}</p>
-                    ) : (
-                      <span />
-                    )}
-                    <span className="text-xs text-gray-400">
-                      {email.length}/{EMAIL_MAX_LENGTH}
-                    </span>
-                  </div>
-                </div>
+              {/* Email */}
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                  อีเมล <span className="text-red-500">*</span>{" "}
+                  <span className="text-xs font-medium text-gray-500">@mail.wu.ac.th</span>
+                </label>
+                <input
+                  type="text"
+                  value={email}
+                  onChange={handleEmailChange}
+                  placeholder="student@mail.wu.ac.th"
+                  className={`w-full rounded-xl border-2 px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none ${
+                    errors.email
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-[#9264F5] focus:border-[#B7A3E3]"
+                  }`}
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                )}
+              </div>
 
-                {/* ชื่อ */}
-                <div>
-                  <label className="block text-base font-normal text-gray-900 mb-2">
-                    ชื่อ <span className="text-red-500">*</span>
+              {/* Title */}
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                  คำนำหน้า <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className={`w-full rounded-xl border-2 px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none appearance-none bg-white pr-10 ${
+                      errors.title
+                        ? "border-red-500 focus:border-red-500"
+                        : "border-[#9264F5] focus:border-[#B7A3E3]"
+                    }`}
+                  >
+                    {THAI_TITLES.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+                </div>
+                {errors.title && (
+                  <p className="text-red-500 text-xs mt-1">{errors.title}</p>
+                )}
+              </div>
+
+              {/* First Name + Last Name */}
+              <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                    ชื่อ <span className="text-red-500">*</span>{" "}
+                    <span className="text-xs font-medium text-gray-500">
+                      ({firstName.length}/{FIRST_NAME_MAX_LENGTH})
+                    </span>
                   </label>
                   <input
                     type="text"
                     value={firstName}
                     onChange={handleFirstNameChange}
                     maxLength={FIRST_NAME_MAX_LENGTH}
-                    className={`w-full px-4 py-3.5 border rounded-xl focus:outline-none transition-colors text-base ${
+                    placeholder="ภาษาไทยเท่านั้น"
+                    className={`w-full rounded-xl border-2 px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none ${
                       errors.first_name
                         ? "border-red-500 focus:border-red-500"
-                        : "border-[#B7A3E3] focus:border-purple-500"
+                        : "border-[#9264F5] focus:border-[#B7A3E3]"
                     }`}
                   />
-                  <div className="flex justify-between items-center mt-1">
-                    {errors.first_name ? (
-                      <p className="text-red-500 text-xs">
-                        {errors.first_name}
-                      </p>
-                    ) : (
-                      <span />
-                    )}
-                    <span className="text-xs text-gray-400">
-                      {firstName.length}/{FIRST_NAME_MAX_LENGTH}
-                    </span>
-                  </div>
+                  {errors.first_name && (
+                    <p className="text-red-500 text-xs mt-1">{errors.first_name}</p>
+                  )}
                 </div>
 
-                {/* นามสกุล */}
-                <div>
-                  <label className="block text-base font-normal text-gray-900 mb-2">
-                    นามสกุล <span className="text-red-500">*</span>
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                    นามสกุล <span className="text-red-500">*</span>{" "}
+                    <span className="text-xs font-medium text-gray-500">
+                      ({lastName.length}/{LAST_NAME_MAX_LENGTH})
+                    </span>
                   </label>
                   <input
                     type="text"
                     value={lastName}
                     onChange={handleLastNameChange}
                     maxLength={LAST_NAME_MAX_LENGTH}
-                    className={`w-full px-4 py-3.5 border rounded-xl focus:outline-none transition-colors text-base ${
+                    placeholder="ภาษาไทยเท่านั้น"
+                    className={`w-full rounded-xl border-2 px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none ${
                       errors.last_name
                         ? "border-red-500 focus:border-red-500"
-                        : "border-[#B7A3E3] focus:border-purple-500"
+                        : "border-[#9264F5] focus:border-[#B7A3E3]"
                     }`}
                   />
-                  <div className="flex justify-between items-center mt-1">
-                    {errors.last_name ? (
-                      <p className="text-red-500 text-xs">{errors.last_name}</p>
-                    ) : (
-                      <span />
-                    )}
-                    <span className="text-xs text-gray-400">
-                      {lastName.length}/{LAST_NAME_MAX_LENGTH}
-                    </span>
-                  </div>
-                </div>
-
-                {/* คณะ */}
-                <div>
-                  <label className="block text-base font-normal text-gray-900 mb-2">
-                    คณะ <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={addFacultyCode}
-                      onChange={(e) => setAddFacultyCode(Number(e.target.value))}
-                      className="w-full px-4 py-3.5 border border-[#B7A3E3] rounded-xl focus:outline-none focus:border-purple-500 transition-colors text-base appearance-none bg-white"
-                    >
-                      {Object.entries(FACULTY_MAP).map(([code, name]) => (
-                        <option key={code} value={code}>
-                          {name}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-3.5 text-gray-400 pointer-events-none" size={18} />
-                  </div>
+                  {errors.last_name && (
+                    <p className="text-red-500 text-xs mt-1">{errors.last_name}</p>
+                  )}
                 </div>
               </div>
 
-              {/* Modal Footer */}
-              <div className="px-8 pb-8 space-y-3">
-                <button
-                  onClick={handleAddStudent}
-                  disabled={isSubmitDisabled}
-                  className="w-full py-4 text-xl font-medium text-white bg-[#9264F5] hover:bg-purple-700 rounded-3xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {(isSubmitting || isCheckingCode || isCheckingEmail) && (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  )}
-                  บันทึก
-                </button>
+              {/* Faculty */}
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                  สำนักวิชา <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={addFacultyCode}
+                    onChange={(e) => setAddFacultyCode(Number(e.target.value))}
+                    className="w-full rounded-xl border-2 border-[#9264F5] px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none focus:border-[#B7A3E3] appearance-none bg-white pr-10"
+                  >
+                    {Object.entries(FACULTY_MAP).map(([code, name]) => (
+                      <option key={code} value={code}>{name}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+                </div>
+              </div>
+
+              {/* Curriculum */}
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                  หลักสูตร <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={addCurriculumId}
+                    onChange={(e) => setAddCurriculumId(e.target.value)}
+                    className="w-full rounded-xl border-2 border-[#9264F5] px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none focus:border-[#B7A3E3] appearance-none bg-white pr-10"
+                  >
+                    {CURRICULUMS.map((c) => (
+                      <option key={c.id} value={c.id}>{getCurriculumName(c.id)}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
                 <button
                   onClick={handleCancelAddStudent}
                   disabled={isSubmitting}
-                  className="w-full py-4 text-xl font-medium text-[#B7A3E3] bg-white border-2 border-[#B7A3E3] hover:bg-purple-50 rounded-3xl transition-colors cursor-pointer disabled:opacity-50"
+                  className="flex-1 rounded-xl border-2 border-gray-300 px-6 py-2.5 font-semibold text-gray-900 transition-colors hover:bg-gray-50 disabled:opacity-50"
                 >
                   ยกเลิก
+                </button>
+                <button
+                  onClick={handleAddStudent}
+                  disabled={isSubmitDisabled}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-6 py-2.5 font-semibold text-white shadow-lg transition-colors hover:bg-[#9264F5] disabled:opacity-50"
+                >
+                  {(isSubmitting || isCheckingCode || isCheckingEmail) && (
+                    <Loader2 size={18} className="animate-spin" />
+                  )}
+                  บันทึก
                 </button>
               </div>
             </div>
@@ -791,6 +1073,23 @@ const isStudent = user?.userType === "STUDENT";
           confirmText="นำออก"
           cancelText="ยกเลิก"
           isLoading={isUnenrolling}
+          variant="danger"
+        />
+
+        <ConfirmModal
+          isOpen={isRemoveInstructorModalOpen}
+          onClose={() => {
+            if (!isRemovingInstructor) {
+              setIsRemoveInstructorModalOpen(false);
+              setRemovingInstructor(null);
+            }
+          }}
+          onConfirm={handleRemoveInstructorConfirm}
+          title="นำอาจารย์ออกจากรายวิชา"
+          message={`คุณแน่ใจหรือไม่ว่าต้องการนำ ${removingInstructor?.name || ""} ออกจากรายวิชานี้?`}
+          confirmText="นำออก"
+          cancelText="ยกเลิก"
+          isLoading={isRemovingInstructor}
           variant="danger"
         />
 

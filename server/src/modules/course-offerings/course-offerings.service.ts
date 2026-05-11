@@ -3,8 +3,14 @@ import {
   Injectable,
   ConflictException,
   InternalServerErrorException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import {
+  DEFAULT_CURRICULUM_ID,
+  DEFAULT_TITLE,
+  INVITE_PLACEHOLDER_PASSWORD,
+} from 'src/lib/academic-defaults';
 import { CreateCourseOfferingDto } from './dto/create-course-offerings.dto';
 import { UpdateCourseOfferingDto } from './dto/update-course-offering.dto';
 import { AddStudentDto } from './dto/add-student.dto';
@@ -15,6 +21,13 @@ import {
   BulkEnrollResponse,
 } from './dto/bulk-enroll-student.dto';
 import { Prisma } from 'src/generated/prisma/client';
+import { hashPassword } from '../../lib/password';
+import type { RequestUser } from 'src/auth/types/jwt-payload.type';
+import { AuditActor, AuditService } from '../audit/audit.service';
+
+const THAI_NAME_REGEX = /^[ก-๙\s]+$/;
+const STUDENT_CODE_REGEX = /^\d{8}$/;
+const EMAIL_DOMAIN = '@mail.wu.ac.th';
 
 const courseOfferingSelect = {
   course_offerings_id: true,
@@ -32,14 +45,26 @@ const courseOfferingSelect = {
   },
 
   course_instructors: {
+    orderBy: {
+      staff_users_id: 'asc' as const,
+    },
     select: {
       staff_users_id: true,
       staff_users: {
         select: {
           first_name: true,
           last_name: true,
+          facultyCode: true,
+          title: true,
+          curriculumId: true,
         },
       },
+    },
+  },
+
+  _count: {
+    select: {
+      course_exams: true,
     },
   },
 };
@@ -54,7 +79,69 @@ function serializeBigInt(data: any) {
 
 @Injectable()
 export class CourseOfferingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
+
+  private async assertInstructorForOffering(
+    offeringId: bigint,
+    staffUserId: string,
+    client: PrismaService | Prisma.TransactionClient = this.prisma,
+  ) {
+    const instructorId = BigInt(staffUserId);
+    const link = await client.course_instructors.findFirst({
+      where: {
+        course_offerings_id: offeringId,
+        staff_users_id: instructorId,
+      },
+      select: { staff_users_id: true },
+    });
+
+    if (!link) {
+      throw new ForbiddenException('You are not assigned to this offering.');
+    }
+  }
+
+  private async assertCanViewOffering(
+    offeringId: bigint,
+    user: RequestUser,
+    client: PrismaService | Prisma.TransactionClient = this.prisma,
+  ) {
+    if (user.type === 'staff') {
+      await this.assertInstructorForOffering(offeringId, user.sub, client);
+      return;
+    }
+
+    const enrollment = await client.course_enrollments.findUnique({
+      where: {
+        course_offerings_id_student_code: {
+          course_offerings_id: offeringId,
+          student_code: user.sub,
+        },
+      },
+      select: { student_code: true },
+    });
+
+    if (!enrollment) {
+      throw new ForbiddenException('You are not enrolled in this offering.');
+    }
+  }
+
+  private async assertNoExamsForDelete(
+    offeringId: bigint,
+    client: PrismaService | Prisma.TransactionClient = this.prisma,
+  ) {
+    const examsCount = await client.course_exams.count({
+      where: { course_offerings_id: offeringId },
+    });
+
+    if (examsCount > 0) {
+      throw new ConflictException(
+        'ไม่สามารถลบได้ เนื่องจากรายวิชานี้มีการสร้างชุดสอบหรือการสอบแล้ว',
+      );
+    }
+  }
 
   async create(dto: CreateCourseOfferingDto, creatorId: string) {
     // Prepend creator ID to instructor list (creator is always first)
@@ -203,12 +290,14 @@ export class CourseOfferingsService {
   //   return serializeBigInt(offerings);
   // }
 
-  async findOneById(offeringId: string) {
+  async findOneById(offeringId: string, user: RequestUser) {
     if (!offeringId || offeringId === 'undefined') {
       throw new BadRequestException('Invalid course_offerings_id');
     }
 
     const id = BigInt(offeringId);
+
+    await this.assertCanViewOffering(id, user);
 
     const offering = await this.prisma.course_offerings.findUnique({
       where: {
@@ -224,44 +313,127 @@ export class CourseOfferingsService {
     return serializeBigInt(offering);
   }
 
-  async addStudentToOffering(offeringId: string, dto: AddStudentDto) {
+  async addStudentToOffering(
+    offeringId: string,
+    dto: AddStudentDto,
+    staffUserId: string,
+  ) {
     const offeringBigInt = BigInt(offeringId);
 
+    // Validate student_code: exactly 8 digits
+    if (!STUDENT_CODE_REGEX.test(dto.student_code)) {
+      throw new BadRequestException('รหัสนักศึกษาต้องเป็นตัวเลข 8 หลักเท่านั้น');
+    }
+
+    // Validate email domain: @mail.wu.ac.th only
+    if (!dto.email.endsWith(EMAIL_DOMAIN) || dto.email.split('@').length !== 2 || !dto.email.split('@')[0]) {
+      throw new BadRequestException('อีเมลต้องเป็น @mail.wu.ac.th เท่านั้น');
+    }
+
+    // Validate Thai-only names (consistent with CSV import validation)
+    if (!THAI_NAME_REGEX.test(dto.first_name) || !THAI_NAME_REGEX.test(dto.last_name)) {
+      throw new BadRequestException('ชื่อและนามสกุลต้องเป็นภาษาไทยเท่านั้น');
+    }
+
     return this.prisma.$transaction(async (tx) => {
-      // 1. Ensure student exists (or create)
-      const student = await tx.students.upsert({
+      await this.assertInstructorForOffering(offeringBigInt, staffUserId, tx);
+
+      // 0. Look up existing student to detect email change (for directory cleanup)
+      const existingStudent = await tx.students.findUnique({
         where: { student_code: dto.student_code },
+        select: { email: true },
+      });
+      const oldEmail = existingStudent?.email;
+
+      // 1. Check for email conflict: different student_code already uses this email
+      if (!oldEmail || oldEmail !== dto.email) {
+        const emailOwner = await tx.students.findUnique({
+          where: { email: dto.email },
+          select: { student_code: true },
+        });
+        if (emailOwner && emailOwner.student_code !== dto.student_code) {
+          throw new ConflictException(
+            `อีเมลนี้ถูกใช้โดยนักศึกษารหัส ${emailOwner.student_code} แล้ว`,
+          );
+        }
+      }
+
+      // 2. Upsert student_directory for the new email
+      await tx.student_directory.upsert({
+        where: { email: dto.email },
         update: {
-          email: dto.email,
+          student_code: dto.student_code,
           first_name: dto.first_name,
           last_name: dto.last_name,
         },
         create: {
           student_code: dto.student_code,
           email: dto.email,
-          password_hash: '12345678', // 🔒 replace later with invite flow
-          facultyCode: dto.facultyCode,
           first_name: dto.first_name,
           last_name: dto.last_name,
         },
       });
 
-      // 2. Enroll student (unique constraint prevents duplicates)
-      await tx.course_enrollments.create({
-        data: {
-          course_offerings_id: offeringBigInt,
-          student_code: student.student_code,
+      // 2b. Clean up old student_directory entry when email changed
+      if (oldEmail && oldEmail !== dto.email) {
+        await tx.student_directory.deleteMany({
+          where: { email: oldEmail },
+        });
+      }
+
+      // 3. Ensure student auth record exists (or update)
+      await tx.students.upsert({
+        where: { student_code: dto.student_code },
+        update: {
+          email: dto.email,
+          title: dto.title ?? DEFAULT_TITLE,
+          facultyCode: dto.facultyCode,
+          curriculumId: dto.curriculumId ?? DEFAULT_CURRICULUM_ID,
+          first_name: dto.first_name,
+          last_name: dto.last_name,
+        },
+        create: {
+          student_code: dto.student_code,
+          email: dto.email,
+          password_hash: await hashPassword(INVITE_PLACEHOLDER_PASSWORD),
+          facultyCode: dto.facultyCode,
+          title: dto.title ?? DEFAULT_TITLE,
+          curriculumId: dto.curriculumId ?? DEFAULT_CURRICULUM_ID,
+          first_name: dto.first_name,
+          last_name: dto.last_name,
         },
       });
 
-      return {
-        success: true,
-      };
+      // 4. Check if already enrolled (idempotent)
+      const existingEnrollment = await tx.course_enrollments.findUnique({
+        where: {
+          course_offerings_id_student_code: {
+            course_offerings_id: offeringBigInt,
+            student_code: dto.student_code,
+          },
+        },
+      });
+
+      if (existingEnrollment) {
+        throw new ConflictException('นักศึกษานี้ลงทะเบียนในรายวิชานี้แล้ว');
+      }
+
+      // 5. Enroll student
+      await tx.course_enrollments.create({
+        data: {
+          course_offerings_id: offeringBigInt,
+          student_code: dto.student_code,
+        },
+      });
+
+      return { success: true };
     });
   }
 
-  async getStudentsByOffering(offeringId: string) {
+  async getStudentsByOffering(offeringId: string, user: RequestUser) {
     const id = BigInt(offeringId);
+
+    await this.assertCanViewOffering(id, user);
 
     const enrollments = await this.prisma.course_enrollments.findMany({
       where: {
@@ -275,6 +447,9 @@ export class CourseOfferingsService {
             first_name: true,
             last_name: true,
             email: true,
+            facultyCode: true,
+            title: true,
+            curriculumId: true,
           },
         },
       },
@@ -288,6 +463,9 @@ export class CourseOfferingsService {
       first_name: e.students.first_name,
       last_name: e.students.last_name,
       email: e.students.email,
+      facultyCode: e.students.facultyCode,
+      title: e.students.title,
+      curriculumId: e.students.curriculumId,
     }));
   }
 
@@ -298,13 +476,22 @@ export class CourseOfferingsService {
   async bulkEnrollStudents(
     offeringId: string,
     dto: BulkEnrollStudentDto,
+    staffUserId: string,
+    actor?: AuditActor,
   ): Promise<BulkEnrollResponse> {
     const offeringBigInt = BigInt(offeringId);
     const results: BulkEnrollRowResult[] = [];
+    const placeholderHash = await hashPassword(INVITE_PLACEHOLDER_PASSWORD);
+
+    await this.assertInstructorForOffering(offeringBigInt, staffUserId);
 
     for (const row of dto.students) {
       try {
-        const result = await this.processStudentRow(offeringBigInt, row);
+        const result = await this.processStudentRow(
+          offeringBigInt,
+          row,
+          placeholderHash,
+        );
         results.push(result);
       } catch (error) {
         results.push({
@@ -317,7 +504,7 @@ export class CourseOfferingsService {
       }
     }
 
-    return {
+    const response = {
       results,
       summary: {
         total: results.length,
@@ -329,6 +516,16 @@ export class CourseOfferingsService {
         failed: results.filter((r) => r.enrollmentStatus === 'failed').length,
       },
     };
+
+    await this.audit.record({
+      actor,
+      action: 'course_offering.bulk_enroll',
+      entityType: 'course_offering',
+      entityId: offeringId,
+      metadata: response.summary,
+    });
+
+    return response;
   }
 
   /**
@@ -337,6 +534,7 @@ export class CourseOfferingsService {
   private async processStudentRow(
     offeringBigInt: bigint,
     row: BulkEnrollStudentRowDto,
+    placeholderHash: string,
   ): Promise<BulkEnrollRowResult> {
     return this.prisma.$transaction(async (tx) => {
       let directoryAction: 'created' | 'updated' | 'unchanged' = 'unchanged';
@@ -381,14 +579,19 @@ export class CourseOfferingsService {
         where: { student_code: row.student_code },
         update: {
           email: row.email,
+          title: row.title ?? DEFAULT_TITLE,
+          facultyCode: row.facultyCode,
+          curriculumId: row.curriculumId ?? DEFAULT_CURRICULUM_ID,
           first_name: row.first_name,
           last_name: row.last_name,
         },
         create: {
           student_code: row.student_code,
           email: row.email,
-          password_hash: '12345678', // Placeholder for invite flow
+          password_hash: placeholderHash,
           facultyCode: row.facultyCode,
+          title: row.title ?? DEFAULT_TITLE,
+          curriculumId: row.curriculumId ?? DEFAULT_CURRICULUM_ID,
           first_name: row.first_name,
           last_name: row.last_name,
         },
@@ -445,6 +648,8 @@ export class CourseOfferingsService {
     const id = BigInt(offeringId);
 
     return this.prisma.$transaction(async (tx) => {
+      await this.assertInstructorForOffering(id, userId, tx);
+
       // Build update data object
       const updateData: any = {};
       if (dto.academic_year !== undefined)
@@ -467,6 +672,21 @@ export class CourseOfferingsService {
           BigInt(userId),
           ...(dto.instructor_ids ?? []).map((instructorId) => BigInt(instructorId)),
         ];
+
+        const currentInstructors = await tx.course_instructors.findMany({
+          where: { course_offerings_id: id },
+          select: { staff_users_id: true },
+        });
+        const nextInstructorIds = new Set(
+          allInstructorIds.map((instructorId) => instructorId.toString()),
+        );
+        const removesInstructor = currentInstructors.some(
+          (instructor) => !nextInstructorIds.has(instructor.staff_users_id.toString()),
+        );
+
+        if (removesInstructor) {
+          await this.assertNoExamsForDelete(id, tx);
+        }
 
         // Delete existing instructors
         await tx.course_instructors.deleteMany({
@@ -501,10 +721,13 @@ export class CourseOfferingsService {
   async checkStudentCodeExists(
     offeringId: string,
     studentCode: string,
+    staffUserId: string,
   ): Promise<boolean> {
     if (!studentCode?.trim() || !offeringId) return false;
 
     const id = BigInt(offeringId);
+
+    await this.assertInstructorForOffering(id, staffUserId);
 
     const existing = await this.prisma.course_enrollments.findUnique({
       where: {
@@ -520,20 +743,22 @@ export class CourseOfferingsService {
   }
 
   /**
-   * Check if an email already exists in a specific course offering
-   * @param offeringId - The course offering ID to check within
-   * @param email - The email to check
-   * @returns true if exists, false otherwise
+   * Check if an email already exists in a specific course offering OR is used
+   * by a different student_code globally (email is unique across all students).
    */
   async checkStudentEmailExists(
     offeringId: string,
     email: string,
+    staffUserId: string,
+    excludeStudentCode?: string,
   ): Promise<boolean> {
     if (!email?.trim() || !offeringId) return false;
 
     const id = BigInt(offeringId);
 
-    // First find all student_codes enrolled in this offering
+    await this.assertInstructorForOffering(id, staffUserId);
+
+    // Check enrollment in this offering (skip if same student_code is being re-added)
     const enrollment = await this.prisma.course_enrollments.findFirst({
       where: {
         course_offerings_id: id,
@@ -544,7 +769,24 @@ export class CourseOfferingsService {
       select: { student_code: true },
     });
 
-    return enrollment !== null;
+    if (enrollment && enrollment.student_code !== excludeStudentCode) {
+      return true;
+    }
+
+    // Also check global students table: email is @unique across all students
+    const globalStudent = await this.prisma.students.findUnique({
+      where: { email: email.trim() },
+      select: { student_code: true },
+    });
+
+    if (!globalStudent) return false;
+
+    // If the email belongs to the same student_code being checked, it's not a duplicate
+    if (excludeStudentCode && globalStudent.student_code === excludeStudentCode) {
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -556,8 +798,12 @@ export class CourseOfferingsService {
   async unenrollStudent(
     offeringId: string,
     studentCode: string,
+    staffUserId: string,
   ): Promise<{ success: boolean }> {
     const id = BigInt(offeringId);
+
+    await this.assertInstructorForOffering(id, staffUserId);
+    await this.assertNoExamsForDelete(id);
 
     await this.prisma.course_enrollments.delete({
       where: {
@@ -571,17 +817,71 @@ export class CourseOfferingsService {
     return { success: true };
   }
 
+  async removeInstructorFromOffering(
+    offeringId: string,
+    targetStaffUserId: string,
+    actorStaffUserId: string,
+  ): Promise<{ success: boolean }> {
+    if (!offeringId || offeringId === 'undefined') {
+      throw new BadRequestException('Invalid course_offerings_id');
+    }
+    if (!targetStaffUserId || targetStaffUserId === 'undefined') {
+      throw new BadRequestException('Invalid staff_users_id');
+    }
+
+    const id = BigInt(offeringId);
+    const targetId = BigInt(targetStaffUserId);
+
+    return this.prisma.$transaction(async (tx) => {
+      await this.assertInstructorForOffering(id, actorStaffUserId, tx);
+      await this.assertNoExamsForDelete(id, tx);
+
+      const instructors = await tx.course_instructors.findMany({
+        where: { course_offerings_id: id },
+        select: { staff_users_id: true },
+        orderBy: { staff_users_id: 'asc' },
+      });
+
+      if (!instructors.some((instructor) => instructor.staff_users_id === targetId)) {
+        throw new BadRequestException(
+          'Instructor is not assigned to this offering.',
+        );
+      }
+
+      if (instructors[0]?.staff_users_id === targetId) {
+        throw new BadRequestException('Primary instructor cannot be removed.');
+      }
+
+      await tx.course_instructors.delete({
+        where: {
+          course_offerings_id_staff_users_id: {
+            course_offerings_id: id,
+            staff_users_id: targetId,
+          },
+        },
+      });
+
+      return { success: true };
+    });
+  }
+
   /**
    * Delete a course offering
    * Business rule: Can only delete if no students are enrolled
    * @param offeringId - The course offering ID to delete
    */
-  async remove(offeringId: string): Promise<{ success: boolean }> {
+  async remove(
+    offeringId: string,
+    staffUserId: string,
+  ): Promise<{ success: boolean }> {
     if (!offeringId || offeringId === 'undefined') {
       throw new BadRequestException('Invalid course_offerings_id');
     }
 
     const id = BigInt(offeringId);
+
+    await this.assertInstructorForOffering(id, staffUserId);
+    await this.assertNoExamsForDelete(id);
 
     // Check if any students are enrolled
     const enrollmentsCount = await this.prisma.course_enrollments.count({

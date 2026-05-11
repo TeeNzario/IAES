@@ -2,8 +2,16 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Prisma } from 'src/generated/prisma/client';
+import {
+  DEFAULT_CURRICULUM_ID,
+  DEFAULT_FACULTY_CODE,
+  DEFAULT_TITLE,
+  INVITE_PLACEHOLDER_PASSWORD,
+} from 'src/lib/academic-defaults';
 import {
   CreatePreviewSessionDto,
   EditPreviewRowDto,
@@ -13,10 +21,59 @@ import {
   ConfirmResponse,
   ConfirmResult,
 } from './dto/preview-import.dto';
+import { hashPassword } from '../../lib/password';
+import { AuditActor, AuditService } from '../audit/audit.service';
+
+const THAI_NAME_REGEX = /^[ก-๙\s]+$/;
+const STUDENT_CODE_REGEX = /^\d{8}$/;
+const EMAIL_DOMAIN = '@mail.wu.ac.th';
 
 @Injectable()
 export class PreviewImportService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
+
+  private async assertInstructorForOffering(
+    offeringId: bigint,
+    staffUserId: string,
+    client: PrismaService | Prisma.TransactionClient = this.prisma,
+  ) {
+    const link = await client.course_instructors.findFirst({
+      where: {
+        course_offerings_id: offeringId,
+        staff_users_id: BigInt(staffUserId),
+      },
+      select: { staff_users_id: true },
+    });
+
+    if (!link) {
+      throw new ForbiddenException('You are not assigned to this offering.');
+    }
+  }
+
+  private async assertSessionBelongsToOffering(
+    sessionId: string,
+    offeringId: bigint,
+  ) {
+    const session = await this.prisma.import_preview_sessions.findUnique({
+      where: { id: sessionId },
+      select: { course_offerings_id: true, expires_at: true },
+    });
+
+    if (!session) {
+      throw new NotFoundException('Preview session not found');
+    }
+
+    if (session.course_offerings_id !== offeringId) {
+      throw new BadRequestException('Session does not belong to this offering');
+    }
+
+    if (new Date() > session.expires_at) {
+      throw new BadRequestException('Preview session has expired');
+    }
+  }
 
   /**
    * Create a preview session from CSV data
@@ -33,6 +90,8 @@ export class PreviewImportService {
 
     // Create session and rows in transaction
     const session = await this.prisma.$transaction(async (tx) => {
+      await this.assertInstructorForOffering(offeringBigInt, createdBy, tx);
+
       const newSession = await tx.import_preview_sessions.create({
         data: {
           course_offerings_id: offeringBigInt,
@@ -49,6 +108,8 @@ export class PreviewImportService {
             const n = Number(row.facultyCode);
             return Number.isInteger(n) ? n : undefined;
           })();
+          const title = String(row.title ?? '').trim();
+          const curriculumId = String(row.curriculumId ?? '').trim();
 
           const { status, note } = await this.validateRow(
             tx,
@@ -56,6 +117,8 @@ export class PreviewImportService {
             row.student_code ?? '',
             row.email ?? '',
             facultyCodeNum,
+            title,
+            curriculumId,
             row.first_name ?? '',
             row.last_name ?? '',
           );
@@ -66,6 +129,8 @@ export class PreviewImportService {
             student_code: row.student_code || '',
             email: row.email || '',
             facultyCode: facultyCodeNum,
+            title,
+            curriculumId,
             first_name: row.first_name || '',
             last_name: row.last_name || '',
             status,
@@ -80,7 +145,7 @@ export class PreviewImportService {
     });
 
     // Fetch the complete session with rows
-    return this.getSessionResponse(session.id);
+    return this.getSessionResponse(session.id, offeringBigInt);
   }
 
   /**
@@ -91,8 +156,11 @@ export class PreviewImportService {
     sessionId: string,
     rowIndex: number,
     dto: EditPreviewRowDto,
+    staffUserId: string,
   ): Promise<PreviewRowResponse> {
     const offeringBigInt = BigInt(offeringId);
+
+    await this.assertInstructorForOffering(offeringBigInt, staffUserId);
 
     // Get existing row
     const row = await this.prisma.import_preview_rows.findUnique({
@@ -121,6 +189,8 @@ export class PreviewImportService {
       student_code: dto.student_code ?? row.student_code,
       email: dto.email ?? row.email,
       facultyCode: dto.facultyCode ?? row.facultyCode,
+      title: dto.title ?? row.title ?? '',
+      curriculumId: dto.curriculumId ?? row.curriculumId ?? '',
       first_name: dto.first_name ?? row.first_name ?? '',
       last_name: dto.last_name ?? row.last_name ?? '',
     };
@@ -132,6 +202,8 @@ export class PreviewImportService {
       updatedData.student_code,
       updatedData.email,
       updatedData.facultyCode ?? undefined,
+      updatedData.title,
+      updatedData.curriculumId,
       updatedData.first_name,
       updatedData.last_name,
     );
@@ -155,7 +227,17 @@ export class PreviewImportService {
   /**
    * Delete a preview row (soft delete)
    */
-  async deletePreviewRow(sessionId: string, rowIndex: number): Promise<void> {
+  async deletePreviewRow(
+    offeringId: string,
+    sessionId: string,
+    rowIndex: number,
+    staffUserId: string,
+  ): Promise<void> {
+    const offeringBigInt = BigInt(offeringId);
+
+    await this.assertInstructorForOffering(offeringBigInt, staffUserId);
+    await this.assertSessionBelongsToOffering(sessionId, offeringBigInt);
+
     await this.prisma.import_preview_rows.update({
       where: {
         session_id_row_index: { session_id: sessionId, row_index: rowIndex },
@@ -167,8 +249,17 @@ export class PreviewImportService {
   /**
    * Get a preview session with all its rows
    */
-  async getPreviewSession(sessionId: string): Promise<PreviewSessionResponse> {
-    return this.getSessionResponse(sessionId);
+  async getPreviewSession(
+    offeringId: string,
+    sessionId: string,
+    staffUserId: string,
+  ): Promise<PreviewSessionResponse> {
+    const offeringBigInt = BigInt(offeringId);
+
+    await this.assertInstructorForOffering(offeringBigInt, staffUserId);
+    await this.assertSessionBelongsToOffering(sessionId, offeringBigInt);
+
+    return this.getSessionResponse(sessionId, offeringBigInt);
   }
 
   /**
@@ -177,8 +268,12 @@ export class PreviewImportService {
   async confirmSession(
     offeringId: string,
     sessionId: string,
+    staffUserId: string,
+    actor?: AuditActor,
   ): Promise<ConfirmResponse> {
     const offeringBigInt = BigInt(offeringId);
+
+    await this.assertInstructorForOffering(offeringBigInt, staffUserId);
 
     const session = await this.prisma.import_preview_sessions.findUnique({
       where: { id: sessionId },
@@ -203,6 +298,7 @@ export class PreviewImportService {
     }
 
     const results: ConfirmResult[] = [];
+    const placeholderHash = await hashPassword(INVITE_PLACEHOLDER_PASSWORD);
 
     for (const row of session.rows) {
       // Skip rows with missing data
@@ -212,6 +308,17 @@ export class PreviewImportService {
           email: row.email,
           status: 'skipped',
           note: 'ข้อมูลที่จำเป็นไม่ครบ',
+        });
+        continue;
+      }
+
+      // Skip rows with duplicate identity conflicts
+      if (row.status === 'DUPLICATE_IDENTITY') {
+        results.push({
+          student_code: row.student_code,
+          email: row.email,
+          status: 'skipped',
+          note: row.note || 'ข้อมูลซ้ำ/ขัดแย้ง',
         });
         continue;
       }
@@ -228,7 +335,24 @@ export class PreviewImportService {
 
       try {
         await this.prisma.$transaction(async (tx) => {
-          // Step 1: Upsert student_directory
+          // Step 0: Check email conflict — reject if email belongs to a different student
+          const emailOwner = await tx.students.findUnique({
+            where: { email: row.email },
+            select: { student_code: true },
+          });
+          if (emailOwner && emailOwner.student_code !== row.student_code) {
+            throw new Error(
+              `อีเมลนี้ถูกใช้โดยนักศึกษารหัส ${emailOwner.student_code} แล้ว`,
+            );
+          }
+
+          // Step 0b: Look up existing student to detect email change (for directory cleanup)
+          const existingStudent = await tx.students.findUnique({
+            where: { student_code: row.student_code },
+            select: { email: true },
+          });
+
+          // Step 1: Upsert student_directory for the new email
           await tx.student_directory.upsert({
             where: { email: row.email },
             update: {
@@ -244,6 +368,16 @@ export class PreviewImportService {
             },
           });
 
+          // Step 1b: Clean up old student_directory entry when email changed
+          if (
+            existingStudent &&
+            existingStudent.email !== row.email
+          ) {
+            await tx.student_directory.deleteMany({
+              where: { email: existingStudent.email },
+            });
+          }
+
           // Step 2: Upsert students table
           await tx.students.upsert({
             where: { student_code: row.student_code },
@@ -252,12 +386,16 @@ export class PreviewImportService {
               ...(row.first_name != null && { first_name: row.first_name }),
               ...(row.last_name != null && { last_name: row.last_name }),
               ...(row.facultyCode != null && { facultyCode: row.facultyCode }),
+              title: row.title || DEFAULT_TITLE,
+              curriculumId: row.curriculumId || DEFAULT_CURRICULUM_ID,
             },
             create: {
               student_code: row.student_code,
               email: row.email,
-              password_hash: '12345678', // Placeholder
-              facultyCode: row.facultyCode ?? 0,
+              password_hash: placeholderHash,
+              facultyCode: row.facultyCode ?? DEFAULT_FACULTY_CODE,
+              title: row.title || DEFAULT_TITLE,
+              curriculumId: row.curriculumId || DEFAULT_CURRICULUM_ID,
               first_name: row.first_name ?? '',
               last_name: row.last_name ?? '',
             },
@@ -303,7 +441,7 @@ export class PreviewImportService {
       where: { id: sessionId },
     });
 
-    return {
+    const response = {
       results,
       summary: {
         total: results.length,
@@ -314,6 +452,19 @@ export class PreviewImportService {
         skipped: results.filter((r) => r.status === 'skipped').length,
       },
     };
+
+    await this.audit.record({
+      actor,
+      action: 'course_offering.import_confirmed',
+      entityType: 'course_offering',
+      entityId: offeringId,
+      metadata: {
+        sessionId,
+        ...response.summary,
+      },
+    });
+
+    return response;
   }
 
   /**
@@ -325,6 +476,8 @@ export class PreviewImportService {
     studentCode: string,
     email: string,
     facultyCode: number | string | undefined,
+    title: string,
+    curriculumId: string,
     firstName: string,
     lastName: string,
   ): Promise<{ status: PreviewRowStatus; note?: string }> {
@@ -333,9 +486,26 @@ export class PreviewImportService {
       return { status: 'MISSING', note: 'ข้อมูลที่จำเป็นไม่ครบ' };
     }
 
-    // 1b. Validate email format
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return { status: 'MISSING', note: 'รูปแบบอีเมลไม่ถูกต้อง' };
+    // 1a. Validate student_code: exactly 8 digits
+    if (!STUDENT_CODE_REGEX.test(studentCode)) {
+      return { status: 'MISSING', note: 'รหัสนักศึกษาต้องเป็นตัวเลข 8 หลักเท่านั้น' };
+    }
+
+    // 1b. Validate email domain: @mail.wu.ac.th only
+    if (!email.endsWith(EMAIL_DOMAIN) || email.split('@').length !== 2 || !email.split('@')[0]) {
+      return { status: 'MISSING', note: 'อีเมลต้องเป็น @mail.wu.ac.th เท่านั้น' };
+    }
+
+    if (!title) {
+      return { status: 'MISSING', note: 'จำเป็นต้องระบุคำนำหน้า' };
+    }
+
+    if (!curriculumId) {
+      return { status: 'MISSING', note: 'จำเป็นต้องระบุหลักสูตร' };
+    }
+
+    if (!THAI_NAME_REGEX.test(firstName) || !THAI_NAME_REGEX.test(lastName)) {
+      return { status: 'MISSING', note: 'ชื่อและนามสกุลต้องเป็นภาษาไทย' };
     }
 
     // 2. Check required facultyCode
@@ -435,6 +605,7 @@ export class PreviewImportService {
 
   private async getSessionResponse(
     sessionId: string,
+    offeringId?: bigint,
   ): Promise<PreviewSessionResponse> {
     const session = await this.prisma.import_preview_sessions.findUnique({
       where: { id: sessionId },
@@ -448,6 +619,10 @@ export class PreviewImportService {
 
     if (!session) {
       throw new NotFoundException('Preview session not found');
+    }
+
+    if (offeringId !== undefined && session.course_offerings_id !== offeringId) {
+      throw new BadRequestException('Session does not belong to this offering');
     }
 
     const rows = session.rows.map(this.formatRow);
@@ -478,6 +653,8 @@ export class PreviewImportService {
       student_code: row.student_code,
       email: row.email,
       facultyCode: row.facultyCode,
+      title: row.title,
+      curriculumId: row.curriculumId,
       first_name: row.first_name,
       last_name: row.last_name,
       status: row.status as PreviewRowStatus,

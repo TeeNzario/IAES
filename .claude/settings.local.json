@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node 'c:\\\\Users\\\\Asus\\\\Documents\\\\IAES Project\\\\IAES\\\\client\\\\node_modules\\\\typescript\\\\bin\\\\tsc' --noEmit -p 'c:\\\\Users\\\\Asus\\\\Documents\\\\IAES Project\\\\IAES\\\\client\\\\tsconfig.json')"
+      "Bash(node 'c:\\\\Users\\\\Asus\\\\Documents\\\\IAES Project\\\\IAES\\\\client\\\\node_modules\\\\typescript\\\\bin\\\\tsc' --noEmit -p 'c:\\\\Users\\\\Asus\\\\Documents\\\\IAES Project\\\\IAES\\\\client\\\\tsconfig.json')",
+      "Bash(node -e ' *)"
     ]
   }
 }

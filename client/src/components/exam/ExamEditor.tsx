@@ -2,7 +2,14 @@
 
 import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, ChevronLeft, Plus, Trash2, Upload } from "lucide-react";
+import {
+  AlertCircle,
+  ChevronLeft,
+  ClipboardList,
+  Plus,
+  Trash2,
+  Upload,
+} from "lucide-react";
 import ExamQuestionPickerModal from "@/components/exam/ExamQuestionPickerModal";
 import {
   difficultyLabel,
@@ -294,25 +301,37 @@ export default function ExamEditor({
 
   return (
     <>
-      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-8 lg:px-10 lg:py-8">
         {/* Top bar */}
-        <div className="mb-4 flex items-center justify-between gap-2">
-          <button
-            type="button"
-            onClick={() => router.push(backHref ?? `/course/${offeringId}`)}
-            className="flex items-center gap-1 rounded-md border border-[#B7A3E3] bg-white px-4 py-1.5 text-sm font-light text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer"
-          >
-            <ChevronLeft size={14} /> ย้อนกลับ
-          </button>
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => router.push(backHref ?? `/course/${offeringId}`)}
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#514667] transition-colors hover:bg-white cursor-pointer"
+              aria-label="ย้อนกลับ"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <div>
+              <h1 className="flex items-center gap-2 text-lg font-semibold text-[#2F2A3A] sm:text-xl">
+                <ClipboardList size={22} className="text-[#7C5BD9]" />
+                {mode === "edit" ? "แก้ไขชุดข้อสอบ" : "สร้างชุดข้อสอบ"}
+              </h1>
+              <p className="mt-1 text-sm font-normal text-[#7A7287]">
+                กำหนดรายละเอียดชุดข้อสอบและเลือกคำถามสำหรับรายวิชานี้
+              </p>
+            </div>
+          </div>
 
           <div className="flex items-center gap-2">
             {mode === "edit" && onDelete && (
               <button
                 type="button"
                 onClick={() => setConfirmDelete(true)}
-                className="flex items-center gap-1 rounded-md border border-rose-400 bg-white px-4 py-1.5 text-sm font-light text-rose-500 hover:bg-rose-50 cursor-pointer"
+                className="flex items-center gap-2 rounded-xl border border-rose-300 bg-white px-4 py-2.5 text-sm font-semibold text-rose-500 transition-colors hover:bg-rose-50 cursor-pointer"
               >
-                <Trash2 size={14} /> ลบชุดข้อสอบ
+                <Trash2 size={16} /> ลบชุดข้อสอบ
               </button>
             )}
             <button
@@ -321,7 +340,7 @@ export default function ExamEditor({
               disabled={!canSave}
               aria-disabled={!canSave}
               title={!canSave && validationError ? validationError : undefined}
-              className={`rounded-md px-5 py-1.5 text-sm text-white ${
+              className={`rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors ${
                 canSave
                   ? "bg-[#B7A3E3] hover:bg-[#A48FD6] cursor-pointer"
                   : "bg-[#B7A3E3] opacity-50 cursor-not-allowed"
@@ -332,140 +351,187 @@ export default function ExamEditor({
           </div>
         </div>
 
-        {/* Heading card with title + description */}
-        <div className="relative">
-          <div className="rounded-2xl bg-[#B7A3E3] px-7 py-7 text-white shadow-sm">
-            <input
-              type="text"
-              value={config.title}
-              onChange={(e) =>
-                setConfig({ ...config, title: e.target.value })
-              }
-              placeholder="สร้างชุดข้อสอบ"
-              className="w-full bg-transparent text-2xl font-light placeholder-white/70 outline-none"
-            />
-            <input
-              type="text"
-              value={config.description}
-              onChange={(e) =>
-                setConfig({ ...config, description: e.target.value })
-              }
-              placeholder="คำอธิบายแหล่งข้อสอบ"
-              className="mt-1 w-full bg-transparent text-sm font-light placeholder-white/70 outline-none"
-            />
-          </div>
-
-          {/* Side rail */}
-          <div className="absolute -right-14 top-2 hidden flex-col gap-2 lg:flex">
-            <button
-              type="button"
-              onClick={() => setPickerOpen(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-md bg-white text-[#B7A3E3] shadow-sm hover:bg-[#F4EFFF] cursor-pointer"
-              aria-label="เพิ่มคำถาม"
-            >
-              <Plus size={16} />
-            </button>
-            <button
-              type="button"
-              disabled
-              title="อัปโหลด (เร็วๆ นี้)"
-              className="flex h-10 w-10 items-center justify-center rounded-md bg-white text-[#B7A3E3] shadow-sm opacity-60"
-            >
-              <Upload size={16} />
-            </button>
-          </div>
-        </div>
-
         {error && (
-          <p className="mt-3 rounded-md bg-rose-100 px-3 py-2 text-sm text-rose-700">
+          <p className="mb-4 flex items-center gap-2 rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 ring-1 ring-rose-200">
+            <AlertCircle size={14} />
             {error}
           </p>
         )}
 
+        {/* Basic info */}
+        <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6">
+          <div className="mb-5">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-[#2F2A3A]">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#B7A3E3] text-xs font-semibold text-white">
+                1
+              </span>
+              ข้อมูลชุดข้อสอบ
+            </h2>
+            <p className="mt-1 text-sm font-normal text-[#7A7287]">
+              ชื่อและคำอธิบายนี้จะแสดงในหน้าคลังชุดข้อสอบ
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_1fr]">
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium text-[#514667]">
+                ชื่อชุดข้อสอบ
+              </span>
+              <input
+                type="text"
+                value={config.title}
+                onChange={(e) =>
+                  setConfig({ ...config, title: e.target.value })
+                }
+                placeholder="สร้างชุดข้อสอบ"
+                className="w-full rounded-xl bg-white px-4 py-3 text-sm font-normal text-[#2F2A3A] placeholder:text-[#B7AFC6] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium text-[#514667]">
+                คำอธิบาย
+              </span>
+              <input
+                type="text"
+                value={config.description}
+                onChange={(e) =>
+                  setConfig({ ...config, description: e.target.value })
+                }
+                placeholder="เช่น REST API, Database, Security"
+                className="w-full rounded-xl bg-white px-4 py-3 text-sm font-normal text-[#2F2A3A] placeholder:text-[#B7AFC6] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
+              />
+            </label>
+          </div>
+        </section>
+
         {/* Config — schedule (hidden in set-creation flow) */}
         {!hideSchedule && (
-          <div className="mt-5 grid grid-cols-1 gap-4 rounded-2xl bg-white p-5 shadow-sm md:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-xs font-light text-[#575757]">
-                เริ่มสอบ
-              </label>
-              <input
-                type="datetime-local"
-                value={config.start_time}
-                onChange={(e) =>
-                  setConfig({ ...config, start_time: e.target.value })
-                }
-                className={`w-full rounded-md bg-[#F4EFFF] px-3 py-1.5 text-sm font-light text-[#575757] outline-none focus:ring-2 ${
-                  dateErrors.start
-                    ? "ring-2 ring-rose-300 focus:ring-rose-400"
-                    : "focus:ring-[#B7A3E3]"
-                }`}
-              />
-              {dateErrors.start && (
-                <p className="mt-1 flex items-center gap-1 text-[11px] text-rose-500">
-                  <AlertCircle size={12} />
-                  {dateErrors.start}
-                </p>
-              )}
+          <section className="mt-5 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6">
+            <div className="mb-5">
+              <h2 className="flex items-center gap-2 text-base font-semibold text-[#2F2A3A]">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#B7A3E3] text-xs font-semibold text-white">
+                  2
+                </span>
+                ตั้งเวลาเปิด-ปิดสอบ
+              </h2>
+              <p className="mt-1 text-sm font-normal text-[#7A7287]">
+                กำหนดช่วงเวลาที่นักศึกษาสามารถเข้าทำข้อสอบได้
+              </p>
             </div>
-            <div>
-              <label className="mb-1 block text-xs font-light text-[#575757]">
-                สิ้นสุดสอบ
-              </label>
-              <input
-                type="datetime-local"
-                value={config.end_time}
-                onChange={(e) =>
-                  setConfig({ ...config, end_time: e.target.value })
-                }
-                className={`w-full rounded-md bg-[#F4EFFF] px-3 py-1.5 text-sm font-light text-[#575757] outline-none focus:ring-2 ${
-                  dateErrors.end
-                    ? "ring-2 ring-rose-300 focus:ring-rose-400"
-                    : "focus:ring-[#B7A3E3]"
-                }`}
-              />
-              {dateErrors.end && (
-                <p className="mt-1 flex items-center gap-1 text-[11px] text-rose-500">
-                  <AlertCircle size={12} />
-                  {dateErrors.end}
-                </p>
-              )}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="rounded-2xl bg-[#FAF8FF] p-5 ring-1 ring-[#EFE8FB]">
+                <label className="block">
+                  <span className="mb-1.5 block text-sm font-medium text-[#514667]">
+                    เริ่มสอบ
+                  </span>
+                  <input
+                    type="datetime-local"
+                    value={config.start_time}
+                    onChange={(e) =>
+                      setConfig({ ...config, start_time: e.target.value })
+                    }
+                    className={`w-full rounded-xl bg-white px-4 py-3 text-sm font-normal text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 ${
+                      dateErrors.start
+                        ? "ring-2 ring-rose-300 focus:ring-rose-400"
+                        : "focus:ring-[#B7A3E3]"
+                    }`}
+                  />
+                  {dateErrors.start && (
+                    <p className="mt-2 flex items-center gap-1 text-xs font-medium text-rose-500">
+                      <AlertCircle size={12} />
+                      {dateErrors.start}
+                    </p>
+                  )}
+                </label>
+              </div>
+              <div className="rounded-2xl bg-[#FAF8FF] p-5 ring-1 ring-[#EFE8FB]">
+                <label className="block">
+                  <span className="mb-1.5 block text-sm font-medium text-[#514667]">
+                    สิ้นสุดสอบ
+                  </span>
+                  <input
+                    type="datetime-local"
+                    value={config.end_time}
+                    onChange={(e) =>
+                      setConfig({ ...config, end_time: e.target.value })
+                    }
+                    className={`w-full rounded-xl bg-white px-4 py-3 text-sm font-normal text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 ${
+                      dateErrors.end
+                        ? "ring-2 ring-rose-300 focus:ring-rose-400"
+                        : "focus:ring-[#B7A3E3]"
+                    }`}
+                  />
+                  {dateErrors.end && (
+                    <p className="mt-2 flex items-center gap-1 text-xs font-medium text-rose-500">
+                      <AlertCircle size={12} />
+                      {dateErrors.end}
+                    </p>
+                  )}
+                </label>
+              </div>
             </div>
-          </div>
+          </section>
         )}
 
         {/* Stats panel — overview of currently selected questions */}
         <ExamStatsPanel stats={stats} />
 
         {/* Selected questions preview */}
-        <div className="mt-5 space-y-4">
+        <section className="mt-5 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="flex items-center gap-2 text-base font-semibold text-[#2F2A3A]">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#B7A3E3] text-xs font-semibold text-white">
+                  {hideSchedule ? 2 : 3}
+                </span>
+                คำถามในชุดข้อสอบ
+                <span className="ml-1 rounded-full bg-[#F4EFFF] px-2.5 py-1 text-xs font-semibold text-[#7C5BD9]">
+                  {selected.length}
+                </span>
+              </h2>
+              <p className="mt-1 text-sm font-normal text-[#7A7287]">
+                จัดลำดับคำถามตามลำดับที่เลือกไว้ในชุดข้อสอบ
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setPickerOpen(true)}
+                className="flex items-center gap-2 rounded-xl bg-[#B7A3E3] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#A48FD6] cursor-pointer"
+              >
+                <Plus size={16} />
+                เพิ่มคำถาม
+              </button>
+              <button
+                type="button"
+                disabled
+                title="อัปโหลด (เร็วๆ นี้)"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#D9CCF2] bg-white text-[#7C5BD9] opacity-60"
+                aria-label="อัปโหลด"
+              >
+                <Upload size={16} />
+              </button>
+            </div>
+          </div>
+
           {selected.length === 0 ? (
-            <div className="rounded-2xl bg-white p-10 text-center text-sm font-light text-gray-400 shadow-sm">
-              ยังไม่ได้เลือกคำถาม — กดปุ่ม + ทางขวาเพื่อเลือก
+            <div className="rounded-2xl bg-[#FAF8FF] p-10 text-center text-sm font-medium text-[#7A7287] ring-1 ring-[#EFE8FB]">
+              ยังไม่ได้เลือกคำถาม
             </div>
           ) : (
-            selected.map((q, i) => (
-              <QuestionPreviewCard
-                key={q.question_id}
-                index={i}
-                question={q}
-                onRemove={() => removeQuestion(q.question_id)}
-              />
-            ))
+            <div className="space-y-4">
+              {selected.map((q, i) => (
+                <QuestionPreviewCard
+                  key={q.question_id}
+                  index={i}
+                  question={q}
+                  onRemove={() => removeQuestion(q.question_id)}
+                />
+              ))}
+            </div>
           )}
-        </div>
+        </section>
 
-        {/* Big "+" bottom button */}
-        {selected.length > 0 && (
-          <button
-            type="button"
-            onClick={() => setPickerOpen(true)}
-            className="mt-5 flex w-full items-center justify-center rounded-2xl bg-[#B7A3E3] py-6 text-white shadow-sm hover:bg-[#A48FD6] cursor-pointer"
-            aria-label="เพิ่มคำถาม"
-          >
-            <Plus size={28} strokeWidth={1.5} />
-          </button>
-        )}
       </main>
 
       {pickerOpen && (
@@ -478,20 +544,20 @@ export default function ExamEditor({
       )}
 
       {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="mb-2 text-base font-medium text-[#575757]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-[#E7DDF8]">
+            <h3 className="mb-2 text-lg font-semibold text-[#2F2A3A]">
               ยืนยันการลบ
             </h3>
-            <p className="mb-5 text-sm font-light text-[#575757]">
+            <p className="mb-5 text-sm font-normal text-[#7A7287]">
               คุณแน่ใจหรือไม่ว่าต้องการลบชุดข้อสอบนี้?
             </p>
-            <div className="flex justify-end gap-2">
+            <div className="flex gap-3">
               <button
                 type="button"
                 disabled={deleting}
                 onClick={() => setConfirmDelete(false)}
-                className="rounded-md border border-[#B7A3E3] px-5 py-1.5 text-sm text-[#B7A3E3] hover:bg-[#F4EFFF] cursor-pointer disabled:opacity-50"
+                className="flex-1 rounded-xl border-2 border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-50 cursor-pointer disabled:opacity-50"
               >
                 ยกเลิก
               </button>
@@ -499,7 +565,7 @@ export default function ExamEditor({
                 type="button"
                 disabled={deleting}
                 onClick={handleDeleteConfirmed}
-                className="rounded-md bg-rose-500 px-5 py-1.5 text-sm text-white hover:bg-rose-600 cursor-pointer disabled:opacity-50"
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-red-600 cursor-pointer disabled:opacity-50"
               >
                 {deleting ? "กำลังลบ..." : "ยืนยันลบ"}
               </button>
@@ -522,15 +588,15 @@ function QuestionPreviewCard({
 }) {
   const diff = difficultyLabel(question.difficulty_param);
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-sm">
-      <div className="mb-3 flex items-start justify-between">
-        <h3 className="text-sm font-medium text-[#575757]">
+    <div className="rounded-2xl bg-[#FAF8FF] p-5 ring-1 ring-[#EFE8FB]">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <h3 className="text-sm font-semibold leading-6 text-[#2F2A3A]">
           {index + 1}. {question.question_text}
         </h3>
         <button
           type="button"
           onClick={onRemove}
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#B7A3E3] text-white hover:bg-[#A48FD6] cursor-pointer"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#B7A3E3] text-white transition-colors hover:bg-[#A48FD6] cursor-pointer"
           aria-label="ลบ"
         >
           <Trash2 size={14} />
@@ -541,7 +607,7 @@ function QuestionPreviewCard({
         {question.choices?.map((c, i) => (
           <li
             key={c.choice_id ?? i}
-            className="flex items-center gap-2 text-sm font-light text-[#575757]"
+            className="flex items-center gap-2 text-sm font-normal text-[#514667]"
           >
             <input
               type="radio"
@@ -557,7 +623,7 @@ function QuestionPreviewCard({
         ))}
       </ul>
 
-      <div className="mb-2 grid grid-cols-3 gap-3 text-xs font-light text-[#575757]">
+      <div className="mb-3 grid grid-cols-1 gap-3 text-xs font-normal text-[#514667] sm:grid-cols-3">
         <ReadOnly label="ความยาก" value={question.difficulty_param} />
         <ReadOnly label="อำนาจการจำแนก" value={question.discrimination_param} />
         <ReadOnly label="โอกาสการเดา" value={question.guessing_param} />
@@ -591,8 +657,8 @@ function ReadOnly({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-[11px] text-gray-400">{label}</label>
-      <div className="rounded-md bg-[#F4EFFF] px-3 py-1.5 text-sm text-[#575757]">
+      <label className="mb-1 block text-xs font-medium text-[#7A7287]">{label}</label>
+      <div className="rounded-xl bg-white px-3 py-2 text-sm font-semibold text-[#2F2A3A] ring-1 ring-[#E7DDF8]">
         {value ?? "-"}
       </div>
     </div>
@@ -619,12 +685,12 @@ function ExamStatsPanel({ stats }: { stats: ExamStats }) {
   const maxCat = categories.reduce((m, c) => Math.max(m, c.count), 0);
 
   return (
-    <section className="mt-5 rounded-2xl bg-white p-5 shadow-sm">
+    <section className="mt-5 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-medium text-[#575757]">
+        <h3 className="text-base font-semibold text-[#2F2A3A]">
           สถิติชุดข้อสอบ
         </h3>
-        <span className="rounded-full bg-[#F4EFFF] px-3 py-0.5 text-xs font-medium text-[#B7A3E3]">
+        <span className="rounded-full bg-[#F4EFFF] px-3 py-1 text-xs font-semibold text-[#7C5BD9]">
           ทั้งหมด {total} ข้อ
         </span>
       </div>
@@ -659,7 +725,7 @@ function ExamStatsPanel({ stats }: { stats: ExamStats }) {
 
       {/* Difficulty distribution bar */}
       <div className="mt-5">
-        <div className="mb-1.5 flex items-center justify-between text-[11px] text-gray-500">
+        <div className="mb-2 flex items-center justify-between text-xs font-medium text-[#7A7287]">
           <span>การกระจายระดับความยาก</span>
           {untagged > 0 && (
             <span className="text-amber-600">
@@ -694,17 +760,17 @@ function ExamStatsPanel({ stats }: { stats: ExamStats }) {
 
       {/* Category breakdown */}
       <div className="mt-5">
-        <div className="mb-2 text-[11px] text-gray-500">
+        <div className="mb-2 text-xs font-medium text-[#7A7287]">
           จำนวนข้อตามหมวดหมู่ความรู้
         </div>
         {categories.length === 0 ? (
-          <p className="text-xs text-gray-400">— ไม่มีหมวดหมู่ที่กำหนด —</p>
+          <p className="text-xs font-medium text-[#B7AFC6]">— ไม่มีหมวดหมู่ที่กำหนด —</p>
         ) : (
           <ul className="space-y-2">
             {categories.map((c) => (
               <li
                 key={c.name}
-                className="grid grid-cols-[140px_1fr_40px] items-center gap-3 text-xs text-[#575757]"
+                className="grid grid-cols-[minmax(120px,180px)_1fr_40px] items-center gap-3 text-xs font-medium text-[#514667]"
               >
                 <span className="truncate" title={c.name}>
                   {c.name}
@@ -717,7 +783,7 @@ function ExamStatsPanel({ stats }: { stats: ExamStats }) {
                     }}
                   />
                 </div>
-                <span className="text-right font-medium">{c.count}</span>
+                <span className="text-right font-semibold text-[#2F2A3A]">{c.count}</span>
               </li>
             ))}
           </ul>
@@ -745,11 +811,11 @@ function StatCard({
     purple: "bg-[#F4EFFF] text-[#7C5BD9]",
   } as const;
   return (
-    <div className={`rounded-xl px-4 py-3 ${tones[tone]}`}>
-      <div className="text-[11px] font-light opacity-80">{label}</div>
+    <div className={`rounded-xl px-4 py-3 ring-1 ring-white/60 ${tones[tone]}`}>
+      <div className="text-xs font-medium opacity-80">{label}</div>
       <div className="mt-1 text-xl font-semibold leading-none">{value}</div>
       {sub && (
-        <div className="mt-1 text-[11px] font-light opacity-70">{sub}</div>
+        <div className="mt-1 text-xs font-medium opacity-70">{sub}</div>
       )}
     </div>
   );

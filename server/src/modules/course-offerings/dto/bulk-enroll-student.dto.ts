@@ -31,6 +31,14 @@ export class BulkEnrollStudentRowDto {
   @IsBoolean()
   @IsOptional()
   allowOverwrite?: boolean;
+
+  @IsString()
+  @IsOptional()
+  title?: string;
+
+  @IsString()
+  @IsOptional()
+  curriculumId?: string;
 }
 
 export class BulkEnrollStudentDto {

@@ -47,4 +47,13 @@ export class CreateStaffDto {
   @IsEnum(StaffRole)
   @IsNotEmpty()
   role: StaffRole;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(50)
+  title?: string;
+
+  @IsString()
+  @IsOptional()
+  curriculumId?: string;
 }
