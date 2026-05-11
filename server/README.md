@@ -168,6 +168,11 @@ http://localhost:3002
 - Sensitive actions are recorded through `AuditService` into the `audit_logs` table.
 - Student list/detail service methods use explicit selects that exclude `password_hash`.
 
+## Student API Notes
+
+- `GET /students` is ADMIN-only and returns public student profile fields such as `student_code`, `email`, `facultyCode`, `title`, `curriculumId`, `first_name`, `last_name`, and `is_active`.
+- The admin user management page derives student cohort filters on the frontend from the first two digits of `student_code`; no extra backend query parameter is required for that filter.
+
 ## Useful Commands
 
 Generate Prisma client:
