@@ -195,7 +195,7 @@ export class CourseExamsService {
         course_offerings_id: BigInt(offeringId),
         is_active: true,
       },
-      orderBy: { start_time: 'desc' },
+      orderBy: { start_time: 'asc' },
       select: {
         course_exams_id: true,
         title: true,

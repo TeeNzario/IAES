@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Navbar from "@/components/layout/NavBar";
 import { useParams, useRouter } from "next/navigation";
 import { CourseOffering } from "@/types/course";
@@ -108,7 +108,19 @@ export default function CoursePage() {
     };
   }, []);
 
-  const upcomingExams = exams
+  const sortedExams = useMemo(() => {
+    const priority: Record<string, number> = { ONGOING: 0, UPCOMING: 1, ENDED: 2 };
+    return [...exams].sort((a, b) => {
+      const p = priority[a.status] - priority[b.status];
+      if (p !== 0) return p;
+      if (a.status === "ENDED") {
+        return new Date(b.start_time).getTime() - new Date(a.start_time).getTime();
+      }
+      return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
+    });
+  }, [exams]);
+
+  const upcomingExams = sortedExams
     .filter((exam) => exam.status === "UPCOMING")
     .slice(0, 3);
   const thaiCourseName = course ? getThaiCourseName(course.courses) : "";
@@ -334,7 +346,7 @@ export default function CoursePage() {
                   </p>
                 </div>
               ) : (
-                exams.map((exam) => (
+                sortedExams.map((exam) => (
                   <article
                     key={exam.course_exams_id}
                     className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] transition hover:shadow-md"
