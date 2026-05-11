@@ -6,10 +6,12 @@ IAES (Intelligent Adaptive Examination System) is a web application for adaptive
 
 - Role-aware course home for instructors and students
 - Manage staff users, students, courses, course offerings, and enrollments
+- Admin user management supports role tabs plus faculty, curriculum, and student cohort filtering; student cohorts are derived from the first two digits of student codes.
 - Import students through CSV preview and confirm workflow
 - Manage course members, instructors, question banks, knowledge categories, exam sets, and attempts
 - JWT authentication with httpOnly cookies
 - Role-based access for ADMIN, INSTRUCTOR, and STUDENT users
+- Shared navigation includes a profile menu with an initials-based avatar fallback for accounts without profile images.
 - Audit logging for sensitive user and enrollment changes
 - Results summary page is present as a "กำลังพัฒนา" placeholder
 
@@ -110,7 +112,7 @@ Use the unified login page at `http://localhost:3000/login`. The form accepts ei
 ```text
 /login                         Unified login page
 /                              Role-aware course home
-/admin/manage-users            Admin user management
+/admin/manage-users            Admin user management with role, faculty, curriculum, and student cohort filters
 /course                        Instructor course catalog and course setup
 /course/[offeringId]           Course dashboard
 /course/[offeringId]/members   Course member and CSV enrollment management

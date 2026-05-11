@@ -141,9 +141,10 @@ Key backend patterns:
 - `client/src/lib/auth.ts` stores only non-sensitive user profile data in `localStorage`; it does not store JWTs.
 - Feature code lives under `client/src/features/`.
 - Shared UI lives under `client/src/components/`.
+- The shared authenticated shell lives in `client/src/components/layout/NavBar.tsx`; it owns the sidebar, top navigation, and profile dropdown with initials-based avatar fallback for accounts without profile images.
 - Shared frontend types live under `client/src/types/`.
 - `/` is the role-aware course home for instructors and students.
-- `/admin/manage-users` is ADMIN-only.
+- `/admin/manage-users` is ADMIN-only and manages students, instructors, and admins. The list uses role tabs and client-side filters for faculty, curriculum, and student cohort; cohort options are derived from the first two digits of loaded student codes.
 - `/course` is the instructor course catalog/management page.
 - `/course/[offeringId]` and `/course/[offeringId]/members` are course dashboard/member pages.
 - `/exam-bank` and nested exam-bank pages are instructor workflows for questions and exam sets.

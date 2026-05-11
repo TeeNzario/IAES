@@ -97,7 +97,7 @@ npm run lint
 src/app/page.tsx                              Role-aware course home
 src/app/login/page.tsx                        Unified login page
 src/app/staff/login/page.tsx                  Redirect to /login
-src/app/admin/manage-users/page.tsx           Admin staff/student management
+src/app/admin/manage-users/page.tsx           Admin staff/student management with cohort filtering
 src/app/course/page.tsx                       Instructor course catalog
 src/app/course/[offeringId]/page.tsx          Course dashboard
 src/app/course/[offeringId]/members/page.tsx  Course members and CSV import
@@ -127,6 +127,9 @@ public/IAES_logo.png     Login/logo asset
 ## UI Notes
 
 - The app uses a purple IAES theme centered around `#B7A3E3`, `#7C5BD9`, and `#F4EFFF`.
+- `src/components/layout/NavBar.tsx` owns the shared sidebar, top navigation, and profile dropdown used across authenticated pages.
+- The top-right profile menu uses an initials-based avatar fallback, so it works even when accounts do not have profile images.
+- Admin user management uses role tabs and client-side filters for faculty, curriculum, and student cohort. Student cohort options are generated from the first two digits of loaded student codes.
 - Course cards are shown in three columns on wide screens and collapse responsively.
 - Course dashboards fetch exam management data only for staff users with exam-management access.
 - The sidebar keeps "ผลสรุปการสอบ" as the final menu item.
