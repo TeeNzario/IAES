@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Inbox } from "lucide-react";
 import Navbar from "@/components/layout/NavBar";
 import { apiFetch } from "@/lib/api";
 import QuestionEditorCard, {
@@ -134,39 +134,39 @@ export default function CreateFlatQuestionsPage() {
   return (
     <Navbar>
       <div className="min-h-screen w-full bg-[#F4EFFF]">
-        <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="mb-4 flex items-center justify-between">
+        <main className="mx-auto max-w-6xl px-4 py-6 sm:px-8 lg:px-10 lg:py-8">
+          <div className="mb-6 flex items-center gap-3">
             <button
               type="button"
               onClick={() => router.push(`/exam-bank/${offeringId}/questions`)}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-[#575757] hover:bg-white cursor-pointer"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#514667] transition-colors hover:bg-white cursor-pointer"
               aria-label="กลับ"
             >
               <ChevronLeft size={18} />
             </button>
-          </div>
-
-          <div className="relative">
-            <div className="rounded-2xl bg-[#B7A3E3] px-7 py-7 text-white shadow-sm">
-              <h1 className="text-2xl font-light">สร้างคำถาม</h1>
-              <p className="mt-1 text-sm font-light opacity-90">
+            <div>
+              <h1 className="flex items-center gap-2 text-lg font-semibold text-[#2F2A3A] sm:text-xl">
+                <Inbox size={22} className="text-[#7C5BD9]" />
+                สร้างคำถาม
+              </h1>
+              <p className="mt-1 text-sm font-normal text-[#7A7287]">
                 เพิ่มคำถามใหม่เข้าคลังคำถามของรายวิชานี้
               </p>
             </div>
           </div>
 
           {error && (
-            <p role="alert" className="mt-3 rounded-md bg-rose-100 px-3 py-2 text-sm text-rose-700">
+            <p role="alert" className="mb-4 rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 ring-1 ring-rose-200">
               {error}
             </p>
           )}
           {saved && (
-            <p role="status" className="mt-3 rounded-md bg-emerald-100 px-3 py-2 text-sm text-emerald-700">
+            <p role="status" className="mb-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 ring-1 ring-emerald-200">
               บันทึกสำเร็จ
             </p>
           )}
 
-          <div className="mt-5 space-y-5">
+          <div className="space-y-5">
             <QuestionEditorCard
               key={draft.draft_id}
               index={0}
