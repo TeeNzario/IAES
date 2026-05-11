@@ -37,11 +37,13 @@ export class CoursesController {
     @Req() req: AuthenticatedRequest,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('search') search?: string,
   ) {
     return this.coursesService.findAllByCreator(
       req.user.sub,
       page ? parseInt(page, 10) : 1,
       limit ? parseInt(limit, 10) : 10,
+      search,
     );
   }
 

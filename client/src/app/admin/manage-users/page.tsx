@@ -1102,14 +1102,14 @@ export default function ManageUserPage() {
                 </colgroup>
                 <thead className="sticky top-0 z-10">
                   <tr className="bg-[#B7A3E3] text-white">
-                    <th className="px-5 py-4 text-left text-sm font-semibold">
+                    <th className="px-5 py-4 text-left text-base font-semibold">
                       {showSequenceColumn ? "ลำดับ" : "รหัสนักศึกษา"}
                     </th>
-                    <th className="px-5 py-4 text-left text-sm font-semibold">ชื่อ-นามสกุล</th>
-                    <th className="px-5 py-4 text-left text-sm font-semibold">สำนักวิชา</th>
-                    <th className="px-5 py-4 text-left text-sm font-semibold">หลักสูตร</th>
-                    <th className="px-5 py-4 text-left text-sm font-semibold">สถานะ</th>
-                    <th className="px-3 py-4 text-center text-sm font-semibold">แก้ไข</th>
+                    <th className="px-5 py-4 text-left text-base font-semibold">ชื่อ-นามสกุล</th>
+                    <th className="px-5 py-4 text-left text-base font-semibold">สำนักวิชา</th>
+                    <th className="px-5 py-4 text-left text-base font-semibold">หลักสูตร</th>
+                    <th className="px-5 py-4 text-left text-base font-semibold">สถานะ</th>
+                    <th className="px-3 py-4 text-center text-base font-semibold">แก้ไข</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#EFE8FB]">

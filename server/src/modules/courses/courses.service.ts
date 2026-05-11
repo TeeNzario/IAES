@@ -2,6 +2,7 @@ import { Injectable, ConflictException } from '@nestjs/common';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Prisma } from 'src/generated/prisma/client';
 
 function serializeBigInt(data: any) {
   return JSON.parse(
@@ -73,14 +74,51 @@ export class CoursesService {
     return serializeBigInt(result);
   }
 
-  async findAllByCreator(instructorId: string, page = 1, limit = 10) {
+  async findAllByCreator(
+    instructorId: string,
+    page = 1,
+    limit = 10,
+    search?: string,
+  ) {
     const skip = (page - 1) * limit;
+    const trimmedSearch = search?.trim();
+    const where: Prisma.coursesWhereInput = {
+      created_by_instructors_id: BigInt(instructorId),
+      ...(trimmedSearch
+        ? {
+            OR: [
+              {
+                course_code: {
+                  contains: trimmedSearch,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                course_name: {
+                  contains: trimmedSearch,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                course_name_th: {
+                  contains: trimmedSearch,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                course_name_en: {
+                  contains: trimmedSearch,
+                  mode: 'insensitive',
+                },
+              },
+            ],
+          }
+        : {}),
+    };
 
     const [courses, total] = await Promise.all([
       this.prisma.courses.findMany({
-        where: {
-          created_by_instructors_id: BigInt(instructorId),
-        },
+        where,
         include: {
           course_knowledge: {
             include: {
@@ -100,9 +138,7 @@ export class CoursesService {
         take: limit,
       }),
       this.prisma.courses.count({
-        where: {
-          created_by_instructors_id: BigInt(instructorId),
-        },
+        where,
       }),
     ]);
 

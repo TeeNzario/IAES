@@ -70,6 +70,7 @@ export class QuestionsController {
     @Query('year') year?: string,
     @Query('collection_id') collectionId?: string,
     @Query('category_ids') categoryIds?: string,
+    @Query('difficulty') difficulty?: string,
   ) {
     return this.service.listAllInCourse(offeringId, staffActor(req), {
       page: page ? parseInt(page, 10) : undefined,
@@ -80,6 +81,7 @@ export class QuestionsController {
       category_ids: categoryIds
         ? categoryIds.split(',').map((s) => s.trim()).filter(Boolean)
         : undefined,
+      difficulty,
     });
   }
 
