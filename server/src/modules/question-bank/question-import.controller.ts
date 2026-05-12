@@ -5,15 +5,13 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Req,
 } from '@nestjs/common';
 import { Auth, Roles } from 'src/auth/guards';
-import type {
-  AuthenticatedRequest,
-  StaffJwtPayload,
-} from 'src/auth/types/jwt-payload.type';
+import type { AuthenticatedRequest } from 'src/auth/types/jwt-payload.type';
 import { QuestionImportService } from './question-import.service';
 import {
   CreateQuestionImportSessionDto,
@@ -24,7 +22,7 @@ function staffActor(req: AuthenticatedRequest) {
   if (req.user.type !== 'staff') {
     throw new BadRequestException('Staff access required');
   }
-  const u = req.user as StaffJwtPayload;
+  const u = req.user;
   return { staffUserId: u.sub, role: u.role };
 }
 
@@ -51,7 +49,11 @@ export class QuestionImportController {
     @Param('offeringId') offeringId: string,
     @Param('sessionId') sessionId: string,
   ) {
-    return this.service.getPreviewSession(offeringId, sessionId, staffActor(req));
+    return this.service.getPreviewSession(
+      offeringId,
+      sessionId,
+      staffActor(req),
+    );
   }
 
   /** Edit a preview row */
@@ -60,13 +62,13 @@ export class QuestionImportController {
     @Req() req: AuthenticatedRequest,
     @Param('offeringId') offeringId: string,
     @Param('sessionId') sessionId: string,
-    @Param('rowIndex') rowIndex: string,
+    @Param('rowIndex', ParseIntPipe) rowIndex: number,
     @Body() dto: EditQuestionImportRowDto,
   ) {
     return this.service.editPreviewRow(
       offeringId,
       sessionId,
-      parseInt(rowIndex, 10),
+      rowIndex,
       staffActor(req),
       dto,
     );
@@ -78,12 +80,12 @@ export class QuestionImportController {
     @Req() req: AuthenticatedRequest,
     @Param('offeringId') offeringId: string,
     @Param('sessionId') sessionId: string,
-    @Param('rowIndex') rowIndex: string,
+    @Param('rowIndex', ParseIntPipe) rowIndex: number,
   ) {
     return this.service.deletePreviewRow(
       offeringId,
       sessionId,
-      parseInt(rowIndex, 10),
+      rowIndex,
       staffActor(req),
     );
   }

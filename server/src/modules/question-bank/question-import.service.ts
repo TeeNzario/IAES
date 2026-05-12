@@ -18,10 +18,13 @@ import {
 } from './dto/question-import.dto';
 import { FIELD_LENGTHS } from 'src/lib/field-lengths';
 
-const DIFFICULTY_DEFAULTS: Record<string, { discrimination: number; guessing: number }> = {
-  'ง่าย': { discrimination: 0, guessing: 0.25 },
-  'กลาง': { discrimination: 0, guessing: 0.25 },
-  'ยาก': { discrimination: 0, guessing: 0.25 },
+const DIFFICULTY_DEFAULTS: Record<
+  string,
+  { discrimination: number; guessing: number }
+> = {
+  ง่าย: { discrimination: 0, guessing: 0.25 },
+  กลาง: { discrimination: 0, guessing: 0.25 },
+  ยาก: { discrimination: 0, guessing: 0.25 },
 };
 
 interface StaffActor {
@@ -31,10 +34,10 @@ interface StaffActor {
 
 function serializeBigInt<T>(data: T): T {
   return JSON.parse(
-    JSON.stringify(data, (_, value) =>
+    JSON.stringify(data, (_, value: unknown) =>
       typeof value === 'bigint' ? value.toString() : value,
     ),
-  );
+  ) as T;
 }
 
 @Injectable()
@@ -115,7 +118,10 @@ export class QuestionImportService {
     const qText = row.question_text?.trim() ?? '';
     if (!qText) return { status: 'ERROR', note: 'ต้องระบุข้อความคำถาม' };
     if (qText.length > FIELD_LENGTHS.questionText)
-      return { status: 'ERROR', note: `ข้อความคำถามต้องไม่เกิน ${FIELD_LENGTHS.questionText} ตัวอักษร` };
+      return {
+        status: 'ERROR',
+        note: `ข้อความคำถามต้องไม่เกิน ${FIELD_LENGTHS.questionText} ตัวอักษร`,
+      };
 
     // choices
     const choices = [
@@ -128,33 +134,57 @@ export class QuestionImportService {
       if (!choices[i])
         return { status: 'ERROR', note: `ต้องระบุตัวเลือกที่ ${i + 1}` };
       if (choices[i].length > FIELD_LENGTHS.choiceText)
-        return { status: 'ERROR', note: `ตัวเลือกที่ ${i + 1} ต้องไม่เกิน ${FIELD_LENGTHS.choiceText} ตัวอักษร` };
+        return {
+          status: 'ERROR',
+          note: `ตัวเลือกที่ ${i + 1} ต้องไม่เกิน ${FIELD_LENGTHS.choiceText} ตัวอักษร`,
+        };
     }
 
     // correct_choice
-    const correct = typeof row.correct === 'string' ? parseInt(row.correct, 10) : row.correct;
-    if (typeof correct !== 'number' || !Number.isFinite(correct) || correct < 1 || correct > 4) {
+    const correct =
+      typeof row.correct === 'string' ? parseInt(row.correct, 10) : row.correct;
+    if (
+      typeof correct !== 'number' ||
+      !Number.isFinite(correct) ||
+      correct < 1 ||
+      correct > 4
+    ) {
       return { status: 'ERROR', note: 'ต้องระบุคำตอบที่ถูกเป็นหมายเลข 1-4' };
     }
 
     // difficulty
     const diffLabel = row.difficulty?.trim() ?? '';
-    if (!validDifficultyLabels().includes(diffLabel as any)) {
-      return { status: 'ERROR', note: `ระดับความยากต้องเป็น ${validDifficultyLabels().join(', ')}` };
+    if (!validDifficultyLabels().includes(diffLabel)) {
+      return {
+        status: 'ERROR',
+        note: `ระดับความยากต้องเป็น ${validDifficultyLabels().join(', ')}`,
+      };
     }
 
     // knowledge_categories
     const rawCat = row.knowledge_categories?.trim() ?? '';
     if (!rawCat) {
-      return { status: 'ERROR', note: 'ต้องระบุหมวดหมู่ความรู้อย่างน้อย 1 รายการ' };
+      return {
+        status: 'ERROR',
+        note: 'ต้องระบุหมวดหมู่ความรู้อย่างน้อย 1 รายการ',
+      };
     }
-    const catNames = rawCat.split(',').map((s) => s.trim()).filter(Boolean);
+    const catNames = rawCat
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
     if (catNames.length === 0) {
-      return { status: 'ERROR', note: 'ต้องระบุหมวดหมู่ความรู้อย่างน้อย 1 รายการ' };
+      return {
+        status: 'ERROR',
+        note: 'ต้องระบุหมวดหมู่ความรู้อย่างน้อย 1 รายการ',
+      };
     }
     const unknown = catNames.filter((n) => !validCategoryNames.has(n));
     if (unknown.length > 0) {
-      return { status: 'ERROR', note: `ไม่พบหมวดหมู่ความรู้: ${unknown.join(', ')}` };
+      return {
+        status: 'ERROR',
+        note: `ไม่พบหมวดหมู่ความรู้: ${unknown.join(', ')}`,
+      };
     }
 
     return { status: 'NEW' };
@@ -207,7 +237,10 @@ export class QuestionImportService {
     for (let i = 0; i < dto.rows.length; i++) {
       const r = dto.rows[i];
       const { status, note } = this.validateRow(r, validCategoryNames);
-      const correct = typeof r.correct === 'string' ? parseInt(r.correct, 10) : (r.correct as number);
+      const correct =
+        typeof r.correct === 'string'
+          ? parseInt(r.correct, 10)
+          : (r.correct as number);
       rowsData.push({
         session_id: session.id,
         row_index: i,
@@ -216,7 +249,8 @@ export class QuestionImportService {
         choice_2: (r.choice_2 ?? '').trim(),
         choice_3: (r.choice_3 ?? '').trim(),
         choice_4: (r.choice_4 ?? '').trim(),
-        correct_choice: typeof correct === 'number' && Number.isFinite(correct) ? correct : 1,
+        correct_choice:
+          typeof correct === 'number' && Number.isFinite(correct) ? correct : 1,
         difficulty: r.difficulty?.trim() ?? '',
         knowledge_categories: r.knowledge_categories?.trim() ?? '',
         status,
@@ -242,7 +276,9 @@ export class QuestionImportService {
     return this.getSessionResponse(sessionId);
   }
 
-  private async getSessionResponse(sessionId: string): Promise<QuestionImportSessionResponse> {
+  private async getSessionResponse(
+    sessionId: string,
+  ): Promise<QuestionImportSessionResponse> {
     const session = await this.prisma.question_import_sessions.findUnique({
       where: { id: sessionId },
       select: { id: true, expires_at: true },
@@ -302,7 +338,9 @@ export class QuestionImportService {
     await this.assertSessionBelongsToOffering(sessionId, BigInt(offeringId));
 
     const existing = await this.prisma.question_import_rows.findUnique({
-      where: { session_id_row_index: { session_id: sessionId, row_index: rowIndex } },
+      where: {
+        session_id_row_index: { session_id: sessionId, row_index: rowIndex },
+      },
     });
 
     if (!existing || existing.is_deleted) {
@@ -325,25 +363,32 @@ export class QuestionImportService {
       choice_4: dto.choice_4 ?? existing.choice_4,
       correct: dto.correct ?? existing.correct_choice,
       difficulty: dto.difficulty ?? existing.difficulty,
-      knowledge_categories: dto.knowledge_categories ?? existing.knowledge_categories,
+      knowledge_categories:
+        dto.knowledge_categories ?? existing.knowledge_categories,
     };
 
     const { status, note } = this.validateRow(merged, validCategoryNames);
-    const correct = typeof merged.correct === 'string' ? parseInt(merged.correct, 10) : merged.correct;
+    const correct =
+      typeof merged.correct === 'string'
+        ? parseInt(merged.correct, 10)
+        : merged.correct;
 
     const updated = await this.prisma.question_import_rows.update({
-      where: { session_id_row_index: { session_id: sessionId, row_index: rowIndex } },
+      where: {
+        session_id_row_index: { session_id: sessionId, row_index: rowIndex },
+      },
       data: {
         question_text: merged.question_text,
         choice_1: merged.choice_1,
         choice_2: merged.choice_2,
         choice_3: merged.choice_3,
         choice_4: merged.choice_4,
-        correct_choice: typeof correct === 'number' && Number.isFinite(correct) ? correct : 1,
+        correct_choice:
+          typeof correct === 'number' && Number.isFinite(correct) ? correct : 1,
         difficulty: merged.difficulty,
         knowledge_categories: merged.knowledge_categories,
         status,
-        note,
+        note: note ?? null,
         updated_at: new Date(),
       },
     });
@@ -378,7 +423,9 @@ export class QuestionImportService {
     await this.assertSessionBelongsToOffering(sessionId, BigInt(offeringId));
 
     const existing = await this.prisma.question_import_rows.findUnique({
-      where: { session_id_row_index: { session_id: sessionId, row_index: rowIndex } },
+      where: {
+        session_id_row_index: { session_id: sessionId, row_index: rowIndex },
+      },
     });
 
     if (!existing || existing.is_deleted) {
@@ -386,7 +433,9 @@ export class QuestionImportService {
     }
 
     await this.prisma.question_import_rows.update({
-      where: { session_id_row_index: { session_id: sessionId, row_index: rowIndex } },
+      where: {
+        session_id_row_index: { session_id: sessionId, row_index: rowIndex },
+      },
       data: { is_deleted: true, updated_at: new Date() },
     });
   }
@@ -412,14 +461,28 @@ export class QuestionImportService {
       where: { course_offerings_id: BigInt(offeringId) },
       select: { courses_id: true },
     });
+
+    if (!offering) {
+      throw new NotFoundException('Course offering not found');
+    }
+
     const cats = await this.prisma.knowledge_categories.findMany({
-      where: { course_knowledge: { some: { courses_id: offering!.courses_id } } },
+      where: {
+        course_knowledge: { some: { courses_id: offering.courses_id } },
+      },
       select: { knowledge_category_id: true, name: true },
     });
-    const nameToId = new Map(cats.map((c) => [c.name, c.knowledge_category_id]));
+    const nameToId = new Map(
+      cats.map((c) => [c.name, c.knowledge_category_id]),
+    );
+    const validCategoryNames = new Set(cats.map((c) => c.name));
 
     // Resolve default collection
-    const collectionId = await this.resolveDefaultCollectionId(offeringId, actor);
+    const collectionId = await this.resolveDefaultCollectionId(
+      offeringId,
+      actor,
+      offering.courses_id,
+    );
 
     const results: QuestionImportResult[] = [];
 
@@ -434,16 +497,47 @@ export class QuestionImportService {
         continue;
       }
 
+      const validation = this.validateRow(
+        {
+          question_text: row.question_text,
+          choice_1: row.choice_1,
+          choice_2: row.choice_2,
+          choice_3: row.choice_3,
+          choice_4: row.choice_4,
+          correct: row.correct_choice,
+          difficulty: row.difficulty,
+          knowledge_categories: row.knowledge_categories,
+        },
+        validCategoryNames,
+      );
+
+      if (validation.status === 'ERROR') {
+        results.push({
+          row_index: row.row_index,
+          question_text: row.question_text,
+          status: 'skipped',
+          note: validation.note ?? 'ข้อมูลไม่ถูกต้อง',
+        });
+        continue;
+      }
+
       try {
-        const catIds = row.knowledge_categories
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean)
-          .map((name) => nameToId.get(name))
-          .filter((id): id is bigint => id != null);
+        const catIds = Array.from(
+          new Set(
+            row.knowledge_categories
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean)
+              .map((name) => nameToId.get(name))
+              .filter((id): id is bigint => id != null),
+          ),
+        );
 
         const difficultyParam = mapDifficultyLabel(row.difficulty);
-        const defaults = DIFFICULTY_DEFAULTS[row.difficulty] ?? { discrimination: 0, guessing: 0.25 };
+        const defaults = DIFFICULTY_DEFAULTS[row.difficulty] ?? {
+          discrimination: 0,
+          guessing: 0.25,
+        };
 
         await this.prisma.question_bank.create({
           data: {
@@ -456,10 +550,26 @@ export class QuestionImportService {
             created_by_staff_id: BigInt(actor.staffUserId),
             choices: {
               create: [
-                { choice_text: row.choice_1, is_correct: row.correct_choice === 1, display_order: 0 },
-                { choice_text: row.choice_2, is_correct: row.correct_choice === 2, display_order: 1 },
-                { choice_text: row.choice_3, is_correct: row.correct_choice === 3, display_order: 2 },
-                { choice_text: row.choice_4, is_correct: row.correct_choice === 4, display_order: 3 },
+                {
+                  choice_text: row.choice_1,
+                  is_correct: row.correct_choice === 1,
+                  display_order: 0,
+                },
+                {
+                  choice_text: row.choice_2,
+                  is_correct: row.correct_choice === 2,
+                  display_order: 1,
+                },
+                {
+                  choice_text: row.choice_3,
+                  is_correct: row.correct_choice === 3,
+                  display_order: 2,
+                },
+                {
+                  choice_text: row.choice_4,
+                  is_correct: row.correct_choice === 4,
+                  display_order: 3,
+                },
               ],
             },
             ...(catIds.length > 0
@@ -467,7 +577,7 @@ export class QuestionImportService {
                   question_knowledge: {
                     create: catIds.map((kid) => ({
                       knowledge_category_id: kid,
-                      courses_id: offering!.courses_id,
+                      courses_id: offering.courses_id,
                     })),
                   },
                 }
@@ -513,20 +623,24 @@ export class QuestionImportService {
 
   /**
    * Resolve (creating if necessary) a default question collection.
-   * Mirrors the logic in the create page's resolveDefaultCollectionId.
+   * Uses find-then-create with a unique-constraint catch to safely
+   * handle concurrent imports for the same course.
    */
   private async resolveDefaultCollectionId(
     offeringId: string,
     actor: StaffActor,
+    coursesId: bigint,
   ): Promise<string> {
     const DEFAULT_TITLE = 'คำถามทั่วไป';
+    const currentYear = new Date().getFullYear() + 543;
 
     // Find or create a year for the current academic year
-    const currentYear = new Date().getFullYear() + 543;
     let year = await this.prisma.question_bank_years.findFirst({
       where: {
         courses: {
-          course_offerings: { some: { course_offerings_id: BigInt(offeringId) } },
+          course_offerings: {
+            some: { course_offerings_id: BigInt(offeringId) },
+          },
         },
         academic_year: currentYear,
       },
@@ -534,18 +648,35 @@ export class QuestionImportService {
     });
 
     if (!year) {
-      const offering = await this.prisma.course_offerings.findUnique({
-        where: { course_offerings_id: BigInt(offeringId) },
-        select: { courses_id: true },
-      });
-      year = await this.prisma.question_bank_years.create({
-        data: {
-          courses_id: offering!.courses_id,
-          academic_year: currentYear,
-          created_by_staff_id: BigInt(actor.staffUserId),
-        },
-        select: { question_bank_year_id: true },
-      });
+      try {
+        year = await this.prisma.question_bank_years.create({
+          data: {
+            courses_id: coursesId,
+            academic_year: currentYear,
+            created_by_staff_id: BigInt(actor.staffUserId),
+          },
+          select: { question_bank_year_id: true },
+        });
+      } catch {
+        // Race: another request created the year between our findFirst and create
+        year = await this.prisma.question_bank_years.findFirst({
+          where: {
+            courses: {
+              course_offerings: {
+                some: { course_offerings_id: BigInt(offeringId) },
+              },
+            },
+            academic_year: currentYear,
+          },
+          select: { question_bank_year_id: true },
+        });
+
+        if (!year) {
+          throw new BadRequestException(
+            'ไม่สามารถสร้างหรือค้นหาชุดข้อสอบได้ กรุณาลองใหม่',
+          );
+        }
+      }
     }
 
     // Find or create default collection
@@ -558,14 +689,31 @@ export class QuestionImportService {
     });
 
     if (!collection) {
-      collection = await this.prisma.question_collections.create({
-        data: {
-          question_bank_year_id: year.question_bank_year_id,
-          title: DEFAULT_TITLE,
-          created_by_staff_id: BigInt(actor.staffUserId),
-        },
-        select: { question_collection_id: true },
-      });
+      try {
+        collection = await this.prisma.question_collections.create({
+          data: {
+            question_bank_year_id: year.question_bank_year_id,
+            title: DEFAULT_TITLE,
+            created_by_staff_id: BigInt(actor.staffUserId),
+          },
+          select: { question_collection_id: true },
+        });
+      } catch {
+        // Race: another request created the collection
+        collection = await this.prisma.question_collections.findFirst({
+          where: {
+            question_bank_year_id: year.question_bank_year_id,
+            title: DEFAULT_TITLE,
+          },
+          select: { question_collection_id: true },
+        });
+
+        if (!collection) {
+          throw new BadRequestException(
+            'ไม่สามารถสร้างหรือค้นหาชุดข้อสอบได้ กรุณาลองใหม่',
+          );
+        }
+      }
     }
 
     return collection.question_collection_id.toString();

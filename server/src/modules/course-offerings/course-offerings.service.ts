@@ -11,6 +11,7 @@ import {
   DEFAULT_TITLE,
   INVITE_PLACEHOLDER_PASSWORD,
 } from 'src/lib/academic-defaults';
+import { FACULTY_MAP } from 'src/lib/faculty-map';
 import { CreateCourseOfferingDto } from './dto/create-course-offerings.dto';
 import { UpdateCourseOfferingDto } from './dto/update-course-offering.dto';
 import { AddStudentDto } from './dto/add-student.dto';
@@ -28,6 +29,8 @@ import { AuditActor, AuditService } from '../audit/audit.service';
 const THAI_NAME_REGEX = /^[ก-๙\s]+$/;
 const STUDENT_CODE_REGEX = /^\d{8}$/;
 const EMAIL_DOMAIN = '@mail.wu.ac.th';
+const CANONICAL_CURRICULUM_ID_REGEX = /^CUR(00[1-9]|0[1-6][0-9])$/;
+const VALID_FACULTY_CODES = new Set(Object.keys(FACULTY_MAP).map(Number));
 
 const courseOfferingSelect = {
   course_offerings_id: true,
@@ -322,17 +325,39 @@ export class CourseOfferingsService {
 
     // Validate student_code: exactly 8 digits
     if (!STUDENT_CODE_REGEX.test(dto.student_code)) {
-      throw new BadRequestException('รหัสนักศึกษาต้องเป็นตัวเลข 8 หลักเท่านั้น');
+      throw new BadRequestException(
+        'รหัสนักศึกษาต้องเป็นตัวเลข 8 หลักเท่านั้น',
+      );
     }
 
     // Validate email domain: @mail.wu.ac.th only
-    if (!dto.email.endsWith(EMAIL_DOMAIN) || dto.email.split('@').length !== 2 || !dto.email.split('@')[0]) {
+    if (
+      !dto.email.endsWith(EMAIL_DOMAIN) ||
+      dto.email.split('@').length !== 2 ||
+      !dto.email.split('@')[0]
+    ) {
       throw new BadRequestException('อีเมลต้องเป็น @mail.wu.ac.th เท่านั้น');
     }
 
     // Validate Thai-only names (consistent with CSV import validation)
-    if (!THAI_NAME_REGEX.test(dto.first_name) || !THAI_NAME_REGEX.test(dto.last_name)) {
+    if (
+      !THAI_NAME_REGEX.test(dto.first_name) ||
+      !THAI_NAME_REGEX.test(dto.last_name)
+    ) {
       throw new BadRequestException('ชื่อและนามสกุลต้องเป็นภาษาไทยเท่านั้น');
+    }
+
+    if (!VALID_FACULTY_CODES.has(dto.facultyCode)) {
+      throw new BadRequestException(
+        'รหัสสำนักวิชาไม่ถูกต้อง กรุณาใช้รหัส 1-18',
+      );
+    }
+
+    const curriculumId = dto.curriculumId ?? DEFAULT_CURRICULUM_ID;
+    if (!CANONICAL_CURRICULUM_ID_REGEX.test(curriculumId)) {
+      throw new BadRequestException(
+        'รหัสหลักสูตรไม่ถูกต้อง กรุณาใช้รหัส CUR001-CUR069',
+      );
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -388,7 +413,7 @@ export class CourseOfferingsService {
           email: dto.email,
           title: dto.title ?? DEFAULT_TITLE,
           facultyCode: dto.facultyCode,
-          curriculumId: dto.curriculumId ?? DEFAULT_CURRICULUM_ID,
+          curriculumId,
           first_name: dto.first_name,
           last_name: dto.last_name,
         },
@@ -398,7 +423,7 @@ export class CourseOfferingsService {
           password_hash: await hashPassword(INVITE_PLACEHOLDER_PASSWORD),
           facultyCode: dto.facultyCode,
           title: dto.title ?? DEFAULT_TITLE,
-          curriculumId: dto.curriculumId ?? DEFAULT_CURRICULUM_ID,
+          curriculumId,
           first_name: dto.first_name,
           last_name: dto.last_name,
         },
@@ -538,6 +563,15 @@ export class CourseOfferingsService {
   ): Promise<BulkEnrollRowResult> {
     return this.prisma.$transaction(async (tx) => {
       let directoryAction: 'created' | 'updated' | 'unchanged' = 'unchanged';
+      const curriculumId = row.curriculumId ?? DEFAULT_CURRICULUM_ID;
+
+      if (!VALID_FACULTY_CODES.has(row.facultyCode)) {
+        throw new Error('รหัสสำนักวิชาไม่ถูกต้อง กรุณาใช้รหัส 1-18');
+      }
+
+      if (!CANONICAL_CURRICULUM_ID_REGEX.test(curriculumId)) {
+        throw new Error('รหัสหลักสูตรไม่ถูกต้อง กรุณาใช้รหัส CUR001-CUR069');
+      }
 
       // Step A: Upsert student_directory (global identity truth)
       const existingDirectory = await tx.student_directory.findFirst({
@@ -581,7 +615,7 @@ export class CourseOfferingsService {
           email: row.email,
           title: row.title ?? DEFAULT_TITLE,
           facultyCode: row.facultyCode,
-          curriculumId: row.curriculumId ?? DEFAULT_CURRICULUM_ID,
+          curriculumId,
           first_name: row.first_name,
           last_name: row.last_name,
         },
@@ -591,7 +625,7 @@ export class CourseOfferingsService {
           password_hash: placeholderHash,
           facultyCode: row.facultyCode,
           title: row.title ?? DEFAULT_TITLE,
-          curriculumId: row.curriculumId ?? DEFAULT_CURRICULUM_ID,
+          curriculumId,
           first_name: row.first_name,
           last_name: row.last_name,
         },
@@ -670,7 +704,9 @@ export class CourseOfferingsService {
         // Prepend the current user (owner) to instructor list
         const allInstructorIds = [
           BigInt(userId),
-          ...(dto.instructor_ids ?? []).map((instructorId) => BigInt(instructorId)),
+          ...(dto.instructor_ids ?? []).map((instructorId) =>
+            BigInt(instructorId),
+          ),
         ];
 
         const currentInstructors = await tx.course_instructors.findMany({
@@ -681,7 +717,8 @@ export class CourseOfferingsService {
           allInstructorIds.map((instructorId) => instructorId.toString()),
         );
         const removesInstructor = currentInstructors.some(
-          (instructor) => !nextInstructorIds.has(instructor.staff_users_id.toString()),
+          (instructor) =>
+            !nextInstructorIds.has(instructor.staff_users_id.toString()),
         );
 
         if (removesInstructor) {
@@ -782,7 +819,10 @@ export class CourseOfferingsService {
     if (!globalStudent) return false;
 
     // If the email belongs to the same student_code being checked, it's not a duplicate
-    if (excludeStudentCode && globalStudent.student_code === excludeStudentCode) {
+    if (
+      excludeStudentCode &&
+      globalStudent.student_code === excludeStudentCode
+    ) {
       return false;
     }
 
@@ -842,7 +882,11 @@ export class CourseOfferingsService {
         orderBy: { staff_users_id: 'asc' },
       });
 
-      if (!instructors.some((instructor) => instructor.staff_users_id === targetId)) {
+      if (
+        !instructors.some(
+          (instructor) => instructor.staff_users_id === targetId,
+        )
+      ) {
         throw new BadRequestException(
           'Instructor is not assigned to this offering.',
         );

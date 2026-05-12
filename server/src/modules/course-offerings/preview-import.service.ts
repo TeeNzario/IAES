@@ -7,11 +7,11 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from 'src/generated/prisma/client';
 import {
-  DEFAULT_CURRICULUM_ID,
   DEFAULT_FACULTY_CODE,
   DEFAULT_TITLE,
   INVITE_PLACEHOLDER_PASSWORD,
 } from 'src/lib/academic-defaults';
+import { FACULTY_MAP } from 'src/lib/faculty-map';
 import {
   CreatePreviewSessionDto,
   EditPreviewRowDto,
@@ -28,6 +28,8 @@ import { FIELD_LENGTHS, maxLengthMessage } from 'src/lib/field-lengths';
 const THAI_NAME_REGEX = /^[ก-๙\s]+$/;
 const STUDENT_CODE_REGEX = /^\d{8}$/;
 const EMAIL_DOMAIN = '@mail.wu.ac.th';
+const CANONICAL_CURRICULUM_ID_REGEX = /^CUR(00[1-9]|0[1-6][0-9])$/;
+const VALID_FACULTY_CODES = new Set(Object.keys(FACULTY_MAP).map(Number));
 
 function previewStorageValue(value: string, max: number) {
   return value.length > max ? value.slice(0, max) : value;
@@ -109,7 +111,8 @@ export class PreviewImportService {
       const rowsData = await Promise.all(
         dto.rows.map(async (row, index) => {
           const facultyCodeNum = (() => {
-            if (row.facultyCode == null || row.facultyCode === '') return undefined;
+            if (row.facultyCode == null || row.facultyCode === '')
+              return undefined;
             const n = Number(row.facultyCode);
             return Number.isInteger(n) ? n : undefined;
           })();
@@ -233,7 +236,7 @@ export class PreviewImportService {
           FIELD_LENGTHS.curriculumId,
         ),
         status,
-        note,
+        note: note ?? null,
         updated_at: new Date(),
       },
     });
@@ -350,6 +353,27 @@ export class PreviewImportService {
         continue;
       }
 
+      if (!VALID_FACULTY_CODES.has(Number(row.facultyCode))) {
+        results.push({
+          student_code: row.student_code,
+          email: row.email,
+          status: 'skipped',
+          note: 'รหัสสำนักวิชาไม่ถูกต้อง กรุณาแก้ไขแถวก่อนยืนยันการนำเข้า',
+        });
+        continue;
+      }
+
+      const curriculumId = row.curriculumId ?? '';
+      if (!CANONICAL_CURRICULUM_ID_REGEX.test(curriculumId)) {
+        results.push({
+          student_code: row.student_code,
+          email: row.email,
+          status: 'skipped',
+          note: 'รหัสหลักสูตรไม่ถูกต้อง กรุณาแก้ไขแถวก่อนยืนยันการนำเข้า',
+        });
+        continue;
+      }
+
       try {
         await this.prisma.$transaction(async (tx) => {
           // Step 0: Check email conflict — reject if email belongs to a different student
@@ -386,10 +410,7 @@ export class PreviewImportService {
           });
 
           // Step 1b: Clean up old student_directory entry when email changed
-          if (
-            existingStudent &&
-            existingStudent.email !== row.email
-          ) {
+          if (existingStudent && existingStudent.email !== row.email) {
             await tx.student_directory.deleteMany({
               where: { email: existingStudent.email },
             });
@@ -404,7 +425,7 @@ export class PreviewImportService {
               ...(row.last_name != null && { last_name: row.last_name }),
               ...(row.facultyCode != null && { facultyCode: row.facultyCode }),
               title: row.title || DEFAULT_TITLE,
-              curriculumId: row.curriculumId || DEFAULT_CURRICULUM_ID,
+              curriculumId,
             },
             create: {
               student_code: row.student_code,
@@ -412,7 +433,7 @@ export class PreviewImportService {
               password_hash: placeholderHash,
               facultyCode: row.facultyCode ?? DEFAULT_FACULTY_CODE,
               title: row.title || DEFAULT_TITLE,
-              curriculumId: row.curriculumId || DEFAULT_CURRICULUM_ID,
+              curriculumId,
               first_name: row.first_name ?? '',
               last_name: row.last_name ?? '',
             },
@@ -448,7 +469,10 @@ export class PreviewImportService {
           student_code: row.student_code,
           email: row.email,
           status: 'failed',
-          note: error instanceof Error ? error.message : 'ข้อผิดพลาดที่ไม่ทราบสาเหตุ',
+          note:
+            error instanceof Error
+              ? error.message
+              : 'ข้อผิดพลาดที่ไม่ทราบสาเหตุ',
         });
       }
     }
@@ -505,7 +529,10 @@ export class PreviewImportService {
 
     // 1a. Validate student_code: exactly 8 digits
     if (!STUDENT_CODE_REGEX.test(studentCode)) {
-      return { status: 'MISSING', note: 'รหัสนักศึกษาต้องเป็นตัวเลข 8 หลักเท่านั้น' };
+      return {
+        status: 'MISSING',
+        note: 'รหัสนักศึกษาต้องเป็นตัวเลข 8 หลักเท่านั้น',
+      };
     }
 
     // 1b. Validate email domain: @mail.wu.ac.th only
@@ -516,8 +543,15 @@ export class PreviewImportService {
       };
     }
 
-    if (!email.endsWith(EMAIL_DOMAIN) || email.split('@').length !== 2 || !email.split('@')[0]) {
-      return { status: 'MISSING', note: 'อีเมลต้องเป็น @mail.wu.ac.th เท่านั้น' };
+    if (
+      !email.endsWith(EMAIL_DOMAIN) ||
+      email.split('@').length !== 2 ||
+      !email.split('@')[0]
+    ) {
+      return {
+        status: 'MISSING',
+        note: 'อีเมลต้องเป็น @mail.wu.ac.th เท่านั้น',
+      };
     }
 
     if (!title) {
@@ -542,6 +576,13 @@ export class PreviewImportService {
       };
     }
 
+    if (!CANONICAL_CURRICULUM_ID_REGEX.test(curriculumId)) {
+      return {
+        status: 'MISSING',
+        note: 'รหัสหลักสูตรไม่ถูกต้อง กรุณาใช้รหัส CUR001-CUR069',
+      };
+    }
+
     if (firstName.length > FIELD_LENGTHS.firstName) {
       return {
         status: 'MISSING',
@@ -561,10 +602,21 @@ export class PreviewImportService {
     }
 
     // 2. Check required facultyCode
-    if (facultyCode == null || isNaN(Number(facultyCode)) || !Number.isInteger(Number(facultyCode))) {
+    if (
+      facultyCode == null ||
+      isNaN(Number(facultyCode)) ||
+      !Number.isInteger(Number(facultyCode))
+    ) {
       return {
         status: 'MISSING',
         note: 'จำเป็นต้องระบุรหัสสำนักวิชาเป็นจำนวนเต็มที่ถูกต้อง',
+      };
+    }
+
+    if (!VALID_FACULTY_CODES.has(Number(facultyCode))) {
+      return {
+        status: 'MISSING',
+        note: 'รหัสสำนักวิชาไม่ถูกต้อง กรุณาใช้รหัส 1-18',
       };
     }
 
@@ -673,11 +725,14 @@ export class PreviewImportService {
       throw new NotFoundException('Preview session not found');
     }
 
-    if (offeringId !== undefined && session.course_offerings_id !== offeringId) {
+    if (
+      offeringId !== undefined &&
+      session.course_offerings_id !== offeringId
+    ) {
       throw new BadRequestException('Session does not belong to this offering');
     }
 
-    const rows = session.rows.map(this.formatRow);
+    const rows = session.rows.map((row) => this.formatRow(row));
 
     return {
       sessionId: session.id,
@@ -710,7 +765,7 @@ export class PreviewImportService {
       first_name: row.first_name,
       last_name: row.last_name,
       status: row.status as PreviewRowStatus,
-      note: row.note,
+      note: row.note ?? undefined,
       is_deleted: row.is_deleted,
     };
   }

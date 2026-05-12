@@ -92,9 +92,9 @@ export interface PreviewRowResponse {
   row_index: number;
   student_code: string;
   email: string;
-  facultyCode: number;
+  facultyCode: number | null;
   title: string;
-  curriculumId?: string;
+  curriculumId?: string | null;
   first_name: string;
   last_name: string;
   status: PreviewRowStatus;

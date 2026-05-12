@@ -22,8 +22,8 @@ import { DEFAULT_FACULTY_CODE, FACULTY_MAP, getFacultyName } from "@/lib/faculty
 import {
   CURRICULUMS,
   DEFAULT_CURRICULUM_ID,
+  getCurriculumById,
   getCurriculumName,
-  resolveCurriculumId,
 } from "@/config/curriculums";
 import { DEFAULT_TITLE, THAI_TITLES } from "@/config/titles";
 import { FIELD_LIMITS, maxLengthMessage } from "@/config/fieldLimits";
@@ -126,7 +126,7 @@ const CSV_TEMPLATE_ROWS = [
 ];
 
 const ISSUE_EXPORT_COLUMNS = [...REQUIRED_COLUMNS, "status", "note"];
-const RESULT_ISSUE_EXPORT_COLUMNS = ["student_code", "email", "status", "note"];
+const RESULT_ISSUE_EXPORT_COLUMNS = [...REQUIRED_COLUMNS, "status", "note"];
 
 type CsvValue = string | number | null | undefined;
 type CsvRow = Record<string, CsvValue>;
@@ -146,7 +146,29 @@ function parseFacultyCode(value: unknown): number | undefined {
 function parseCurriculumId(value: unknown): string {
   const text = String(value ?? "").trim();
   if (!text) return "";
-  return resolveCurriculumId(text, text.split(":")[0].trim());
+  return getCurriculumById(text)?.id ?? text.split(":")[0].trim();
+}
+
+function isKnownFacultyCode(facultyCode: number | null | undefined): boolean {
+  return facultyCode != null && FACULTY_MAP[facultyCode] != null;
+}
+
+function isKnownCurriculumId(curriculumId: string | null | undefined): boolean {
+  return CURRICULUMS.some((curriculum) => curriculum.id === curriculumId);
+}
+
+function formatFacultyPreview(facultyCode: number | null | undefined): string {
+  if (facultyCode == null) return "-";
+  return isKnownFacultyCode(facultyCode)
+    ? getFacultyName(facultyCode)
+    : `ไม่รู้จัก (${facultyCode})`;
+}
+
+function formatCurriculumPreview(curriculumId: string | null | undefined): string {
+  return getCurriculumName(
+    curriculumId,
+    curriculumId ? `ไม่รู้จัก (${curriculumId})` : "-",
+  );
 }
 
 function readCsvCell(row: Record<string, unknown>, keys: string[]): string {
@@ -251,6 +273,8 @@ export default function BulkUploadModal({
       errs.last_name = "นามสกุลต้องเป็นภาษาไทยเท่านั้น";
     if (!editForm.curriculumId)
       errs.curriculumId = "กรุณาเลือกหลักสูตร";
+    else if (!isKnownCurriculumId(editForm.curriculumId))
+      errs.curriculumId = "กรุณาเลือกหลักสูตรที่ระบบรองรับ";
     setEditErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -416,7 +440,8 @@ export default function BulkUploadModal({
         `/course-offerings/${offeringId}/import/preview/${sessionId}/${editingRowIndex}`,
         { method: "PATCH", data: editForm },
       );
-      setRows((prev) => prev.map((r) => (r.row_index === editingRowIndex ? updatedRow : r)));
+      const nextRows = rows.map((r) => (r.row_index === editingRowIndex ? updatedRow : r));
+      setRows(nextRows);
       setEditingRowIndex(null);
     } catch (err) {
       console.error("Failed to save edit:", err);
@@ -434,7 +459,8 @@ export default function BulkUploadModal({
     setError(null);
     try {
       await apiFetch(`/course-offerings/${offeringId}/import/preview/${sessionId}/${rowIndex}`, { method: "DELETE" });
-      setRows((prev) => prev.filter((r) => r.row_index !== rowIndex));
+      const nextRows = rows.filter((r) => r.row_index !== rowIndex);
+      setRows(nextRows);
       if (editingRowIndex === rowIndex) setEditingRowIndex(null);
     } catch (err) {
       console.error("Failed to delete row:", err);
@@ -489,12 +515,23 @@ export default function BulkUploadModal({
     downloadCsv(
       `iaes-student-import-result-errors-${getCsvDownloadDate()}.csv`,
       RESULT_ISSUE_EXPORT_COLUMNS,
-      issueResults.map((result) => ({
-        student_code: result.student_code,
-        email: result.email,
-        status: result.status,
-        note: result.note,
-      })),
+      issueResults.map((result) => {
+        const previewRow = rows.find(
+          (row) => row.student_code === result.student_code && row.email === result.email,
+        );
+
+        return {
+          student_code: result.student_code,
+          email: result.email,
+          title: previewRow?.title,
+          first_name: previewRow?.first_name,
+          last_name: previewRow?.last_name,
+          facultyCode: previewRow?.facultyCode,
+          curriculumId: previewRow?.curriculumId,
+          status: result.status,
+          note: result.note,
+        };
+      }),
     );
   };
 
@@ -592,19 +629,19 @@ export default function BulkUploadModal({
           <div className="flex-1 overflow-y-auto p-5 sm:p-6">
             <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-[#E7DDF8] bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-[#2F2A3A]">
+                <p className="text-base font-semibold leading-6 text-[#2F2A3A]">
                   เริ่มจากไฟล์ตัวอย่างได้ทันที
                 </p>
-                <p className="mt-0.5 text-xs leading-5 text-[#7A7287]">
+                <p className="mt-1 text-sm leading-6 text-[#7A7287]">
                   ใช้หัวคอลัมน์ที่ระบบรองรับ พร้อมตัวอย่างรหัสสำนักวิชาและหลักสูตร
                 </p>
               </div>
               <button
                 type="button"
                 onClick={handleDownloadTemplate}
-                className="inline-flex h-10 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#B7A3E3] bg-[#F7F3FF] px-4 text-sm font-semibold text-[#7C5BD9] transition-colors hover:bg-[#F1EAFF]"
+                className="inline-flex h-12 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#B7A3E3] bg-[#F7F3FF] px-5 text-base font-semibold text-[#7C5BD9] transition-colors hover:bg-[#F1EAFF]"
               >
-                <Download size={16} />
+                <Download size={18} />
                 ดาวน์โหลดตัวอย่าง CSV
               </button>
             </div>
@@ -631,7 +668,7 @@ export default function BulkUploadModal({
                   <Loader2 className="mb-4 h-10 w-10 animate-spin text-[#7C5BD9]" />
                   <p className="text-sm font-medium text-[#7C5BD9]">กำลังประมวลผลและตรวจสอบข้อมูล...</p>
                   {selectedFileName && (
-                    <p className="mt-1 text-xs text-[#7A7287]">{selectedFileName}</p>
+                    <p className="mt-1 text-sm text-[#7A7287]">{selectedFileName}</p>
                   )}
                 </>
               ) : (
@@ -646,8 +683,8 @@ export default function BulkUploadModal({
                     รองรับไฟล์ .csv เท่านั้น และอีเมลต้องใช้โดเมน @mail.wu.ac.th
                   </p>
                   {selectedFileName && (
-                    <span className="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#514667] ring-1 ring-[#E7DDF8]">
-                      <FileText size={14} className="text-[#7C5BD9]" />
+                    <span className="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-sm font-medium text-[#514667] ring-1 ring-[#E7DDF8]">
+                      <FileText size={15} className="text-[#7C5BD9]" />
                       {selectedFileName}
                     </span>
                   )}
@@ -659,18 +696,49 @@ export default function BulkUploadModal({
               <div className="flex items-start gap-3">
                 <Info size={18} className="mt-0.5 shrink-0 text-[#7C5BD9]" />
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-[#2F2A3A]">
+                  <p className="text-base font-semibold leading-6 text-[#2F2A3A]">
                     คอลัมน์ที่รองรับ
                   </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {REQUIRED_COLUMNS.map((column) => (
-                      <span
-                        key={column}
-                        className="rounded-full bg-[#F4EFFF] px-3 py-1 text-xs font-medium text-[#7C5BD9]"
-                      >
-                        {column}
-                      </span>
-                    ))}
+                  <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                    <div className="rounded-xl border border-[#EFE8FB] bg-[#FBFAFF] px-4 py-3">
+                      <p className="text-sm font-semibold leading-5 text-[#2F2A3A]">ข้อมูลระบุตัวนักศึกษา</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <code className="rounded-lg bg-[#F4EFFF] px-2.5 py-1 text-sm font-semibold text-[#7C5BD9]">
+                          student_code
+                        </code>
+                        <code className="rounded-lg bg-[#F4EFFF] px-2.5 py-1 text-sm font-semibold text-[#7C5BD9]">
+                          email
+                        </code>
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-[#EFE8FB] bg-[#FBFAFF] px-4 py-3">
+                      <p className="text-sm font-semibold leading-5 text-[#2F2A3A]">ชื่อและคำนำหน้า</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {["title", "first_name", "last_name"].map((column) => (
+                          <code key={column} className="rounded-lg bg-[#F4EFFF] px-2.5 py-1 text-sm font-semibold text-[#7C5BD9]">
+                            {column}
+                          </code>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-[#EFE8FB] bg-[#FBFAFF] px-4 py-3">
+                      <p className="text-sm font-semibold leading-5 text-[#2F2A3A]">สำนักวิชา</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <code className="rounded-lg bg-[#F4EFFF] px-2.5 py-1 text-sm font-semibold text-[#7C5BD9]">
+                          facultyCode
+                        </code>
+                        <span className="text-sm leading-6 text-[#6A6276]">ใช้รหัสสำนักวิชา</span>
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-[#EFE8FB] bg-[#FBFAFF] px-4 py-3">
+                      <p className="text-sm font-semibold leading-5 text-[#2F2A3A]">หลักสูตร</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <code className="rounded-lg bg-[#F4EFFF] px-2.5 py-1 text-sm font-semibold text-[#7C5BD9]">
+                          curriculumId
+                        </code>
+                        <span className="text-sm leading-6 text-[#6A6276]">ใช้รหัสหลักสูตร</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -721,7 +789,7 @@ export default function BulkUploadModal({
                         }`}
                     >
                       {tab.label}
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums
+                      <span className={`rounded-full px-2.5 py-0.5 text-sm font-semibold tabular-nums
                         ${filterStatus === tab.key ? "bg-white/20" : "bg-gray-100 text-gray-500"}
                       `}>
                         {counts[tab.key]}
@@ -744,20 +812,20 @@ export default function BulkUploadModal({
 
             {/* Table */}
             <div className="flex-1 overflow-auto px-5 py-3 sm:px-6">
-              <div className="min-w-[1560px] overflow-hidden rounded-2xl bg-white ring-1 ring-[#E7DDF8]">
+              <div className="min-w-[1900px] overflow-hidden rounded-2xl bg-white ring-1 ring-[#E7DDF8]">
                 <table className="w-full font-sans text-[15px]">
                   <thead className="sticky top-0 z-10">
                     <tr className="bg-[#F7F3FF] text-sm font-semibold leading-6 text-[#5B4A73]">
-                      <th className="w-[128px] px-5 py-3.5 text-left">รหัสนักศึกษา</th>
-                      <th className="w-[96px] px-5 py-3.5 text-left">คำนำหน้า</th>
-                      <th className="w-[140px] px-5 py-3.5 text-left">ชื่อ</th>
-                      <th className="w-[150px] px-5 py-3.5 text-left">นามสกุล</th>
-                      <th className="w-[260px] px-5 py-3.5 text-left">อีเมล</th>
-                      <th className="w-[220px] px-5 py-3.5 text-left">สำนักวิชา</th>
-                      <th className="w-[240px] px-5 py-3.5 text-left">หลักสูตร</th>
-                      <th className="w-[150px] px-5 py-3.5 text-center">สถานะ</th>
-                      <th className="w-[220px] px-5 py-3.5 text-left">หมายเหตุ</th>
-                      <th className="w-[100px] px-5 py-3.5 text-center">จัดการ</th>
+                      <th className="w-[150px] px-5 py-3.5 text-left">รหัสนักศึกษา</th>
+                      <th className="w-[112px] px-5 py-3.5 text-left">คำนำหน้า</th>
+                      <th className="w-[170px] px-5 py-3.5 text-left">ชื่อ</th>
+                      <th className="w-[190px] px-5 py-3.5 text-left">นามสกุล</th>
+                      <th className="w-[320px] px-5 py-3.5 text-left">อีเมล</th>
+                      <th className="w-[270px] px-5 py-3.5 text-left">สำนักวิชา</th>
+                      <th className="w-[310px] px-5 py-3.5 text-left">หลักสูตร</th>
+                      <th className="w-[220px] px-5 py-3.5 text-center">สถานะ</th>
+                      <th className="w-[290px] px-5 py-3.5 text-left">หมายเหตุ</th>
+                      <th className="w-[140px] px-5 py-3.5 text-center">จัดการ</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#EFE8FB]">
@@ -822,6 +890,11 @@ export default function BulkUploadModal({
                                   <select value={editForm.curriculumId}
                                     onChange={(e) => { setEditForm((f) => ({ ...f, curriculumId: e.target.value })); if (editErrors.curriculumId) setEditErrors((p) => ({ ...p, curriculumId: "" })); }}
                                     className={`w-full rounded-lg border px-2.5 py-2.5 font-sans text-sm focus:outline-none focus:ring-2 ${editErrors.curriculumId ? "border-red-400 focus:ring-red-300" : "border-[#B7A3E3] focus:ring-purple-300"}`}>
+                                    {editForm.curriculumId && !isKnownCurriculumId(editForm.curriculumId) && (
+                                      <option value={editForm.curriculumId} disabled>
+                                        ไม่รู้จัก ({editForm.curriculumId})
+                                      </option>
+                                    )}
                                     {CURRICULUMS.map((c) => <option key={c.id} value={c.id}>{getCurriculumName(c.id)}</option>)}
                                   </select>
                                   {editErrors.curriculumId && <p className="text-red-500 text-[11px] mt-0.5 leading-tight">{editErrors.curriculumId}</p>}
@@ -831,14 +904,14 @@ export default function BulkUploadModal({
                                 </td>
                                 <td className="px-4 py-2.5">-</td>
                                 <td className="px-4 py-2.5">
-                                  <div className="flex items-center justify-center gap-1">
+                                  <div className="flex items-center justify-center gap-2">
                                     <button onClick={handleSaveEdit} disabled={isLoading}
-                                      className="rounded-md p-1.5 text-green-600 hover:bg-green-50 transition-colors cursor-pointer" title="บันทึก">
-                                      <Save size={15} />
+                                      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-green-600 transition-colors hover:bg-green-50" title="บันทึก">
+                                      <Save size={17} />
                                     </button>
                                     <button onClick={handleCancelEdit}
-                                      className="rounded-md p-1.5 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors cursor-pointer" title="ยกเลิก">
-                                      <X size={15} />
+                                      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-600" title="ยกเลิก">
+                                      <X size={17} />
                                     </button>
                                   </div>
                                 </td>
@@ -855,26 +928,28 @@ export default function BulkUploadModal({
                                   {row.email || "-"}
                                 </td>
                                 <td className="px-5 py-3.5 leading-6 text-[#514667]">
-                                  {row.facultyCode != null ? getFacultyName(row.facultyCode) : "-"}
+                                  {formatFacultyPreview(row.facultyCode)}
                                 </td>
                                 <td className="px-5 py-3.5 leading-6 text-[#514667]">
-                                  {row.curriculumId ? getCurriculumName(row.curriculumId) : "-"}
+                                  {formatCurriculumPreview(row.curriculumId)}
                                 </td>
                                 <td className="px-5 py-3.5 text-center">
-                                  <span className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${STATUS_MAP[row.status].className}`}>
+                                  <span className={`inline-flex min-w-[128px] justify-center rounded-full px-3.5 py-1 text-sm font-medium ${STATUS_MAP[row.status].className}`}>
                                     {STATUS_MAP[row.status].label}
                                   </span>
                                 </td>
-                                <td className="px-5 py-3.5 text-sm leading-6 text-[#7A7287]" title={row.note}>
-                                  {row.note || "-"}
+                                <td className="px-5 py-3.5 text-sm leading-6 text-[#7A7287]" title={row.status === "NEW" ? undefined : row.note}>
+                                  <p className="line-clamp-2 max-w-[280px]">
+                                    {row.status === "NEW" ? "-" : row.note || "-"}
+                                  </p>
                                 </td>
                                 <td className="px-5 py-3.5">
-                                  <div className="flex items-center justify-center gap-1">
+                                  <div className="flex items-center justify-center gap-2">
                                     <button
                                       type="button"
                                       onClick={() => handleStartEdit(row)}
                                       disabled={isAlreadyEnrolled}
-                                      className={`rounded-md p-1.5 transition-colors ${
+                                      className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
                                         isAlreadyEnrolled
                                           ? "cursor-not-allowed text-gray-300 opacity-60"
                                           : "cursor-pointer text-[#B7A3E3] hover:bg-purple-50 hover:text-[#7C5BD9]"
@@ -882,16 +957,16 @@ export default function BulkUploadModal({
                                       title={isAlreadyEnrolled ? "ลงทะเบียนแล้ว ไม่สามารถแก้ไขได้" : "แก้ไข"}
                                       aria-label={isAlreadyEnrolled ? "ลงทะเบียนแล้ว ไม่สามารถแก้ไขได้" : "แก้ไข"}
                                     >
-                                      <Edit2 size={14} />
+                                      <Edit2 size={17} />
                                     </button>
                                     <button
                                       type="button"
                                       onClick={() => handleDelete(row.row_index)}
-                                      className="rounded-md p-1.5 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-500 cursor-pointer"
+                                      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-gray-300 transition-colors hover:bg-red-50 hover:text-red-500"
                                       title="นำออกจากรายการนำเข้า (ไม่ลบข้อมูลในระบบ)"
                                       aria-label="นำออกจากรายการนำเข้า ไม่ลบข้อมูลในระบบ"
                                     >
-                                      <Trash2 size={14} />
+                                      <Trash2 size={17} />
                                     </button>
                                   </div>
                                 </td>
@@ -1007,42 +1082,66 @@ export default function BulkUploadModal({
 
               {/* Results Table */}
               <div className="mt-4 overflow-auto rounded-2xl bg-white ring-1 ring-[#E7DDF8]">
-                <table className="min-w-[980px] w-full font-sans text-[15px]">
+                <table className="min-w-[1900px] w-full font-sans text-[15px]">
                   <thead>
                     <tr className="bg-[#F7F3FF] text-sm font-semibold leading-6 text-[#5B4A73]">
-                      <th className="w-[160px] px-5 py-3.5 text-left">รหัสนักศึกษา</th>
+                      <th className="w-[150px] px-5 py-3.5 text-left">รหัสนักศึกษา</th>
+                      <th className="w-[112px] px-5 py-3.5 text-left">คำนำหน้า</th>
+                      <th className="w-[170px] px-5 py-3.5 text-left">ชื่อ</th>
+                      <th className="w-[190px] px-5 py-3.5 text-left">นามสกุล</th>
                       <th className="w-[320px] px-5 py-3.5 text-left">อีเมล</th>
-                      <th className="w-[170px] px-5 py-3.5 text-center">สถานะ</th>
-                      <th className="px-5 py-3.5 text-left">หมายเหตุ</th>
+                      <th className="w-[270px] px-5 py-3.5 text-left">สำนักวิชา</th>
+                      <th className="w-[310px] px-5 py-3.5 text-left">หลักสูตร</th>
+                      <th className="w-[220px] px-5 py-3.5 text-center">สถานะ</th>
+                      <th className="w-[290px] px-5 py-3.5 text-left">หมายเหตุ</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#EFE8FB]">
-                    {confirmResults.results.map((r, i) => (
-                      <tr key={i} className={`${i % 2 === 0 ? "bg-white" : "bg-gray-50/50"} transition-colors hover:bg-[#FAF8FF]`}>
-                        <td className="whitespace-nowrap px-5 py-3.5 font-sans tabular-nums text-[#2F2A3A]">{r.student_code}</td>
-                        <td className="whitespace-nowrap px-5 py-3.5 text-[#514667]">{r.email}</td>
-                        <td className="px-5 py-3.5 text-center">
-                          {r.status === "enrolled" ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-3 py-1 text-sm font-medium text-green-700 ring-1 ring-green-200">
-                              <CheckCircle2 size={14} /> สำเร็จ
-                            </span>
-                          ) : r.status === "already_enrolled" ? (
-                            <span className="rounded-full bg-purple-50 px-3 py-1 text-sm font-medium text-purple-700 ring-1 ring-purple-200">
-                              ลงทะเบียนแล้ว
-                            </span>
-                          ) : r.status === "skipped" ? (
-                            <span className="rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700 ring-1 ring-amber-200">
-                              ข้าม
-                            </span>
-                          ) : (
-                            <span className="rounded-full bg-red-50 px-3 py-1 text-sm font-medium text-red-600 ring-1 ring-red-200">
-                              ผิดพลาด
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-5 py-3.5 text-sm leading-6 text-[#7A7287]">{r.note || "-"}</td>
-                      </tr>
-                    ))}
+                    {confirmResults.results.map((r, i) => {
+                      const previewRow = rows.find(
+                        (row) => row.student_code === r.student_code && row.email === r.email,
+                      );
+
+                      return (
+                        <tr key={i} className={`${i % 2 === 0 ? "bg-white" : "bg-gray-50/50"} transition-colors hover:bg-[#FAF8FF]`}>
+                          <td className="whitespace-nowrap px-5 py-3.5 font-sans tabular-nums text-[#2F2A3A]">{r.student_code}</td>
+                          <td className="whitespace-nowrap px-5 py-3.5 text-[#514667]">{previewRow?.title || "-"}</td>
+                          <td className="px-5 py-3.5 text-[#2F2A3A]">{previewRow?.first_name || "-"}</td>
+                          <td className="px-5 py-3.5 text-[#2F2A3A]">{previewRow?.last_name || "-"}</td>
+                          <td className="whitespace-nowrap px-5 py-3.5 text-[#514667]">{r.email}</td>
+                          <td className="px-5 py-3.5 leading-6 text-[#514667]">
+                            {formatFacultyPreview(previewRow?.facultyCode)}
+                          </td>
+                          <td className="px-5 py-3.5 leading-6 text-[#514667]">
+                            {formatCurriculumPreview(previewRow?.curriculumId)}
+                          </td>
+                          <td className="px-5 py-3.5 text-center">
+                            {r.status === "enrolled" ? (
+                              <span className="inline-flex min-w-[128px] items-center justify-center gap-1 rounded-full bg-green-50 px-3.5 py-1 text-sm font-medium text-green-700 ring-1 ring-green-200">
+                                <CheckCircle2 size={15} /> สำเร็จ
+                              </span>
+                            ) : r.status === "already_enrolled" ? (
+                              <span className="inline-flex min-w-[128px] justify-center rounded-full bg-purple-50 px-3.5 py-1 text-sm font-medium text-purple-700 ring-1 ring-purple-200">
+                                ลงทะเบียนแล้ว
+                              </span>
+                            ) : r.status === "skipped" ? (
+                              <span className="inline-flex min-w-[128px] justify-center rounded-full bg-amber-50 px-3.5 py-1 text-sm font-medium text-amber-700 ring-1 ring-amber-200">
+                                ข้าม
+                              </span>
+                            ) : (
+                              <span className="inline-flex min-w-[128px] justify-center rounded-full bg-red-50 px-3.5 py-1 text-sm font-medium text-red-600 ring-1 ring-red-200">
+                                ผิดพลาด
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-5 py-3.5 text-sm leading-6 text-[#7A7287]">
+                            <p className="line-clamp-2 max-w-[280px]" title={r.note}>
+                              {r.note || "-"}
+                            </p>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
