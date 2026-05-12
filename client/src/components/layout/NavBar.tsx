@@ -34,12 +34,34 @@ interface CourseOffering {
   };
 }
 
+const SIDEBAR_STORAGE_KEY = "iaes-sidebar-open";
+let cachedSidebarOpen: boolean | null = null;
+
+function readStoredSidebarOpen() {
+  try {
+    const savedSidebarState = window.localStorage.getItem(SIDEBAR_STORAGE_KEY);
+    return savedSidebarState === null ? true : savedSidebarState === "true";
+  } catch {
+    return true;
+  }
+}
+
+function persistSidebarOpen(isOpen: boolean) {
+  try {
+    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(isOpen));
+  } catch {
+    // The in-memory cache still keeps navigation stable when storage is blocked.
+  }
+}
+
 const NavBar = ({ children }: PageLayoutProps) => {
   const router = useRouter();
   const pathname = usePathname();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(cachedSidebarOpen ?? true);
+  const [isSidebarReady, setIsSidebarReady] = useState(cachedSidebarOpen !== null);
   const [courses, setCourses] = useState<CourseOffering[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
+  const [coursesError, setCoursesError] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -53,9 +75,20 @@ const NavBar = ({ children }: PageLayoutProps) => {
 
   useEffect(() => {
     const mobileQuery = window.matchMedia("(max-width: 640px)");
-    const syncSidebar = () => setIsSidebarOpen(!mobileQuery.matches);
+    const syncSidebar = () => {
+      if (mobileQuery.matches) {
+        cachedSidebarOpen = false;
+        setIsSidebarOpen(false);
+        return;
+      }
+
+      const nextSidebarOpen = readStoredSidebarOpen();
+      cachedSidebarOpen = nextSidebarOpen;
+      setIsSidebarOpen(nextSidebarOpen);
+    };
 
     syncSidebar();
+    setIsSidebarReady(true);
     mobileQuery.addEventListener("change", syncSidebar);
 
     return () => mobileQuery.removeEventListener("change", syncSidebar);
@@ -90,6 +123,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
 
     async function fetchCourses() {
       setLoadingCourses(true);
+      setCoursesError(false);
       try {
         const endpoint =
           userType === "STAFF"
@@ -100,13 +134,14 @@ const NavBar = ({ children }: PageLayoutProps) => {
         setCourses(courses);
       } catch (err) {
         console.error("[NavBar] Failed to fetch courses:", err);
+        setCoursesError(true);
       } finally {
         setLoadingCourses(false);
       }
     }
 
     fetchCourses();
-  }, [user, user?.type]);
+  }, [user]);
 
   useEffect(() => {
     if (!isUserMenuOpen) return;
@@ -169,6 +204,15 @@ const NavBar = ({ children }: PageLayoutProps) => {
     router.push("/login");
   };
 
+  const handleToggleSidebar = () => {
+    setIsSidebarOpen((current) => {
+      const next = !current;
+      cachedSidebarOpen = next;
+      persistSidebarOpen(next);
+      return next;
+    });
+  };
+
   // Style helpers
   const getMenuButtonStyle = (isActive: boolean) => {
     const sizeClass = isSidebarOpen
@@ -201,18 +245,24 @@ const NavBar = ({ children }: PageLayoutProps) => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div
+      className="flex h-screen bg-gray-50"
+      style={{ visibility: isSidebarReady ? "visible" : "hidden" }}
+    >
       {/* Sidebar */}
       <div
-        className={`${isSidebarOpen ? "w-72" : "w-20 sm:w-24"} h-screen overflow-y-auto transition-all duration-300 bg-white shadow-lg flex-shrink-0`}
+        className={`${isSidebarOpen ? "w-72" : "w-20 sm:w-24"} h-screen overflow-y-auto bg-white shadow-lg flex-shrink-0 ${
+          isSidebarReady ? "transition-all duration-300" : ""
+        }`}
       >
         <div className={isSidebarOpen ? "p-5" : "p-3"}>
           {/* Burger Button */}
           <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            onClick={handleToggleSidebar}
             className={`mb-4 flex w-full rounded-xl transition-colors hover:bg-gray-100 ${
               isSidebarOpen ? "justify-start p-2.5" : "h-12 items-center justify-center p-0"
             }`}
+            aria-label={isSidebarOpen ? "ปิดแถบเมนู" : "เปิดแถบเมนู"}
           >
             <Menu size={28} className="text-gray-700" />
           </button>
@@ -222,6 +272,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
             <button
               onClick={() => router.push("/admin/manage-users")}
               className={getMenuButtonStyle(isManageUsersActive)}
+              aria-label="จัดการผู้ใช้"
             >
               <Users size={22} />
               {isSidebarOpen && (
@@ -235,6 +286,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
               <button
                 onClick={() => router.push("/")}
                 className={getMenuButtonStyle(isHomeActive)}
+                aria-label="หน้าแรก"
               >
                 <Home size={22} />
                 {isSidebarOpen && <span className="font-medium">หน้าแรก</span>}
@@ -253,6 +305,8 @@ const NavBar = ({ children }: PageLayoutProps) => {
                       ? "bg-[#B7A3E3]/80 text-white"
                       : "text-[#575757] hover:bg-gray-100"
                   } rounded-xl transition-colors cursor-pointer`}
+                  aria-label="รายวิชา"
+                  aria-expanded={isCoursesExpanded}
                 >
                   <div className="flex items-center gap-3">
                     <FileText size={22} />
@@ -272,6 +326,10 @@ const NavBar = ({ children }: PageLayoutProps) => {
                     {loadingCourses ? (
                       <div className="px-4 py-2 text-sm font-medium text-gray-400">
                         กำลังโหลด...
+                      </div>
+                    ) : coursesError ? (
+                      <div className="px-4 py-2 text-sm font-medium text-red-500">
+                        โหลดรายวิชาไม่สำเร็จ
                       </div>
                     ) : courses.length === 0 ? (
                       <div className="px-4 py-2 text-sm font-medium text-gray-400">
@@ -314,6 +372,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
                   <button
                     onClick={() => router.push("/course")}
                     className={getSideMenuStyle(isCourseManageActive)}
+                    aria-label="จัดการรายวิชา"
                   >
                     <Settings size={22} />
                     {isSidebarOpen && <span>จัดการรายวิชา</span>}
@@ -322,6 +381,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
                   <button
                     onClick={() => router.push("/exam-bank")}
                     className={getSideMenuStyle(isExamBankActive)}
+                    aria-label="คลังข้อสอบ"
                   >
                     <Database size={22} />
                     {isSidebarOpen && <span>คลังข้อสอบ</span>}
@@ -333,6 +393,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
               <button
                 onClick={() => router.push("/results")}
                 className={getSideMenuStyle(isResultsActive)}
+                aria-label="ผลสรุปการสอบ"
               >
                 <BookOpen size={22} />
                 {isSidebarOpen && <span>ผลสรุปการสอบ</span>}

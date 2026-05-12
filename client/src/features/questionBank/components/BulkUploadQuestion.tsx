@@ -7,11 +7,13 @@ import {
   Download,
   Edit2,
   FileText,
+  Info,
   Loader2,
   Save,
   Trash2,
   UploadCloud,
   X,
+  XCircle,
 } from "lucide-react";
 import Papa from "papaparse";
 import { apiFetch } from "@/lib/api";
@@ -107,6 +109,8 @@ const REQUIRED_COLUMNS = [
   "difficulty",
   "knowledge_categories",
 ];
+
+const RESULT_ISSUE_EXPORT_COLUMNS = ["row_index", ...REQUIRED_COLUMNS, "status", "note"];
 
 type CsvValue = string | number | null | undefined;
 type CsvRow = Record<string, CsvValue>;
@@ -467,13 +471,24 @@ export default function BulkUploadQuestion({
     if (issueResults.length === 0) return;
     downloadCsv(
       `iaes-question-import-result-errors-${getCsvDownloadDate()}.csv`,
-      ["row_index", "question_text", "status", "note"],
-      issueResults.map((r) => ({
-        row_index: r.row_index,
-        question_text: r.question_text,
-        status: r.status,
-        note: r.note,
-      })),
+      RESULT_ISSUE_EXPORT_COLUMNS,
+      issueResults.map((r) => {
+        const previewRow = rows.find((row) => row.row_index === r.row_index);
+
+        return {
+          row_index: r.row_index + 1,
+          question_text: r.question_text,
+          choice_1: previewRow?.choice_1,
+          choice_2: previewRow?.choice_2,
+          choice_3: previewRow?.choice_3,
+          choice_4: previewRow?.choice_4,
+          correct: previewRow?.correct_choice,
+          difficulty: previewRow?.difficulty,
+          knowledge_categories: previewRow?.knowledge_categories,
+          status: r.status,
+          note: r.note,
+        };
+      }),
     );
   };
 
@@ -576,33 +591,19 @@ export default function BulkUploadQuestion({
           <div className="flex-1 overflow-y-auto p-5 sm:p-6">
             <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-[#E7DDF8] bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-[#2F2A3A]">เริ่มจากไฟล์ตัวอย่างได้ทันที</p>
-                <p className="mt-0.5 text-xs leading-5 text-[#7A7287]">
+                <p className="text-base font-semibold leading-6 text-[#2F2A3A]">เริ่มจากไฟล์ตัวอย่างได้ทันที</p>
+                <p className="mt-1 text-sm leading-6 text-[#7A7287]">
                   ใช้หัวคอลัมน์ที่ระบบรองรับ พร้อมตัวอย่างคำถาม
                 </p>
               </div>
               <button
                 type="button"
                 onClick={handleDownloadTemplate}
-                className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl border border-[#D9CCF2] bg-white px-4 text-sm font-semibold text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
+                className="inline-flex h-12 shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-[#D9CCF2] bg-white px-5 text-base font-semibold text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF]"
               >
-                <Download size={16} />
+                <Download size={18} />
                 ดาวน์โหลดไฟล์ตัวอย่าง
               </button>
-            </div>
-
-            {/* Column guide */}
-            <div className="mb-4 rounded-xl border border-[#E7DDF8] bg-white p-4">
-              <p className="text-sm font-semibold text-[#2F2A3A] mb-2">
-                หัวคอลัมน์ที่รองรับ (ไทย / อังกฤษ)
-              </p>
-              <div className="grid grid-cols-1 gap-1.5 text-xs text-[#7A7287] sm:grid-cols-2">
-                <span><code className="bg-[#FAF8FF] px-1 py-0.5 rounded">ข้อความคำถาม</code> / <code className="bg-[#FAF8FF] px-1 py-0.5 rounded">question_text</code></span>
-                <span><code className="bg-[#FAF8FF] px-1 py-0.5 rounded">ตัวเลือกที่ 1-4</code> / <code className="bg-[#FAF8FF] px-1 py-0.5 rounded">choice_1-4</code></span>
-                <span><code className="bg-[#FAF8FF] px-1 py-0.5 rounded">คำตอบที่ถูก</code> / <code className="bg-[#FAF8FF] px-1 py-0.5 rounded">correct</code> <span className="text-[#7C5BD9]">(หมายเลข 1-4)</span></span>
-                <span><code className="bg-[#FAF8FF] px-1 py-0.5 rounded">ระดับความยาก</code> / <code className="bg-[#FAF8FF] px-1 py-0.5 rounded">difficulty</code> <span className="text-[#7C5BD9]">(ง่าย/กลาง/ยาก)</span></span>
-                <span className="sm:col-span-2"><code className="bg-[#FAF8FF] px-1 py-0.5 rounded">หมวดหมู่ความรู้</code> / <code className="bg-[#FAF8FF] px-1 py-0.5 rounded">knowledge_categories</code> <span className="text-[#7C5BD9]">(คั่นด้วยคอมม่า)</span></span>
-              </div>
             </div>
 
             {/* Drop zone */}
@@ -612,31 +613,12 @@ export default function BulkUploadQuestion({
               onDragOver={handleDragOver}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-10 transition-colors sm:p-14 ${
+              className={`flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-9 text-center transition-all duration-200 sm:py-10 ${
                 isDragging
-                  ? "border-[#B7A3E3] bg-[#F4EFFF]"
-                  : "border-[#D9CCF2] bg-[#FAF8FF] hover:border-[#B7A3E3] hover:bg-[#FDFBFF]"
-              }`}
+                  ? "scale-[1.01] border-[#7C5BD9] bg-purple-50"
+                  : "border-[#D9CEF4] bg-[#FBFAFF] hover:border-[#B7A3E3] hover:bg-purple-50/40"
+              } ${isLoading ? "pointer-events-none opacity-50" : ""}`}
             >
-              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-[#E7DDF8]">
-                {isLoading ? (
-                  <Loader2 size={28} className="animate-spin text-[#7C5BD9]" />
-                ) : (
-                  <UploadCloud size={28} className="text-[#7C5BD9]" />
-                )}
-              </div>
-              <p className="mb-2 text-base font-semibold text-[#2F2A3A]">
-                {isLoading
-                  ? "กำลังตรวจสอบ..."
-                  : isDragging
-                    ? "ปล่อยไฟล์ที่นี่เพื่ออัปโหลด"
-                    : selectedFileName
-                      ? `กำลังตรวจสอบ "${selectedFileName}"`
-                      : "ลากไฟล์ CSV มาวาง หรือคลิกเพื่อเลือกไฟล์"}
-              </p>
-              <p className="text-sm text-[#7A7287]">
-                รองรับเฉพาะไฟล์ .csv ที่มีหัวคอลัมน์ตามที่กำหนด
-              </p>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -644,6 +626,99 @@ export default function BulkUploadQuestion({
                 className="hidden"
                 onChange={handleFileChange}
               />
+              {isLoading ? (
+                <>
+                  <Loader2 className="mb-4 h-10 w-10 animate-spin text-[#7C5BD9]" />
+                  <p className="text-sm font-medium text-[#7C5BD9]">กำลังประมวลผลและตรวจสอบข้อมูล...</p>
+                  {selectedFileName && (
+                    <p className="mt-1 text-xs text-[#7A7287]">{selectedFileName}</p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-[#7C5BD9] shadow-sm ring-1 ring-[#E7DDF8]">
+                    <UploadCloud className="h-8 w-8" />
+                  </div>
+                  <p className="text-base font-semibold text-[#2F2A3A]">
+                    {isDragging ? "วางไฟล์ CSV ที่นี่" : "ลากไฟล์ CSV มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์"}
+                  </p>
+                  <p className="mt-2 max-w-xl text-sm leading-6 text-[#7A7287]">
+                    รองรับเฉพาะไฟล์ .csv ที่มีหัวคอลัมน์คำถาม ตัวเลือก คำตอบ ความยาก และหมวดหมู่ความรู้
+                  </p>
+                  {selectedFileName && (
+                    <span className="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#514667] ring-1 ring-[#E7DDF8]">
+                      <FileText size={14} className="text-[#7C5BD9]" />
+                      {selectedFileName}
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-[#E7DDF8] bg-white p-4">
+              <div className="flex items-start gap-3">
+                <Info size={18} className="mt-0.5 shrink-0 text-[#7C5BD9]" />
+                <div className="min-w-0">
+                  <p className="text-base font-semibold leading-6 text-[#2F2A3A]">
+                    หัวคอลัมน์ที่รองรับ
+                  </p>
+                  <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                    <div className="rounded-xl border border-[#EFE8FB] bg-[#FBFAFF] px-4 py-3">
+                      <p className="text-sm font-semibold leading-5 text-[#2F2A3A]">ข้อความคำถาม</p>
+                      <code className="mt-2 inline-flex rounded-lg bg-[#F4EFFF] px-2.5 py-1 text-sm font-semibold text-[#7C5BD9]">
+                        question_text
+                      </code>
+                    </div>
+                    <div className="rounded-xl border border-[#EFE8FB] bg-[#FBFAFF] px-4 py-3">
+                      <p className="text-sm font-semibold leading-5 text-[#2F2A3A]">ตัวเลือกคำตอบ</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {["choice_1", "choice_2", "choice_3", "choice_4"].map((column) => (
+                          <code key={column} className="rounded-lg bg-[#F4EFFF] px-2.5 py-1 text-sm font-semibold text-[#7C5BD9]">
+                            {column}
+                          </code>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-[#EFE8FB] bg-[#FBFAFF] px-4 py-3">
+                      <p className="text-sm font-semibold leading-5 text-[#2F2A3A]">คำตอบที่ถูก</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <code className="rounded-lg bg-[#F4EFFF] px-2.5 py-1 text-sm font-semibold text-[#7C5BD9]">
+                          correct
+                        </code>
+                        <span className="text-sm leading-6 text-[#6A6276]">หมายเลข 1-4</span>
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-[#EFE8FB] bg-[#FBFAFF] px-4 py-3">
+                      <p className="text-sm font-semibold leading-5 text-[#2F2A3A]">ระดับความยาก</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <code className="rounded-lg bg-[#F4EFFF] px-2.5 py-1 text-sm font-semibold text-[#7C5BD9]">
+                          difficulty
+                        </code>
+                        <span className="text-sm leading-6 text-[#6A6276]">ง่าย / กลาง / ยาก</span>
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-[#EFE8FB] bg-[#FBFAFF] px-4 py-3 lg:col-span-2">
+                      <p className="text-sm font-semibold leading-5 text-[#2F2A3A]">หมวดหมู่ความรู้</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <code className="rounded-lg bg-[#F4EFFF] px-2.5 py-1 text-sm font-semibold text-[#7C5BD9]">
+                          knowledge_categories
+                        </code>
+                        <span className="text-sm leading-6 text-[#6A6276]">คั่นหลายหมวดหมู่ด้วยคอมม่า</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5 flex justify-center gap-3">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="h-11 min-w-32 cursor-pointer rounded-xl border border-[#B7A3E3] px-6 text-sm font-medium text-[#7C5BD9] transition-colors hover:bg-purple-50"
+              >
+                ยกเลิก
+              </button>
             </div>
           </div>
         )}
@@ -651,81 +726,97 @@ export default function BulkUploadQuestion({
         {/* ═══ STEP 2 — PREVIEW ═══ */}
         {step === "preview" && (
           <>
-            {/* Summary cards */}
-            <div className="flex-shrink-0 px-5 pt-4 sm:px-6">
-              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+            <div className="flex-shrink-0 border-b border-[#EFE8FB] px-5 py-4 sm:px-6">
+              <div className="grid gap-4 sm:grid-cols-3">
+                {[
+                  { key: "all" as const, label: "ทั้งหมด", count: counts.all, className: "bg-[#F7F3FF] text-[#7C5BD9]" },
+                  { key: "ready" as const, label: "พร้อมนำเข้า", count: counts.ready, className: "bg-green-50 text-green-700" },
+                  { key: "error" as const, label: "ผิดพลาด", count: counts.error, className: "bg-red-50 text-red-600" },
+                ].map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => setFilterStatus(item.key)}
+                    className={`cursor-pointer rounded-2xl px-5 py-4 text-left transition-colors ${item.className} ${
+                      filterStatus === item.key ? "ring-2 ring-[#B7A3E3]" : "hover:ring-1 hover:ring-[#E7DDF8]"
+                    }`}
+                  >
+                    <p className="text-sm font-semibold leading-5">{item.label}</p>
+                    <p className="mt-1.5 text-2xl font-semibold leading-none tabular-nums">{item.count}</p>
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex flex-wrap gap-2">
+                  {FILTER_TABS.map((tab) => (
+                    <button
+                      key={tab.key}
+                      type="button"
+                      onClick={() => setFilterStatus(tab.key)}
+                      className={`inline-flex cursor-pointer items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all ${
+                        filterStatus === tab.key
+                          ? tab.activeClass
+                          : "border-[#D9CEF4] bg-white text-[#6A6276] hover:border-[#B7A3E3] hover:text-[#7C5BD9]"
+                      }`}
+                    >
+                      {tab.label}
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ${
+                          filterStatus === tab.key ? "bg-white/20" : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                        {counts[tab.key]}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
                 <button
                   type="button"
-                  onClick={() => setFilterStatus("all")}
-                  className={`rounded-xl border p-3 text-left transition-colors cursor-pointer ${
-                    filterStatus === "all"
-                      ? "border-[#7C5BD9] bg-[#F4EFFF]"
-                      : "border-[#E7DDF8] bg-white hover:bg-[#FAF8FF]"
-                  }`}
+                  onClick={handleExportIssueRows}
+                  disabled={errorCount === 0}
+                  className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  <p className="text-2xl font-bold text-[#2F2A3A]">{counts.all}</p>
-                  <p className="text-xs font-medium text-[#7A7287]">ทั้งหมด</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFilterStatus("ready")}
-                  className={`rounded-xl border p-3 text-left transition-colors cursor-pointer ${
-                    filterStatus === "ready"
-                      ? "border-green-600 bg-green-50"
-                      : "border-[#E7DDF8] bg-white hover:bg-[#FAF8FF]"
-                  }`}
-                >
-                  <p className="text-2xl font-bold text-green-700">{counts.ready}</p>
-                  <p className="text-xs font-medium text-[#7A7287]">พร้อมนำเข้า</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFilterStatus("error")}
-                  className={`rounded-xl border p-3 text-left transition-colors cursor-pointer ${
-                    filterStatus === "error"
-                      ? "border-red-500 bg-red-50"
-                      : "border-[#E7DDF8] bg-white hover:bg-[#FAF8FF]"
-                  }`}
-                >
-                  <p className="text-2xl font-bold text-red-600">{counts.error}</p>
-                  <p className="text-xs font-medium text-[#7A7287]">ผิดพลาด</p>
+                  <Download size={16} />
+                  Export แถวที่ผิดพลาด
                 </button>
               </div>
             </div>
 
             {/* Table */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6">
-              <div className="overflow-hidden rounded-xl border border-[#E7DDF8]">
-                <table className="w-full text-left text-base">
-                  <thead>
-                    <tr className="bg-[#B7A3E3] text-white">
-                      <th className="px-3 py-3 text-center w-14">#</th>
-                      <th className="px-3 py-3">คำถาม</th>
-                      <th className="px-3 py-3 w-16 text-center">ตอบ</th>
-                      <th className="px-3 py-3 w-24">ความยาก</th>
-                      <th className="px-3 py-3 w-44">หมวดหมู่</th>
-                      <th className="px-3 py-3 w-28 text-center">สถานะ</th>
-                      <th className="px-3 py-3 w-24 text-center">จัดการ</th>
+            <div className="flex-1 overflow-auto px-5 py-3 sm:px-6">
+              <div className="min-w-[1720px] overflow-hidden rounded-2xl bg-white ring-1 ring-[#E7DDF8]">
+                <table className="w-full text-left font-sans text-[15px]">
+                  <thead className="sticky top-0 z-10">
+                    <tr className="bg-[#F7F3FF] text-sm font-semibold leading-6 text-[#5B4A73]">
+                      <th className="w-[72px] px-5 py-3.5 text-center">#</th>
+                      <th className="w-[700px] px-5 py-3.5 text-left">คำถาม</th>
+                      <th className="w-[104px] px-5 py-3.5 text-center">ตอบ</th>
+                      <th className="w-[164px] px-5 py-3.5 text-left">ความยาก</th>
+                      <th className="w-[300px] px-5 py-3.5 text-left">หมวดหมู่</th>
+                      <th className="w-[270px] px-5 py-3.5 text-center">สถานะ</th>
+                      <th className="w-[140px] px-5 py-3.5 text-center">จัดการ</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#EFE8FB]">
                     {filteredRows.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="px-4 py-8 text-center text-base text-[#7A7287]">
-                          ไม่มีข้อมูล
+                        <td colSpan={7} className="py-12 text-center text-sm text-[#7A7287]">
+                          ไม่พบรายการในกลุ่มนี้
                         </td>
                       </tr>
                     ) : (
-                      filteredRows.map((row) => {
+                      filteredRows.map((row, index) => {
                         const isEditing = editingRowIndex === row.row_index;
                         return (
-                          <tr key={row.row_index} className={`${getRowBg(row, row.row_index)}`}>
-                            <td className="px-3 py-2.5 text-center text-sm text-[#7A7287]">
+                          <tr key={row.row_index} className={`${getRowBg(row, index)} transition-colors hover:bg-[#FAF8FF]`}>
+                            <td className="px-5 py-3.5 text-center text-sm text-[#7A7287]">
                               {row.row_index + 1}
                             </td>
 
                             {/* Question text + choices */}
-                            <td className="px-3 py-2.5">
+                            <td className="px-5 py-3.5">
                               {isEditing ? (
                                 <div className="space-y-2">
                                   <textarea
@@ -734,12 +825,12 @@ export default function BulkUploadQuestion({
                                       setEditForm({ ...editForm, question_text: e.target.value })
                                     }
                                     rows={2}
-                                    className="w-full rounded-lg bg-white px-2.5 py-1.5 text-sm ring-1 ring-[#E7DDF8] focus:ring-2 focus:ring-[#B7A3E3] outline-none resize-y"
+                                    className="w-full resize-y rounded-lg border border-[#B7A3E3] bg-white px-3 py-2.5 font-sans text-sm outline-none focus:ring-2 focus:ring-purple-300"
                                     placeholder="ข้อความคำถาม"
                                   />
                                   {[1, 2, 3, 4].map((n) => (
                                     <div key={n} className="flex items-center gap-2">
-                                      <span className={`text-xs w-5 font-bold ${editForm.correct === n ? "text-emerald-600" : "text-[#7A7287]"}`}>
+                                      <span className={`w-5 text-xs font-bold ${editForm.correct === n ? "text-emerald-600" : "text-[#7A7287]"}`}>
                                         {n}{editForm.correct === n ? "✓" : ""}
                                       </span>
                                       <input
@@ -747,7 +838,7 @@ export default function BulkUploadQuestion({
                                         onChange={(e) =>
                                           setEditForm({ ...editForm, [`choice_${n}`]: e.target.value })
                                         }
-                                        className="flex-1 rounded-lg bg-white px-2 py-1 text-sm ring-1 ring-[#E7DDF8] focus:ring-2 focus:ring-[#B7A3E3] outline-none"
+                                        className="flex-1 rounded-lg border border-[#B7A3E3] bg-white px-3 py-2 font-sans text-sm outline-none focus:ring-2 focus:ring-purple-300"
                                         placeholder={`ตัวเลือกที่ ${n}`}
                                       />
                                     </div>
@@ -755,16 +846,16 @@ export default function BulkUploadQuestion({
                                 </div>
                               ) : (
                                 <div className="min-w-0">
-                                  <p className="font-medium text-[#2F2A3A] text-sm leading-relaxed line-clamp-2">
+                                  <p className="line-clamp-2 text-[15px] font-semibold leading-6 text-[#2F2A3A]">
                                     {row.question_text}
                                   </p>
-                                  <div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-0.5">
+                                  <div className="mt-2 grid grid-cols-2 gap-x-5 gap-y-1.5">
                                     {[row.choice_1, row.choice_2, row.choice_3, row.choice_4].map((c, ci) => (
                                       <span
                                         key={ci}
-                                        className={`text-xs leading-relaxed truncate ${
+                                        className={`truncate text-sm leading-6 ${
                                           row.correct_choice === ci + 1
-                                            ? "text-emerald-700 font-semibold"
+                                            ? "font-semibold text-emerald-700"
                                             : "text-[#7A7287]"
                                         }`}
                                       >
@@ -777,35 +868,35 @@ export default function BulkUploadQuestion({
                             </td>
 
                             {/* Correct choice */}
-                            <td className="px-3 py-2.5 text-center">
+                            <td className="px-5 py-3.5 text-center">
                               {isEditing ? (
                                 <select
                                   value={editForm.correct}
                                   onChange={(e) =>
                                     setEditForm({ ...editForm, correct: parseInt(e.target.value) })
                                   }
-                                  className="rounded-lg bg-white px-2 py-1.5 text-sm ring-1 ring-[#E7DDF8] focus:ring-2 focus:ring-[#B7A3E3] outline-none"
+                                  className="rounded-lg border border-[#B7A3E3] bg-white px-2.5 py-2.5 font-sans text-sm outline-none focus:ring-2 focus:ring-purple-300"
                                 >
                                   {[1, 2, 3, 4].map((n) => (
                                     <option key={n} value={n}>{n}</option>
                                   ))}
                                 </select>
                               ) : (
-                                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700">
+                                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700">
                                   {row.correct_choice}
                                 </span>
                               )}
                             </td>
 
                             {/* Difficulty */}
-                            <td className="px-3 py-2.5">
+                            <td className="px-5 py-3.5">
                               {isEditing ? (
                                 <select
                                   value={editForm.difficulty}
                                   onChange={(e) =>
                                     setEditForm({ ...editForm, difficulty: e.target.value })
                                   }
-                                  className="w-full rounded-lg bg-white px-1.5 py-1 text-xs ring-1 ring-[#E7DDF8] focus:ring-2 focus:ring-[#B7A3E3] outline-none"
+                                  className="w-full rounded-lg border border-[#B7A3E3] bg-white px-2.5 py-2.5 font-sans text-sm outline-none focus:ring-2 focus:ring-purple-300"
                                 >
                                   {DIFFICULTY_LABELS.map((d) => (
                                     <option key={d} value={d}>{d}</option>
@@ -813,7 +904,7 @@ export default function BulkUploadQuestion({
                                 </select>
                               ) : (
                                 <span
-                                  className={`inline-block rounded-full px-2.5 py-1 text-sm font-semibold ${
+                                  className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${
                                     row.difficulty === "ง่าย"
                                       ? "bg-emerald-100 text-emerald-700"
                                       : row.difficulty === "กลาง"
@@ -827,60 +918,60 @@ export default function BulkUploadQuestion({
                             </td>
 
                             {/* Knowledge categories */}
-                            <td className="px-3 py-2.5">
+                            <td className="px-5 py-3.5">
                               {isEditing ? (
                                 <input
                                   value={editForm.knowledge_categories}
                                   onChange={(e) =>
                                     setEditForm({ ...editForm, knowledge_categories: e.target.value })
                                   }
-                                  className="w-full rounded-lg bg-white px-2 py-1 text-xs ring-1 ring-[#E7DDF8] focus:ring-2 focus:ring-[#B7A3E3] outline-none"
+                                  className="w-full rounded-lg border border-[#B7A3E3] bg-white px-3 py-2.5 font-sans text-sm outline-none focus:ring-2 focus:ring-purple-300"
                                   placeholder="คั่นด้วย ,"
                                 />
                               ) : (
-                                <p className="max-w-[160px] truncate text-sm text-[#514667]">
+                                <p className="line-clamp-2 max-w-[250px] text-sm leading-6 text-[#514667]" title={row.knowledge_categories}>
                                   {row.knowledge_categories || "-"}
                                 </p>
                               )}
                             </td>
 
                             {/* Status */}
-                            <td className="px-3 py-2.5 text-center">
+                            <td className="px-5 py-3.5 text-center">
                               <span
-                                className={`inline-block rounded-full px-2.5 py-1 text-xs font-semibold ${
+                                className={`inline-flex min-w-[112px] justify-center rounded-full px-3.5 py-1 text-sm font-medium ${
                                   STATUS_MAP[row.status].className
                                 }`}
                               >
                                 {STATUS_MAP[row.status].label}
                               </span>
-                              {row.note && (
-                                <p className="mt-1 max-w-[150px] truncate text-xs leading-tight text-red-500">
+                              {row.status === "ERROR" && row.note && (
+                                <p className="mx-auto mt-1.5 line-clamp-2 max-w-[240px] text-sm font-medium leading-6 text-red-500" title={row.note}>
                                   {row.note}
                                 </p>
                               )}
                             </td>
 
                             {/* Actions */}
-                            <td className="px-3 py-2.5">
-                              <div className="flex items-center justify-center gap-1">
+                            <td className="px-5 py-3.5">
+                              <div className="flex items-center justify-center gap-2">
                                 {isEditing ? (
                                   <>
                                     <button
                                       type="button"
                                       onClick={handleSaveEdit}
                                       disabled={isLoading}
-                                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition-colors cursor-pointer"
+                                      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-green-600 transition-colors hover:bg-green-50"
                                       title="บันทึก"
                                     >
-                                      <Save size={14} />
+                                      <Save size={17} />
                                     </button>
                                     <button
                                       type="button"
                                       onClick={handleCancelEdit}
-                                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors cursor-pointer"
+                                      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-600"
                                       title="ยกเลิก"
                                     >
-                                      <X size={14} />
+                                      <X size={17} />
                                     </button>
                                   </>
                                 ) : (
@@ -888,18 +979,18 @@ export default function BulkUploadQuestion({
                                     <button
                                       type="button"
                                       onClick={() => handleStartEdit(row)}
-                                      className="flex h-8 w-8 items-center justify-center rounded-lg text-[#7C5BD9] hover:bg-[#F4EFFF] transition-colors cursor-pointer"
+                                      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-[#B7A3E3] transition-colors hover:bg-purple-50 hover:text-[#7C5BD9]"
                                       title="แก้ไข"
                                     >
-                                      <Edit2 size={14} />
+                                      <Edit2 size={17} />
                                     </button>
                                     <button
                                       type="button"
                                       onClick={() => handleDelete(row.row_index)}
-                                      className="flex h-8 w-8 items-center justify-center rounded-lg text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                                      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-gray-300 transition-colors hover:bg-red-50 hover:text-red-500"
                                       title="ลบ"
                                     >
-                                      <Trash2 size={14} />
+                                      <Trash2 size={17} />
                                     </button>
                                   </>
                                 )}
@@ -924,24 +1015,8 @@ export default function BulkUploadQuestion({
             </div>
 
             {/* Footer */}
-            <div className="flex-shrink-0 border-t border-[#E7DDF8] bg-[#FAF8FF] px-5 py-3.5 sm:px-6">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-3 text-xs text-[#7A7287]">
-                  <span className="flex items-center gap-1">
-                    <FileText size={14} />
-                    พร้อมนำเข้า {readyCount} / {counts.all} รายการ
-                  </span>
-                  {errorCount > 0 && (
-                    <button
-                      type="button"
-                      onClick={handleExportIssueRows}
-                      className="flex items-center gap-1 font-semibold text-[#7C5BD9] hover:underline cursor-pointer"
-                    >
-                      <Download size={13} />
-                      ดาวน์โหลดรายการผิดพลาด ({errorCount})
-                    </button>
-                  )}
-                </div>
+            <div className="flex-shrink-0 border-t border-[#EFE8FB] px-6 py-4">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2.5">
                   <button
                     type="button"
@@ -954,28 +1029,36 @@ export default function BulkUploadQuestion({
                       setEditingRowIndex(null);
                       setSelectedFileName(null);
                     }}
-                    className="rounded-xl border border-[#D9CCF2] bg-white px-4 py-2 text-sm font-semibold text-[#514667] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
+                    className="h-11 min-w-28 cursor-pointer rounded-xl border border-[#D9CCF2] bg-white px-6 text-sm font-medium text-[#514667] transition-colors hover:bg-[#F4EFFF]"
                   >
                     ย้อนกลับ
                   </button>
                   <button
                     type="button"
+                    onClick={handleClose}
+                    className="h-11 min-w-28 cursor-pointer rounded-xl border border-[#B7A3E3] px-6 text-sm font-medium text-[#7C5BD9] transition-colors hover:bg-purple-50"
+                  >
+                    ยกเลิก
+                  </button>
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  {editingRowIndex !== null ? (
+                    <p className="text-sm text-amber-600">บันทึกหรือยกเลิกการแก้ไขแถวก่อนยืนยัน</p>
+                  ) : readyCount === 0 ? (
+                    <p className="text-sm text-[#7A7287]">ไม่มีรายการที่พร้อมนำเข้า</p>
+                  ) : (
+                    <p className="text-sm text-[#514667]">
+                      พร้อมนำเข้า <span className="font-semibold text-[#7C5BD9]">{readyCount}</span> รายการ
+                    </p>
+                  )}
+                  <button
+                    type="button"
                     onClick={handleConfirm}
                     disabled={!canConfirm}
-                    className={`rounded-xl px-5 py-2 text-sm font-semibold text-white shadow-sm transition-colors ${
-                      canConfirm
-                        ? "bg-[#B7A3E3] hover:bg-[#A48FD6] cursor-pointer"
-                        : "bg-[#B7A3E3] opacity-50 cursor-not-allowed"
-                    }`}
+                    className="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#7C5BD9] px-6 text-sm font-medium text-white transition-all hover:bg-[#6A4BC5] disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    {isLoading ? (
-                      <span className="flex items-center gap-2">
-                        <Loader2 size={14} className="animate-spin" />
-                        กำลังนำเข้า...
-                      </span>
-                    ) : (
-                      `ยืนยันการนำเข้า ${readyCount} รายการ`
-                    )}
+                    {isLoading && <Loader2 size={16} className="animate-spin" />}
+                    ยืนยันการนำเข้า
                   </button>
                 </div>
               </div>
@@ -986,46 +1069,70 @@ export default function BulkUploadQuestion({
         {/* ═══ STEP 3 — RESULT ═══ */}
         {step === "result" && confirmResults && (
           <>
-            <div className="flex-shrink-0 px-5 pt-4 sm:px-6">
-              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-                <div className="rounded-xl border border-[#E7DDF8] bg-white p-3">
-                  <p className="text-2xl font-bold text-[#2F2A3A]">{confirmResults.summary.total}</p>
-                  <p className="text-xs font-medium text-[#7A7287]">ทั้งหมด</p>
-                </div>
-                <div className="rounded-xl border border-green-200 bg-green-50 p-3">
-                  <p className="text-2xl font-bold text-green-700">{confirmResults.summary.imported}</p>
-                  <p className="text-xs font-medium text-green-600">นำเข้าสำเร็จ</p>
-                </div>
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-                  <p className="text-2xl font-bold text-amber-700">{confirmResults.summary.skipped}</p>
-                  <p className="text-xs font-medium text-amber-600">ข้าม</p>
-                </div>
-                <div className="rounded-xl border border-red-200 bg-red-50 p-3">
-                  <p className="text-2xl font-bold text-red-600">{confirmResults.summary.failed}</p>
-                  <p className="text-xs font-medium text-red-500">ล้มเหลว</p>
-                </div>
-              </div>
-            </div>
-
             <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6">
-              <div className="overflow-hidden rounded-xl border border-[#E7DDF8]">
-                <table className="w-full text-left text-base">
+              <div className="grid gap-4 sm:grid-cols-4">
+                {[
+                  { icon: FileText, count: confirmResults.summary.total, label: "ทั้งหมด", color: "text-[#7C5BD9] border-[#E7DDF8] bg-[#F7F3FF]" },
+                  { icon: CheckCircle2, count: confirmResults.summary.imported, label: "นำเข้าสำเร็จ", color: "text-green-600 border-green-200 bg-green-50" },
+                  { icon: AlertTriangle, count: confirmResults.summary.skipped, label: "ข้าม", color: "text-amber-600 border-amber-200 bg-amber-50" },
+                  { icon: XCircle, count: confirmResults.summary.failed, label: "ผิดพลาด", color: "text-red-600 border-red-200 bg-red-50" },
+                ].map((card, i) => (
+                  <div key={i} className={`flex items-center gap-4 rounded-2xl border px-5 py-4 ${card.color}`}>
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/70">
+                      <card.icon size={21} />
+                    </span>
+                    <div className="min-w-0">
+                      <span className="block text-2xl font-semibold leading-none tabular-nums">{card.count}</span>
+                      <span className="mt-1.5 block text-sm font-semibold leading-5">{card.label}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-[#E7DDF8] bg-[#FAF8FF] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-base font-semibold text-[#2F2A3A]">
+                    รายการทั้งหมด {confirmResults.summary.total} รายการ
+                  </p>
+                  <p className="mt-1 text-sm leading-6 text-[#7A7287]">
+                    ตรวจสอบรายการที่ข้ามหรือผิดพลาดก่อนปิดหน้าต่าง
+                  </p>
+                </div>
+                {resultIssueCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleExportResultIssues}
+                    className="inline-flex h-11 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-100"
+                  >
+                    <Download size={16} />
+                    Export รายการไม่สำเร็จ
+                  </button>
+                )}
+              </div>
+
+              <div className="mt-4 overflow-auto rounded-2xl bg-white ring-1 ring-[#E7DDF8]">
+                <table className="min-w-[1720px] w-full text-left font-sans text-[15px]">
                   <thead>
-                    <tr className="bg-[#B7A3E3] text-white">
-                      <th className="px-3 py-3 w-14 text-center">#</th>
-                      <th className="px-3 py-3">คำถาม</th>
-                      <th className="px-3 py-3 w-28 text-center">สถานะ</th>
-                      <th className="px-3 py-3">หมายเหตุ</th>
+                    <tr className="bg-[#F7F3FF] text-sm font-semibold leading-6 text-[#5B4A73]">
+                      <th className="w-[72px] px-5 py-3.5 text-center">#</th>
+                      <th className="w-[560px] px-5 py-3.5 text-left">คำถาม</th>
+                      <th className="w-[420px] px-5 py-3.5 text-left">ตัวเลือก</th>
+                      <th className="w-[92px] px-5 py-3.5 text-center">ตอบ</th>
+                      <th className="w-[120px] px-5 py-3.5 text-center">ความยาก</th>
+                      <th className="w-[280px] px-5 py-3.5 text-left">หมวดหมู่</th>
+                      <th className="w-[220px] px-5 py-3.5 text-center">สถานะ</th>
+                      <th className="w-[290px] px-5 py-3.5 text-left">หมายเหตุ</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#EFE8FB]">
                     {confirmResults.results.map((r, i) => {
+                      const previewRow = rows.find((row) => row.row_index === r.row_index);
                       const statusStyle =
                         r.status === "imported"
-                          ? "bg-green-50 text-green-700"
+                          ? "bg-green-50 text-green-700 ring-green-200"
                           : r.status === "skipped"
-                            ? "bg-amber-50 text-amber-700"
-                            : "bg-red-50 text-red-600";
+                            ? "bg-amber-50 text-amber-700 ring-amber-200"
+                            : "bg-red-50 text-red-600 ring-red-200";
                       const statusLabel =
                         r.status === "imported"
                           ? "สำเร็จ"
@@ -1033,24 +1140,63 @@ export default function BulkUploadQuestion({
                             ? "ข้าม"
                             : "ล้มเหลว";
                       return (
-                        <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}>
-                          <td className="px-3 py-2.5 text-center text-sm text-[#7A7287]">
+                        <tr key={i} className={`${i % 2 === 0 ? "bg-white" : "bg-gray-50/50"} transition-colors hover:bg-[#FAF8FF]`}>
+                          <td className="px-5 py-3.5 text-center text-sm text-[#7A7287]">
                             {r.row_index + 1}
                           </td>
-                          <td className="px-3 py-2.5">
-                            <p className="max-w-sm truncate text-sm font-medium text-[#2F2A3A]">
+                          <td className="px-5 py-3.5">
+                            <p className="max-w-[540px] truncate text-[15px] font-medium leading-6 text-[#2F2A3A]" title={r.question_text}>
                               {r.question_text}
                             </p>
                           </td>
-                          <td className="px-3 py-2.5 text-center">
+                          <td className="px-5 py-3.5 text-sm leading-6 text-[#514667]">
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                              {[
+                                previewRow?.choice_1,
+                                previewRow?.choice_2,
+                                previewRow?.choice_3,
+                                previewRow?.choice_4,
+                              ].map((choice, choiceIndex) => (
+                                <span
+                                  key={choiceIndex}
+                                  className={`truncate ${previewRow?.correct_choice === choiceIndex + 1 ? "font-semibold text-emerald-700" : ""}`}
+                                  title={choice}
+                                >
+                                  {choiceIndex + 1}. {choice || "-"}
+                                </span>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-5 py-3.5 text-center">
+                            {previewRow?.correct_choice ? (
+                              <span className="inline-flex h-9 min-w-9 items-center justify-center rounded-full bg-emerald-100 px-3 text-sm font-semibold text-emerald-700">
+                                {previewRow.correct_choice}
+                              </span>
+                            ) : (
+                              <span className="text-[#7A7287]">-</span>
+                            )}
+                          </td>
+                          <td className="px-5 py-3.5 text-center">
+                            <span className="inline-flex min-w-[72px] justify-center rounded-full bg-[#F4EFFF] px-3.5 py-1 text-sm font-medium text-[#6A4BC5]">
+                              {previewRow?.difficulty || "-"}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3.5 text-sm leading-6 text-[#514667]">
+                            <p className="line-clamp-2 max-w-[260px]" title={previewRow?.knowledge_categories}>
+                              {previewRow?.knowledge_categories || "-"}
+                            </p>
+                          </td>
+                          <td className="px-5 py-3.5 text-center">
                             <span
-                              className={`inline-block rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${statusStyle}`}
+                              className={`inline-flex min-w-[112px] justify-center rounded-full px-3.5 py-1 text-sm font-medium ring-1 ${statusStyle}`}
                             >
                               {statusLabel}
                             </span>
                           </td>
-                          <td className="px-3 py-2.5 text-sm text-[#7A7287]">
-                            {r.note || "-"}
+                          <td className="px-5 py-3.5 text-sm leading-6 text-[#7A7287]">
+                            <p className="line-clamp-2 max-w-[280px]" title={r.note}>
+                              {r.note || "-"}
+                            </p>
                           </td>
                         </tr>
                       );
@@ -1060,32 +1206,14 @@ export default function BulkUploadQuestion({
               </div>
             </div>
 
-            <div className="flex-shrink-0 border-t border-[#E7DDF8] bg-[#FAF8FF] px-5 py-3.5 sm:px-6">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-3 text-xs text-[#7A7287]">
-                  <span className="flex items-center gap-1">
-                    <CheckCircle2 size={14} className="text-green-600" />
-                    นำเข้าสำเร็จ {confirmResults.summary.imported} / {confirmResults.summary.total} รายการ
-                  </span>
-                  {resultIssueCount > 0 && (
-                    <button
-                      type="button"
-                      onClick={handleExportResultIssues}
-                      className="flex items-center gap-1 font-semibold text-[#7C5BD9] hover:underline cursor-pointer"
-                    >
-                      <Download size={13} />
-                      ดาวน์โหลดรายการผิดพลาด ({resultIssueCount})
-                    </button>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  className="rounded-xl bg-[#B7A3E3] px-5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#A48FD6] cursor-pointer"
-                >
-                  ปิด
-                </button>
-              </div>
+            <div className="flex flex-shrink-0 justify-center border-t border-[#EFE8FB] px-6 py-4">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="h-11 min-w-36 cursor-pointer rounded-xl bg-[#7C5BD9] px-8 text-sm font-medium text-white transition-colors hover:bg-[#6A4BC5]"
+              >
+                ปิด
+              </button>
             </div>
           </>
         )}

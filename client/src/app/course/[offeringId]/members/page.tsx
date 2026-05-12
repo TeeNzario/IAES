@@ -41,6 +41,12 @@ const LAST_NAME_MAX_LENGTH = FIELD_LIMITS.lastName;
 const EMAIL_REGEX = /^[^\s@]+@mail\.wu\.ac\.th$/;
 const NAME_REGEX = /^[ก-๙\s]+$/;
 
+function formatCurriculumDisplay(curriculumId: string | null | undefined) {
+  return getCurriculumName(
+    curriculumId,
+    curriculumId ? `ไม่รู้จัก (${curriculumId})` : "-",
+  );
+}
 
 // ============================================================
 // VALIDATION ERROR MESSAGES (Thai)
@@ -765,13 +771,13 @@ const isStudent =
                         <span className="mt-0.5 truncate text-xs text-[#7A7287] md:hidden">
                           {getFacultyName(student.facultyCode ?? 1)}
                           {" · "}
-                          {getCurriculumName(student.curriculumId)}
+                          {formatCurriculumDisplay(student.curriculumId)}
                         </span>
                         <span className="hidden min-w-0 text-sm font-normal text-[#514667] wrap-break-word md:block">
                           {getFacultyName(student.facultyCode ?? 1)}
                         </span>
                         <span className="hidden min-w-0 text-sm font-normal text-[#514667] wrap-break-word md:block">
-                          {getCurriculumName(student.curriculumId)}
+                          {formatCurriculumDisplay(student.curriculumId)}
                         </span>
                       </div>
                       {/* Delete button - visible on hover */}
