@@ -1134,9 +1134,9 @@ export default function BulkUploadModal({
                               </span>
                             )}
                           </td>
-                          <td className="px-5 py-3.5 text-sm leading-6 text-[#7A7287]">
-                            <p className="line-clamp-2 max-w-[280px]" title={r.note}>
-                              {r.note || "-"}
+                          <td className="px-5 py-3.5 text-sm leading-6 text-[#7A7287]" title={r.status === "enrolled" || r.status === "already_enrolled" ? undefined : (previewRow?.note || r.note)}>
+                            <p className="line-clamp-2 max-w-[280px]">
+                              {r.status === "enrolled" || r.status === "already_enrolled" ? "-" : (previewRow?.note || r.note || "-")}
                             </p>
                           </td>
                         </tr>

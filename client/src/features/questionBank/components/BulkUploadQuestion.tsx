@@ -790,19 +790,20 @@ export default function BulkUploadQuestion({
                 <table className="w-full text-left font-sans text-[15px]">
                   <thead className="sticky top-0 z-10">
                     <tr className="bg-[#F7F3FF] text-sm font-semibold leading-6 text-[#5B4A73]">
-                      <th className="w-[72px] px-5 py-3.5 text-center">#</th>
-                      <th className="w-[700px] px-5 py-3.5 text-left">คำถาม</th>
-                      <th className="w-[104px] px-5 py-3.5 text-center">ตอบ</th>
-                      <th className="w-[164px] px-5 py-3.5 text-left">ความยาก</th>
-                      <th className="w-[300px] px-5 py-3.5 text-left">หมวดหมู่</th>
-                      <th className="w-[270px] px-5 py-3.5 text-center">สถานะ</th>
-                      <th className="w-[140px] px-5 py-3.5 text-center">จัดการ</th>
+                      <th className="w-[60px] px-5 py-3.5 text-center">#</th>
+                      <th className="w-[520px] px-5 py-3.5 text-left">คำถาม</th>
+                      <th className="w-[80px] px-5 py-3.5 text-center">ตอบ</th>
+                      <th className="w-[120px] px-5 py-3.5 text-left">ความยาก</th>
+                      <th className="w-[240px] px-5 py-3.5 text-left">หมวดหมู่</th>
+                      <th className="w-[180px] px-5 py-3.5 text-center">สถานะ</th>
+                      <th className="w-[260px] px-5 py-3.5 text-left">หมายเหตุ</th>
+                      <th className="w-[120px] px-5 py-3.5 text-center">จัดการ</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#EFE8FB]">
                     {filteredRows.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="py-12 text-center text-sm text-[#7A7287]">
+                        <td colSpan={8} className="py-12 text-center text-sm text-[#7A7287]">
                           ไม่พบรายการในกลุ่มนี้
                         </td>
                       </tr>
@@ -944,11 +945,13 @@ export default function BulkUploadQuestion({
                               >
                                 {STATUS_MAP[row.status].label}
                               </span>
-                              {row.status === "ERROR" && row.note && (
-                                <p className="mx-auto mt-1.5 line-clamp-2 max-w-[240px] text-sm font-medium leading-6 text-red-500" title={row.note}>
-                                  {row.note}
-                                </p>
-                              )}
+                            </td>
+
+                            {/* Note */}
+                            <td className="px-5 py-3.5 text-sm leading-6 text-[#7A7287]" title={row.status === "NEW" ? undefined : row.note}>
+                              <p className="line-clamp-2 max-w-[240px]">
+                                {row.status === "NEW" ? "-" : row.note || "-"}
+                              </p>
                             </td>
 
                             {/* Actions */}
@@ -1111,17 +1114,16 @@ export default function BulkUploadQuestion({
               </div>
 
               <div className="mt-4 overflow-auto rounded-2xl bg-white ring-1 ring-[#E7DDF8]">
-                <table className="min-w-[1720px] w-full text-left font-sans text-[15px]">
+                <table className="min-w-[1480px] w-full text-left font-sans text-[15px]">
                   <thead>
                     <tr className="bg-[#F7F3FF] text-sm font-semibold leading-6 text-[#5B4A73]">
-                      <th className="w-[72px] px-5 py-3.5 text-center">#</th>
-                      <th className="w-[560px] px-5 py-3.5 text-left">คำถาม</th>
-                      <th className="w-[420px] px-5 py-3.5 text-left">ตัวเลือก</th>
-                      <th className="w-[92px] px-5 py-3.5 text-center">ตอบ</th>
+                      <th className="w-[60px] px-5 py-3.5 text-center">#</th>
+                      <th className="w-[520px] px-5 py-3.5 text-left">คำถาม</th>
+                      <th className="w-[80px] px-5 py-3.5 text-center">ตอบ</th>
                       <th className="w-[120px] px-5 py-3.5 text-center">ความยาก</th>
-                      <th className="w-[280px] px-5 py-3.5 text-left">หมวดหมู่</th>
-                      <th className="w-[220px] px-5 py-3.5 text-center">สถานะ</th>
-                      <th className="w-[290px] px-5 py-3.5 text-left">หมายเหตุ</th>
+                      <th className="w-[240px] px-5 py-3.5 text-left">หมวดหมู่</th>
+                      <th className="w-[180px] px-5 py-3.5 text-center">สถานะ</th>
+                      <th className="w-[260px] px-5 py-3.5 text-left">หมายเหตุ</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#EFE8FB]">
@@ -1139,33 +1141,20 @@ export default function BulkUploadQuestion({
                           : r.status === "skipped"
                             ? "ข้าม"
                             : "ล้มเหลว";
+                      const resultNote =
+                        r.status === "imported"
+                          ? "-"
+                          : (previewRow?.note || r.note || "-");
+
                       return (
                         <tr key={i} className={`${i % 2 === 0 ? "bg-white" : "bg-gray-50/50"} transition-colors hover:bg-[#FAF8FF]`}>
                           <td className="px-5 py-3.5 text-center text-sm text-[#7A7287]">
                             {r.row_index + 1}
                           </td>
                           <td className="px-5 py-3.5">
-                            <p className="max-w-[540px] truncate text-[15px] font-medium leading-6 text-[#2F2A3A]" title={r.question_text}>
+                            <p className="max-w-[500px] truncate text-[15px] font-medium leading-6 text-[#2F2A3A]" title={r.question_text}>
                               {r.question_text}
                             </p>
-                          </td>
-                          <td className="px-5 py-3.5 text-sm leading-6 text-[#514667]">
-                            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                              {[
-                                previewRow?.choice_1,
-                                previewRow?.choice_2,
-                                previewRow?.choice_3,
-                                previewRow?.choice_4,
-                              ].map((choice, choiceIndex) => (
-                                <span
-                                  key={choiceIndex}
-                                  className={`truncate ${previewRow?.correct_choice === choiceIndex + 1 ? "font-semibold text-emerald-700" : ""}`}
-                                  title={choice}
-                                >
-                                  {choiceIndex + 1}. {choice || "-"}
-                                </span>
-                              ))}
-                            </div>
                           </td>
                           <td className="px-5 py-3.5 text-center">
                             {previewRow?.correct_choice ? (
@@ -1182,7 +1171,7 @@ export default function BulkUploadQuestion({
                             </span>
                           </td>
                           <td className="px-5 py-3.5 text-sm leading-6 text-[#514667]">
-                            <p className="line-clamp-2 max-w-[260px]" title={previewRow?.knowledge_categories}>
+                            <p className="line-clamp-2 max-w-[220px]" title={previewRow?.knowledge_categories}>
                               {previewRow?.knowledge_categories || "-"}
                             </p>
                           </td>
@@ -1193,9 +1182,9 @@ export default function BulkUploadQuestion({
                               {statusLabel}
                             </span>
                           </td>
-                          <td className="px-5 py-3.5 text-sm leading-6 text-[#7A7287]">
-                            <p className="line-clamp-2 max-w-[280px]" title={r.note}>
-                              {r.note || "-"}
+                          <td className="px-5 py-3.5 text-sm leading-6 text-[#7A7287]" title={r.status === "imported" ? undefined : resultNote}>
+                            <p className="line-clamp-2 max-w-[240px]">
+                              {resultNote}
                             </p>
                           </td>
                         </tr>
