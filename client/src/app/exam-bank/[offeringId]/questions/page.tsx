@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronLeft,
+  ChevronRight,
   Eye,
   Filter,
   Inbox,
@@ -19,7 +20,6 @@ import {
 import Navbar from "@/components/layout/NavBar";
 import { apiFetch } from "@/lib/api";
 import KnowledgeCategoriesCell from "@/components/course/KnowledgeCategoriesCell";
-import Pagination from "@/components/questionBank/Pagination";
 import { difficultyLabel, Question } from "@/components/questionBank/types";
 import QuestionEditorCard, {
   DraftQuestion,
@@ -42,7 +42,7 @@ interface ListResponse {
   };
 }
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE_OPTIONS = [25, 50, 100, 200];
 type DifficultyFilter = "" | "easy" | "medium" | "hard";
 
 export default function FlatQuestionBankPage() {
@@ -52,6 +52,8 @@ export default function FlatQuestionBankPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [tags, setTags] = useState<KnowledgeTag[]>([]);
   const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(25);
+  const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -73,7 +75,10 @@ export default function FlatQuestionBankPage() {
     return () => clearTimeout(t);
   }, [search]);
 
-  useEffect(() => setPage(1), [debouncedSearch, categoryFilter, difficultyFilter]);
+  useEffect(
+    () => setPage(1),
+    [debouncedSearch, categoryFilter, difficultyFilter, itemsPerPage],
+  );
 
   const loadTags = useCallback(async () => {
     if (!offeringId) return;
@@ -94,7 +99,7 @@ export default function FlatQuestionBankPage() {
     try {
       const params = new URLSearchParams({
         page: String(page),
-        limit: String(PAGE_SIZE),
+        limit: String(itemsPerPage),
       });
       if (debouncedSearch) params.set("search", debouncedSearch);
       if (categoryFilter.length > 0)
@@ -104,6 +109,7 @@ export default function FlatQuestionBankPage() {
         `/course-offerings/${offeringId}/question-bank/questions?${params}`,
       );
       setQuestions(data.data);
+      setTotalItems(data.pagination.total);
       setTotalPages(Math.max(1, data.pagination.totalPages));
     } catch (err: unknown) {
       const msg =
@@ -113,7 +119,14 @@ export default function FlatQuestionBankPage() {
     } finally {
       setLoading(false);
     }
-  }, [offeringId, page, debouncedSearch, categoryFilter, difficultyFilter]);
+  }, [
+    offeringId,
+    page,
+    itemsPerPage,
+    debouncedSearch,
+    categoryFilter,
+    difficultyFilter,
+  ]);
 
   useEffect(() => {
     loadTags();
@@ -180,7 +193,12 @@ export default function FlatQuestionBankPage() {
     }
   };
 
-  const startIndex = useMemo(() => (page - 1) * PAGE_SIZE, [page]);
+  const startIndex = useMemo(
+    () => (page - 1) * itemsPerPage,
+    [page, itemsPerPage],
+  );
+  const firstVisibleItem = totalItems === 0 ? 0 : startIndex + 1;
+  const lastVisibleItem = Math.min(startIndex + questions.length, totalItems);
 
   const selectedCategoryNames = useMemo(() => {
     const selectedIds = new Set(categoryFilter);
@@ -438,9 +456,36 @@ export default function FlatQuestionBankPage() {
             </div>
           </div>
 
+          {totalItems > 0 && (
+            <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <span className="inline-flex h-10 w-fit items-center rounded-xl bg-white px-4 text-sm font-medium text-[#514667] shadow-sm ring-1 ring-[#E7DDF8]">
+                แสดง {firstVisibleItem}–{lastVisibleItem} จาก {totalItems}
+              </span>
+
+              <label className="relative block w-full sm:w-44">
+                <span className="sr-only">จำนวนแถวต่อหน้า</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                  className="h-10 w-full appearance-none rounded-xl bg-white px-4 pr-10 text-sm font-medium text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3] cursor-pointer"
+                >
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <option key={size} value={size}>
+                      แสดง {size} แถว
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  size={17}
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#7A7287]"
+                />
+              </label>
+            </div>
+          )}
+
           {/* Table */}
           <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-[#E7DDF8]">
-            <div className="grid grid-cols-[60px_1fr_200px_140px_132px] items-center bg-[#B7A3E3] px-6 py-4 text-base font-semibold text-white [&>div:nth-child(3)]:text-center [&>div:nth-child(4)]:text-center">
+            <div className="grid grid-cols-[60px_1fr_200px_140px_132px] items-center bg-[#B7A3E3] px-6 py-4 text-[15px] font-semibold text-white [&>div:nth-child(3)]:text-center [&>div:nth-child(4)]:text-center">
               <div>ลำดับ</div>
               <div>คำถาม</div>
               <div>หมวดหมู่ความรู้</div>
@@ -463,7 +508,7 @@ export default function FlatQuestionBankPage() {
                   const isEditOpen = isOpen && expanded?.mode === "edit";
                   return (
                     <li key={q.question_id}>
-                      <div className="grid grid-cols-[60px_1fr_200px_140px_132px] items-center px-6 py-4 text-[15px] font-normal text-[#514667] hover:bg-[#FAF8FF]">
+                      <div className="grid grid-cols-[60px_1fr_200px_140px_132px] items-center px-6 py-4 text-[15px] font-medium text-[#514667] hover:bg-[#FAF8FF]">
                         <div>{startIndex + idx + 1}</div>
                         <div className="truncate pr-3 font-semibold text-[#2F2A3A]">{q.question_text}</div>
                         <div className="flex justify-center">
@@ -473,7 +518,7 @@ export default function FlatQuestionBankPage() {
                         </div>
                         <div className="text-center">
                           <span
-                            className={`inline-block rounded-full px-3.5 py-1 text-sm font-semibold ${diff.className}`}
+                            className={`inline-block rounded-full px-3.5 py-1 text-[15px] font-semibold ${diff.className}`}
                           >
                             {diff.label}
                           </span>
@@ -555,13 +600,37 @@ export default function FlatQuestionBankPage() {
             )}
           </div>
 
-          <div className="mt-4 flex justify-end">
-            <Pagination
-              page={page}
-              totalPages={totalPages}
-              onChange={setPage}
-            />
-          </div>
+          {totalItems > 0 && (
+            <div className="mt-4 flex justify-end">
+              <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E5E7EB] text-[#8F98A8] shadow-sm transition-colors hover:bg-[#DDE1E7] disabled:cursor-not-allowed disabled:opacity-80"
+                    aria-label="หน้าก่อนหน้า"
+                    title="หน้าก่อนหน้า"
+                  >
+                    <ChevronLeft size={18} strokeWidth={2.4} />
+                  </button>
+                  <span className="flex h-9 min-w-9 items-center justify-center rounded-lg bg-[#B7A3E3] px-3 text-sm font-semibold text-white shadow-sm">
+                    {page}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPage((p) => Math.min(totalPages, p + 1))
+                    }
+                    disabled={page === totalPages}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E5E7EB] text-[#8F98A8] shadow-sm transition-colors hover:bg-[#DDE1E7] disabled:cursor-not-allowed disabled:opacity-80"
+                    aria-label="หน้าถัดไป"
+                    title="หน้าถัดไป"
+                  >
+                    <ChevronRight size={18} strokeWidth={2.4} />
+                  </button>
+              </div>
+            </div>
+          )}
         </main>
       </div>
       <BulkUploadQuestion
