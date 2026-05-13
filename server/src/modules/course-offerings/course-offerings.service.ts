@@ -170,6 +170,7 @@ export class CourseOfferingsService {
             },
             academic_year: dto.academic_year,
             semester: dto.semester,
+            ...(dto.is_active !== undefined ? { is_active: dto.is_active } : {}),
           },
         });
 

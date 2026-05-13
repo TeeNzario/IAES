@@ -309,6 +309,7 @@ export default function EditCourseModal({
         method: "PATCH",
         data: {
           course_name_th: formData.course_name_th.trim(),
+          course_name_en: formData.course_name_en.trim(),
           course_code: formData.course_code.trim(),
         },
       });

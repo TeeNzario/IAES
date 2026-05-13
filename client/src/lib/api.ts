@@ -50,6 +50,7 @@ export async function apiFetch<T>(
       url: path,
       method: options?.method ?? "GET",
       data: options?.data,
+      params: options?.params,
       // Add timeout
       timeout: 10000,
     });

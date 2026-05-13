@@ -17,6 +17,7 @@ import {
   Trash2,
   Upload,
 } from "lucide-react";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 import Navbar from "@/components/layout/NavBar";
 import { apiFetch } from "@/lib/api";
 import KnowledgeCategoriesCell from "@/components/course/KnowledgeCategoriesCell";
@@ -69,6 +70,10 @@ export default function FlatQuestionBankPage() {
   >(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Delete confirm state
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 300);
@@ -177,19 +182,23 @@ export default function FlatQuestionBankPage() {
     loadQuestions();
   }, [loadQuestions]);
 
-  const handleDelete = async (questionId: string) => {
-    if (!confirm("ยืนยันการลบคำถามนี้?")) return;
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
       await apiFetch(
-        `/course-offerings/${offeringId}/question-bank/questions/${questionId}`,
+        `/course-offerings/${offeringId}/question-bank/questions/${deleteTarget}`,
         { method: "DELETE" },
       );
+      setDeleteTarget(null);
       loadQuestions();
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data
           ?.message ?? "ลบไม่สำเร็จ";
       alert(msg);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -569,7 +578,7 @@ export default function FlatQuestionBankPage() {
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleDelete(q.question_id)}
+                              onClick={() => setDeleteTarget(q.question_id)}
                               className="flex h-9 w-9 items-center justify-center rounded-lg text-red-500 transition-colors hover:bg-red-50 cursor-pointer"
                               title="ลบ"
                               aria-label="ลบ"
@@ -638,6 +647,20 @@ export default function FlatQuestionBankPage() {
         onClose={() => setShowUploadModal(false)}
         offeringId={offeringId}
         onSuccess={() => loadQuestions()}
+      />
+
+      <ConfirmModal
+        isOpen={deleteTarget !== null}
+        onClose={() => {
+          if (!deleting) setDeleteTarget(null);
+        }}
+        onConfirm={handleDelete}
+        title="ลบคำถาม"
+        message="คุณแน่ใจหรือไม่ว่าต้องการลบคำถามนี้?"
+        confirmText="ลบ"
+        cancelText="ยกเลิก"
+        isLoading={deleting}
+        variant="danger"
       />
     </Navbar>
   );

@@ -658,7 +658,7 @@ const isStudent =
                       className="flex items-center gap-3 px-5 py-3 md:grid md:grid-cols-[minmax(10rem,1fr)_minmax(12rem,1.35fr)_minmax(12rem,1.35fr)_2.25rem] md:items-start md:gap-4"
                     >
                       <div className="flex flex-col flex-1 min-w-0 md:contents">
-                        <span className="truncate text-sm font-normal text-[#2F2A3A] md:min-w-0 md:whitespace-normal md:text-clip md:wrap-break-word">
+                        <span className="truncate text-sm font-normal text-[#2F2A3A] md:min-w-0 md:overflow-visible md:whitespace-normal md:text-clip md:wrap-break-word">
                           {instructorName}
                         </span>
                         <span className="truncate text-xs text-[#7A7287] md:hidden">

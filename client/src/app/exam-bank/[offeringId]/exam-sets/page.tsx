@@ -12,9 +12,11 @@ import {
   Pencil,
   Plus,
   Search,
+  Trash2,
 } from "lucide-react";
 import NavBar from "@/components/layout/NavBar";
 import { apiFetch } from "@/lib/api";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 interface ExamListItem {
   course_exams_id: string;
@@ -61,13 +63,39 @@ export default function ExamSetsListPage() {
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [page, setPage] = useState(1);
 
-  useEffect(() => {
+  // Delete state
+  const [deleteTarget, setDeleteTarget] = useState<ExamListItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const fetchExams = () => {
     if (!offeringId) return;
+    setLoading(true);
     apiFetch<ExamListItem[]>(`/course-offerings/${offeringId}/exams`)
       .then(setExams)
       .catch(() => setExams([]))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchExams();
   }, [offeringId]);
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await apiFetch(
+        `/course-offerings/${offeringId}/exams/${deleteTarget.course_exams_id}`,
+        { method: "DELETE" },
+      );
+      setDeleteTarget(null);
+      fetchExams();
+    } catch {
+      // ignore
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const stats = useMemo(() => {
     const byStatus: Record<ExamListItem["status"], number> = {
@@ -242,8 +270,8 @@ export default function ExamSetsListPage() {
           ) : (
             <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-[#E7DDF8]">
               <div className="overflow-x-auto">
-                <div className="min-w-[760px]">
-                  <div className="grid grid-cols-[minmax(240px,1fr)_124px_108px_176px_84px] items-center bg-[#B7A3E3] px-5 py-4 text-[15px] font-semibold text-white [&>div:nth-child(n+2)]:text-center">
+                <div className="min-w-[860px]">
+                  <div className="grid grid-cols-[minmax(220px,1fr)_120px_100px_210px_100px] items-center bg-[#B7A3E3] px-5 py-4 text-[15px] font-semibold text-white [&>div:nth-child(n+2)]:text-center">
                     <div>ชื่อชุดข้อสอบ</div>
                     <div>สถานะ</div>
                     <div>จำนวนข้อ</div>
@@ -254,7 +282,7 @@ export default function ExamSetsListPage() {
                     {pageItems.map((e) => (
                       <li
                         key={e.course_exams_id}
-                        className="grid grid-cols-[minmax(240px,1fr)_124px_108px_176px_84px] items-center px-5 py-4 text-[15px] font-medium text-[#514667] hover:bg-[#FAF8FF]"
+                        className="grid grid-cols-[minmax(220px,1fr)_120px_100px_210px_100px] items-center px-5 py-4 text-[15px] font-medium text-[#514667] hover:bg-[#FAF8FF]"
                       >
                         <div className="min-w-0 pr-4">
                           <p className="truncate font-semibold text-[#2F2A3A]">
@@ -278,8 +306,9 @@ export default function ExamSetsListPage() {
                         <div className="text-center text-sm font-semibold text-[#514667]">
                           {e.question_count} ข้อ
                         </div>
-                        <div className="whitespace-nowrap text-center text-sm font-medium text-[#7A7287]">
-                          {formatThaiDate(e.start_time)} -{" "}
+                        <div className="text-center text-sm font-medium text-[#7A7287] leading-relaxed">
+                          {formatThaiDate(e.start_time)}
+                          <br />ถึง{" "}
                           {formatThaiDate(e.end_time)}
                         </div>
                         <div className="flex justify-center">
@@ -296,6 +325,15 @@ export default function ExamSetsListPage() {
                               title="แก้ไข"
                             >
                               <Pencil size={18} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeleteTarget(e)}
+                              className="flex h-9 w-9 items-center justify-center rounded-lg text-red-500 transition-colors hover:bg-red-50 cursor-pointer"
+                              aria-label="ลบ"
+                              title="ลบ"
+                            >
+                              <Trash2 size={18} />
                             </button>
                           </div>
                         </div>
@@ -337,6 +375,20 @@ export default function ExamSetsListPage() {
             </div>
           )}
         </main>
+
+        <ConfirmModal
+          isOpen={deleteTarget !== null}
+          onClose={() => {
+            if (!deleting) setDeleteTarget(null);
+          }}
+          onConfirm={handleDelete}
+          title="ลบชุดข้อสอบ"
+          message={`คุณแน่ใจหรือไม่ว่าต้องการลบชุดข้อสอบ "${deleteTarget?.title ?? ""}"?`}
+          confirmText="ลบ"
+          cancelText="ยกเลิก"
+          isLoading={deleting}
+          variant="danger"
+        />
       </div>
     </NavBar>
   );

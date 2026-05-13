@@ -143,6 +143,7 @@ export default function CourseOfferingModal({
           courses_id: String(courseId),
           academic_year: Number(academicYear),
           semester: Number(semester),
+          is_active: status === "เปิดใช้งาน",
           instructor_ids: instructorIds, // Backend prepends creator
         },
       });
