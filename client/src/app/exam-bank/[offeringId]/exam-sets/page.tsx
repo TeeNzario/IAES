@@ -209,7 +209,7 @@ export default function ExamSetsListPage() {
                 label={statusLabel.ENDED}
                 value={stats.byStatus.ENDED}
                 suffix="ชุด"
-                tone="gray"
+                tone="sky"
               />
             </div>
           </div>
@@ -403,7 +403,7 @@ function StatCard({
   label: string;
   value: number;
   suffix?: string;
-  tone?: "purple" | "amber" | "emerald" | "gray";
+  tone?: "purple" | "amber" | "emerald" | "sky";
 }) {
   const formattedValue = value.toLocaleString("th-TH", {
     maximumFractionDigits: 1,
@@ -427,11 +427,11 @@ function StatCard({
       ring: "ring-emerald-200",
       suffix: "text-emerald-700",
     },
-    gray: {
-      accent: "bg-gray-400",
-      bg: "bg-gray-50",
-      ring: "ring-gray-200",
-      suffix: "text-gray-600",
+    sky: {
+      accent: "bg-sky-500",
+      bg: "bg-sky-50",
+      ring: "ring-sky-200",
+      suffix: "text-sky-700",
     },
   }[tone];
 

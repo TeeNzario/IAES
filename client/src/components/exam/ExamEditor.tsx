@@ -10,8 +10,8 @@ import {
   FileText,
   ListChecks,
   Plus,
+  Tags,
   Trash2,
-  Upload,
 } from "lucide-react";
 import ExamQuestionPickerModal from "@/components/exam/ExamQuestionPickerModal";
 import {
@@ -562,15 +562,6 @@ export default function ExamEditor({
                 <Plus size={16} />
                 เพิ่มคำถาม
               </button>
-              <button
-                type="button"
-                disabled
-                title="อัปโหลด (เร็วๆ นี้)"
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#D9CCF2] bg-white text-[#7C5BD9] opacity-60"
-                aria-label="อัปโหลด"
-              >
-                <Upload size={16} />
-              </button>
             </div>
           </div>
 
@@ -579,7 +570,7 @@ export default function ExamEditor({
               ยังไม่ได้เลือกคำถาม
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {selected.map((q, i) => (
                 <QuestionPreviewCard
                   key={q.question_id}
@@ -637,6 +628,11 @@ export default function ExamEditor({
   );
 }
 
+function formatQuestionParam(value: number | null | undefined) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "-";
+  return value.toFixed(2);
+}
+
 function QuestionPreviewCard({
   index,
   question,
@@ -647,81 +643,121 @@ function QuestionPreviewCard({
   onRemove: () => void;
 }) {
   const diff = difficultyLabel(question.difficulty_param);
+  const categories = question.knowledge_categories ?? [];
+  const parameters = [
+    { label: "b", value: question.difficulty_param, title: "ความยาก" },
+    {
+      label: "a",
+      value: question.discrimination_param,
+      title: "อำนาจการจำแนก",
+    },
+    { label: "c", value: question.guessing_param, title: "โอกาสการเดา" },
+  ];
+
   return (
-    <div className="rounded-xl bg-[#FAF8FF] p-4 ring-1 ring-[#EFE8FB]">
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <h3 className="text-[15px] font-semibold leading-6 text-[#2F2A3A]">
-          {index + 1}. {question.question_text}
-        </h3>
+    <article className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-[#E7DDF8]">
+      <div className="flex items-start justify-between gap-4 border-b border-[#EFE8FB] bg-[#FAF8FF] px-4 py-3.5">
+        <div className="flex min-w-0 gap-3">
+          <span className="flex h-8 min-w-8 items-center justify-center rounded-lg bg-[#F4EFFF] text-sm font-semibold text-[#7C5BD9]">
+            {index + 1}
+          </span>
+          <div className="min-w-0">
+            <h3 className="text-[15px] font-semibold leading-relaxed text-[#2F2A3A]">
+              {question.question_text}
+            </h3>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span
+                className={`inline-flex h-7 items-center rounded-full px-3 text-sm font-semibold ${diff.className}`}
+              >
+                {diff.label}
+              </span>
+              <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-white px-3 text-sm font-semibold text-[#514667] ring-1 ring-[#E7DDF8]">
+                <Tags size={14} className="text-[#7C5BD9]" />
+                {categories.length} หมวดหมู่
+              </span>
+            </div>
+          </div>
+        </div>
         <button
           type="button"
           onClick={onRemove}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-rose-500 ring-1 ring-rose-100 transition-colors hover:bg-rose-50 cursor-pointer"
           aria-label="ลบ"
         >
-          <Trash2 size={16} />
+          <Trash2 size={15} />
         </button>
       </div>
 
-      <ul className="mb-3 space-y-1.5">
-        {question.choices?.map((c, i) => (
-          <li
-            key={c.choice_id ?? i}
-            className="flex items-center gap-2 text-sm font-normal text-[#514667]"
-          >
-            <input
-              type="radio"
-              disabled
-              checked={c.is_correct}
-              readOnly
-              className="accent-[#B7A3E3]"
-            />
-            <span className={c.is_correct ? "font-medium" : ""}>
-              {c.choice_text}
-            </span>
-          </li>
-        ))}
-      </ul>
+      <div className="grid gap-4 px-4 py-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div>
+          <p className="mb-2 text-sm font-semibold text-[#514667]">
+            ตัวเลือกคำตอบ
+          </p>
+          <ul className="grid gap-2 md:grid-cols-2">
+            {question.choices?.map((c, i) => (
+              <li
+                key={c.choice_id ?? i}
+                className={`flex min-h-10 items-start gap-2 rounded-xl px-3 py-2 text-sm ring-1 ${
+                  c.is_correct
+                    ? "bg-emerald-50 font-semibold text-emerald-800 ring-emerald-100"
+                    : "bg-[#FAF8FF] font-medium text-[#514667] ring-[#EFE8FB]"
+                }`}
+              >
+                <span
+                  className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${
+                    c.is_correct ? "bg-emerald-500" : "bg-[#D7D2DE]"
+                  }`}
+                />
+                <span className="leading-relaxed">{c.choice_text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-      <div className="mb-3 grid grid-cols-1 gap-3 text-sm font-normal text-[#514667] sm:grid-cols-3">
-        <ReadOnly label="ความยาก" value={question.difficulty_param} />
-        <ReadOnly label="อำนาจการจำแนก" value={question.discrimination_param} />
-        <ReadOnly label="โอกาสการเดา" value={question.guessing_param} />
-      </div>
+        <aside className="rounded-xl bg-[#FAF8FF] p-3 ring-1 ring-[#EFE8FB]">
+          <p className="mb-2 text-sm font-semibold text-[#514667]">
+            พารามิเตอร์
+          </p>
+          <div className="grid grid-cols-3 gap-2">
+            {parameters.map((item) => (
+              <div
+                key={item.label}
+                title={item.title}
+                className="rounded-xl bg-white px-3 py-2 text-center ring-1 ring-[#E7DDF8]"
+              >
+                <div className="text-xs font-semibold text-[#7C5BD9]">
+                  {item.label}
+                </div>
+                <div className="mt-1 text-sm font-semibold text-[#2F2A3A]">
+                  {formatQuestionParam(item.value)}
+                </div>
+              </div>
+            ))}
+          </div>
 
-      <div className="flex flex-wrap items-center gap-1.5">
-        <span
-          className={`inline-block rounded-full px-3 py-1 text-sm font-semibold ${diff.className}`}
-        >
-          {diff.label}
-        </span>
-        {question.knowledge_categories?.map((t) => (
-          <span
-            key={t.knowledge_category_id}
-            className="rounded-full bg-[#B7A3E3] px-3 py-1 text-sm font-semibold text-white"
-          >
-            {t.name}
-          </span>
-        ))}
+          <div className="mt-3">
+            <p className="mb-2 text-sm font-semibold text-[#514667]">
+              หมวดหมู่ความรู้
+            </p>
+            {categories.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {categories.map((t) => (
+                  <span
+                    key={t.knowledge_category_id}
+                    className="inline-flex max-w-full items-center rounded-xl bg-white px-3 py-1.5 text-sm font-semibold leading-relaxed text-[#514667] ring-1 ring-[#E7DDF8]"
+                    title={t.name}
+                  >
+                    <span className="whitespace-normal break-words">{t.name}</span>
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm font-medium text-[#B7AFC6]">ไม่มีหมวดหมู่</p>
+            )}
+          </div>
+        </aside>
       </div>
-    </div>
-  );
-}
-
-function ReadOnly({
-  label,
-  value,
-}: {
-  label: string;
-  value: number | null | undefined;
-}) {
-  return (
-    <div>
-      <label className="mb-1 block text-sm font-medium text-[#7A7287]">{label}</label>
-      <div className="rounded-xl bg-white px-3 py-2 text-[15px] font-semibold text-[#2F2A3A] ring-1 ring-[#E7DDF8]">
-        {value ?? "-"}
-      </div>
-    </div>
+    </article>
   );
 }
 
@@ -745,8 +781,8 @@ function ExamStatsPanel({ stats }: { stats: ExamStats }) {
   const maxCat = categories.reduce((m, c) => Math.max(m, c.count), 0);
 
   return (
-    <section className="mt-5 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6">
-      <div className="mb-4 flex items-center justify-between">
+    <section className="mt-5 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-[#E7DDF8]">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#EFE8FB] px-5 py-4 sm:px-6">
         <h3 className="flex items-center gap-2.5 text-base font-semibold text-[#2F2A3A]">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F4EFFF] text-[#7C5BD9]">
             <BarChart3 size={18} />
@@ -758,99 +794,120 @@ function ExamStatsPanel({ stats }: { stats: ExamStats }) {
         </span>
       </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard
-          label="ง่าย"
-          value={easy}
-          sub={`${pct(easy)}%`}
-          tone="emerald"
-        />
-        <StatCard
-          label="กลาง"
-          value={medium}
-          sub={`${pct(medium)}%`}
-          tone="amber"
-        />
-        <StatCard
-          label="ยาก"
-          value={hard}
-          sub={`${pct(hard)}%`}
-          tone="rose"
-        />
-        <StatCard
-          label="ความยากเฉลี่ย"
-          value={avgDifficulty === null ? "-" : avgDifficulty.toFixed(2)}
-          sub={avgDifficulty === null ? "ไม่มีข้อมูล" : "ค่า θ"}
-          tone="purple"
-        />
-      </div>
+      <div className="grid gap-5 p-5 sm:p-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <StatCard
+              label="ง่าย"
+              value={easy}
+              sub={`${pct(easy)}%`}
+              tone="emerald"
+            />
+            <StatCard
+              label="กลาง"
+              value={medium}
+              sub={`${pct(medium)}%`}
+              tone="amber"
+            />
+            <StatCard
+              label="ยาก"
+              value={hard}
+              sub={`${pct(hard)}%`}
+              tone="rose"
+            />
+            <StatCard
+              label="ค่าเฉลี่ย"
+              value={avgDifficulty === null ? "-" : avgDifficulty.toFixed(2)}
+              sub={avgDifficulty === null ? "ไม่มีข้อมูล" : "ค่า b"}
+              tone="purple"
+            />
+          </div>
 
-      {/* Difficulty distribution bar */}
-      <div className="mt-5">
-        <div className="mb-2 flex items-center justify-between text-sm font-medium text-[#7A7287]">
-          <span>การกระจายระดับความยาก</span>
-          {untagged > 0 && (
-            <span className="text-amber-600">
-              {untagged} ข้อยังไม่มีระดับความยาก
-            </span>
-          )}
-        </div>
-        <div className="flex h-3 w-full overflow-hidden rounded-full bg-gray-100">
-          {easy > 0 && (
-            <div
-              style={{ width: `${pct(easy)}%` }}
-              className="bg-emerald-400"
-              title={`ง่าย ${easy} ข้อ`}
-            />
-          )}
-          {medium > 0 && (
-            <div
-              style={{ width: `${pct(medium)}%` }}
-              className="bg-amber-400"
-              title={`กลาง ${medium} ข้อ`}
-            />
-          )}
-          {hard > 0 && (
-            <div
-              style={{ width: `${pct(hard)}%` }}
-              className="bg-rose-400"
-              title={`ยาก ${hard} ข้อ`}
-            />
-          )}
-        </div>
-      </div>
-
-      {/* Category breakdown */}
-      <div className="mt-5">
-        <div className="mb-2 text-sm font-medium text-[#7A7287]">
-          จำนวนข้อตามหมวดหมู่ความรู้
-        </div>
-        {categories.length === 0 ? (
-          <p className="text-sm font-medium text-[#B7AFC6]">— ไม่มีหมวดหมู่ที่กำหนด —</p>
-        ) : (
-          <ul className="space-y-2">
-            {categories.map((c) => (
-              <li
-                key={c.name}
-                className="grid grid-cols-[minmax(120px,180px)_1fr_40px] items-center gap-3 text-sm font-medium text-[#514667]"
-              >
-                <span className="truncate" title={c.name}>
-                  {c.name}
+          <div className="mt-5 rounded-xl bg-[#FAF8FF] p-4 ring-1 ring-[#EFE8FB]">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm font-medium text-[#7A7287]">
+              <span className="font-semibold text-[#514667]">
+                การกระจายระดับความยาก
+              </span>
+              {untagged > 0 && (
+                <span className="text-amber-600">
+                  {untagged} ข้อยังไม่มีระดับความยาก
                 </span>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-[#F4EFFF]">
-                  <div
-                    className="h-full rounded-full bg-[#B7A3E3]"
-                    style={{
-                      width: `${maxCat > 0 ? (c.count / maxCat) * 100 : 0}%`,
-                    }}
-                  />
-                </div>
-                <span className="text-right font-semibold text-[#2F2A3A]">{c.count}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+              )}
+            </div>
+            <div className="flex h-3 w-full overflow-hidden rounded-full bg-white ring-1 ring-[#E7DDF8]">
+              {easy > 0 && (
+                <div
+                  style={{ width: `${pct(easy)}%` }}
+                  className="bg-emerald-400"
+                  title={`ง่าย ${easy} ข้อ`}
+                />
+              )}
+              {medium > 0 && (
+                <div
+                  style={{ width: `${pct(medium)}%` }}
+                  className="bg-amber-400"
+                  title={`กลาง ${medium} ข้อ`}
+                />
+              )}
+              {hard > 0 && (
+                <div
+                  style={{ width: `${pct(hard)}%` }}
+                  className="bg-rose-400"
+                  title={`ยาก ${hard} ข้อ`}
+                />
+              )}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold text-[#514667]">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                ง่าย {easy}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-amber-400" />
+                กลาง {medium}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-rose-400" />
+                ยาก {hard}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <aside className="rounded-xl bg-[#FAF8FF] p-4 ring-1 ring-[#EFE8FB]">
+          <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[#514667]">
+            <Tags size={15} className="text-[#7C5BD9]" />
+            จำนวนข้อตามหมวดหมู่ความรู้
+          </div>
+          {categories.length === 0 ? (
+            <p className="text-sm font-medium text-[#B7AFC6]">
+              ไม่มีหมวดหมู่ที่กำหนด
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {categories.map((c) => (
+                <li key={c.name} className="text-sm font-medium text-[#514667]">
+                  <div className="mb-1.5 flex items-center justify-between gap-3">
+                    <span className="min-w-0 break-words leading-snug" title={c.name}>
+                      {c.name}
+                    </span>
+                    <span className="shrink-0 font-semibold text-[#2F2A3A]">
+                      {c.count}
+                    </span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-white ring-1 ring-[#E7DDF8]">
+                    <div
+                      className="h-full rounded-full bg-[#B7A3E3]"
+                      style={{
+                        width: `${maxCat > 0 ? (c.count / maxCat) * 100 : 0}%`,
+                      }}
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </aside>
       </div>
     </section>
   );
@@ -875,7 +932,7 @@ function StatCard({
   } as const;
   return (
     <div className={`rounded-xl px-4 py-3 ring-1 ring-white/60 ${tones[tone]}`}>
-      <div className="text-[15px] font-semibold opacity-85">{label}</div>
+      <div className="text-sm font-semibold opacity-85">{label}</div>
       <div className="mt-1 text-2xl font-semibold leading-none">{value}</div>
       {sub && (
         <div className="mt-1 text-xs font-medium opacity-70">{sub}</div>
