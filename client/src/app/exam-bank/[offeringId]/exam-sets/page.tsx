@@ -388,7 +388,7 @@ function StatCard({
       className={`relative overflow-hidden rounded-xl px-4 py-3 ring-1 ${toneClass.bg} ${toneClass.ring}`}
     >
       <span className={`absolute bottom-0 left-0 top-0 w-1 ${toneClass.accent}`} />
-      <p className="text-xs font-semibold text-[#7A7287]">{label}</p>
+      <p className="text-[15px] font-semibold text-[#7A7287]">{label}</p>
       <p className="mt-1 text-2xl font-semibold text-[#2F2A3A]">
         {formattedValue}
         {suffix && (
