@@ -200,7 +200,7 @@ const QUESTIONS: QuestionSeed[] = [
     collectionKey: 'ML-2026-MID',
     question_type: 'MCQ_SINGLE',
     question_text:
-      'Bias-variance tradeoff หมายถึงสถานการณ์ใด',
+      'นักศึกษากำลังพัฒนาโมเดลทำนายราคาบ้านโดยใช้ Linear Regression กับชุดข้อมูลที่มี 10,000 แถว และ 50 ฟีเจอร์ หลังจากการเทรนพบว่า Training Error ต่ำมาก (R² = 0.99) แต่ Test Error กลับสูงมาก (R² = 0.60) นักศึกษาต้องการปรับปรุงโมเดลโดยเพิ่มจำนวนฟีเจอร์เป็น 200 ฟีเจอร์ อาจารย์ที่ปรึกษาแนะนำให้พิจารณา Bias-Variance Tradeoff ก่อนดำเนินการ จากข้อมูลนี้ ข้อสรุปใดถูกต้องที่สุดเกี่ยวกับสถานการณ์ของโมเดลนี้',
     difficulty_param: 1.5,
     discrimination_param: 1.1,
     guessing_param: 0.25,
@@ -208,13 +208,13 @@ const QUESTIONS: QuestionSeed[] = [
       'นักศึกษาเข้าใจพื้นฐานการเรียนรู้ของเครื่องและประเภทของอัลกอริทึม',
     ],
     choices: [
-      { text: 'ยิ่งลด bias มากเท่าใด variance จะลดลงตาม', is_correct: false },
+      { text: 'โมเดลมี High Variance (Overfitting) — ควรลดความซับซ้อนของโมเดลหรือเพิ่ม Regularization แทนการเพิ่มฟีเจอร์', is_correct: true },
       {
-        text: 'การลด bias ของโมเดลมักทำให้ variance เพิ่มขึ้น และในทางกลับกัน',
-        is_correct: true,
+        text: 'โมเดลมี High Bias (Underfitting) — ควรเพิ่มฟีเจอร์ให้มากขึ้นเพื่อเพิ่มความสามารถในการเรียนรู้',
+        is_correct: false,
       },
-      { text: 'bias และ variance ไม่เกี่ยวข้องกัน', is_correct: false },
-      { text: 'โมเดลที่ดีต้องมี variance สูงเสมอ', is_correct: false },
+      { text: 'โมเดลมีประสิทธิภาพดีแล้ว — ควรใช้เฉพาะ Training Set ในการวัดผล', is_correct: false },
+      { text: 'ปัญหานี้เกิดจากข้อมูลมี Noise มากเกินไป — ควรเปลี่ยนชุดข้อมูลใหม่ทั้งหมด', is_correct: false },
     ],
   },
   {
@@ -411,18 +411,18 @@ const QUESTIONS: QuestionSeed[] = [
     collectionKey: 'FE-2026-MID',
     question_type: 'MCQ_SINGLE',
     question_text:
-      'ในโครงสร้าง React เมื่อต้องการเรียก API เมื่อ component ถูก mount ครั้งแรก ควรใช้ Hook ใด',
-    difficulty_param: 0.1,
-    discrimination_param: 1.2,
-    guessing_param: 0.2,
+      'นักศึกษากำลังพัฒนา Dashboard Component ใน React ที่ต้อง (1) ดึงข้อมูลผู้ใช้จาก REST API `/api/users` ทันทีที่ Component ถูก mount, (2) เปิด WebSocket connection เพื่อรับ real-time notification, และ (3) ปิด WebSocket เมื่อ Component ถูก unmount เพื่อป้องกัน Memory Leak นักศึกษาเขียนโค้ด useEffect ดังนี้:\n\n`useEffect(() => {\n  fetch("/api/users").then(r => r.json()).then(setUsers);\n  const ws = new WebSocket("wss://example.com/ws");\n  ws.onmessage = (e) => addNotification(JSON.parse(e.data));\n}, [])`\n\nโค้ดนี้มีปัญหาใด',
+    difficulty_param: 1.2,
+    discrimination_param: 1.5,
+    guessing_param: 0.15,
     knowledgeNames: [
       'นักศึกษาเข้าใจหลักการออกแบบส่วนติดต่อผู้ใช้งานและการเขียนโปรแกรมบนฝั่งหน้าบ้านด้วยเฟรมเวิร์กสมัยใหม่',
     ],
     choices: [
-      { text: 'useState', is_correct: false },
-      { text: 'useEffect ที่มี dependency เป็น []', is_correct: true },
-      { text: 'useMemo', is_correct: false },
-      { text: 'useContext', is_correct: false },
+      { text: 'ไม่มีการคืนค่า cleanup function เพื่อปิด WebSocket — WebSocket จะคงอยู่แม้ Component ถูก unmount แล้ว ทำให้เกิด Memory Leak', is_correct: true },
+      { text: 'dependency array เป็น [] ทำให้ fetch ถูกเรียกซ้ำทุกครั้งที่ Component re-render', is_correct: false },
+      { text: 'ใช้ fetch() โดยไม่ใส่ credentials: "include" จึงทำให้ Cookie ไม่ถูกส่ง', is_correct: false },
+      { text: 'ควรใช้ async function โดยตรงใน useEffect callback', is_correct: false },
     ],
   },
   {
@@ -573,6 +573,26 @@ const QUESTIONS: QuestionSeed[] = [
       { text: 'UDP รับประกันลำดับของ packet เสมอ', is_correct: false },
     ],
   },
+  // ============ Back End — extra short ============
+  {
+    externalKey: 'BE-MID-004',
+    courseCode: 'COE64-372',
+    collectionKey: 'BE-2026-MID',
+    question_type: 'MCQ_SINGLE',
+    question_text: 'JWT ย่อมาจากอะไร',
+    difficulty_param: -2.0,
+    discrimination_param: 0.5,
+    guessing_param: 0.25,
+    knowledgeNames: [
+      'นักศึกษาเข้าใจการออกแบบและพัฒนา REST API รวมถึงการรักษาความปลอดภัยของเซิร์ฟเวอร์',
+    ],
+    choices: [
+      { text: 'JSON Web Token', is_correct: true },
+      { text: 'Java Web Toolkit', is_correct: false },
+      { text: 'JavaScript Window Target', is_correct: false },
+      { text: 'JSON With Timestamp', is_correct: false },
+    ],
+  },
   // ============ Data warehouse ============
   {
     externalKey: 'DW-MID-001',
@@ -599,18 +619,19 @@ const QUESTIONS: QuestionSeed[] = [
     courseCode: 'COE64-344',
     collectionKey: 'DW-2026-MID',
     question_type: 'MCQ_SINGLE',
-    question_text: 'ETL ย่อมาจากข้อใด',
-    difficulty_param: -1.7,
-    discrimination_param: 0.6,
-    guessing_param: 0.25,
+    question_text:
+      'บริษัทแห่งหนึ่งมีระบบ OLTP สำหรับบันทึกรายการขายหน้าร้าน (Point of Sale) ที่มีผู้ใช้พร้อมกันจำนวนมากตลอดทั้งวัน ผู้บริหารต้องการ Dashboard ที่แสดงยอดขายรายวัน แนวโน้มรายเดือน และการเปรียบเทียบระหว่างสาขาแบบ Real-time นักวิเคราะห์ข้อมูลเสนอให้สร้าง Data Warehouse โดยแยกจากระบบ OLTP และออกแบบ ETL Process ที่ทำงานทุกคืนเพื่อดึงข้อมูลจากระบบขาย สาเหตุที่ต้องแยก Data Warehouse ออกจาก OLTP คือข้อใด',
+    difficulty_param: 0.5,
+    discrimination_param: 1.3,
+    guessing_param: 0.2,
     knowledgeNames: [
       'นักศึกษาสามารถเชื่อมต่อและออกแบบฐานข้อมูลเชิงสัมพันธ์ได้อย่างมีประสิทธิภาพ',
     ],
     choices: [
-      { text: 'Extract, Transform, Load', is_correct: true },
-      { text: 'Export, Transfer, Lookup', is_correct: false },
-      { text: 'Evaluate, Test, Learn', is_correct: false },
-      { text: 'Extend, Train, Launch', is_correct: false },
+      { text: 'OLTP optimized สำหรับ Transaction speed ส่วน OLAP optimized สำหรับ Complex Query — การรวมกันจะทำให้ทั้งสองอย่างช้าลง', is_correct: true },
+      { text: 'Data Warehouse ใช้แทน OLTP ได้สมบูรณ์แบบในทุกกรณี', is_correct: false },
+      { text: 'OLTP รองรับการทำ ETL โดยตรงอยู่แล้วและไม่จำเป็นต้องแยก', is_correct: false },
+      { text: 'Data Warehouse ถูกกฎหมายให้ต้องใช้เซิร์ฟเวอร์คนละเครื่องกับ OLTP', is_correct: false },
     ],
   },
   // ============ Data Viz ============
@@ -775,18 +796,18 @@ const QUESTIONS: QuestionSeed[] = [
     collectionKey: 'STD-EN-MAIN',
     question_type: 'MCQ_SINGLE',
     question_text:
-      'Choose the correct sentence: "She _____ to school every day."',
-    difficulty_param: -1.8,
-    discrimination_param: 0.6,
-    guessing_param: 0.25,
+      'Read the following passage and answer the question:\n\n"Artificial intelligence has transformed many industries over the past decade. From healthcare to finance, AI-powered systems are now capable of performing tasks that previously required human intelligence. However, experts warn that without proper regulation and ethical guidelines, the rapid advancement of AI could pose significant risks to privacy, employment, and social equality."\n\nAccording to the passage, what is the main concern about AI?',
+    difficulty_param: 0.5,
+    discrimination_param: 1.3,
+    guessing_param: 0.2,
     knowledgeNames: [
       'นักศึกษาสามารถใช้คำศัพท์และโครงสร้างประโยคภาษาอังกฤษในบริบทการสื่อสารทั่วไปได้',
     ],
     choices: [
-      { text: 'go', is_correct: false },
-      { text: 'goes', is_correct: true },
-      { text: 'going', is_correct: false },
-      { text: 'gone', is_correct: false },
+      { text: 'AI cannot perform complex tasks accurately', is_correct: false },
+      { text: 'Without regulation and ethics, AI may threaten privacy, jobs, and social equality', is_correct: true },
+      { text: 'AI has only been useful in the healthcare industry', is_correct: false },
+      { text: 'AI development has slowed down in recent years', is_correct: false },
     ],
   },
   {
@@ -984,18 +1005,18 @@ const QUESTIONS: QuestionSeed[] = [
     collectionKey: 'SOC-2026-MID',
     question_type: 'MCQ_SINGLE',
     question_text:
-      'ตามแนวคิดทางสังคมวิทยา ข้อใดคือ Social Institution',
-    difficulty_param: -0.6,
-    discrimination_param: 1.0,
-    guessing_param: 0.2,
+      'Social Institution คืออะไร',
+    difficulty_param: -1.5,
+    discrimination_param: 0.6,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาเข้าใจแนวคิดพื้นฐานทางสังคมวิทยาและการวิเคราะห์โครงสร้างทางสังคม',
     ],
     choices: [
-      { text: 'ครอบครัว', is_correct: true },
-      { text: 'ภูเขาและแม่น้ำ', is_correct: false },
-      { text: 'โครงข่ายอินเทอร์เน็ต', is_correct: false },
-      { text: 'รหัสพันธุกรรม (DNA)', is_correct: false },
+      { text: 'รูปแบบพฤติกรรมและระบบความสัมพันธ์ที่สังคมสร้างขึ้นเพื่อตอบสนองความต้องการพื้นฐานของมนุษย์ เช่น ครอบครัว ศาสนา การศึกษา', is_correct: true },
+      { text: 'หน่วยงานราชการทุกประเภท', is_correct: false },
+      { text: 'องค์กรเอกชนที่ไม่แสวงหาผลกำไร', is_correct: false },
+      { text: 'อาคารสถานที่ของรัฐ', is_correct: false },
     ],
   },
   {
@@ -1106,18 +1127,18 @@ const QUESTIONS: QuestionSeed[] = [
     collectionKey: 'CNN-2026-MID',
     question_type: 'MCQ_SINGLE',
     question_text:
-      'Convolution Operation ใน CNN มีหน้าที่หลักคืออะไร',
-    difficulty_param: 0.1,
-    discrimination_param: 1.1,
-    guessing_param: 0.2,
+      'กำหนดให้ Input Image มีขนาด 64×64×3 (RGB) และใช้ Convolution Layer ที่มี Kernel ขนาด 5×5 จำนวน 16 ตัว โดยใช้ Stride = 2 และ Padding = "same" ตามด้วย Max Pooling ขนาด 2×2 และ Stride = 2 จากนั้นต่อด้วย Fully Connected Layer ที่มี 10 Neurons (สำหรับ Classification 10 คลาส) จงคำนวณว่าจำนวนพารามิเตอร์ทั้งหมดที่ต้องเทรนใน Convolution Layer นี้มีค่าเท่าใด (ไม่นับ Bias)',
+    difficulty_param: 1.8,
+    discrimination_param: 1.7,
+    guessing_param: 0.1,
     knowledgeNames: [
       'นักศึกษาเข้าใจสถาปัตยกรรมของโครงข่ายประสาทเทียมแบบคอนโวลูชันและการประมวลผลภาพ',
     ],
     choices: [
-      { text: 'สกัดคุณลักษณะ (Feature Extraction) จากภาพ', is_correct: true },
-      { text: 'ลดจำนวนพารามิเตอร์ของโมเดล', is_correct: false },
-      { text: 'เพิ่มขนาดภาพให้ใหญ่ขึ้น', is_correct: false },
-      { text: 'เปลี่ยนภาพสีเป็นภาพขาวดำ', is_correct: false },
+      { text: '5 × 5 × 3 × 16 = 1,200 พารามิเตอร์', is_correct: true },
+      { text: '64 × 64 × 3 × 16 = 196,608 พารามิเตอร์', is_correct: false },
+      { text: '5 × 5 × 16 = 400 พารามิเตอร์', is_correct: false },
+      { text: '5 × 5 × 3 × 16 × 10 = 12,000 พารามิเตอร์', is_correct: false },
     ],
   },
   {
@@ -1153,7 +1174,7 @@ export async function seedQuestions(
   staff: SeededStaff,
 ): Promise<SeededQuestions> {
   const creator =
-    staff.instructors.find((i) => i.email === 'instructor@iaes.local') ??
+    staff.instructors.find((i) => i.email === 'instructor@wu.ac.th') ??
     staff.instructors[0];
 
   const courses = await prisma.courses.findMany();

@@ -53,9 +53,6 @@ export function setAuth<T extends AuthUser>(response: LoginResponse<T>): void {
   }
 }
 
-export function getAccessToken(): string | null {
-  return null;
-}
 
 export function getUser<T = AuthUser>(): T | null {
   if (typeof window === "undefined") return null;

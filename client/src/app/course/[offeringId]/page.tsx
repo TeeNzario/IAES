@@ -34,7 +34,6 @@ export default function CoursePage() {
   const router = useRouter();
   const { offeringId } = useParams<{ offeringId: string }>();
 
-  const [activeTab, setActiveTab] = useState("learn");
   const [activeTopTab, setActiveTopTab] = useState("home");
   const [course, setCourse] = useState<CourseOffering | null>(null);
   const [loading, setLoading] = useState(true);

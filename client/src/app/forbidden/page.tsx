@@ -22,12 +22,12 @@ export default function ForbiddenPage() {
         <p className="text-gray-600 mb-8">
           คุณไม่มีสิทธิ์เข้าถึงหน้านี้
         </p>
-        {/* <Link
+        <Link
           href={homeHref}
           className="inline-block px-6 py-3 bg-[#7C3AED] text-white rounded-full font-medium hover:bg-[#6D28D9] transition-colors"
         >
-          Go to Home
-        </Link> */}
+          กลับสู่หน้าหลัก
+        </Link>
       </div>
     </div>
   );

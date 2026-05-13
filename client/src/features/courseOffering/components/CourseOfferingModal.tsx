@@ -153,7 +153,7 @@ export default function CourseOfferingModal({
       onClose();
       router.push("/");
     } catch (err: any) {
-      if (err.status == 409) {
+      if (err.response?.status === 409) {
         setError(
           "ไม่สามารถเปิดคอร์สได้ เนื่องจากมีการเปิดคอร์สนี้ในภาคเรียนและปีการศึกษานี้แล้ว",
         );

@@ -230,11 +230,13 @@ export default function ManageUserPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [fetching, setFetching] = useState(false);
 
+  const [authError, setAuthError] = useState(false);
+
   // Fetch current user on mount
   useEffect(() => {
     apiFetch<AuthUser>("/auth/me")
       .then((user) => setCurrentUser(user))
-      .catch((err) => console.error("Failed to fetch current user", err));
+      .catch(() => setAuthError(true));
   }, []);
 
   // Fetch users based on role filter
