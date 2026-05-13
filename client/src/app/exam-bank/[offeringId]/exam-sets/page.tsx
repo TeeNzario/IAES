@@ -4,16 +4,19 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
+  BarChart3,
+  ChevronDown,
   ChevronLeft,
+  ChevronRight,
   ClipboardList,
-  Grid3x3,
-  List,
   Pencil,
   Plus,
   Search,
+  Trash2,
 } from "lucide-react";
 import NavBar from "@/components/layout/NavBar";
 import { apiFetch } from "@/lib/api";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 interface ExamListItem {
   course_exams_id: string;
@@ -25,11 +28,7 @@ interface ExamListItem {
   status: "UPCOMING" | "ONGOING" | "ENDED";
 }
 
-type StatusFilter = "ALL" | ExamListItem["status"];
-type SortKey = "newest" | "oldest" | "title" | "questions";
-type ViewMode = "grid" | "list";
-
-const PAGE_SIZE = 12;
+const PAGE_SIZE_OPTIONS = [25, 50, 100, 200];
 
 const statusLabel: Record<ExamListItem["status"], string> = {
   UPCOMING: "ยังไม่เริ่ม",
@@ -61,207 +60,198 @@ export default function ExamSetsListPage() {
   const [exams, setExams] = useState<ExamListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
-  const [sortKey, setSortKey] = useState<SortKey>("newest");
-  const [view, setView] = useState<ViewMode>("grid");
+  const [itemsPerPage, setItemsPerPage] = useState(25);
   const [page, setPage] = useState(1);
 
-  useEffect(() => {
+  // Delete state
+  const [deleteTarget, setDeleteTarget] = useState<ExamListItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const fetchExams = () => {
     if (!offeringId) return;
+    setLoading(true);
     apiFetch<ExamListItem[]>(`/course-offerings/${offeringId}/exams`)
       .then(setExams)
       .catch(() => setExams([]))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchExams();
   }, [offeringId]);
 
-  const counts = useMemo(() => {
-    const c = { ALL: exams.length, UPCOMING: 0, ONGOING: 0, ENDED: 0 };
-    for (const e of exams) c[e.status] += 1;
-    return c;
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await apiFetch(
+        `/course-offerings/${offeringId}/exams/${deleteTarget.course_exams_id}`,
+        { method: "DELETE" },
+      );
+      setDeleteTarget(null);
+      fetchExams();
+    } catch {
+      // ignore
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const stats = useMemo(() => {
+    const byStatus: Record<ExamListItem["status"], number> = {
+      UPCOMING: 0,
+      ONGOING: 0,
+      ENDED: 0,
+    };
+    for (const exam of exams) {
+      byStatus[exam.status] += 1;
+    }
+
+    return {
+      totalSets: exams.length,
+      byStatus,
+    };
   }, [exams]);
 
   const processed = useMemo(() => {
     const q = search.trim().toLowerCase();
-    let arr = exams.filter(
+    const arr = exams.filter(
       (e) =>
-        (statusFilter === "ALL" || e.status === statusFilter) &&
-        (!q ||
-          e.title.toLowerCase().includes(q) ||
-          (e.description ?? "").toLowerCase().includes(q)),
+        !q ||
+        e.title.toLowerCase().includes(q) ||
+        (e.description ?? "").toLowerCase().includes(q),
     );
-    arr = [...arr].sort((a, b) => {
-      switch (sortKey) {
-        case "newest":
-          return (
-            new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
-          );
-        case "oldest":
-          return (
-            new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-          );
-        case "title":
-          return a.title.localeCompare(b.title, "th");
-        case "questions":
-          return b.question_count - a.question_count;
-      }
-    });
-    return arr;
-  }, [exams, search, statusFilter, sortKey]);
+    return [...arr].sort((a, b) => a.title.localeCompare(b.title, "th"));
+  }, [exams, search]);
 
-  const totalPages = Math.max(1, Math.ceil(processed.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(processed.length / itemsPerPage));
+  const currentPage = Math.min(page, totalPages);
   const pageItems = processed.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
   );
 
   return (
     <NavBar>
       <div className="min-h-screen w-full bg-[#F4EFFF]">
         <main className="mx-auto max-w-7xl px-4 py-6 sm:px-8 lg:px-10 lg:py-8">
-          {/* Title row */}
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
+          <div className="mb-4 flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex min-w-0 flex-wrap items-center gap-3">
               <button
                 type="button"
                 onClick={() => router.push(`/exam-bank/${offeringId}`)}
-                className="flex h-9 w-9 items-center justify-center rounded-xl text-[#514667] transition-colors hover:bg-white cursor-pointer"
+                className="flex h-10 w-10 items-center justify-center rounded-xl text-[#514667] ring-1 ring-transparent transition-colors hover:bg-[#FAF8FF] hover:ring-[#E7DDF8] cursor-pointer"
                 aria-label="กลับ"
               >
                 <ChevronLeft size={18} />
               </button>
-              <h1 className="flex items-center gap-2 text-lg font-semibold text-[#2F2A3A] sm:text-xl">
-                <ClipboardList size={22} className="text-[#7C5BD9]" />
-                ชุดข้อสอบ
-                <span className="ml-1 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-[#7C5BD9]">
-                  {exams.length}
+              <h1 className="flex items-center gap-2 text-xl font-semibold text-[#2F2A3A] sm:text-2xl">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#F4EFFF] text-[#7C5BD9]">
+                  <ClipboardList size={22} />
                 </span>
+                ชุดข้อสอบ
               </h1>
             </div>
-            <Link
-              href={`/exam-bank/${offeringId}/exam-sets/create`}
-              className="flex items-center gap-2 rounded-xl bg-[#B7A3E3] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#A48FD6]"
-            >
-              <Plus size={16} />
-              สร้างชุดข้อสอบ
-            </Link>
-          </div>
 
-          {/* Toolbar */}
-          <div className="mb-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#E7DDF8]">
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Status chips */}
-              <div className="flex flex-wrap items-center gap-1.5">
-                {(
-                  [
-                    ["ALL", "ทั้งหมด"],
-                    ["UPCOMING", statusLabel.UPCOMING],
-                    ["ONGOING", statusLabel.ONGOING],
-                    ["ENDED", statusLabel.ENDED],
-                  ] as [StatusFilter, string][]
-                ).map(([key, label]) => {
-                  const active = statusFilter === key;
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => {
-                        setStatusFilter(key);
-                        setPage(1);
-                      }}
-                      className={`rounded-full px-3 py-1 text-xs font-semibold cursor-pointer transition-colors ${
-                        active
-                          ? "bg-[#B7A3E3] text-white"
-                          : "bg-[#F4EFFF] text-[#514667] hover:bg-[#E9E0FA]"
-                      }`}
-                    >
-                      {label}
-                      <span
-                        className={`ml-1.5 ${
-                          active ? "opacity-90" : "text-gray-400"
-                        }`}
-                      >
-                        {counts[key]}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="ml-auto flex flex-wrap items-center gap-2">
-                {/* Sort */}
-                <label className="flex items-center gap-1.5 text-sm font-medium text-[#514667]">
-                  เรียง:
-                  <select
-                    value={sortKey}
-                    onChange={(e) => {
-                      setSortKey(e.target.value as SortKey);
-                      setPage(1);
-                    }}
-                    className="rounded-xl bg-[#F4EFFF] px-3 py-2 text-xs font-semibold text-[#514667] outline-none focus:ring-2 focus:ring-[#B7A3E3] cursor-pointer"
-                  >
-                    <option value="newest">ใหม่สุด</option>
-                    <option value="oldest">เก่าสุด</option>
-                    <option value="title">ชื่อ A→Z</option>
-                    <option value="questions">จำนวนข้อมาก→น้อย</option>
-                  </select>
-                </label>
-
-                {/* View toggle */}
-                <div className="flex overflow-hidden rounded-xl border border-[#E7DDF8]">
-                  <button
-                    type="button"
-                    onClick={() => setView("grid")}
-                    className={`flex h-9 w-9 items-center justify-center cursor-pointer transition-colors ${
-                      view === "grid"
-                        ? "bg-[#B7A3E3] text-white"
-                        : "text-[#575757] hover:bg-[#F4EFFF]"
-                    }`}
-                    aria-label="มุมมองตาราง"
-                    title="มุมมองตาราง"
-                  >
-                    <Grid3x3 size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setView("list")}
-                    className={`flex h-9 w-9 items-center justify-center cursor-pointer transition-colors ${
-                      view === "list"
-                        ? "bg-[#B7A3E3] text-white"
-                        : "text-[#575757] hover:bg-[#F4EFFF]"
-                    }`}
-                    aria-label="มุมมองรายการ"
-                    title="มุมมองรายการ"
-                  >
-                    <List size={14} />
-                  </button>
-                </div>
-
-                {/* Search */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => {
-                      setSearch(e.target.value);
-                      setPage(1);
-                    }}
-                    placeholder="ค้นหาชุดข้อสอบ"
-                    className="w-64 rounded-xl bg-white px-4 py-3 pr-10 text-sm font-normal text-[#2F2A3A] placeholder:text-[#B7AFC6] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
-                  />
-                  <Search
-                    size={18}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A7287]"
-                  />
-                </div>
+            <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-end xl:w-auto">
+              <Link
+                href={`/exam-bank/${offeringId}/exam-sets/create`}
+                className="inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[#B7A3E3] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#A48FD6]"
+              >
+                <Plus size={16} />
+                สร้างชุดข้อสอบ
+              </Link>
+              <div className="relative flex-1 sm:w-80 sm:flex-none lg:w-96">
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="ค้นหาชุดข้อสอบ"
+                  className="h-11 w-full rounded-xl bg-[#FAF8FF] px-4 pr-11 text-sm font-medium text-[#2F2A3A] placeholder:text-[#B7AFC6] outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
+                />
+                <Search
+                  size={18}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A7287]"
+                />
               </div>
             </div>
           </div>
 
-          {/* Body */}
+          <div className="mb-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#E7DDF8] sm:p-5">
+            <div className="mb-4 flex items-center gap-2.5 text-sm font-semibold text-[#2F2A3A]">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F4EFFF] text-[#7C5BD9]">
+                <BarChart3 size={18} />
+              </span>
+              <span>สถิติชุดข้อสอบ</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <StatCard
+                label="ชุดข้อสอบทั้งหมด"
+                value={stats.totalSets}
+                suffix="ชุด"
+              />
+              <StatCard
+                label={statusLabel.UPCOMING}
+                value={stats.byStatus.UPCOMING}
+                suffix="ชุด"
+                tone="amber"
+              />
+              <StatCard
+                label={statusLabel.ONGOING}
+                value={stats.byStatus.ONGOING}
+                suffix="ชุด"
+                tone="emerald"
+              />
+              <StatCard
+                label={statusLabel.ENDED}
+                value={stats.byStatus.ENDED}
+                suffix="ชุด"
+                tone="gray"
+              />
+            </div>
+          </div>
+
+          {processed.length > 0 && (
+            <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <span className="inline-flex h-10 w-fit items-center rounded-xl bg-white px-4 text-sm font-medium text-[#514667] shadow-sm ring-1 ring-[#E7DDF8]">
+                แสดง {(currentPage - 1) * itemsPerPage + 1}–
+                {Math.min(currentPage * itemsPerPage, processed.length)} จาก{" "}
+                {processed.length}
+              </span>
+
+              <label className="relative block w-full shrink-0 sm:w-44">
+                <span className="sr-only">จำนวนแถวต่อหน้า</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setPage(1);
+                  }}
+                  className="h-10 w-full appearance-none rounded-xl bg-white px-4 pr-10 text-sm font-medium text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3] cursor-pointer"
+                >
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <option key={size} value={size}>
+                      แสดง {size} แถว
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  size={17}
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#7A7287]"
+                />
+              </label>
+            </div>
+          )}
+
           {loading ? (
-            <p className="text-sm font-medium text-[#7A7287]">กำลังโหลด...</p>
+            <div className="rounded-2xl bg-white px-6 py-6 text-sm font-medium text-[#7A7287] shadow-sm ring-1 ring-[#E7DDF8]">
+              กำลังโหลด...
+            </div>
           ) : processed.length === 0 ? (
-            <div className="rounded-2xl bg-white p-10 text-center shadow-sm ring-1 ring-[#E7DDF8]">
+            <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-[#E7DDF8]">
               <p className="text-sm font-medium text-[#7A7287]">
                 {exams.length === 0
                   ? "ยังไม่มีชุดข้อสอบ"
@@ -277,146 +267,188 @@ export default function ExamSetsListPage() {
                 </Link>
               )}
             </div>
-          ) : view === "grid" ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {pageItems.map((e) => (
-                <div
-                  key={e.course_exams_id}
-                  className="flex min-h-56 flex-col rounded-2xl bg-white p-6 shadow-sm ring-1 ring-[#E7DDF8] transition-shadow hover:shadow-md"
-                >
-                  <div className="mb-3 flex items-start justify-between gap-2">
-                    <h3 className="line-clamp-2 text-lg font-semibold leading-snug text-[#2F2A3A]">
-                      {e.title}
-                    </h3>
-                    <span
-                      className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${statusClass(
-                        e.status,
-                      )}`}
-                    >
-                      {statusLabel[e.status]}
-                    </span>
-                  </div>
-                  {e.description && (
-                    <p className="mb-3 line-clamp-2 text-sm font-normal leading-6 text-[#7A7287]">
-                      {e.description}
-                    </p>
-                  )}
-                  <p className="mb-1 text-xs font-semibold text-[#7C5BD9]">
-                    {e.question_count} ข้อ
-                  </p>
-                  <p className="mb-4 text-xs font-medium text-[#7A7287]">
-                    {formatThaiDate(e.start_time)} → {formatThaiDate(e.end_time)}
-                  </p>
-                  <div className="mt-auto flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        router.push(
-                          `/exam-bank/${offeringId}/exam-sets/${e.course_exams_id}/edit`,
-                        )
-                      }
-                      className="flex items-center gap-1 rounded-xl border border-[#D9CCF2] px-3 py-1.5 text-xs font-semibold text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
-                    >
-                      <Pencil size={12} />
-                      แก้ไข
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
           ) : (
             <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-[#E7DDF8]">
-              <div className="grid grid-cols-[1fr_120px_140px_180px_80px] items-center bg-[#B7A3E3] px-5 py-4 text-sm font-semibold text-white">
-                <div>ชื่อชุดข้อสอบ</div>
-                <div>สถานะ</div>
-                <div>จำนวนข้อ</div>
-                <div>ช่วงเวลา</div>
-                <div className="text-center">จัดการ</div>
+              <div className="overflow-x-auto">
+                <div className="min-w-[860px]">
+                  <div className="grid grid-cols-[minmax(220px,1fr)_120px_100px_210px_100px] items-center bg-[#B7A3E3] px-5 py-4 text-[15px] font-semibold text-white [&>div:nth-child(n+2)]:text-center">
+                    <div>ชื่อชุดข้อสอบ</div>
+                    <div>สถานะ</div>
+                    <div>จำนวนข้อ</div>
+                    <div>ช่วงเวลา</div>
+                    <div>จัดการ</div>
+                  </div>
+                  <ul className="divide-y divide-[#EFE8FB]">
+                    {pageItems.map((e) => (
+                      <li
+                        key={e.course_exams_id}
+                        className="grid grid-cols-[minmax(220px,1fr)_120px_100px_210px_100px] items-center px-5 py-4 text-[15px] font-medium text-[#514667] hover:bg-[#FAF8FF]"
+                      >
+                        <div className="min-w-0 pr-4">
+                          <p className="truncate font-semibold text-[#2F2A3A]">
+                            {e.title}
+                          </p>
+                          {e.description && (
+                            <p className="mt-1 truncate text-[15px] font-normal text-[#7A7287]">
+                              {e.description}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-center">
+                          <span
+                            className={`inline-flex min-w-[86px] justify-center rounded-full px-3 py-1 text-sm font-semibold ${statusClass(
+                              e.status,
+                            )}`}
+                          >
+                            {statusLabel[e.status]}
+                          </span>
+                        </div>
+                        <div className="text-center text-sm font-semibold text-[#514667]">
+                          {e.question_count} ข้อ
+                        </div>
+                        <div className="text-center text-sm font-medium text-[#7A7287] leading-relaxed">
+                          {formatThaiDate(e.start_time)}
+                          <br />ถึง{" "}
+                          {formatThaiDate(e.end_time)}
+                        </div>
+                        <div className="flex justify-center">
+                          <div className="flex items-center rounded-xl border border-[#E7DDF8] bg-[#FAF8FF] p-1">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                router.push(
+                                  `/exam-bank/${offeringId}/exam-sets/${e.course_exams_id}/edit`,
+                                )
+                              }
+                              className="flex h-9 w-9 items-center justify-center rounded-lg text-[#7C5BD9] transition-colors hover:bg-white cursor-pointer"
+                              aria-label="แก้ไข"
+                              title="แก้ไข"
+                            >
+                              <Pencil size={18} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeleteTarget(e)}
+                              className="flex h-9 w-9 items-center justify-center rounded-lg text-red-500 transition-colors hover:bg-red-50 cursor-pointer"
+                              aria-label="ลบ"
+                              title="ลบ"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-              <ul className="divide-y divide-[#EFE8FB]">
-                {pageItems.map((e) => (
-                  <li
-                    key={e.course_exams_id}
-                    className="grid grid-cols-[1fr_120px_140px_180px_80px] items-center px-5 py-4 text-sm font-medium text-[#514667] hover:bg-[#FAF8FF]"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate font-semibold text-[#2F2A3A]">{e.title}</p>
-                      {e.description && (
-                        <p className="truncate text-xs text-gray-500">
-                          {e.description}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <span
-                        className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${statusClass(
-                          e.status,
-                        )}`}
-                      >
-                        {statusLabel[e.status]}
-                      </span>
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {e.question_count} ข้อ
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {formatThaiDate(e.start_time)} →{" "}
-                      {formatThaiDate(e.end_time)}
-                    </div>
-                    <div className="flex justify-center">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          router.push(
-                            `/exam-bank/${offeringId}/exam-sets/${e.course_exams_id}/edit`,
-                          )
-                        }
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#D9CCF2] text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
-                        aria-label="แก้ไข"
-                        title="แก้ไข"
-                      >
-                        <Pencil size={12} />
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
             </div>
           )}
 
-          {/* Pagination */}
-          {processed.length > 0 && totalPages > 1 && (
-            <div className="mt-5 flex items-center justify-between text-xs font-medium text-[#514667]">
-              <span>
-                แสดง {(page - 1) * PAGE_SIZE + 1}–
-                {Math.min(page * PAGE_SIZE, processed.length)} จาก{" "}
-                {processed.length}
-              </span>
-              <div className="flex items-center gap-1">
+          {processed.length > 0 && (
+            <div className="mt-4 flex justify-end">
+              <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="rounded-xl bg-white px-3 py-2 shadow-sm disabled:opacity-40 hover:bg-[#F4EFFF] cursor-pointer"
+                  disabled={currentPage === 1}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E5E7EB] text-[#8F98A8] shadow-sm transition-colors hover:bg-[#DDE1E7] disabled:cursor-not-allowed disabled:opacity-80"
+                  aria-label="หน้าก่อนหน้า"
+                  title="หน้าก่อนหน้า"
                 >
-                  ก่อนหน้า
+                  <ChevronLeft size={18} strokeWidth={2.4} />
                 </button>
-                <span className="px-2">
-                  {page} / {totalPages}
+                <span className="flex h-9 min-w-9 items-center justify-center rounded-lg bg-[#B7A3E3] px-3 text-sm font-semibold text-white shadow-sm">
+                  {currentPage}
                 </span>
                 <button
                   type="button"
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="rounded-xl bg-white px-3 py-2 shadow-sm disabled:opacity-40 hover:bg-[#F4EFFF] cursor-pointer"
+                  disabled={currentPage === totalPages}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E5E7EB] text-[#8F98A8] shadow-sm transition-colors hover:bg-[#DDE1E7] disabled:cursor-not-allowed disabled:opacity-80"
+                  aria-label="หน้าถัดไป"
+                  title="หน้าถัดไป"
                 >
-                  ถัดไป
+                  <ChevronRight size={18} strokeWidth={2.4} />
                 </button>
               </div>
             </div>
           )}
         </main>
+
+        <ConfirmModal
+          isOpen={deleteTarget !== null}
+          onClose={() => {
+            if (!deleting) setDeleteTarget(null);
+          }}
+          onConfirm={handleDelete}
+          title="ลบชุดข้อสอบ"
+          message={`คุณแน่ใจหรือไม่ว่าต้องการลบชุดข้อสอบ "${deleteTarget?.title ?? ""}"?`}
+          confirmText="ลบ"
+          cancelText="ยกเลิก"
+          isLoading={deleting}
+          variant="danger"
+        />
       </div>
     </NavBar>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  suffix,
+  tone = "purple",
+}: {
+  label: string;
+  value: number;
+  suffix?: string;
+  tone?: "purple" | "amber" | "emerald" | "gray";
+}) {
+  const formattedValue = value.toLocaleString("th-TH", {
+    maximumFractionDigits: 1,
+  });
+  const toneClass = {
+    purple: {
+      accent: "bg-[#7C5BD9]",
+      bg: "bg-[#FAF8FF]",
+      ring: "ring-[#E7DDF8]",
+      suffix: "text-[#7C5BD9]",
+    },
+    amber: {
+      accent: "bg-amber-400",
+      bg: "bg-amber-50",
+      ring: "ring-amber-200",
+      suffix: "text-amber-700",
+    },
+    emerald: {
+      accent: "bg-emerald-500",
+      bg: "bg-emerald-50",
+      ring: "ring-emerald-200",
+      suffix: "text-emerald-700",
+    },
+    gray: {
+      accent: "bg-gray-400",
+      bg: "bg-gray-50",
+      ring: "ring-gray-200",
+      suffix: "text-gray-600",
+    },
+  }[tone];
+
+  return (
+    <div
+      className={`relative overflow-hidden rounded-xl px-4 py-3 ring-1 ${toneClass.bg} ${toneClass.ring}`}
+    >
+      <span className={`absolute bottom-0 left-0 top-0 w-1 ${toneClass.accent}`} />
+      <p className="text-[15px] font-semibold text-[#7A7287]">{label}</p>
+      <p className="mt-1 text-2xl font-semibold text-[#2F2A3A]">
+        {formattedValue}
+        {suffix && (
+          <span className={`ml-1 text-sm font-semibold ${toneClass.suffix}`}>
+            {suffix}
+          </span>
+        )}
+      </p>
+    </div>
   );
 }

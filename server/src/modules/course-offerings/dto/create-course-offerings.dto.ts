@@ -1,4 +1,4 @@
-import { IsArray, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateCourseOfferingDto {
   @IsString()
@@ -12,6 +12,10 @@ export class CreateCourseOfferingDto {
   @IsInt()
   @IsNotEmpty()
   semester: number;
+
+  @IsBoolean()
+  @IsOptional()
+  is_active?: boolean;
 
   @IsArray()
   @IsOptional()

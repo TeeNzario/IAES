@@ -24,8 +24,8 @@ import axios from "axios";
 import { getThaiCourseName } from "@/utils/formatCourseName";
 
 // Configuration
-const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];
-const DEFAULT_ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE_OPTIONS = [25, 50, 100, 200];
+const DEFAULT_ITEMS_PER_PAGE = 25;
 
 // Interfaces
 interface KnowledgeCategory {
@@ -213,51 +213,12 @@ export default function CourseManagement() {
     }
   };
 
-  // Generate page numbers to display
-  const getPageNumbers = () => {
-    const pages: (number | string)[] = [];
-    const maxVisible = 5;
-
-    if (totalPages <= maxVisible) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      // Always show first page
-      pages.push(1);
-
-      if (currentPage > 3) {
-        pages.push("...");
-      }
-
-      // Show pages around current
-      const start = Math.max(2, currentPage - 1);
-      const end = Math.min(totalPages - 1, currentPage + 1);
-      for (let i = start; i <= end; i++) {
-        if (i !== 1 && i !== totalPages) {
-          pages.push(i);
-        }
-      }
-
-      if (currentPage < totalPages - 2) {
-        pages.push("...");
-      }
-
-      // Always show last page
-      if (totalPages > 1) {
-        pages.push(totalPages);
-      }
-    }
-
-    return pages;
-  };
-
   const firstVisibleItem = totalItems === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
   const lastVisibleItem = Math.min(currentPage * rowsPerPage, totalItems);
   const resultSummary =
     totalItems === 0
       ? "ยังไม่มีรายการ"
-      : `แสดง ${firstVisibleItem}-${lastVisibleItem} จาก ${totalItems} รายการ`;
+      : `แสดง ${firstVisibleItem}–${lastVisibleItem} จาก ${totalItems}`;
 
   return (
     <Navbar>
@@ -310,45 +271,38 @@ export default function CourseManagement() {
             </div>
           </section>
 
+          <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span className="inline-flex h-10 w-fit items-center rounded-xl bg-white px-4 text-sm font-medium text-[#514667] shadow-sm ring-1 ring-[#E7DDF8]">
+              {isLoading ? "กำลังโหลดข้อมูล..." : resultSummary}
+            </span>
+
+            <label className="relative block w-full sm:w-44">
+              <span className="sr-only">จำนวนแถวต่อหน้า</span>
+              <select
+                value={rowsPerPage}
+                onChange={(e) => {
+                  setRowsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                disabled={isLoading}
+                className="h-10 w-full appearance-none rounded-xl bg-white px-4 pr-10 text-sm font-medium text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3] disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 cursor-pointer"
+                title="แถวต่อหน้า"
+              >
+                {ITEMS_PER_PAGE_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    แสดง {opt} แถว
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                size={17}
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#7A7287]"
+              />
+            </label>
+          </div>
+
           {/* Table */}
           <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-[#E7DDF8]">
-            <div className="flex flex-col gap-3 border-b border-[#EFE8FB] px-5 py-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-lg font-semibold text-[#2F2A3A]">
-                  รายการรายวิชา
-                </p>
-                <p className="mt-1 text-sm font-normal text-[#7A7287]">
-                  {isLoading ? "กำลังโหลดข้อมูล..." : resultSummary}
-                </p>
-              </div>
-
-              <div className="flex w-full items-center justify-between gap-2 rounded-xl bg-[#FAF8FF] px-3 py-2 text-sm font-medium text-[#5F5570] ring-1 ring-[#E7DDF8] sm:w-fit sm:justify-start">
-                <span className="font-medium">แสดง</span>
-                <div className="relative">
-                  <select
-                    value={rowsPerPage}
-                    onChange={(e) => {
-                      setRowsPerPage(Number(e.target.value));
-                      setCurrentPage(1);
-                    }}
-                    disabled={isLoading}
-                    className="h-9 appearance-none rounded-lg bg-white pl-3 pr-8 text-sm font-semibold text-[#2F2A3A] outline-none ring-1 ring-[#D9CCF2] transition focus:ring-2 focus:ring-[#B7A3E3] disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 cursor-pointer"
-                    title="แถวต่อหน้า"
-                  >
-                    {ITEMS_PER_PAGE_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    size={16}
-                    className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[#7C5BD9]"
-                  />
-                </div>
-                <span>แถวต่อหน้า</span>
-              </div>
-            </div>
 
             <div className="overflow-x-auto">
               <table className="w-full min-w-[920px] table-fixed">
@@ -361,19 +315,19 @@ export default function CourseManagement() {
                 </colgroup>
                 <thead className="bg-[#B7A3E3] text-white">
                   <tr>
-                    <th className="px-5 py-4 text-left text-base font-semibold">
+                    <th className="px-5 py-4 text-left text-[15px] font-semibold">
                       รหัสวิชา
                     </th>
-                    <th className="px-5 py-4 text-left text-base font-semibold">
+                    <th className="px-5 py-4 text-left text-[15px] font-semibold">
                       ชื่อวิชา
                     </th>
-                    <th className="px-5 py-4 text-center text-base font-semibold">
+                    <th className="px-5 py-4 text-center text-[15px] font-semibold">
                       หมวดหมู่ความรู้
                     </th>
-                    <th className="px-5 py-4 text-center text-base font-semibold">
+                    <th className="px-5 py-4 text-center text-[15px] font-semibold">
                       สถานะ
                     </th>
-                    <th className="px-5 py-4 text-center text-base font-semibold">
+                    <th className="px-5 py-4 text-center text-[15px] font-semibold">
                       จัดการ
                     </th>
                   </tr>
@@ -528,46 +482,33 @@ export default function CourseManagement() {
               </table>
             </div>
 
-            {!isLoading && totalPages > 0 && (
-              <div className="flex flex-wrap items-center justify-center gap-2 border-t border-[#EFE8FB] px-5 py-4">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#B7A3E3] text-white shadow-sm transition-colors hover:bg-[#9264F5] disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer"
-                >
-                  <ChevronLeft size={22} strokeWidth={2.5} />
-                </button>
+            {!isLoading && totalItems > 0 && (
+              <div className="flex justify-end border-t border-[#EFE8FB] px-5 py-4">
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E5E7EB] text-[#8F98A8] shadow-sm transition-colors hover:bg-[#DDE1E7] disabled:cursor-not-allowed disabled:opacity-80 cursor-pointer"
+                    aria-label="หน้าก่อนหน้า"
+                    title="หน้าก่อนหน้า"
+                  >
+                    <ChevronLeft size={18} strokeWidth={2.4} />
+                  </button>
 
-                {getPageNumbers().map((page, index) =>
-                  typeof page === "string" ? (
-                    <span
-                      key={`ellipsis-${index}`}
-                      className="px-1 text-gray-400 select-none"
-                    >
-                      ...
-                    </span>
-                  ) : (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`h-10 w-10 rounded-xl font-semibold transition-colors cursor-pointer ${
-                        currentPage === page
-                          ? "bg-[#B7A3E3] text-white shadow-sm"
-                          : "bg-white text-[#7C5BD9] ring-1 ring-[#D9CCF2] hover:bg-[#F4EFFF]"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ),
-                )}
+                  <span className="flex h-9 min-w-9 items-center justify-center rounded-lg bg-[#B7A3E3] px-3 text-sm font-semibold text-white shadow-sm">
+                    {currentPage}
+                  </span>
 
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#B7A3E3] text-white shadow-sm transition-colors hover:bg-[#9264F5] disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed cursor-pointer"
-                >
-                  <ChevronRight size={22} strokeWidth={2.5} />
-                </button>
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E5E7EB] text-[#8F98A8] shadow-sm transition-colors hover:bg-[#DDE1E7] disabled:cursor-not-allowed disabled:opacity-80 cursor-pointer"
+                    aria-label="หน้าถัดไป"
+                    title="หน้าถัดไป"
+                  >
+                    <ChevronRight size={18} strokeWidth={2.4} />
+                  </button>
+                </div>
               </div>
             )}
           </div>

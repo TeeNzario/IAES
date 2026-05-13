@@ -13,7 +13,6 @@ import {
 import { toBuddhistYear } from "@/utils/academicYear";
 import { AuthUser } from "@/types/auth";
 import {
-  BarChart3,
   CalendarClock,
   ClipboardPlus,
   FileText,
@@ -293,19 +292,6 @@ export default function CoursePage() {
                 </button>
               )}
 
-              {canManageExams && (
-                <button
-                  onClick={() => setActiveTab("analytics")}
-                  className={`flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-colors cursor-pointer ${
-                    activeTab === "analytics"
-                      ? "bg-[#F4EFFF] text-[#7C5BD9] ring-1 ring-[#D9CCF2]"
-                      : "bg-white text-[#7C5BD9] ring-1 ring-[#E7DDF8] hover:bg-[#FAF8FF]"
-                  }`}
-                >
-                  <BarChart3 size={18} />
-                  ดูการวิเคราะห์
-                </button>
-              )}
 
               <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#E7DDF8]">
                 <h2 className="flex items-center gap-2 text-sm font-semibold text-[#2F2A3A]">
