@@ -4,8 +4,11 @@ import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertCircle,
+  BarChart3,
   ChevronLeft,
   ClipboardList,
+  FileText,
+  ListChecks,
   Plus,
   Trash2,
   Upload,
@@ -351,20 +354,21 @@ export default function ExamEditor({
   return (
     <>
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-8 lg:px-10 lg:py-8">
-        {/* Top bar */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+        <div className="mb-4 flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={() => router.push(backHref ?? `/course/${offeringId}`)}
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#514667] transition-colors hover:bg-white cursor-pointer"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-[#514667] ring-1 ring-transparent transition-colors hover:bg-[#FAF8FF] hover:ring-[#E7DDF8] cursor-pointer"
               aria-label="ย้อนกลับ"
             >
               <ChevronLeft size={18} />
             </button>
-            <div>
-              <h1 className="flex items-center gap-2 text-lg font-semibold text-[#2F2A3A] sm:text-xl">
-                <ClipboardList size={22} className="text-[#7C5BD9]" />
+            <div className="min-w-0">
+              <h1 className="flex items-center gap-2 text-xl font-semibold text-[#2F2A3A] sm:text-2xl">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#F4EFFF] text-[#7C5BD9]">
+                  <ClipboardList size={22} />
+                </span>
                 {mode === "edit" ? "แก้ไขชุดข้อสอบ" : "สร้างชุดข้อสอบ"}
               </h1>
               <p className="mt-1 text-sm font-normal text-[#7A7287]">
@@ -378,7 +382,7 @@ export default function ExamEditor({
               <button
                 type="button"
                 onClick={() => setConfirmDelete(true)}
-                className="flex items-center gap-2 rounded-xl border border-rose-300 bg-white px-4 py-2.5 text-sm font-semibold text-rose-500 transition-colors hover:bg-rose-50 cursor-pointer"
+                className="flex h-11 items-center gap-2 rounded-xl border border-rose-200 bg-white px-4 text-sm font-semibold text-rose-500 shadow-sm transition-colors hover:bg-rose-50 cursor-pointer"
               >
                 <Trash2 size={16} /> ลบชุดข้อสอบ
               </button>
@@ -389,7 +393,7 @@ export default function ExamEditor({
               disabled={!canSave}
               aria-disabled={!canSave}
               title={!canSave && validationError ? validationError : undefined}
-              className={`rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors ${
+              className={`h-11 rounded-xl px-5 text-sm font-semibold text-white shadow-sm transition-colors ${
                 canSave
                   ? "bg-[#B7A3E3] hover:bg-[#A48FD6] cursor-pointer"
                   : "bg-[#B7A3E3] opacity-50 cursor-not-allowed"
@@ -407,12 +411,11 @@ export default function ExamEditor({
           </p>
         )}
 
-        {/* Basic info */}
         <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6">
           <div className="mb-5">
-            <h2 className="flex items-center gap-2 text-base font-semibold text-[#2F2A3A]">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#B7A3E3] text-xs font-semibold text-white">
-                1
+            <h2 className="flex items-center gap-2.5 text-base font-semibold text-[#2F2A3A]">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F4EFFF] text-[#7C5BD9]">
+                <FileText size={18} />
               </span>
               ข้อมูลชุดข้อสอบ
             </h2>
@@ -423,7 +426,7 @@ export default function ExamEditor({
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_1fr]">
             <label className="block">
-              <span className="mb-1.5 block text-sm font-medium text-[#514667]">
+              <span className="mb-1.5 block text-[15px] font-semibold text-[#514667]">
                 ชื่อชุดข้อสอบ
               </span>
               <input
@@ -434,14 +437,14 @@ export default function ExamEditor({
                   setConfig({ ...config, title: e.target.value })
                 }
                 placeholder="สร้างชุดข้อสอบ"
-                className="w-full rounded-xl bg-white px-4 py-3 text-sm font-normal text-[#2F2A3A] placeholder:text-[#B7AFC6] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
+                className="h-11 w-full rounded-xl bg-[#FAF8FF] px-4 text-[15px] font-medium text-[#2F2A3A] placeholder:text-[#B7AFC6] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
               />
-              <span className="mt-1 block text-right text-[11px] font-medium text-[#7A7287]">
+              <span className="mt-1 block text-right text-xs font-medium text-[#7A7287]">
                 {config.title.length}/{EXAM_TITLE_MAX_LENGTH}
               </span>
             </label>
             <label className="block">
-              <span className="mb-1.5 block text-sm font-medium text-[#514667]">
+              <span className="mb-1.5 block text-[15px] font-semibold text-[#514667]">
                 คำอธิบาย
               </span>
               <input
@@ -452,9 +455,9 @@ export default function ExamEditor({
                   setConfig({ ...config, description: e.target.value })
                 }
                 placeholder="เช่น REST API, Database, Security"
-                className="w-full rounded-xl bg-white px-4 py-3 text-sm font-normal text-[#2F2A3A] placeholder:text-[#B7AFC6] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
+                className="h-11 w-full rounded-xl bg-[#FAF8FF] px-4 text-[15px] font-medium text-[#2F2A3A] placeholder:text-[#B7AFC6] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
               />
-              <span className="mt-1 block text-right text-[11px] font-medium text-[#7A7287]">
+              <span className="mt-1 block text-right text-xs font-medium text-[#7A7287]">
                 {config.description.length}/{EXAM_DESCRIPTION_MAX_LENGTH}
               </span>
             </label>
@@ -465,9 +468,9 @@ export default function ExamEditor({
         {!hideSchedule && (
           <section className="mt-5 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6">
             <div className="mb-5">
-              <h2 className="flex items-center gap-2 text-base font-semibold text-[#2F2A3A]">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#B7A3E3] text-xs font-semibold text-white">
-                  2
+              <h2 className="flex items-center gap-2.5 text-base font-semibold text-[#2F2A3A]">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F4EFFF] text-[#7C5BD9]">
+                  <ClipboardList size={18} />
                 </span>
                 ตั้งเวลาเปิด-ปิดสอบ
               </h2>
@@ -478,7 +481,7 @@ export default function ExamEditor({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="rounded-2xl bg-[#FAF8FF] p-5 ring-1 ring-[#EFE8FB]">
                 <label className="block">
-                  <span className="mb-1.5 block text-sm font-medium text-[#514667]">
+                  <span className="mb-1.5 block text-[15px] font-semibold text-[#514667]">
                     เริ่มสอบ
                   </span>
                   <input
@@ -487,7 +490,7 @@ export default function ExamEditor({
                     onChange={(e) =>
                       setConfig({ ...config, start_time: e.target.value })
                     }
-                    className={`w-full rounded-xl bg-white px-4 py-3 text-sm font-normal text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 ${
+                    className={`h-11 w-full rounded-xl bg-white px-4 text-[15px] font-medium text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 ${
                       dateErrors.start
                         ? "ring-2 ring-rose-300 focus:ring-rose-400"
                         : "focus:ring-[#B7A3E3]"
@@ -503,7 +506,7 @@ export default function ExamEditor({
               </div>
               <div className="rounded-2xl bg-[#FAF8FF] p-5 ring-1 ring-[#EFE8FB]">
                 <label className="block">
-                  <span className="mb-1.5 block text-sm font-medium text-[#514667]">
+                  <span className="mb-1.5 block text-[15px] font-semibold text-[#514667]">
                     สิ้นสุดสอบ
                   </span>
                   <input
@@ -512,7 +515,7 @@ export default function ExamEditor({
                     onChange={(e) =>
                       setConfig({ ...config, end_time: e.target.value })
                     }
-                    className={`w-full rounded-xl bg-white px-4 py-3 text-sm font-normal text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 ${
+                    className={`h-11 w-full rounded-xl bg-white px-4 text-[15px] font-medium text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 ${
                       dateErrors.end
                         ? "ring-2 ring-rose-300 focus:ring-rose-400"
                         : "focus:ring-[#B7A3E3]"
@@ -537,12 +540,12 @@ export default function ExamEditor({
         <section className="mt-5 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="flex items-center gap-2 text-base font-semibold text-[#2F2A3A]">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#B7A3E3] text-xs font-semibold text-white">
-                  {hideSchedule ? 2 : 3}
+              <h2 className="flex items-center gap-2.5 text-base font-semibold text-[#2F2A3A]">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F4EFFF] text-[#7C5BD9]">
+                  <ListChecks size={18} />
                 </span>
                 คำถามในชุดข้อสอบ
-                <span className="ml-1 rounded-full bg-[#F4EFFF] px-2.5 py-1 text-xs font-semibold text-[#7C5BD9]">
+                <span className="ml-1 rounded-full bg-[#F4EFFF] px-2.5 py-1 text-sm font-semibold text-[#7C5BD9]">
                   {selected.length}
                 </span>
               </h2>
@@ -554,7 +557,7 @@ export default function ExamEditor({
               <button
                 type="button"
                 onClick={() => setPickerOpen(true)}
-                className="flex items-center gap-2 rounded-xl bg-[#B7A3E3] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#A48FD6] cursor-pointer"
+                className="flex h-10 items-center gap-2 rounded-xl bg-[#B7A3E3] px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#A48FD6] cursor-pointer"
               >
                 <Plus size={16} />
                 เพิ่มคำถาม
@@ -645,22 +648,22 @@ function QuestionPreviewCard({
 }) {
   const diff = difficultyLabel(question.difficulty_param);
   return (
-    <div className="rounded-2xl bg-[#FAF8FF] p-5 ring-1 ring-[#EFE8FB]">
+    <div className="rounded-xl bg-[#FAF8FF] p-4 ring-1 ring-[#EFE8FB]">
       <div className="mb-4 flex items-start justify-between gap-3">
-        <h3 className="text-sm font-semibold leading-6 text-[#2F2A3A]">
+        <h3 className="text-[15px] font-semibold leading-6 text-[#2F2A3A]">
           {index + 1}. {question.question_text}
         </h3>
         <button
           type="button"
           onClick={onRemove}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#B7A3E3] text-white transition-colors hover:bg-[#A48FD6] cursor-pointer"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-rose-500 ring-1 ring-rose-100 transition-colors hover:bg-rose-50 cursor-pointer"
           aria-label="ลบ"
         >
-          <Trash2 size={14} />
+          <Trash2 size={16} />
         </button>
       </div>
 
-      <ul className="mb-3 space-y-1">
+      <ul className="mb-3 space-y-1.5">
         {question.choices?.map((c, i) => (
           <li
             key={c.choice_id ?? i}
@@ -680,7 +683,7 @@ function QuestionPreviewCard({
         ))}
       </ul>
 
-      <div className="mb-3 grid grid-cols-1 gap-3 text-xs font-normal text-[#514667] sm:grid-cols-3">
+      <div className="mb-3 grid grid-cols-1 gap-3 text-sm font-normal text-[#514667] sm:grid-cols-3">
         <ReadOnly label="ความยาก" value={question.difficulty_param} />
         <ReadOnly label="อำนาจการจำแนก" value={question.discrimination_param} />
         <ReadOnly label="โอกาสการเดา" value={question.guessing_param} />
@@ -688,14 +691,14 @@ function QuestionPreviewCard({
 
       <div className="flex flex-wrap items-center gap-1.5">
         <span
-          className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] ${diff.className}`}
+          className={`inline-block rounded-full px-3 py-1 text-sm font-semibold ${diff.className}`}
         >
           {diff.label}
         </span>
         {question.knowledge_categories?.map((t) => (
           <span
             key={t.knowledge_category_id}
-            className="rounded-full bg-[#B7A3E3] px-2.5 py-0.5 text-[11px] text-white"
+            className="rounded-full bg-[#B7A3E3] px-3 py-1 text-sm font-semibold text-white"
           >
             {t.name}
           </span>
@@ -714,8 +717,8 @@ function ReadOnly({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium text-[#7A7287]">{label}</label>
-      <div className="rounded-xl bg-white px-3 py-2 text-sm font-semibold text-[#2F2A3A] ring-1 ring-[#E7DDF8]">
+      <label className="mb-1 block text-sm font-medium text-[#7A7287]">{label}</label>
+      <div className="rounded-xl bg-white px-3 py-2 text-[15px] font-semibold text-[#2F2A3A] ring-1 ring-[#E7DDF8]">
         {value ?? "-"}
       </div>
     </div>
@@ -744,10 +747,13 @@ function ExamStatsPanel({ stats }: { stats: ExamStats }) {
   return (
     <section className="mt-5 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-base font-semibold text-[#2F2A3A]">
-          สถิติชุดข้อสอบ
+        <h3 className="flex items-center gap-2.5 text-base font-semibold text-[#2F2A3A]">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F4EFFF] text-[#7C5BD9]">
+            <BarChart3 size={18} />
+          </span>
+          <span>สถิติชุดข้อสอบ</span>
         </h3>
-        <span className="rounded-full bg-[#F4EFFF] px-3 py-1 text-xs font-semibold text-[#7C5BD9]">
+        <span className="rounded-full bg-[#F4EFFF] px-3 py-1 text-sm font-semibold text-[#7C5BD9]">
           ทั้งหมด {total} ข้อ
         </span>
       </div>
@@ -782,7 +788,7 @@ function ExamStatsPanel({ stats }: { stats: ExamStats }) {
 
       {/* Difficulty distribution bar */}
       <div className="mt-5">
-        <div className="mb-2 flex items-center justify-between text-xs font-medium text-[#7A7287]">
+        <div className="mb-2 flex items-center justify-between text-sm font-medium text-[#7A7287]">
           <span>การกระจายระดับความยาก</span>
           {untagged > 0 && (
             <span className="text-amber-600">
@@ -817,17 +823,17 @@ function ExamStatsPanel({ stats }: { stats: ExamStats }) {
 
       {/* Category breakdown */}
       <div className="mt-5">
-        <div className="mb-2 text-xs font-medium text-[#7A7287]">
+        <div className="mb-2 text-sm font-medium text-[#7A7287]">
           จำนวนข้อตามหมวดหมู่ความรู้
         </div>
         {categories.length === 0 ? (
-          <p className="text-xs font-medium text-[#B7AFC6]">— ไม่มีหมวดหมู่ที่กำหนด —</p>
+          <p className="text-sm font-medium text-[#B7AFC6]">— ไม่มีหมวดหมู่ที่กำหนด —</p>
         ) : (
           <ul className="space-y-2">
             {categories.map((c) => (
               <li
                 key={c.name}
-                className="grid grid-cols-[minmax(120px,180px)_1fr_40px] items-center gap-3 text-xs font-medium text-[#514667]"
+                className="grid grid-cols-[minmax(120px,180px)_1fr_40px] items-center gap-3 text-sm font-medium text-[#514667]"
               >
                 <span className="truncate" title={c.name}>
                   {c.name}
@@ -869,8 +875,8 @@ function StatCard({
   } as const;
   return (
     <div className={`rounded-xl px-4 py-3 ring-1 ring-white/60 ${tones[tone]}`}>
-      <div className="text-xs font-medium opacity-80">{label}</div>
-      <div className="mt-1 text-xl font-semibold leading-none">{value}</div>
+      <div className="text-[15px] font-semibold opacity-85">{label}</div>
+      <div className="mt-1 text-2xl font-semibold leading-none">{value}</div>
       {sub && (
         <div className="mt-1 text-xs font-medium opacity-70">{sub}</div>
       )}
