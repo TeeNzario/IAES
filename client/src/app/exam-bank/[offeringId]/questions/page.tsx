@@ -518,7 +518,7 @@ export default function FlatQuestionBankPage() {
                         </div>
                         <div className="text-center">
                           <span
-                            className={`inline-block rounded-full px-3.5 py-1 text-[15px] font-semibold ${diff.className}`}
+                            className={`inline-block min-w-16 rounded-full px-3 py-1 text-sm font-semibold ${diff.className}`}
                           >
                             {diff.label}
                           </span>

@@ -268,17 +268,17 @@ export default function ExamSetsListPage() {
                         </div>
                         <div className="text-center">
                           <span
-                            className={`inline-flex rounded-full px-3.5 py-1 text-[15px] font-semibold ${statusClass(
+                            className={`inline-flex min-w-[86px] justify-center rounded-full px-3 py-1 text-sm font-semibold ${statusClass(
                               e.status,
                             )}`}
                           >
                             {statusLabel[e.status]}
                           </span>
                         </div>
-                        <div className="text-center text-[15px] font-medium text-[#514667]">
+                        <div className="text-center text-sm font-semibold text-[#514667]">
                           {e.question_count} ข้อ
                         </div>
-                        <div className="text-center text-[15px] font-medium text-[#7A7287]">
+                        <div className="whitespace-nowrap text-center text-sm font-medium text-[#7A7287]">
                           {formatThaiDate(e.start_time)} -{" "}
                           {formatThaiDate(e.end_time)}
                         </div>
