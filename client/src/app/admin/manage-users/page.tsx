@@ -841,7 +841,7 @@ export default function ManageUserPage() {
         {/* Filter and Search */}
         <div className="mb-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#E7DDF8] sm:p-5">
         <div className="flex flex-col gap-4 2xl:flex-row 2xl:items-center 2xl:justify-between">
-          <div className="flex flex-wrap gap-2 items-center">
+          <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap 2xl:shrink-0">
             <button
               onClick={() => {
                 selectRole("STUDENT");
@@ -882,7 +882,7 @@ export default function ManageUserPage() {
             {roleFilter === "STUDENT" && (
               <button
                 onClick={openCreateStudentModal}
-                className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#B7A3E3] text-white transition-colors hover:bg-[#9264F5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9264F5] focus-visible:ring-offset-2"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#B7A3E3] text-white transition-colors hover:bg-[#9264F5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9264F5] focus-visible:ring-offset-2"
                 title="เพิ่มนักศึกษา"
               >
                 <Plus size={20} />
@@ -898,7 +898,7 @@ export default function ManageUserPage() {
                       roleFilter === "ADMINISTRATOR" ? "ADMIN" : "INSTRUCTOR",
                     )
                   }
-                  className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#B7A3E3] text-white transition-colors hover:bg-[#9264F5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9264F5] focus-visible:ring-offset-2"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#B7A3E3] text-white transition-colors hover:bg-[#9264F5] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9264F5] focus-visible:ring-offset-2"
                   title={`เพิ่ม${roleFilter === "INSTRUCTOR" ? "อาจารย์" : "ผู้ดูแลระบบ"}`}
                 >
                   <Plus size={20} />
@@ -906,7 +906,7 @@ export default function ManageUserPage() {
               )}
           </div>
 
-          <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center 2xl:w-auto">
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center 2xl:min-w-0 2xl:flex-1 2xl:justify-end">
             <button
               onClick={() => setShowFilters((visible) => !visible)}
               className={`relative flex h-11 w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 text-sm font-semibold shadow-sm transition-colors sm:w-auto sm:min-w-32 ${
@@ -943,7 +943,7 @@ export default function ManageUserPage() {
               </select>
               <ChevronDown className={dropdownIconClass} size={18} />
             </div>
-            <div className="relative w-full sm:w-80">
+            <div className="relative w-full sm:w-80 2xl:min-w-64 2xl:max-w-80 2xl:flex-1">
               <input
                 type="text"
                 placeholder="ค้นหา"
