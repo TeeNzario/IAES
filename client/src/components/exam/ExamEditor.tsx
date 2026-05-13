@@ -336,6 +336,8 @@ export default function ExamEditor({
     setError(null);
     try {
       await onDelete();
+      setDeleting(false);
+      setConfirmDelete(false);
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string | string[] } } })

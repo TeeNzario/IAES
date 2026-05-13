@@ -115,11 +115,11 @@ const OFFERINGS: OfferingSeed[] = [
     academic_year: 2026,
     semester: 1,
     instructorEmails: [
-      'instructor@iaes.local',
-      'napat.ai@iaes.local',
-      'somchai.engineer@iaes.local',
-      'suda.science@iaes.local',
-      'kanokwan.mgmt@iaes.local',
+      'instructor@wu.ac.th',
+      'napat.ai@wu.ac.th',
+      'somchai.engineer@wu.ac.th',
+      'suda.science@wu.ac.th',
+      'kanokwan.mgmt@wu.ac.th',
     ],
     studentCodes: [
       '66131319',
@@ -135,10 +135,10 @@ const OFFERINGS: OfferingSeed[] = [
     academic_year: 2026,
     semester: 1,
     instructorEmails: [
-      'napat.ai@iaes.local',
-      'somchai.engineer@iaes.local',
-      'instructor@iaes.local',
-      'suda.science@iaes.local',
+      'napat.ai@wu.ac.th',
+      'somchai.engineer@wu.ac.th',
+      'instructor@wu.ac.th',
+      'suda.science@wu.ac.th',
     ],
     studentCodes: ['66250102', '66250103', '66250104'],
   },
@@ -147,10 +147,10 @@ const OFFERINGS: OfferingSeed[] = [
     academic_year: 2026,
     semester: 1,
     instructorEmails: [
-      'instructor@iaes.local',
-      'somchai.engineer@iaes.local',
-      'napat.ai@iaes.local',
-      'pornchai.liberal@iaes.local',
+      'instructor@wu.ac.th',
+      'somchai.engineer@wu.ac.th',
+      'napat.ai@wu.ac.th',
+      'pornchai.liberal@wu.ac.th',
     ],
     studentCodes: ['66131319', '66220501', '66220502', '65220101'],
   },
@@ -158,14 +158,14 @@ const OFFERINGS: OfferingSeed[] = [
     courseCode: 'COE64-372',
     academic_year: 2026,
     semester: 2,
-    instructorEmails: ['instructor@iaes.local', 'somchai.engineer@iaes.local'],
+    instructorEmails: ['instructor@wu.ac.th', 'somchai.engineer@wu.ac.th'],
     studentCodes: ['66131319', '66220501', '66250102'],
   },
   {
     courseCode: 'COE64-305',
     academic_year: 2026,
     semester: 1,
-    instructorEmails: ['suda.science@iaes.local'],
+    instructorEmails: ['suda.science@wu.ac.th'],
     studentCodes: [
       '64121201',
       '64121202',
@@ -178,7 +178,7 @@ const OFFERINGS: OfferingSeed[] = [
     courseCode: 'COE64-233',
     academic_year: 2025,
     semester: 2,
-    instructorEmails: ['somchai.engineer@iaes.local'],
+    instructorEmails: ['somchai.engineer@wu.ac.th'],
     studentCodes: ['65220101', '66220501', '66131319'],
   },
   {
@@ -186,10 +186,10 @@ const OFFERINGS: OfferingSeed[] = [
     academic_year: 2026,
     semester: 1,
     instructorEmails: [
-      'somchai.engineer@iaes.local',
-      'instructor@iaes.local',
-      'napat.ai@iaes.local',
-      'suda.science@iaes.local',
+      'somchai.engineer@wu.ac.th',
+      'instructor@wu.ac.th',
+      'napat.ai@wu.ac.th',
+      'suda.science@wu.ac.th',
     ],
     studentCodes: ['66250102', '66250103', '65250101', '66131319'],
   },
@@ -197,7 +197,7 @@ const OFFERINGS: OfferingSeed[] = [
     courseCode: 'COE64-344',
     academic_year: 2026,
     semester: 1,
-    instructorEmails: ['napat.ai@iaes.local'],
+    instructorEmails: ['napat.ai@wu.ac.th'],
     studentCodes: ['66250102', '66220501', '66220502'],
   },
   {
@@ -205,7 +205,7 @@ const OFFERINGS: OfferingSeed[] = [
     academic_year: 2026,
     semester: 2,
     is_active: false,
-    instructorEmails: ['napat.ai@iaes.local'],
+    instructorEmails: ['napat.ai@wu.ac.th'],
     studentCodes: ['66250102', '66250103'],
   },
   {
@@ -213,11 +213,11 @@ const OFFERINGS: OfferingSeed[] = [
     academic_year: 2026,
     semester: 1,
     instructorEmails: [
-      'kanokwan.mgmt@iaes.local',
-      'pornchai.liberal@iaes.local',
-      'instructor@iaes.local',
-      'suda.science@iaes.local',
-      'napat.ai@iaes.local',
+      'kanokwan.mgmt@wu.ac.th',
+      'pornchai.liberal@wu.ac.th',
+      'instructor@wu.ac.th',
+      'suda.science@wu.ac.th',
+      'napat.ai@wu.ac.th',
     ],
     studentCodes: [
       '66131319',
@@ -233,7 +233,7 @@ const OFFERINGS: OfferingSeed[] = [
     courseCode: 'STD-001',
     academic_year: 2026,
     semester: 1,
-    instructorEmails: ['pornchai.liberal@iaes.local'],
+    instructorEmails: ['pornchai.liberal@wu.ac.th'],
     studentCodes: [
       '63131101',
       '63131102',
@@ -247,7 +247,7 @@ const OFFERINGS: OfferingSeed[] = [
     courseCode: 'STD-002',
     academic_year: 2026,
     semester: 1,
-    instructorEmails: ['instructor@iaes.local'],
+    instructorEmails: ['instructor@wu.ac.th'],
     studentCodes: [
       '66131319',
       '66220501',
@@ -262,7 +262,7 @@ const OFFERINGS: OfferingSeed[] = [
     courseCode: 'STD-003',
     academic_year: 2026,
     semester: 1,
-    instructorEmails: ['pornchai.liberal@iaes.local'],
+    instructorEmails: ['pornchai.liberal@wu.ac.th'],
     studentCodes: ['63131102', '66110701', '66131319', '66170201'],
   },
 ];
@@ -348,7 +348,7 @@ export async function seedCourses(staff: SeededStaff): Promise<SeededCourses> {
   await removeLegacyDemoCourse();
 
   const primaryInstructor =
-    staff.instructors.find((i) => i.email === 'instructor@iaes.local') ??
+    staff.instructors.find((i) => i.email === 'instructor@wu.ac.th') ??
     staff.instructors[0];
 
   const emailToStaff = new Map<string, staff_users>(

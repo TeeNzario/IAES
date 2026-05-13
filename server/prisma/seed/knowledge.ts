@@ -99,7 +99,7 @@ export async function seedKnowledge(
   staff: SeededStaff,
 ): Promise<SeededKnowledge> {
   const creator =
-    staff.instructors.find((i) => i.email === 'instructor@iaes.local') ??
+    staff.instructors.find((i) => i.email === 'instructor@wu.ac.th') ??
     staff.instructors[0];
 
   const courses = await prisma.courses.findMany();

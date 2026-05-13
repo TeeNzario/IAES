@@ -24,7 +24,7 @@ export async function seedStaff(): Promise<SeededStaff> {
 
   const rows: StaffSeed[] = [
     {
-      email: 'admin@iaes.local',
+      email: 'admin@wu.ac.th',
       role: 'ADMIN',
       facultyCode: FACULTY.INFORMATION_SCIENCE,
       curriculumId: CURRICULUM.IT_DIGITAL_INNOVATION,
@@ -33,7 +33,7 @@ export async function seedStaff(): Promise<SeededStaff> {
       last_name: 'ผู้ดูแลระบบ',
     },
     {
-      email: 'registrar@iaes.local',
+      email: 'registrar@wu.ac.th',
       role: 'ADMIN',
       facultyCode: FACULTY.MANAGEMENT,
       curriculumId: CURRICULUM.LOGISTICS,
@@ -42,7 +42,7 @@ export async function seedStaff(): Promise<SeededStaff> {
       last_name: 'ศรีประเสริฐ',
     },
     {
-      email: 'instructor@iaes.local',
+      email: 'instructor@wu.ac.th',
       role: 'INSTRUCTOR',
       facultyCode: FACULTY.INFORMATION_SCIENCE,
       curriculumId: CURRICULUM.IT_DIGITAL_INNOVATION,
@@ -51,7 +51,7 @@ export async function seedStaff(): Promise<SeededStaff> {
       last_name: 'สอนดี',
     },
     {
-      email: 'somchai.engineer@iaes.local',
+      email: 'somchai.engineer@wu.ac.th',
       role: 'INSTRUCTOR',
       facultyCode: FACULTY.ENGINEERING_TECH,
       curriculumId: CURRICULUM.COMPUTER_AI,
@@ -60,7 +60,7 @@ export async function seedStaff(): Promise<SeededStaff> {
       last_name: 'วิศวกรรม',
     },
     {
-      email: 'napat.ai@iaes.local',
+      email: 'napat.ai@wu.ac.th',
       role: 'INSTRUCTOR',
       facultyCode: FACULTY.ENGINEERING_TECH,
       curriculumId: CURRICULUM.COMPUTER_AI,
@@ -69,7 +69,7 @@ export async function seedStaff(): Promise<SeededStaff> {
       last_name: 'ปัญญากล้า',
     },
     {
-      email: 'suda.science@iaes.local',
+      email: 'suda.science@wu.ac.th',
       role: 'INSTRUCTOR',
       facultyCode: FACULTY.SCIENCE,
       curriculumId: CURRICULUM.CHEMISTRY,
@@ -78,7 +78,7 @@ export async function seedStaff(): Promise<SeededStaff> {
       last_name: 'เคมีวิทย์',
     },
     {
-      email: 'pornchai.liberal@iaes.local',
+      email: 'pornchai.liberal@wu.ac.th',
       role: 'INSTRUCTOR',
       facultyCode: FACULTY.LIBERAL_ARTS,
       curriculumId: CURRICULUM.ENGLISH,
@@ -87,7 +87,7 @@ export async function seedStaff(): Promise<SeededStaff> {
       last_name: 'ภาษาเก่ง',
     },
     {
-      email: 'kanokwan.mgmt@iaes.local',
+      email: 'kanokwan.mgmt@wu.ac.th',
       role: 'INSTRUCTOR',
       facultyCode: FACULTY.MANAGEMENT,
       curriculumId: CURRICULUM.DIGITAL_MARKETING,
@@ -96,7 +96,7 @@ export async function seedStaff(): Promise<SeededStaff> {
       last_name: 'ธุรกิจดี',
     },
     {
-      email: 'retired.instructor@iaes.local',
+      email: 'retired.instructor@wu.ac.th',
       role: 'INSTRUCTOR',
       facultyCode: FACULTY.SCIENCE,
       curriculumId: CURRICULUM.BIOLOGY,

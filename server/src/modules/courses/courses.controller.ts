@@ -121,7 +121,6 @@ export class CoursesController {
     @Param('id') id: string,
     @Body() dto: UpdateKnowledgeCategoriesDto,
   ) {
-    console.log('[DEBUG] PUT knowledge-categories, id:', id, 'names:', dto.names, 'user:', req.user.sub);
     return this.coursesService.updateKnowledgeCategories(
       +id,
       dto.names,

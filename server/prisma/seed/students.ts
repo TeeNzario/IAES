@@ -16,7 +16,7 @@ type StudentSeed = {
 const STUDENT_ROWS: StudentSeed[] = [
   {
     student_code: '63131101',
-    email: 'tharadon.english@example.com',
+    email: 'tharadon.english@mail.wu.ac.th',
     facultyCode: FACULTY.LIBERAL_ARTS,
     curriculumId: CURRICULUM.ENGLISH,
     title: 'นาย',
@@ -25,7 +25,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '63131102',
-    email: 'napaporn.thai@example.com',
+    email: 'napaporn.thai@mail.wu.ac.th',
     facultyCode: FACULTY.LIBERAL_ARTS,
     curriculumId: CURRICULUM.THAI_LANG,
     title: 'นางสาว',
@@ -34,7 +34,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '64121201',
-    email: 'worawit.chem@example.com',
+    email: 'worawit.chem@mail.wu.ac.th',
     facultyCode: FACULTY.SCIENCE,
     curriculumId: CURRICULUM.CHEMISTRY,
     title: 'นาย',
@@ -43,7 +43,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '64121202',
-    email: 'patcharin.bio@example.com',
+    email: 'patcharin.bio@mail.wu.ac.th',
     facultyCode: FACULTY.SCIENCE,
     curriculumId: CURRICULUM.BIOLOGY,
     title: 'นางสาว',
@@ -52,7 +52,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '64250101',
-    email: 'anuwat.civil@example.com',
+    email: 'anuwat.civil@mail.wu.ac.th',
     facultyCode: FACULTY.ENGINEERING_TECH,
     curriculumId: CURRICULUM.CIVIL_ENG,
     title: 'นาย',
@@ -61,7 +61,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '65210301',
-    email: 'sirilak.marketing@example.com',
+    email: 'sirilak.marketing@mail.wu.ac.th',
     facultyCode: FACULTY.MANAGEMENT,
     curriculumId: CURRICULUM.DIGITAL_MARKETING,
     title: 'นางสาว',
@@ -70,7 +70,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '65210302',
-    email: 'piyawat.tourism@example.com',
+    email: 'piyawat.tourism@mail.wu.ac.th',
     facultyCode: FACULTY.MANAGEMENT,
     curriculumId: CURRICULUM.TOURISM_DIGITAL,
     title: 'นาย',
@@ -79,7 +79,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '65220101',
-    email: 'kittikorn.multimedia@example.com',
+    email: 'kittikorn.multimedia@mail.wu.ac.th',
     facultyCode: FACULTY.INFORMATION_SCIENCE,
     curriculumId: CURRICULUM.MULTIMEDIA,
     title: 'นาย',
@@ -88,7 +88,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '65250101',
-    email: 'jiraporn.elec@example.com',
+    email: 'jiraporn.elec@mail.wu.ac.th',
     facultyCode: FACULTY.ENGINEERING_TECH,
     curriculumId: CURRICULUM.ELECTRICAL_ENG,
     title: 'นางสาว',
@@ -97,7 +97,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '66112233',
-    email: 'papada.kaewmanee@example.com',
+    email: 'papada.kaewmanee@mail.wu.ac.th',
     facultyCode: FACULTY.ACCOUNTING_FINANCE,
     curriculumId: CURRICULUM.ACCOUNTING,
     title: 'นางสาว',
@@ -106,7 +106,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '66121212',
-    email: 'kanpitcha.srisuk@example.com',
+    email: 'kanpitcha.srisuk@mail.wu.ac.th',
     facultyCode: FACULTY.SCIENCE,
     curriculumId: CURRICULUM.CHEMISTRY,
     title: 'นางสาว',
@@ -115,7 +115,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '66131313',
-    email: 'phakhin.logistics@example.com',
+    email: 'phakhin.logistics@mail.wu.ac.th',
     facultyCode: FACULTY.MANAGEMENT,
     curriculumId: CURRICULUM.LOGISTICS,
     title: 'นาย',
@@ -124,7 +124,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '66131319',
-    email: 'thanakrit.jaidee@example.com',
+    email: 'thanakrit.jaidee@mail.wu.ac.th',
     facultyCode: FACULTY.INFORMATION_SCIENCE,
     curriculumId: CURRICULUM.IT_DIGITAL_INNOVATION,
     title: 'นาย',
@@ -133,7 +133,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '66131320',
-    email: 'suphawadee.medinfo@example.com',
+    email: 'suphawadee.medinfo@mail.wu.ac.th',
     facultyCode: FACULTY.INFORMATION_SCIENCE,
     curriculumId: CURRICULUM.MEDICAL_INFO,
     title: 'นางสาว',
@@ -142,7 +142,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '66131321',
-    email: 'arthit.digicomm@example.com',
+    email: 'arthit.digicomm@mail.wu.ac.th',
     facultyCode: FACULTY.INFORMATION_SCIENCE,
     curriculumId: CURRICULUM.DIGITAL_COMM,
     title: 'นาย',
@@ -151,7 +151,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '66140101',
-    email: 'wannapha.law@example.com',
+    email: 'wannapha.law@mail.wu.ac.th',
     facultyCode: FACULTY.LAW,
     curriculumId: CURRICULUM.LAW,
     title: 'นางสาว',
@@ -160,7 +160,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '66170201',
-    email: 'chalermchai.nurse@example.com',
+    email: 'chalermchai.nurse@mail.wu.ac.th',
     facultyCode: FACULTY.NURSING,
     curriculumId: CURRICULUM.NURSING,
     title: 'นาย',
@@ -169,7 +169,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '66250102',
-    email: 'ratchanon.ai@example.com',
+    email: 'ratchanon.ai@mail.wu.ac.th',
     facultyCode: FACULTY.ENGINEERING_TECH,
     curriculumId: CURRICULUM.COMPUTER_AI,
     title: 'นาย',
@@ -178,7 +178,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '66250103',
-    email: 'benjamas.ai@example.com',
+    email: 'benjamas.ai@mail.wu.ac.th',
     facultyCode: FACULTY.ENGINEERING_TECH,
     curriculumId: CURRICULUM.COMPUTER_AI,
     title: 'นางสาว',
@@ -187,7 +187,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '66250104',
-    email: 'natthawut.ai@example.com',
+    email: 'natthawut.ai@mail.wu.ac.th',
     facultyCode: FACULTY.ENGINEERING_TECH,
     curriculumId: CURRICULUM.COMPUTER_AI,
     title: 'นาย',
@@ -196,7 +196,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '66220501',
-    email: 'nantapong.it@example.com',
+    email: 'nantapong.it@mail.wu.ac.th',
     facultyCode: FACULTY.INFORMATION_SCIENCE,
     curriculumId: CURRICULUM.IT_DIGITAL_INNOVATION,
     title: 'นาย',
@@ -205,7 +205,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '66220502',
-    email: 'ratchaneekorn.it@example.com',
+    email: 'ratchaneekorn.it@mail.wu.ac.th',
     facultyCode: FACULTY.INFORMATION_SCIENCE,
     curriculumId: CURRICULUM.IT_DIGITAL_INNOVATION,
     title: 'นางสาว',
@@ -214,7 +214,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '66110701',
-    email: 'pranee.chinese@example.com',
+    email: 'pranee.chinese@mail.wu.ac.th',
     facultyCode: FACULTY.LIBERAL_ARTS,
     curriculumId: CURRICULUM.CHINESE,
     title: 'นาง',
@@ -223,7 +223,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '66554433',
-    email: 'chayaphon.tangjai@example.com',
+    email: 'chayaphon.tangjai@mail.wu.ac.th',
     facultyCode: FACULTY.ENGINEERING_TECH,
     curriculumId: CURRICULUM.COMPUTER_AI,
     title: 'นาย',
@@ -233,7 +233,7 @@ const STUDENT_ROWS: StudentSeed[] = [
   },
   {
     student_code: '65150101',
-    email: 'thanawat.dropout@example.com',
+    email: 'thanawat.dropout@mail.wu.ac.th',
     facultyCode: FACULTY.LAW,
     curriculumId: CURRICULUM.LAW,
     title: 'นาย',

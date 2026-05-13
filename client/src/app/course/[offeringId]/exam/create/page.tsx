@@ -63,7 +63,7 @@ const statusClass = (s: ExamListItem["status"]) =>
 
 const localToIso = (dateInput: string, timeInput: string) => {
   const date = createLocalDateTime(dateInput, timeInput);
-  if (!date) throw new Error("Invalid local date/time");
+  if (!date) throw new Error("รูปแบบวันที่/เวลาไม่ถูกต้อง");
   return date.toISOString();
 };
 

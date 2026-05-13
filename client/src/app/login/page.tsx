@@ -182,7 +182,7 @@ const LoginPage = () => {
                   value={identifier}
                   onChange={handleInputChange(setIdentifier)}
                   className="h-[3.35rem] w-full rounded-2xl border border-[#E7DDF8] bg-white/90 px-12 font-sans text-base font-normal leading-5 text-[#201A2F] outline-none transition placeholder:text-sm placeholder:font-normal placeholder:text-[#9C94AA] focus:border-[#B7A3E3] focus:bg-white focus:ring-4 focus:ring-[#B7A3E3]/20 disabled:bg-gray-50 disabled:text-gray-400"
-                  placeholder="65123456 หรือ example@mail.wu.ac.th"
+                  placeholder="65123456 หรือ example@wu.ac.th"
                   disabled={isLoading}
                   autoComplete="username"
                   autoFocus
