@@ -41,6 +41,10 @@ export class UpdateExamDto {
   @IsBoolean()
   show_results_immediately?: boolean;
 
+  @IsOptional()
+  @IsBoolean()
+  is_published?: boolean;
+
   @IsArray()
   @ArrayNotEmpty()
   @ArrayMinSize(1)

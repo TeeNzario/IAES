@@ -28,6 +28,7 @@ interface ExamListItem {
   end_time: string;
   question_count: number;
   status: "UPCOMING" | "ONGOING" | "ENDED";
+  is_published: boolean;
 }
 
 const PAGE_SIZE_OPTIONS = [25, 50, 100, 200];
@@ -75,7 +76,7 @@ export default function ExamSetsListPage() {
     if (!offeringId) return;
     setLoading(true);
     setListError(null);
-    apiFetch<ExamListItem[]>(`/course-offerings/${offeringId}/exams`)
+    apiFetch<ExamListItem[]>(`/course-offerings/${offeringId}/exams?draft=true`)
       .then(setExams)
       .catch(() => {
         setExams([]);
@@ -312,13 +313,20 @@ export default function ExamSetsListPage() {
                           />
                         </div>
                         <div className="text-center">
-                          <span
-                            className={`inline-flex min-w-[86px] justify-center rounded-full px-3 py-1 text-sm font-semibold ${statusClass(
-                              e.status,
-                            )}`}
-                          >
-                            {statusLabel[e.status]}
-                          </span>
+                          <div className="flex flex-col items-center gap-1">
+                            {!e.is_published && (
+                              <span className="inline-flex min-w-[86px] justify-center rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-500 ring-1 ring-gray-300">
+                                ยังไม่เปิดสอบ
+                              </span>
+                            )}
+                            <span
+                              className={`inline-flex min-w-[86px] justify-center rounded-full px-3 py-1 text-sm font-semibold ${statusClass(
+                                e.status,
+                              )}`}
+                            >
+                              {statusLabel[e.status]}
+                            </span>
+                          </div>
                         </div>
                         <div className="text-center text-sm font-semibold text-[#514667]">
                           {e.question_count} ข้อ
