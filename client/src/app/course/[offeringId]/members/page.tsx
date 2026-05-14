@@ -584,7 +584,7 @@ const isStudent =
                   setActiveTopTab("home");
                   handleBackToCourse();
                 }}
-                className={`text-sm font-medium transition-colors cursor-pointer ${
+                className={`text-base font-medium transition-colors cursor-pointer ${
                   activeTopTab === "home"
                     ? "text-[#7C5BD9]"
                     : "text-[#7A7287] hover:text-[#7C5BD9]"
@@ -597,7 +597,7 @@ const isStudent =
                 onClick={() => {
                   setActiveTopTab("student");
                 }}
-                className={`text-sm font-medium transition-colors cursor-pointer ${
+                className={`text-base font-medium transition-colors cursor-pointer ${
                   activeTopTab === "student"
                     ? "text-[#7C5BD9]"
                     : "text-[#7A7287] hover:text-[#7C5BD9]"
@@ -613,11 +613,11 @@ const isStudent =
             {/* Left Section - Lists */}
             <div className="min-w-0 flex-1 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6 lg:p-8">
               {hasCourseExams && !isStudent && (
-                <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
-                  <AlertTriangle size={18} className="mt-0.5 shrink-0" />
+                <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800">
+                  <AlertTriangle size={20} className="mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-sm font-semibold">ล็อกการลบสมาชิก</p>
-                    <p className="mt-1 text-sm font-normal leading-6">
+                    <p className="text-base font-semibold">ล็อกการลบสมาชิก</p>
+                    <p className="mt-1 text-[15px] font-normal leading-6">
                       {deleteBlockedMessage}
                     </p>
                   </div>
@@ -627,22 +627,22 @@ const isStudent =
               {/* Header Card */}
               <div className="mb-6 rounded-xl border border-[#EFE8FB]">
                 <div className="flex items-center justify-between border-b border-[#EFE8FB] px-5 py-4">
-                  <h3 className="flex items-center gap-2 text-sm font-semibold text-[#2F2A3A]">
-                    <UsersRound size={16} className="text-[#B7A3E3]" />
+                  <h3 className="flex items-center gap-2 text-base font-semibold text-[#2F2A3A]">
+                    <UsersRound size={18} className="text-[#B7A3E3]" />
                     อาจารย์
                   </h3>
-                  <span className="text-sm font-semibold tabular-nums text-[#514667]">
+                  <span className="text-base font-semibold tabular-nums text-[#514667]">
                     {offering?.course_instructors.length ?? 0} คน
                   </span>
                 </div>
                 <div className="hidden border-b border-[#EFE8FB] bg-[#F7F3FF] px-5 py-4 md:grid md:grid-cols-[minmax(10rem,1fr)_minmax(12rem,1.35fr)_minmax(12rem,1.35fr)_2.25rem] md:items-center md:gap-4">
-                  <span className="text-sm font-semibold text-[#5B4A73]">
+                  <span className="text-[15px] font-semibold text-[#5B4A73]">
                     ชื่อ-นามสกุล
                   </span>
-                  <span className="text-sm font-semibold text-[#5B4A73]">
+                  <span className="text-[15px] font-semibold text-[#5B4A73]">
                     สำนักวิชา
                   </span>
-                  <span className="text-sm font-semibold text-[#5B4A73]">
+                  <span className="text-[15px] font-semibold text-[#5B4A73]">
                     หลักสูตร
                   </span>
                   <span aria-hidden />
@@ -655,32 +655,32 @@ const isStudent =
                     return (
                     <div
                       key={ci.staff_users_id}
-                      className="flex items-center gap-3 px-5 py-3 md:grid md:grid-cols-[minmax(10rem,1fr)_minmax(12rem,1.35fr)_minmax(12rem,1.35fr)_2.25rem] md:items-start md:gap-4"
+                      className="flex items-center gap-3 px-5 py-4 md:grid md:grid-cols-[minmax(10rem,1fr)_minmax(12rem,1.35fr)_minmax(12rem,1.35fr)_2.25rem] md:items-start md:gap-4"
                     >
                       <div className="flex flex-col flex-1 min-w-0 md:contents">
-                        <span className="truncate text-sm font-normal text-[#2F2A3A] md:min-w-0 md:overflow-visible md:whitespace-normal md:text-clip md:wrap-break-word">
+                        <span className="truncate text-[15px] font-normal leading-6 text-[#2F2A3A] md:min-w-0 md:overflow-visible md:whitespace-normal md:text-clip md:wrap-break-word">
                           {instructorName}
                         </span>
-                        <span className="truncate text-xs text-[#7A7287] md:hidden">
+                        <span className="truncate text-sm leading-5 text-[#7A7287] md:hidden">
                           {getFacultyName(ci.staff_users.facultyCode ?? 1)}
                           {" · "}
                           {getCurriculumName(ci.staff_users.curriculumId)}
                         </span>
-                        <span className="hidden min-w-0 text-sm font-normal text-[#514667] wrap-break-word md:block">
+                        <span className="hidden min-w-0 text-[15px] font-normal leading-6 text-[#514667] wrap-break-word md:block">
                           {getFacultyName(ci.staff_users.facultyCode ?? 1)}
                         </span>
-                        <span className="hidden min-w-0 text-sm font-normal text-[#514667] wrap-break-word md:block">
+                        <span className="hidden min-w-0 text-[15px] font-normal leading-6 text-[#514667] wrap-break-word md:block">
                           {getCurriculumName(ci.staff_users.curriculumId)}
                         </span>
                       </div>
                       {!isStudent && (
                         isPrimaryInstructor ? (
                           <span
-                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#B7A3E3] md:justify-self-end md:self-start"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[#B7A3E3] md:justify-self-end md:self-start"
                             title="อาจารย์คนแรกไม่สามารถลบได้"
                             aria-label="อาจารย์คนแรกไม่สามารถลบได้"
                           >
-                            <Lock size={16} />
+                            <Lock size={18} />
                           </span>
                         ) : hasCourseExams ? (
                           <button
@@ -692,11 +692,11 @@ const isStudent =
                                 variant: "warning",
                               })
                             }
-                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-300 transition-colors hover:bg-amber-50 hover:text-amber-500 md:justify-self-end md:self-start"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-300 transition-colors hover:bg-amber-50 hover:text-amber-500 md:justify-self-end md:self-start"
                             title="มีการสอบแล้ว ไม่สามารถลบได้"
                             aria-label="มีการสอบแล้ว ไม่สามารถลบได้"
                           >
-                            <Trash2 size={17} />
+                            <Trash2 size={18} />
                           </button>
                         ) : (
                           <button
@@ -706,11 +706,11 @@ const isStudent =
                                 instructorName,
                               )
                             }
-                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-red-400 transition-colors hover:bg-red-50 hover:text-red-500 md:justify-self-end md:self-start"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-red-400 transition-colors hover:bg-red-50 hover:text-red-500 md:justify-self-end md:self-start"
                             title="นำอาจารย์ออกจากรายวิชา"
                             aria-label="นำอาจารย์ออกจากรายวิชา"
                           >
-                            <Trash2 size={17} />
+                            <Trash2 size={18} />
                           </button>
                         )
                       )}
@@ -724,11 +724,11 @@ const isStudent =
                 {/* Title */}
                 <div className="flex items-center justify-between border-b border-[#EFE8FB] px-5 py-4">
                   <div className="flex w-full items-center justify-between gap-4">
-                    <h3 className="flex items-center gap-2 text-sm font-semibold text-[#2F2A3A]">
-                      <UsersRound size={16} className="text-[#B7A3E3]" />
+                    <h3 className="flex items-center gap-2 text-base font-semibold text-[#2F2A3A]">
+                      <UsersRound size={18} className="text-[#B7A3E3]" />
                       นักศึกษา
                     </h3>
-                    <span className="text-sm font-semibold tabular-nums text-[#514667]">
+                    <span className="text-base font-semibold tabular-nums text-[#514667]">
                       {students.length} คน
                     </span>
                   </div>
@@ -736,21 +736,21 @@ const isStudent =
 
                 {/* Desktop column header */}
                 <div className="hidden border-b border-[#EFE8FB] bg-[#F7F3FF] px-5 py-4 md:grid md:grid-cols-[8.5rem_minmax(10rem,1fr)_minmax(12rem,1.35fr)_minmax(12rem,1.35fr)_2.25rem] md:items-center md:gap-4">
-                  <span className="text-sm font-semibold text-[#5B4A73]">รหัสนักศึกษา</span>
-                  <span className="text-sm font-semibold text-[#5B4A73]">ชื่อ-นามสกุล</span>
-                  <span className="text-sm font-semibold text-[#5B4A73]">สำนักวิชา</span>
-                  <span className="text-sm font-semibold text-[#5B4A73]">หลักสูตร</span>
+                  <span className="text-[15px] font-semibold text-[#5B4A73]">รหัสนักศึกษา</span>
+                  <span className="text-[15px] font-semibold text-[#5B4A73]">ชื่อ-นามสกุล</span>
+                  <span className="text-[15px] font-semibold text-[#5B4A73]">สำนักวิชา</span>
+                  <span className="text-[15px] font-semibold text-[#5B4A73]">หลักสูตร</span>
                   <span aria-hidden />
                 </div>
 
                 {/* List */}
                 <div className="divide-y divide-[#EFE8FB]">
                   {loadingStudents ? (
-                    <div className="px-5 py-8 text-center text-sm font-medium text-[#7A7287]">
+                    <div className="px-5 py-8 text-center text-[15px] font-medium text-[#7A7287]">
                       กำลังโหลดรายชื่อนักศึกษา...
                     </div>
                   ) : students.length === 0 ? (
-                    <div className="px-5 py-8 text-center text-sm font-medium text-[#7A7287]">
+                    <div className="px-5 py-8 text-center text-[15px] font-medium text-[#7A7287]">
                       ยังไม่มีนักศึกษาในรายวิชานี้
                     </div>
                   ) : (
@@ -761,22 +761,22 @@ const isStudent =
                     >
                       <div className="flex flex-col flex-1 min-w-0 md:contents">
                         <div className="flex items-center gap-3 md:contents">
-                          <span className="text-sm font-normal text-[#2F2A3A] md:min-w-0 md:truncate">
+                          <span className="text-[15px] font-normal leading-6 text-[#2F2A3A] md:min-w-0 md:truncate">
                             {student.student_code}
                           </span>
-                          <span className="text-sm font-normal text-[#2F2A3A] md:min-w-0 md:whitespace-normal md:wrap-break-word">
+                          <span className="text-[15px] font-normal leading-6 text-[#2F2A3A] md:min-w-0 md:whitespace-normal md:wrap-break-word">
                             {student.title} {student.first_name} {student.last_name}
                           </span>
                         </div>
-                        <span className="mt-0.5 truncate text-xs text-[#7A7287] md:hidden">
+                        <span className="mt-0.5 truncate text-sm leading-5 text-[#7A7287] md:hidden">
                           {getFacultyName(student.facultyCode ?? 1)}
                           {" · "}
                           {formatCurriculumDisplay(student.curriculumId)}
                         </span>
-                        <span className="hidden min-w-0 text-sm font-normal text-[#514667] wrap-break-word md:block">
+                        <span className="hidden min-w-0 text-[15px] font-normal leading-6 text-[#514667] wrap-break-word md:block">
                           {getFacultyName(student.facultyCode ?? 1)}
                         </span>
-                        <span className="hidden min-w-0 text-sm font-normal text-[#514667] wrap-break-word md:block">
+                        <span className="hidden min-w-0 text-[15px] font-normal leading-6 text-[#514667] wrap-break-word md:block">
                           {formatCurriculumDisplay(student.curriculumId)}
                         </span>
                       </div>
@@ -792,11 +792,11 @@ const isStudent =
                                 variant: "warning",
                               })
                             }
-                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-300 transition-colors hover:bg-amber-50 hover:text-amber-500 md:justify-self-end md:self-start"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-300 transition-colors hover:bg-amber-50 hover:text-amber-500 md:justify-self-end md:self-start"
                             title="มีการสอบแล้ว ไม่สามารถลบได้"
                             aria-label="มีการสอบแล้ว ไม่สามารถลบได้"
                           >
-                            <Trash2 size={17} />
+                            <Trash2 size={18} />
                           </button>
                         ) : (
                           <button
@@ -806,10 +806,10 @@ const isStudent =
                                 `${student.title} ${student.first_name} ${student.last_name}`,
                               )
                             }
-                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-red-400 transition-colors hover:bg-red-50 hover:text-red-500 md:justify-self-end md:self-start"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-red-400 transition-colors hover:bg-red-50 hover:text-red-500 md:justify-self-end md:self-start"
                             title="นำออกจากรายวิชา"
                           >
-                            <Trash2 size={17} />
+                            <Trash2 size={18} />
                           </button>
                         )
                       ) : (
@@ -831,7 +831,7 @@ const isStudent =
                   className="flex h-12 w-12 items-center justify-center rounded-xl text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
                   title="เพิ่มนักศึกษา"
                 >
-                  <UserPlus className="h-5 w-5" />
+                  <UserPlus className="h-[22px] w-[22px]" />
                 </button>
 
                 {/* CSV Upload Button */}
@@ -841,7 +841,7 @@ const isStudent =
                   title="อัพโหลด CSV"
                 >
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer">
-                    <Upload className="h-5 w-5" />
+                    <Upload className="h-[22px] w-[22px]" />
                   </div>
                 </button>
               </div>

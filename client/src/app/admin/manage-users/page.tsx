@@ -230,7 +230,7 @@ export default function ManageUserPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [fetching, setFetching] = useState(false);
 
-  const [authError, setAuthError] = useState(false);
+  const [, setAuthError] = useState(false);
 
   // Fetch current user on mount
   useEffect(() => {
@@ -1111,14 +1111,14 @@ export default function ManageUserPage() {
             </div>
           ) : (
             <div className="overflow-auto max-h-[calc(100vh-280px)]">
-              <table className="w-full min-w-[820px] hidden table-fixed sm:table">
+              <table className="w-full min-w-[900px] hidden table-fixed sm:table">
                 <colgroup>
                   <col className={showSequenceColumn ? "w-[7%]" : "w-[13%]"} />
-                  <col className={showSequenceColumn ? "w-[22%]" : "w-[20%]"} />
-                  <col className={showSequenceColumn ? "w-[23%]" : "w-[22%]"} />
-                  <col className={showSequenceColumn ? "w-[21%]" : "w-[18%]"} />
-                  <col className="w-[20%]" />
-                  <col className="w-[7%]" />
+                  <col className={showSequenceColumn ? "w-[24%]" : "w-[22%]"} />
+                  <col className={showSequenceColumn ? "w-[24%]" : "w-[24%]"} />
+                  <col className={showSequenceColumn ? "w-[20%]" : "w-[21%]"} />
+                  <col className="w-[10rem]" />
+                  <col className="w-[5rem]" />
                 </colgroup>
                 <thead className="sticky top-0 z-10">
                   <tr className="bg-[#B7A3E3] text-white">
@@ -1128,7 +1128,7 @@ export default function ManageUserPage() {
                     <th className="px-5 py-4 text-left text-[15px] font-semibold">ชื่อ-นามสกุล</th>
                     <th className="px-5 py-4 text-left text-[15px] font-semibold">สำนักวิชา</th>
                     <th className="px-5 py-4 text-left text-[15px] font-semibold">หลักสูตร</th>
-                    <th className="px-5 py-4 text-left text-[15px] font-semibold">สถานะ</th>
+                    <th className="px-3 py-4 text-center text-[15px] font-semibold">สถานะ</th>
                     <th className="px-3 py-4 text-center text-[15px] font-semibold">แก้ไข</th>
                   </tr>
                 </thead>
@@ -1141,7 +1141,7 @@ export default function ManageUserPage() {
                       <td className="px-5 py-4 font-normal text-[#2F2A3A]">{`${user.title} ${user.first_name} ${user.last_name}`}</td>
                       <td className="px-5 py-4 font-normal text-[#514667]">{getFacultyName(user.facultyCode ?? DEFAULT_FACULTY_CODE)}</td>
                       <td className="px-5 py-4 font-normal text-[#514667]">{getCurriculumName(user.curriculumId)}</td>
-                      <td className="px-5 py-4">
+                      <td className="px-3 py-4 text-center">
                         <span
                           className={`inline-flex min-w-28 justify-center rounded-full px-3 py-1 text-[15px] font-normal ${user.is_active
                             ? "bg-[#B7A3E3] text-white"
