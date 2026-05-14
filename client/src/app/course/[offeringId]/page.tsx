@@ -13,6 +13,7 @@ import {
 import { toBuddhistYear } from "@/utils/academicYear";
 import { AuthUser } from "@/types/auth";
 import {
+  AlertCircle,
   CalendarClock,
   ClipboardPlus,
   FileText,
@@ -42,6 +43,7 @@ export default function CoursePage() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
   const [exams, setExams] = useState<ExamListItem[]>([]);
+  const [examFetchError, setExamFetchError] = useState<string | null>(null);
 
   const userType = String(user?.type ?? user?.userType ?? "").toUpperCase();
   const staffRole = String(user?.staff_role ?? user?.role ?? "").toUpperCase();
@@ -82,7 +84,10 @@ export default function CoursePage() {
         if (isMounted) setExams(data);
       })
       .catch(() => {
-        if (isMounted) setExams([]);
+        if (isMounted) {
+          setExams([]);
+          setExamFetchError("ไม่สามารถโหลดรายการข้อสอบได้");
+        }
       });
 
     return () => {
@@ -324,7 +329,13 @@ export default function CoursePage() {
             </aside>
 
             <section className="space-y-4">
-              {exams.length === 0 ? (
+              {examFetchError && (
+                <div className="flex items-center gap-2 rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 ring-1 ring-rose-200">
+                  <AlertCircle size={14} />
+                  {examFetchError}
+                </div>
+              )}
+              {exams.length === 0 && !examFetchError ? (
                 <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-[#E7DDF8]">
                   <FileText size={28} className="mx-auto text-[#B7A3E3]" />
                   <p className="mt-3 text-sm font-medium text-[#7A7287]">

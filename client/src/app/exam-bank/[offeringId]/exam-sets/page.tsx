@@ -67,6 +67,7 @@ export default function ExamSetsListPage() {
   // Delete state
   const [deleteTarget, setDeleteTarget] = useState<ExamListItem | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const fetchExams = useCallback(() => {
     if (!offeringId) return;
@@ -84,6 +85,7 @@ export default function ExamSetsListPage() {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
+    setDeleteError(null);
     try {
       await apiFetch(
         `/course-offerings/${offeringId}/exams/${deleteTarget.course_exams_id}`,
@@ -92,7 +94,7 @@ export default function ExamSetsListPage() {
       setDeleteTarget(null);
       fetchExams();
     } catch {
-      // ignore
+      setDeleteError("ไม่สามารถลบชุดข้อสอบได้ กรุณาลองใหม่อีกครั้ง");
     } finally {
       setDeleting(false);
     }
@@ -382,15 +384,22 @@ export default function ExamSetsListPage() {
         <ConfirmModal
           isOpen={deleteTarget !== null}
           onClose={() => {
-            if (!deleting) setDeleteTarget(null);
+            if (!deleting) {
+              setDeleteTarget(null);
+              setDeleteError(null);
+            }
           }}
           onConfirm={handleDelete}
           title="ลบชุดข้อสอบ"
-          message={`คุณแน่ใจหรือไม่ว่าต้องการลบชุดข้อสอบ "${deleteTarget?.title ?? ""}"?`}
-          confirmText="ลบ"
+          message={
+            deleteError
+              ? deleteError
+              : `คุณแน่ใจหรือไม่ว่าต้องการลบชุดข้อสอบ "${deleteTarget?.title ?? ""}"?`
+          }
+          confirmText={deleteError ? "ลองใหม่" : "ลบ"}
           cancelText="ยกเลิก"
           isLoading={deleting}
-          variant="danger"
+          variant={deleteError ? "warning" : "danger"}
         />
       </div>
     </NavBar>

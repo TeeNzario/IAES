@@ -383,6 +383,11 @@ export class CourseExamsService {
     if (start >= end) {
       throw new BadRequestException('start_time must be before end_time');
     }
+    // Allow a small clock-skew tolerance (60 seconds in the past is OK).
+    const now = Date.now();
+    if (start.getTime() < now - 60_000) {
+      throw new BadRequestException('start_time cannot be in the past');
+    }
 
     if (!Array.isArray(dto.question_ids) || dto.question_ids.length < 1) {
       throw new BadRequestException('At least 1 question is required');

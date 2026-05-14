@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -108,6 +108,7 @@ export default function CreateExamSchedulePage() {
 
   const [exams, setExams] = useState<ExamListItem[]>([]);
   const [loadingList, setLoadingList] = useState(true);
+  const [listError, setListError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [pickerPage, setPickerPage] = useState(1);
   const [pickerPageSize, setPickerPageSize] = useState(9);
@@ -126,12 +127,17 @@ export default function CreateExamSchedulePage() {
 
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const loadingRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!offeringId) return;
     apiFetch<ExamListItem[]>(`/course-offerings/${offeringId}/exams`)
       .then(setExams)
-      .catch(() => setExams([]))
+      .catch(() => {
+        setExams([]);
+        setListError("ไม่สามารถโหลดรายการชุดข้อสอบได้");
+      })
       .finally(() => setLoadingList(false));
   }, [offeringId]);
 
@@ -184,11 +190,12 @@ export default function CreateExamSchedulePage() {
   useEffect(() => {
     if (!offeringId || visibleExamIds.length === 0) return;
     const idsToLoad = visibleExamIds.filter(
-      (id) => examDetails[id] === undefined && !detailsLoadingIds.has(id),
+      (id) => examDetails[id] == null && !loadingRef.current.has(id),
     );
     if (idsToLoad.length === 0) return;
 
     let cancelled = false;
+    idsToLoad.forEach((id) => loadingRef.current.add(id));
     setDetailsLoadingIds((current) => {
       const next = new Set(current);
       idsToLoad.forEach((id) => next.add(id));
@@ -219,6 +226,7 @@ export default function CreateExamSchedulePage() {
       })
       .finally(() => {
         if (cancelled) return;
+        idsToLoad.forEach((id) => loadingRef.current.delete(id));
         setDetailsLoadingIds((current) => {
           const next = new Set(current);
           idsToLoad.forEach((id) => next.delete(id));
@@ -229,7 +237,7 @@ export default function CreateExamSchedulePage() {
     return () => {
       cancelled = true;
     };
-  }, [offeringId, visibleExamIds, visibleExamIdsKey, examDetails, detailsLoadingIds]);
+  }, [offeringId, visibleExamIdsKey]);
 
   const errors = useMemo(() => {
     const out: {
@@ -302,7 +310,10 @@ export default function CreateExamSchedulePage() {
   const selected = exams.find((e) => e.course_exams_id === selectedId) ?? null;
 
   const handleSubmit = async () => {
-    if (!isValid || !selectedId) return;
+    if (!isValid || !selectedId) {
+      setSubmitted(true);
+      return;
+    }
     setSaving(true);
     setSubmitError(null);
     try {
@@ -462,6 +473,12 @@ export default function CreateExamSchedulePage() {
               </div>
             )}
 
+            {listError && (
+              <div className="mb-4 flex items-center gap-2 rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 ring-1 ring-rose-200">
+                <AlertCircle size={14} />
+                {listError}
+              </div>
+            )}
             {loadingList ? (
               <p className="text-[13px] font-medium text-[#7A7287] sm:text-sm">กำลังโหลด...</p>
             ) : filtered.length === 0 ? (
@@ -577,7 +594,7 @@ export default function CreateExamSchedulePage() {
                         : "focus:ring-[#B7A3E3]"
                     }`}
                   />
-                  {startDate && errors.startDate && (
+                  {(startDate || submitted) && errors.startDate && (
                     <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-500">
                       <AlertCircle size={12} />
                       {errors.startDate}
@@ -598,7 +615,7 @@ export default function CreateExamSchedulePage() {
                         : "focus:ring-[#B7A3E3]"
                     }`}
                   />
-                  {startDate && errors.startTime && (
+                  {(startTime || submitted) && errors.startTime && (
                     <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-500">
                       <AlertCircle size={12} />
                       {errors.startTime}
@@ -626,7 +643,7 @@ export default function CreateExamSchedulePage() {
                         : "focus:ring-[#B7A3E3]"
                     }`}
                   />
-                  {endDate && errors.endDate && (
+                  {(endDate || submitted) && errors.endDate && (
                     <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-500">
                       <AlertCircle size={12} />
                       {errors.endDate}
@@ -647,7 +664,7 @@ export default function CreateExamSchedulePage() {
                         : "focus:ring-[#B7A3E3]"
                     }`}
                   />
-                  {endDate && errors.endTime && (
+                  {(endTime || submitted) && errors.endTime && (
                     <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-500">
                       <AlertCircle size={12} />
                       {errors.endTime}
