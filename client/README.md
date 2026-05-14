@@ -89,6 +89,8 @@ npm run lint
 - ADMIN users visiting `/` are redirected to `/admin/manage-users`.
 - INSTRUCTOR users can access `/course`, `/course/[offeringId]`, course members, and `/exam-bank`.
 - STUDENT users can access `/` and enrolled course detail pages under `/course/[offeringId]`.
+- Mistyped or unknown paths are handled by `src/app/not-found.tsx`, which offers a role-aware home action and a back action when browser history is available.
+- `src/hooks/useHomeRoute.ts` and `src/utils/homeRoute.ts` centralize the role-aware home route used by `/results` and the custom 404 page.
 - Static public assets, such as `/IAES_logo.png`, are allowed through middleware.
 
 ## Current App Routes
@@ -104,9 +106,16 @@ src/app/course/[offeringId]/members/page.tsx  Course members and CSV import
 src/app/course/[offeringId]/exam/create       Open an exam from an exam set
 src/app/exam-bank/page.tsx                    Course picker for exam bank
 src/app/exam-bank/[offeringId]/page.tsx       Exam bank entry page
-src/app/exam-bank/[offeringId]/questions      Question bank list/create/edit flow
-src/app/exam-bank/[offeringId]/exam-sets      Exam set list/create/edit flow
-src/app/results/page.tsx                      Results summary placeholder
+src/app/exam-bank/[offeringId]/questions      Question bank list
+src/app/exam-bank/[offeringId]/questions/create
+                                                Question creation flow
+src/app/exam-bank/[offeringId]/exam-sets      Exam set list
+src/app/exam-bank/[offeringId]/exam-sets/create
+                                                Exam set creation flow
+src/app/exam-bank/[offeringId]/exam-sets/[examId]/edit
+                                                Exam set editing flow
+src/app/results/page.tsx                      In-progress results summary dashboard
+src/app/not-found.tsx                         Custom 404 page for invalid paths
 ```
 
 ## Important Paths
@@ -119,7 +128,9 @@ src/lib/auth.ts          Client auth profile helpers
 src/lib/auth.permissions.ts Permission helpers
 src/components/          Shared UI and layout components
 src/features/            Domain-specific API and UI modules
+src/hooks/useHomeRoute.ts Role-aware home route hook
 src/types/               Shared frontend TypeScript types
+src/utils/homeRoute.ts   Role-aware home route utilities
 src/config/curriculums.ts Curriculum definitions
 public/IAES_logo.png     Login/logo asset
 ```
@@ -133,7 +144,8 @@ public/IAES_logo.png     Login/logo asset
 - Course cards are shown in three columns on wide screens and collapse responsively.
 - Course dashboards fetch exam management data only for staff users with exam-management access.
 - The sidebar keeps "ผลสรุปการสอบ" as the final menu item.
-- `/results` intentionally shows a "กำลังพัฒนา" state until the summary feature is implemented.
+- `/results` intentionally shows an in-progress report dashboard state until the full summary feature is implemented.
+- Invalid routes render the custom 404 page with consistent IAES card styling and role-aware navigation.
 
 ## Verification
 

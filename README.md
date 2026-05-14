@@ -9,11 +9,13 @@ IAES (Intelligent Adaptive Examination System) is a web application for adaptive
 - Admin user management supports role tabs plus faculty, curriculum, and student cohort filtering; student cohorts are derived from the first two digits of student codes.
 - Import students through CSV preview and confirm workflow
 - Manage course members, instructors, question banks, knowledge categories, exam sets, and attempts
+- Import question bank data through CSV preview, row review/edit, and confirm workflow
 - JWT authentication with httpOnly cookies
 - Role-based access for ADMIN, INSTRUCTOR, and STUDENT users
 - Shared navigation includes a profile menu with an initials-based avatar fallback for accounts without profile images.
+- Custom 404 handling for mistyped routes, with role-aware navigation back to the correct home area.
 - Audit logging for sensitive user and enrollment changes
-- Results summary page is present as a "กำลังพัฒนา" placeholder
+- Results summary page is present as an in-progress report dashboard placeholder with role-aware navigation.
 
 ## Tech Stack
 
@@ -116,11 +118,17 @@ Use the unified login page at `http://localhost:3000/login`. The form accepts ei
 /course                        Instructor course catalog and course setup
 /course/[offeringId]           Course dashboard
 /course/[offeringId]/members   Course member and CSV enrollment management
+/course/[offeringId]/exam/create
+                               Open an exam from an existing exam set
 /exam-bank                     Instructor course picker for question bank work
 /exam-bank/[offeringId]        Question bank and exam set entry page
 /exam-bank/[offeringId]/questions
+/exam-bank/[offeringId]/questions/create
 /exam-bank/[offeringId]/exam-sets
-/results                       Results summary placeholder
+/exam-bank/[offeringId]/exam-sets/create
+/exam-bank/[offeringId]/exam-sets/[examId]/edit
+/results                       In-progress results summary dashboard
+Invalid paths                  Custom 404 page with role-aware home/back actions
 ```
 
 ## Database Workflows
@@ -167,6 +175,20 @@ npx prisma migrate reset
 ```
 
 Never run `migrate reset` against shared or production databases.
+
+## Database Coverage
+
+Important Prisma areas include:
+
+- `audit_logs` for sensitive action history
+- `staff_users`, `students`, and `student_directory` for account and profile data
+- `courses`, `course_offerings`, `course_instructors`, and `course_enrollments` for course management
+- `question_bank`, `question_choices`, `knowledge_categories`, `course_knowledge`, and `question_knowledge` for question authoring and tagging
+- `question_bank_years` and `question_collections` for organizing question sets by academic year and collection
+- `course_exams` and `exam_questions` for reusable exam sets
+- `exam_attempts`, `attempt_items`, and `attempt_answers` for exam history and result data
+- `import_preview_sessions` and `import_preview_rows` for student CSV enrollment preview
+- `question_import_sessions` and `question_import_rows` for question bank CSV preview
 
 ## Security And Auth Notes
 

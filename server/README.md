@@ -173,6 +173,14 @@ http://localhost:3002
 - `GET /students` is ADMIN-only and returns public student profile fields such as `student_code`, `email`, `facultyCode`, `title`, `curriculumId`, `first_name`, `last_name`, and `is_active`.
 - The admin user management page derives student cohort filters on the frontend from the first two digits of `student_code`; no extra backend query parameter is required for that filter.
 
+## Question Bank API Notes
+
+- Question bank organization is scoped by course offering under `course-offerings/:offeringId/question-bank`.
+- Years and collections are managed through `question_bank_years` and `question_collections`.
+- Questions can be listed, created in bulk, updated, deleted, and tagged with knowledge categories.
+- CSV question import uses `course-offerings/:offeringId/question-bank/import/preview`, preview row edit/delete endpoints, and `confirm/:sessionId`.
+- Question import preview state is stored in `question_import_sessions` and `question_import_rows`; confirmed rows are converted into question bank records and the session is removed.
+
 ## Useful Commands
 
 Generate Prisma client:
@@ -243,7 +251,7 @@ src/modules/students/         Student CRUD and password changes
 src/modules/courses/          Course management
 src/modules/course-offerings/ Course offerings, enrollments, CSV preview
 src/modules/knowledge-categories/ Knowledge category lookup and links
-src/modules/question-bank/    Question bank years, collections, choices, tags
+src/modules/question-bank/    Question bank years, collections, choices, tags, CSV import preview
 src/modules/course-exams/     Course exam set management
 src/prisma/                   Prisma service module
 src/generated/prisma/         Generated Prisma client

@@ -116,7 +116,7 @@ The server is a modular NestJS 11 application wired through `server/src/app.modu
 - `server/src/modules/courses/` - course management
 - `server/src/modules/course-offerings/` - course offerings, enrollments, CSV preview/import
 - `server/src/modules/knowledge-categories/` - knowledge category links
-- `server/src/modules/question-bank/` - question bank years, collections, choices, knowledge tagging
+- `server/src/modules/question-bank/` - question bank years, collections, choices, knowledge tagging, CSV import preview
 - `server/src/modules/course-exams/` - exam set creation and management
 - `server/src/prisma/` - global Prisma service provider
 - `server/src/lib/password.ts` - bcrypt hashing, verification, and `BCRYPT_COST`
@@ -147,8 +147,10 @@ Key backend patterns:
 - `/admin/manage-users` is ADMIN-only and manages students, instructors, and admins. The list uses role tabs and client-side filters for faculty, curriculum, and student cohort; cohort options are derived from the first two digits of loaded student codes.
 - `/course` is the instructor course catalog/management page.
 - `/course/[offeringId]` and `/course/[offeringId]/members` are course dashboard/member pages.
+- `/course/[offeringId]/exam/create` opens an exam from an existing exam set.
 - `/exam-bank` and nested exam-bank pages are instructor workflows for questions and exam sets.
-- `/results` is intentionally a "กำลังพัฒนา" placeholder.
+- `/results` is intentionally an in-progress report dashboard placeholder until full result summaries are implemented.
+- `client/src/app/not-found.tsx` is the custom 404 page for invalid paths. It uses `client/src/hooks/useHomeRoute.ts` and `client/src/utils/homeRoute.ts` to send ADMIN users to `/admin/manage-users` and other users to `/`.
 
 ## Database Schema Notes
 
@@ -161,6 +163,7 @@ Important Prisma models include:
 - `question_bank`, `question_choices`, `knowledge_categories`, `question_knowledge`, `course_knowledge` - question bank and tagging
 - `course_exams`, `exam_questions`, `exam_attempts`, `attempt_items`, `attempt_answers` - exam and attempt tracking
 - `import_preview_sessions`, `import_preview_rows` - CSV import preview workflow
+- `question_import_sessions`, `question_import_rows` - question bank CSV import preview workflow
 - `question_bank_years`, `question_collections` - question collection organization
 
 `staff_users` and `students` include `password_changed_at` to invalidate old JWTs after password changes.
@@ -210,6 +213,8 @@ npm run build --prefix client
 - Auth token storage is cookie-based. Do not reintroduce access tokens in `localStorage`.
 - Keep `.env` and `.env.local` out of commits.
 - The CSV bulk enrollment flow uses preview, edit/delete rows, and confirm.
+- The question bank CSV import flow uses preview, edit/delete rows, and confirm.
+- Keep role-aware home navigation centralized in `client/src/utils/homeRoute.ts` when adding pages that need a "back to home" action.
 - Generated Prisma client (`server/src/generated/prisma`) is gitignored. It is regenerated automatically by the `postinstall` hook on `npm install`. Re-run `npx prisma generate` after editing `schema.prisma`.
 - If TypeScript cannot import `src/generated/prisma/client` or `PrismaService` appears to have no model delegates, remove `server/src/generated/prisma` and run `npx prisma generate` from `server/`.
 - If a nested `server/server/` directory appears, it usually came from running `npm install --prefix server` while already inside `server/`; remove that nested directory and run plain `npm install` from `server/`.
