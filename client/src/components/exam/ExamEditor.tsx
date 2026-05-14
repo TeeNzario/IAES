@@ -667,6 +667,10 @@ function buildExamStats(questions: Question[]): ExamStats {
   let untagged = 0;
   let diffSum = 0;
   let diffCount = 0;
+  let discriminationSum = 0;
+  let discriminationCount = 0;
+  let guessingSum = 0;
+  let guessingCount = 0;
   const byCategory = new Map<string, { name: string; count: number }>();
 
   for (const question of questions) {
@@ -679,6 +683,21 @@ function buildExamStats(questions: Question[]): ExamStats {
       else hard += 1;
     } else {
       untagged += 1;
+    }
+
+    const discrimination = question.discrimination_param;
+    if (
+      typeof discrimination === "number" &&
+      Number.isFinite(discrimination)
+    ) {
+      discriminationSum += discrimination;
+      discriminationCount += 1;
+    }
+
+    const guessing = question.guessing_param;
+    if (typeof guessing === "number" && Number.isFinite(guessing)) {
+      guessingSum += guessing;
+      guessingCount += 1;
     }
 
     for (const category of question.knowledge_categories ?? []) {
@@ -700,6 +719,9 @@ function buildExamStats(questions: Question[]): ExamStats {
     hard,
     untagged,
     avgDifficulty: diffCount > 0 ? diffSum / diffCount : null,
+    avgDiscrimination:
+      discriminationCount > 0 ? discriminationSum / discriminationCount : null,
+    avgGuessing: guessingCount > 0 ? guessingSum / guessingCount : null,
     categories: Array.from(byCategory.values()).sort(
       (a, b) => b.count - a.count,
     ),
@@ -841,6 +863,8 @@ interface ExamStats {
   hard: number;
   untagged: number;
   avgDifficulty: number | null;
+  avgDiscrimination: number | null;
+  avgGuessing: number | null;
   categories: { name: string; count: number }[];
 }
 
@@ -855,7 +879,8 @@ function ExamStatsPanel({
   activeDifficultyFilter: QuestionDifficultyFilter | null;
   onDifficultyFilterChange: (filter: QuestionDifficultyFilter) => void;
 }) {
-  const { total, avgDifficulty, categories } = stats;
+  const { total, avgDifficulty, avgDiscrimination, avgGuessing, categories } =
+    stats;
 
   if (allStats.total === 0) return null;
 
@@ -908,7 +933,7 @@ function ExamStatsPanel({
               </button>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-3 2xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <StatCard
               label="ง่าย"
               value={allStats.easy}
@@ -933,12 +958,32 @@ function ExamStatsPanel({
               active={activeDifficultyFilter === "hard"}
               onClick={() => onDifficultyFilterChange("hard")}
             />
-            <StatCard
-              label="ค่าเฉลี่ย"
-              value={avgDifficulty === null ? "-" : avgDifficulty.toFixed(2)}
-              sub={avgDifficulty === null ? "ไม่มีข้อมูล" : "ค่า b"}
-              tone="purple"
-            />
+          </div>
+
+          <div className="mt-5 rounded-xl bg-[#FAF8FF] p-4 ring-1 ring-[#EFE8FB]">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm font-semibold text-[#514667]">
+              <span>ค่าเฉลี่ยพารามิเตอร์</span>
+              <span className="text-xs font-medium text-[#7A7287]">
+                คำนวณจาก {total} ข้อที่แสดง
+              </span>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <AverageParamCard
+                code="b"
+                label="ความยากเฉลี่ย"
+                value={avgDifficulty}
+              />
+              <AverageParamCard
+                code="a"
+                label="อำนาจจำแนกเฉลี่ย"
+                value={avgDiscrimination}
+              />
+              <AverageParamCard
+                code="c"
+                label="การเดาเฉลี่ย"
+                value={avgGuessing}
+              />
+            </div>
           </div>
 
           <div className="mt-5 rounded-xl bg-[#FAF8FF] p-4 ring-1 ring-[#EFE8FB]">
@@ -1036,6 +1081,30 @@ function ExamStatsPanel({
         </aside>
       </div>
     </section>
+  );
+}
+
+function AverageParamCard({
+  code,
+  label,
+  value,
+}: {
+  code: "a" | "b" | "c";
+  label: string;
+  value: number | null;
+}) {
+  return (
+    <div className="rounded-xl bg-white p-3 ring-1 ring-[#E7DDF8]">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm font-semibold text-[#514667]">{label}</span>
+        <span className="flex h-7 min-w-7 items-center justify-center rounded-lg bg-[#F4EFFF] px-2 text-xs font-semibold text-[#7C5BD9]">
+          {code}
+        </span>
+      </div>
+      <div className="mt-2 text-2xl font-semibold leading-none text-[#2F2A3A]">
+        {formatQuestionParam(value)}
+      </div>
+    </div>
   );
 }
 
