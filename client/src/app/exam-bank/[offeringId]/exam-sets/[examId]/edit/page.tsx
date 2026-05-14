@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { RefreshCw } from "lucide-react";
 import Navbar from "@/components/layout/NavBar";
 import { apiFetch } from "@/lib/api";
 import ExamEditor, {
@@ -35,35 +36,39 @@ export default function EditExamSetPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadExam = useCallback(async () => {
     if (!offeringId || !examId) return;
-    let alive = true;
-    (async () => {
-      try {
-        const data = await apiFetch<ExamDetail>(
-          `/course-offerings/${offeringId}/exams/${examId}`,
-        );
-        if (!alive) return;
-        setInitialConfig({
-          title: data.title,
-          description: data.description ?? "",
-          start_time: isoToLocalInput(data.start_time),
-          end_time: isoToLocalInput(data.end_time),
-        });
-        setInitialQuestions(data.questions);
-      } catch (err: unknown) {
-        const msg =
-          (err as { response?: { data?: { message?: string } } })?.response
-            ?.data?.message ?? "โหลดข้อมูลข้อสอบไม่สำเร็จ";
-        if (alive) setError(msg);
-      } finally {
-        if (alive) setLoading(false);
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await apiFetch<ExamDetail>(
+        `/course-offerings/${offeringId}/exams/${examId}`,
+      );
+      const startLocal = isoToLocalInput(data.start_time);
+      const endLocal = isoToLocalInput(data.end_time);
+      if (!startLocal || !endLocal) {
+        throw new Error("ข้อมูลวันที่เริ่ม/สิ้นสุดของชุดข้อสอบไม่ถูกต้อง");
       }
-    })();
-    return () => {
-      alive = false;
-    };
+      setInitialConfig({
+        title: data.title,
+        description: data.description ?? "",
+        start_time: startLocal,
+        end_time: endLocal,
+      });
+      setInitialQuestions(data.questions);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response
+          ?.data?.message ?? "โหลดข้อมูลข้อสอบไม่สำเร็จ";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
   }, [offeringId, examId]);
+
+  useEffect(() => {
+    loadExam();
+  }, [loadExam]);
 
   const handleSubmit = async (payload: ExamSubmitPayload) => {
     await apiFetch(`/course-offerings/${offeringId}/exams/${examId}`, {
@@ -84,9 +89,21 @@ export default function EditExamSetPage() {
     <Navbar>
       <div className="min-h-screen w-full bg-[#F4EFFF]">
         {loading ? (
-          <p className="px-6 py-10 text-sm text-gray-400">กำลังโหลด...</p>
+          <div className="flex items-center justify-center px-6 py-20">
+            <p className="text-sm font-medium text-[#7A7287]">กำลังโหลด...</p>
+          </div>
         ) : error ? (
-          <p className="px-6 py-10 text-sm text-red-500">{error}</p>
+          <div className="mx-auto mt-20 flex max-w-md flex-col items-center gap-4 rounded-2xl bg-white px-6 py-10 text-center shadow-sm ring-1 ring-[#E7DDF8]">
+            <p className="text-sm font-medium text-red-500">{error}</p>
+            <button
+              type="button"
+              onClick={loadExam}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#B7A3E3] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#A48FD6] cursor-pointer"
+            >
+              <RefreshCw size={16} />
+              ลองใหม่
+            </button>
+          </div>
         ) : initialConfig ? (
           <ExamEditor
             offeringId={offeringId}

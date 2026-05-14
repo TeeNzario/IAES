@@ -209,7 +209,7 @@ export default function ExamSetsListPage() {
                 label={statusLabel.ENDED}
                 value={stats.byStatus.ENDED}
                 suffix="ชุด"
-                tone="gray"
+                tone="sky"
               />
             </div>
           </div>
@@ -271,7 +271,7 @@ export default function ExamSetsListPage() {
             <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-[#E7DDF8]">
               <div className="overflow-x-auto">
                 <div className="min-w-[860px]">
-                  <div className="grid grid-cols-[minmax(220px,1fr)_120px_100px_210px_100px] items-center bg-[#B7A3E3] px-5 py-4 text-[15px] font-semibold text-white [&>div:nth-child(n+2)]:text-center">
+                  <div className="grid grid-cols-[minmax(320px,1fr)_120px_100px_210px_100px] items-center bg-[#B7A3E3] px-5 py-4 text-[15px] font-semibold text-white [&>div:nth-child(n+2)]:text-center">
                     <div>ชื่อชุดข้อสอบ</div>
                     <div>สถานะ</div>
                     <div>จำนวนข้อ</div>
@@ -282,15 +282,27 @@ export default function ExamSetsListPage() {
                     {pageItems.map((e) => (
                       <li
                         key={e.course_exams_id}
-                        className="grid grid-cols-[minmax(220px,1fr)_120px_100px_210px_100px] items-center px-5 py-4 text-[15px] font-medium text-[#514667] hover:bg-[#FAF8FF]"
+                        className="grid grid-cols-[minmax(320px,1fr)_120px_100px_210px_100px] items-center px-5 py-5 text-[15px] font-medium text-[#514667] hover:bg-[#FAF8FF]"
                       >
-                        <div className="min-w-0 pr-4">
-                          <p className="truncate font-semibold text-[#2F2A3A]">
+                        <div className="min-w-0 pr-5">
+                          <p
+                            className="line-clamp-2 break-words text-base font-semibold leading-6 text-[#2F2A3A]"
+                            title={e.title}
+                          >
                             {e.title}
                           </p>
-                          {e.description && (
-                            <p className="mt-1 truncate text-[15px] font-normal text-[#7A7287]">
+                          {e.description ? (
+                            <div className="mt-2 max-w-3xl rounded-xl border border-[#EFE8FB] bg-[#FAF8FF] px-3 py-2">
+                              <p
+                                className="line-clamp-3 whitespace-pre-line break-words text-sm font-normal leading-6 text-[#6F667D]"
+                                title={e.description}
+                              >
                               {e.description}
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="mt-1 text-sm font-normal text-[#A59CB2]">
+                              ไม่มีคำอธิบาย
                             </p>
                           )}
                         </div>
@@ -403,7 +415,7 @@ function StatCard({
   label: string;
   value: number;
   suffix?: string;
-  tone?: "purple" | "amber" | "emerald" | "gray";
+  tone?: "purple" | "amber" | "emerald" | "sky";
 }) {
   const formattedValue = value.toLocaleString("th-TH", {
     maximumFractionDigits: 1,
@@ -427,11 +439,11 @@ function StatCard({
       ring: "ring-emerald-200",
       suffix: "text-emerald-700",
     },
-    gray: {
-      accent: "bg-gray-400",
-      bg: "bg-gray-50",
-      ring: "ring-gray-200",
-      suffix: "text-gray-600",
+    sky: {
+      accent: "bg-sky-500",
+      bg: "bg-sky-50",
+      ring: "ring-sky-200",
+      suffix: "text-sky-700",
     },
   }[tone];
 

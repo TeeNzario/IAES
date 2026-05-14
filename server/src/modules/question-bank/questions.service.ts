@@ -5,16 +5,20 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { BulkCreateQuestionsDto, CreateQuestionDto } from './dto/create-question.dto';
+import { BulkCreateQuestionsDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
 import type { StaffRole } from 'src/auth/types/jwt-payload.type';
+import {
+  QuestionParamKey,
+  QUESTION_PARAM_LIMITS,
+  questionParamRangeMessage,
+} from 'src/lib/question-param-limits';
 
 function serializeBigInt<T>(data: T): T {
-  return JSON.parse(
-    JSON.stringify(data, (_, value) =>
-      typeof value === 'bigint' ? value.toString() : value,
-    ),
+  const json = JSON.stringify(data, (_, value: unknown) =>
+    typeof value === 'bigint' ? value.toString() : value,
   );
+  return JSON.parse(json) as T;
 }
 
 interface StaffActor {
@@ -66,10 +70,7 @@ export class QuestionsService {
    * Verify that a collection belongs to the given course via its year folder.
    * Returns the collection row.
    */
-  private async getCollectionInCourse(
-    collectionId: string,
-    coursesId: bigint,
-  ) {
+  private async getCollectionInCourse(collectionId: string, coursesId: bigint) {
     const collection = await this.prisma.question_collections.findUnique({
       where: { question_collection_id: BigInt(collectionId) },
       select: {
@@ -99,9 +100,7 @@ export class QuestionsService {
     label: string,
   ) {
     if (choices.length < 2) {
-      throw new BadRequestException(
-        `${label}: must have at least 2 choices`,
-      );
+      throw new BadRequestException(`${label}: must have at least 2 choices`);
     }
     if (choices.some((c) => !c.choice_text || !c.choice_text.trim())) {
       throw new BadRequestException(`${label}: choice text cannot be empty`);
@@ -112,6 +111,40 @@ export class QuestionsService {
         `${label}: exactly 1 choice must be marked correct`,
       );
     }
+  }
+
+  private enforceQuestionParamRange(
+    param: QuestionParamKey,
+    value: number,
+    label: string,
+  ) {
+    const { min, max } = QUESTION_PARAM_LIMITS[param];
+    if (value < min || value > max) {
+      throw new BadRequestException(
+        `${label}: ${questionParamRangeMessage(param)}`,
+      );
+    }
+  }
+
+  private enforceQuestionParamRanges(
+    params: {
+      difficulty_param: number;
+      discrimination_param: number;
+      guessing_param: number;
+    },
+    label: string,
+  ) {
+    this.enforceQuestionParamRange(
+      'difficulty',
+      params.difficulty_param,
+      label,
+    );
+    this.enforceQuestionParamRange(
+      'discrimination',
+      params.discrimination_param,
+      label,
+    );
+    this.enforceQuestionParamRange('guessing', params.guessing_param, label);
   }
 
   /**
@@ -391,6 +424,7 @@ export class QuestionsService {
           throw new BadRequestException(`${label}: ${key} is required`);
         }
       }
+      this.enforceQuestionParamRanges(q, label);
       if (
         !Array.isArray(q.knowledge_category_ids) ||
         q.knowledge_category_ids.length < 1
@@ -499,9 +533,33 @@ export class QuestionsService {
       ['discrimination_param', dto.discrimination_param],
       ['guessing_param', dto.guessing_param],
     ] as const) {
-      if (val !== undefined && (typeof val !== 'number' || !Number.isFinite(val))) {
+      if (
+        val !== undefined &&
+        (typeof val !== 'number' || !Number.isFinite(val))
+      ) {
         throw new BadRequestException(`${key} must be a finite number`);
       }
+    }
+    if (dto.difficulty_param !== undefined) {
+      this.enforceQuestionParamRange(
+        'difficulty',
+        dto.difficulty_param,
+        'Question',
+      );
+    }
+    if (dto.discrimination_param !== undefined) {
+      this.enforceQuestionParamRange(
+        'discrimination',
+        dto.discrimination_param,
+        'Question',
+      );
+    }
+    if (dto.guessing_param !== undefined) {
+      this.enforceQuestionParamRange(
+        'guessing',
+        dto.guessing_param,
+        'Question',
+      );
     }
 
     // ---- POST-MERGE FULL VALIDATION (Q2: strict) ----
@@ -540,6 +598,20 @@ export class QuestionsService {
       if (typeof val !== 'number' || !Number.isFinite(val)) {
         throw new BadRequestException(`Question: ${key} is required`);
       }
+    }
+    if (
+      typeof mergedDifficulty === 'number' &&
+      typeof mergedDiscrimination === 'number' &&
+      typeof mergedGuessing === 'number'
+    ) {
+      this.enforceQuestionParamRanges(
+        {
+          difficulty_param: mergedDifficulty,
+          discrimination_param: mergedDiscrimination,
+          guessing_param: mergedGuessing,
+        },
+        'Question',
+      );
     }
     if (!Array.isArray(mergedTagIds) || mergedTagIds.length < 1) {
       throw new BadRequestException(
@@ -620,11 +692,7 @@ export class QuestionsService {
 
   // ======================== SOFT DELETE ========================
 
-  async softDelete(
-    offeringId: string,
-    questionId: string,
-    actor: StaffActor,
-  ) {
+  async softDelete(offeringId: string, questionId: string, actor: StaffActor) {
     const coursesId = await this.resolveCourseAndAuthorize(offeringId, actor);
 
     const existing = await this.prisma.question_bank.findUnique({
@@ -641,8 +709,10 @@ export class QuestionsService {
     if (!existing) {
       throw new NotFoundException('Question not found');
     }
-    if (existing.question_collections?.question_bank_years.courses_id !==
-      coursesId) {
+    if (
+      existing.question_collections?.question_bank_years.courses_id !==
+      coursesId
+    ) {
       throw new ForbiddenException('Question does not belong to this course');
     }
 

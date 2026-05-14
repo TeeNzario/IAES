@@ -7,12 +7,18 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Max,
   MaxLength,
+  Min,
   MinLength,
   ValidateNested,
 } from 'class-validator';
 import { CreateChoiceDto, QuestionTypeDto } from './create-question.dto';
 import { FIELD_LENGTHS, maxLengthMessage } from 'src/lib/field-lengths';
+import {
+  QUESTION_PARAM_LIMITS,
+  questionParamRangeMessage,
+} from 'src/lib/question-param-limits';
 
 export class UpdateQuestionDto {
   @IsOptional()
@@ -36,14 +42,32 @@ export class UpdateQuestionDto {
 
   @IsOptional()
   @IsNumber()
+  @Min(QUESTION_PARAM_LIMITS.difficulty.min, {
+    message: questionParamRangeMessage('difficulty'),
+  })
+  @Max(QUESTION_PARAM_LIMITS.difficulty.max, {
+    message: questionParamRangeMessage('difficulty'),
+  })
   difficulty_param?: number;
 
   @IsOptional()
   @IsNumber()
+  @Min(QUESTION_PARAM_LIMITS.discrimination.min, {
+    message: questionParamRangeMessage('discrimination'),
+  })
+  @Max(QUESTION_PARAM_LIMITS.discrimination.max, {
+    message: questionParamRangeMessage('discrimination'),
+  })
   discrimination_param?: number;
 
   @IsOptional()
   @IsNumber()
+  @Min(QUESTION_PARAM_LIMITS.guessing.min, {
+    message: questionParamRangeMessage('guessing'),
+  })
+  @Max(QUESTION_PARAM_LIMITS.guessing.max, {
+    message: questionParamRangeMessage('guessing'),
+  })
   guessing_param?: number;
 
   @IsOptional()
