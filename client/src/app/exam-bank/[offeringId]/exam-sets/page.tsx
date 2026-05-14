@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -13,6 +13,7 @@ import {
   Plus,
   Search,
   Trash2,
+  X,
 } from "lucide-react";
 import NavBar from "@/components/layout/NavBar";
 import { apiFetch } from "@/lib/api";
@@ -67,18 +68,18 @@ export default function ExamSetsListPage() {
   const [deleteTarget, setDeleteTarget] = useState<ExamListItem | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const fetchExams = () => {
+  const fetchExams = useCallback(() => {
     if (!offeringId) return;
     setLoading(true);
     apiFetch<ExamListItem[]>(`/course-offerings/${offeringId}/exams`)
       .then(setExams)
       .catch(() => setExams([]))
       .finally(() => setLoading(false));
-  };
+  }, [offeringId]);
 
   useEffect(() => {
     fetchExams();
-  }, [offeringId]);
+  }, [fetchExams]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -291,20 +292,10 @@ export default function ExamSetsListPage() {
                           >
                             {e.title}
                           </p>
-                          {e.description ? (
-                            <div className="mt-2 max-w-3xl rounded-xl border border-[#EFE8FB] bg-[#FAF8FF] px-3 py-2">
-                              <p
-                                className="line-clamp-3 whitespace-pre-line break-words text-sm font-normal leading-6 text-[#6F667D]"
-                                title={e.description}
-                              >
-                              {e.description}
-                              </p>
-                            </div>
-                          ) : (
-                            <p className="mt-1 text-sm font-normal text-[#A59CB2]">
-                              ไม่มีคำอธิบาย
-                            </p>
-                          )}
+                          <ExamSetDescriptionPreview
+                            title={e.title}
+                            description={e.description}
+                          />
                         </div>
                         <div className="text-center">
                           <span
@@ -403,6 +394,102 @@ export default function ExamSetsListPage() {
         />
       </div>
     </NavBar>
+  );
+}
+
+function ExamSetDescriptionPreview({
+  title,
+  description,
+}: {
+  title: string;
+  description: string | null;
+}) {
+  const [open, setOpen] = useState(false);
+  const text = description?.trim() ?? "";
+  const shouldTruncate = text.length > 110 || text.split(/\r?\n/).length > 2;
+
+  if (!text) {
+    return (
+      <p className="mt-1 text-[15px] font-normal text-[#A59CB2]">
+        ไม่มีคำอธิบาย
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-2 max-w-4xl rounded-xl bg-[#FAF8FF] p-3 ring-1 ring-[#EFE8FB]">
+      <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+        <span className="text-sm font-semibold text-[#7C5BD9]">
+          คำอธิบาย
+        </span>
+        {shouldTruncate && (
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="inline-flex h-8 items-center rounded-lg bg-white px-3 text-sm font-semibold text-[#7C5BD9] shadow-sm ring-1 ring-[#D9CCF2] transition-colors hover:bg-[#F4EFFF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C5BD9]"
+            aria-haspopup="dialog"
+          >
+            อ่านเพิ่มเติม
+          </button>
+        )}
+      </div>
+
+      <p
+        className={`break-words text-[13px] font-normal leading-5 text-[#6B617A] sm:text-sm sm:leading-6 ${
+          shouldTruncate ? "line-clamp-2" : "whitespace-pre-line"
+        }`}
+        title={text}
+      >
+        {text}
+      </p>
+
+      {open && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#2F2A3A]/35 p-4"
+          role="presentation"
+          onClick={() => setOpen(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="exam-set-description-dialog-title"
+            className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white text-left shadow-xl ring-1 ring-[#D9CCF2]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-[#EFE8FB] px-5 py-4">
+              <div className="min-w-0">
+                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-[#F4EFFF] text-[#7C5BD9]">
+                  <ClipboardList size={19} />
+                </div>
+                <h4
+                  id="exam-set-description-dialog-title"
+                  className="line-clamp-2 break-words text-lg font-semibold leading-7 text-[#2F2A3A]"
+                >
+                  {title}
+                </h4>
+                <p className="mt-1 text-sm font-medium leading-6 text-[#7A7287] sm:text-[15px]">
+                  คำอธิบายชุดข้อสอบ
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#FAF8FF] text-[#7A7287] ring-1 ring-[#E7DDF8] transition-colors hover:bg-[#F4EFFF] hover:text-[#7C5BD9] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C5BD9]"
+                aria-label="ปิดหน้าต่างคำอธิบายชุดข้อสอบ"
+              >
+                <X size={17} />
+              </button>
+            </div>
+
+            <div className="max-h-[55vh] overflow-y-auto px-5 py-4">
+              <p className="whitespace-pre-line break-words rounded-xl bg-[#FAF8FF] p-4 text-sm font-normal leading-7 text-[#514667] ring-1 ring-[#EFE8FB]">
+                {text}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
