@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   ClipboardList,
   FileText,
+  Filter,
   ListChecks,
   Plus,
   Tags,
@@ -65,6 +66,13 @@ const dateTimeLocalToIso = (value: string) => {
 
 const EXAM_TITLE_MAX_LENGTH = FIELD_LIMITS.examTitle;
 const EXAM_DESCRIPTION_MAX_LENGTH = FIELD_LIMITS.examDescription;
+type QuestionDifficultyFilter = "easy" | "medium" | "hard";
+
+const QUESTION_DIFFICULTY_LABELS: Record<QuestionDifficultyFilter, string> = {
+  easy: "ง่าย",
+  medium: "กลาง",
+  hard: "ยาก",
+};
 
 /**
  * Validation rules — mirror of the server-side rules so the bottom-right save
@@ -172,6 +180,8 @@ export default function ExamEditor({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [questionDifficultyFilter, setQuestionDifficultyFilter] =
+    useState<QuestionDifficultyFilter | null>(null);
 
   // Delete-confirmation modal (edit mode only).
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -220,51 +230,29 @@ export default function ExamEditor({
     return out;
   }, [config.start_time, config.end_time, mode, hideSchedule]);
 
-  // Aggregate stats for the selected questions panel.
-  const stats = useMemo(() => {
-    const total = selected.length;
-    let easy = 0;
-    let medium = 0;
-    let hard = 0;
-    let untagged = 0;
-    let diffSum = 0;
-    let diffCount = 0;
-    const byCategory = new Map<string, { name: string; count: number }>();
+  const stats = useMemo(() => buildExamStats(selected), [selected]);
 
-    for (const q of selected) {
-      const d = q.difficulty_param;
-      if (typeof d === "number" && Number.isFinite(d)) {
-        diffSum += d;
-        diffCount += 1;
-        if (d < 0) easy += 1;
-        else if (d === 0) medium += 1;
-        else hard += 1;
-      } else {
-        untagged += 1;
-      }
-      for (const t of q.knowledge_categories ?? []) {
-        const cur = byCategory.get(t.knowledge_category_id);
-        if (cur) cur.count += 1;
-        else
-          byCategory.set(t.knowledge_category_id, {
-            name: t.name,
-            count: 1,
-          });
-      }
-    }
-    const avgDifficulty = diffCount > 0 ? diffSum / diffCount : null;
-    return {
-      total,
-      easy,
-      medium,
-      hard,
-      untagged,
-      avgDifficulty,
-      categories: Array.from(byCategory.values()).sort(
-        (a, b) => b.count - a.count,
-      ),
-    };
-  }, [selected]);
+  const visibleSelected = useMemo(
+    () =>
+      selected
+        .map((question, index) => ({ question, index }))
+        .filter(({ question }) => {
+          if (!questionDifficultyFilter) return true;
+          return (
+            getQuestionDifficultyFilter(question) === questionDifficultyFilter
+          );
+        }),
+    [selected, questionDifficultyFilter],
+  );
+
+  const visibleStats = useMemo(
+    () => buildExamStats(visibleSelected.map(({ question }) => question)),
+    [visibleSelected],
+  );
+
+  const toggleQuestionDifficultyFilter = (next: QuestionDifficultyFilter) => {
+    setQuestionDifficultyFilter((current) => (current === next ? null : next));
+  };
 
   const handlePickerConfirm = (picks: Question[]) => {
     // Preserve the order of items the user kept; append newly added ones.
@@ -534,7 +522,12 @@ export default function ExamEditor({
         )}
 
         {/* Stats panel — overview of currently selected questions */}
-        <ExamStatsPanel stats={stats} />
+        <ExamStatsPanel
+          stats={questionDifficultyFilter ? visibleStats : stats}
+          allStats={stats}
+          activeDifficultyFilter={questionDifficultyFilter}
+          onDifficultyFilterChange={toggleQuestionDifficultyFilter}
+        />
 
         {/* Selected questions preview */}
         <section className="mt-5 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6">
@@ -546,11 +539,17 @@ export default function ExamEditor({
                 </span>
                 คำถามในชุดข้อสอบ
                 <span className="ml-1 rounded-full bg-[#F4EFFF] px-2.5 py-1 text-sm font-semibold text-[#7C5BD9]">
-                  {selected.length}
+                  {questionDifficultyFilter
+                    ? `${visibleSelected.length}/${selected.length}`
+                    : selected.length}
                 </span>
               </h2>
               <p className="mt-1 text-sm font-normal text-[#7A7287]">
-                จัดลำดับคำถามตามลำดับที่เลือกไว้ในชุดข้อสอบ
+                {questionDifficultyFilter
+                  ? `กำลังแสดงคำถามระดับ${
+                      QUESTION_DIFFICULTY_LABELS[questionDifficultyFilter]
+                    }`
+                  : "จัดลำดับคำถามตามลำดับที่เลือกไว้ในชุดข้อสอบ"}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -569,14 +568,30 @@ export default function ExamEditor({
             <div className="rounded-2xl bg-[#FAF8FF] p-10 text-center text-sm font-medium text-[#7A7287] ring-1 ring-[#EFE8FB]">
               ยังไม่ได้เลือกคำถาม
             </div>
+          ) : visibleSelected.length === 0 ? (
+            <div className="rounded-2xl bg-[#FAF8FF] p-8 text-center ring-1 ring-[#EFE8FB]">
+              <p className="text-sm font-semibold text-[#514667]">
+                ไม่มีคำถามระดับ
+                {questionDifficultyFilter
+                  ? QUESTION_DIFFICULTY_LABELS[questionDifficultyFilter]
+                  : ""}
+              </p>
+              <button
+                type="button"
+                onClick={() => setQuestionDifficultyFilter(null)}
+                className="mt-3 inline-flex h-9 items-center rounded-xl bg-white px-4 text-sm font-semibold text-[#7C5BD9] ring-1 ring-[#E7DDF8] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
+              >
+                ล้าง filter
+              </button>
+            </div>
           ) : (
             <div className="space-y-3">
-              {selected.map((q, i) => (
+              {visibleSelected.map(({ question, index }) => (
                 <QuestionPreviewCard
-                  key={q.question_id}
-                  index={i}
-                  question={q}
-                  onRemove={() => removeQuestion(q.question_id)}
+                  key={question.question_id}
+                  index={index}
+                  question={question}
+                  onRemove={() => removeQuestion(question.question_id)}
                 />
               ))}
             </div>
@@ -631,6 +646,65 @@ export default function ExamEditor({
 function formatQuestionParam(value: number | null | undefined) {
   if (typeof value !== "number" || !Number.isFinite(value)) return "-";
   return value.toFixed(2);
+}
+
+function getQuestionDifficultyFilter(
+  question: Question,
+): QuestionDifficultyFilter | null {
+  const difficulty = question.difficulty_param;
+  if (typeof difficulty !== "number" || !Number.isFinite(difficulty)) {
+    return null;
+  }
+  if (difficulty < 0) return "easy";
+  if (difficulty === 0) return "medium";
+  return "hard";
+}
+
+function buildExamStats(questions: Question[]): ExamStats {
+  const total = questions.length;
+  let easy = 0;
+  let medium = 0;
+  let hard = 0;
+  let untagged = 0;
+  let diffSum = 0;
+  let diffCount = 0;
+  const byCategory = new Map<string, { name: string; count: number }>();
+
+  for (const question of questions) {
+    const difficulty = question.difficulty_param;
+    if (typeof difficulty === "number" && Number.isFinite(difficulty)) {
+      diffSum += difficulty;
+      diffCount += 1;
+      if (difficulty < 0) easy += 1;
+      else if (difficulty === 0) medium += 1;
+      else hard += 1;
+    } else {
+      untagged += 1;
+    }
+
+    for (const category of question.knowledge_categories ?? []) {
+      const current = byCategory.get(category.knowledge_category_id);
+      if (current) current.count += 1;
+      else {
+        byCategory.set(category.knowledge_category_id, {
+          name: category.name,
+          count: 1,
+        });
+      }
+    }
+  }
+
+  return {
+    total,
+    easy,
+    medium,
+    hard,
+    untagged,
+    avgDifficulty: diffCount > 0 ? diffSum / diffCount : null,
+    categories: Array.from(byCategory.values()).sort(
+      (a, b) => b.count - a.count,
+    ),
+  };
 }
 
 function QuestionPreviewCard({
@@ -771,14 +845,29 @@ interface ExamStats {
   categories: { name: string; count: number }[];
 }
 
-function ExamStatsPanel({ stats }: { stats: ExamStats }) {
-  const { total, easy, medium, hard, untagged, avgDifficulty, categories } =
-    stats;
+function ExamStatsPanel({
+  stats,
+  allStats,
+  activeDifficultyFilter,
+  onDifficultyFilterChange,
+}: {
+  stats: ExamStats;
+  allStats: ExamStats;
+  activeDifficultyFilter: QuestionDifficultyFilter | null;
+  onDifficultyFilterChange: (filter: QuestionDifficultyFilter) => void;
+}) {
+  const { total, avgDifficulty, categories } = stats;
 
-  if (total === 0) return null;
+  if (allStats.total === 0) return null;
 
-  const pct = (n: number) => (total > 0 ? Math.round((n / total) * 100) : 0);
+  const distributionPct = (n: number) =>
+    allStats.total > 0 ? Math.round((n / allStats.total) * 100) : 0;
+  const allPct = (n: number) =>
+    allStats.total > 0 ? Math.round((n / allStats.total) * 100) : 0;
   const maxCat = categories.reduce((m, c) => Math.max(m, c.count), 0);
+  const activeFilterLabel = activeDifficultyFilter
+    ? QUESTION_DIFFICULTY_LABELS[activeDifficultyFilter]
+    : null;
 
   return (
     <section className="mt-5 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-[#E7DDF8]">
@@ -789,31 +878,60 @@ function ExamStatsPanel({ stats }: { stats: ExamStats }) {
           </span>
           <span>สถิติชุดข้อสอบ</span>
         </h3>
-        <span className="rounded-full bg-[#F4EFFF] px-3 py-1 text-sm font-semibold text-[#7C5BD9]">
-          ทั้งหมด {total} ข้อ
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-[#F4EFFF] px-3 py-1 text-sm font-semibold text-[#7C5BD9]">
+            {activeDifficultyFilter
+              ? `แสดง ${total} จาก ${allStats.total} ข้อ`
+              : `ทั้งหมด ${allStats.total} ข้อ`}
+          </span>
+        </div>
       </div>
 
       <div className="grid gap-5 p-5 sm:p-6 xl:grid-cols-[minmax(0,1fr)_380px]">
         <div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-[#FAF8FF] px-4 py-3 text-sm font-semibold text-[#514667] ring-1 ring-[#EFE8FB]">
+            <span className="inline-flex items-center gap-2">
+              <Filter size={15} className="text-[#7C5BD9]" />
+              ตัวกรองระดับความยาก
+            </span>
+            {activeFilterLabel && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (activeDifficultyFilter) {
+                    onDifficultyFilterChange(activeDifficultyFilter);
+                  }
+                }}
+                className="inline-flex h-11 items-center rounded-xl bg-white px-5 text-[15px] font-semibold text-[#7C5BD9] ring-1 ring-[#D9C9F4] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
+              >
+                ล้างตัวกรอง
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-3 2xl:grid-cols-4">
             <StatCard
               label="ง่าย"
-              value={easy}
-              sub={`${pct(easy)}%`}
+              value={allStats.easy}
+              sub={`${allPct(allStats.easy)}%`}
               tone="emerald"
+              active={activeDifficultyFilter === "easy"}
+              onClick={() => onDifficultyFilterChange("easy")}
             />
             <StatCard
               label="กลาง"
-              value={medium}
-              sub={`${pct(medium)}%`}
+              value={allStats.medium}
+              sub={`${allPct(allStats.medium)}%`}
               tone="amber"
+              active={activeDifficultyFilter === "medium"}
+              onClick={() => onDifficultyFilterChange("medium")}
             />
             <StatCard
               label="ยาก"
-              value={hard}
-              sub={`${pct(hard)}%`}
+              value={allStats.hard}
+              sub={`${allPct(allStats.hard)}%`}
               tone="rose"
+              active={activeDifficultyFilter === "hard"}
+              onClick={() => onDifficultyFilterChange("hard")}
             />
             <StatCard
               label="ค่าเฉลี่ย"
@@ -828,48 +946,34 @@ function ExamStatsPanel({ stats }: { stats: ExamStats }) {
               <span className="font-semibold text-[#514667]">
                 การกระจายระดับความยาก
               </span>
-              {untagged > 0 && (
+              {allStats.untagged > 0 && (
                 <span className="text-amber-600">
-                  {untagged} ข้อยังไม่มีระดับความยาก
+                  {allStats.untagged} ข้อยังไม่มีระดับความยาก
                 </span>
               )}
             </div>
             <div className="flex h-3 w-full overflow-hidden rounded-full bg-white ring-1 ring-[#E7DDF8]">
-              {easy > 0 && (
+              {allStats.easy > 0 && (
                 <div
-                  style={{ width: `${pct(easy)}%` }}
+                  style={{ width: `${distributionPct(allStats.easy)}%` }}
                   className="bg-emerald-400"
-                  title={`ง่าย ${easy} ข้อ`}
+                  title={`ง่าย ${allStats.easy} ข้อ`}
                 />
               )}
-              {medium > 0 && (
+              {allStats.medium > 0 && (
                 <div
-                  style={{ width: `${pct(medium)}%` }}
+                  style={{ width: `${distributionPct(allStats.medium)}%` }}
                   className="bg-amber-400"
-                  title={`กลาง ${medium} ข้อ`}
+                  title={`กลาง ${allStats.medium} ข้อ`}
                 />
               )}
-              {hard > 0 && (
+              {allStats.hard > 0 && (
                 <div
-                  style={{ width: `${pct(hard)}%` }}
+                  style={{ width: `${distributionPct(allStats.hard)}%` }}
                   className="bg-rose-400"
-                  title={`ยาก ${hard} ข้อ`}
+                  title={`ยาก ${allStats.hard} ข้อ`}
                 />
               )}
-            </div>
-            <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold text-[#514667]">
-              <span className="inline-flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                ง่าย {easy}
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-amber-400" />
-                กลาง {medium}
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-rose-400" />
-                ยาก {hard}
-              </span>
             </div>
           </div>
         </div>
@@ -918,11 +1022,15 @@ function StatCard({
   value,
   sub,
   tone,
+  active = false,
+  onClick,
 }: {
   label: string;
   value: number | string;
   sub?: string;
   tone: "emerald" | "amber" | "rose" | "purple";
+  active?: boolean;
+  onClick?: () => void;
 }) {
   const tones = {
     emerald: "bg-emerald-50 text-emerald-700",
@@ -930,13 +1038,77 @@ function StatCard({
     rose: "bg-rose-50 text-rose-700",
     purple: "bg-[#F4EFFF] text-[#7C5BD9]",
   } as const;
-  return (
-    <div className={`rounded-xl px-4 py-3 ring-1 ring-white/60 ${tones[tone]}`}>
-      <div className="text-sm font-semibold opacity-85">{label}</div>
-      <div className="mt-1 text-2xl font-semibold leading-none">{value}</div>
-      {sub && (
-        <div className="mt-1 text-xs font-medium opacity-70">{sub}</div>
+  const accent = {
+    emerald: "bg-emerald-400",
+    amber: "bg-amber-400",
+    rose: "bg-rose-400",
+    purple: "bg-[#B7A3E3]",
+  } as const;
+  const iconBg = {
+    emerald: "bg-emerald-100 text-emerald-700",
+    amber: "bg-amber-100 text-amber-700",
+    rose: "bg-rose-100 text-rose-700",
+    purple: "bg-white/70 text-[#7C5BD9]",
+  } as const;
+  const className = `relative w-full overflow-hidden rounded-xl px-4 py-3 text-left ring-1 transition ${tones[tone]} ${
+    active
+      ? "shadow-sm ring-2 ring-[#7C5BD9] outline outline-2 outline-offset-2 outline-[#7C5BD9]/20"
+      : "ring-white/70"
+  } ${
+    onClick
+      ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C5BD9]"
+      : ""
+  }`;
+
+  const content = (
+    <>
+      {onClick && (
+        <span
+          aria-hidden="true"
+          className={`absolute inset-x-0 top-0 h-1 ${accent[tone]}`}
+        />
       )}
-    </div>
+      <div className="flex items-start justify-between gap-2">
+        <div className="text-sm font-semibold opacity-85">{label}</div>
+        {onClick ? (
+          <span
+            className={`inline-flex h-7 shrink-0 items-center gap-1 rounded-full px-2 text-[11px] font-semibold ring-1 ring-white/70 ${iconBg[tone]}`}
+          >
+            <Filter size={12} />
+            {active ? "กำลังกรอง" : "ตัวกรอง"}
+          </span>
+        ) : (
+          active && (
+            <span className="rounded-full bg-white/80 px-2 py-0.5 text-[11px] font-semibold">
+              กำลังกรอง
+            </span>
+          )
+        )}
+      </div>
+      <div className="mt-1 text-2xl font-semibold leading-none">{value}</div>
+      {sub && <div className="mt-1 text-xs font-medium opacity-70">{sub}</div>}
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-pressed={active}
+        className={className}
+        title={
+          active
+            ? `ยกเลิก filter ระดับ${label}`
+            : `Filter คำถามระดับ${label}`
+        }
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <div className={className}>{content}</div>
   );
 }
