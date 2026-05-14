@@ -36,20 +36,7 @@ function resolvePreferredRedirectPath(user: {
   if (userType === "staff" && role === "admin") {
     return "/admin/manage-users";
   }
-  if (userType === "staff") {
-    return "/staff";
-  }
-  if (userType === "student") {
-    return "/student";
-  }
   return "/";
-}
-
-function resolveSafeRedirectPath(path: string): string {
-  if (path === "/staff" || path === "/student") {
-    return "/";
-  }
-  return path;
 }
 
 function getLoginErrorMessage(error: unknown): string {
@@ -57,20 +44,24 @@ function getLoginErrorMessage(error: unknown): string {
     response?: { status?: number; data?: { message?: string | string[] } };
   };
 
-  if (apiError.response?.status === 400) {
-    return "รูปแบบบัญชีไม่ถูกต้อง กรุณาใช้รหัสนักศึกษา 8 หลัก หรืออีเมลบุคลากร";
-  }
+  const message = apiError.response?.data?.message;
+  const bodyMsg =
+    Array.isArray(message) && message.length > 0
+      ? message[0]
+      : typeof message === "string" && message.trim()
+        ? message
+        : null;
 
   if (apiError.response?.status === 401) {
     return "ข้อมูลเข้าสู่ระบบไม่ถูกต้อง";
   }
 
-  const message = apiError.response?.data?.message;
-  if (Array.isArray(message) && message.length > 0) {
-    return message[0];
+  if (bodyMsg) {
+    return bodyMsg;
   }
-  if (typeof message === "string" && message.trim()) {
-    return message;
+
+  if (apiError.response?.status === 400) {
+    return "รูปแบบบัญชีไม่ถูกต้อง กรุณาใช้รหัสนักศึกษา 8 หลัก หรืออีเมลบุคลากร";
   }
 
   return "ไม่สามารถเข้าสู่ระบบได้ กรุณาลองใหม่อีกครั้ง";
@@ -119,9 +110,8 @@ const LoginPage = () => {
 
       setAuth(res);
 
-      const preferredRedirect = resolvePreferredRedirectPath(res.user);
-      const safeRedirect = resolveSafeRedirectPath(preferredRedirect);
-      router.push(safeRedirect);
+      const redirectTo = resolvePreferredRedirectPath(res.user);
+      router.push(redirectTo);
     } catch (error) {
       console.error("Login failed:", error);
       setError(getLoginErrorMessage(error));
