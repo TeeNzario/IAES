@@ -5,24 +5,16 @@ type HomeRouteUser =
   | null
   | undefined;
 
-export function getHomeHrefForUser(user: HomeRouteUser) {
+function isAdmin(user: HomeRouteUser): boolean {
   const userType = String(user?.type ?? user?.userType ?? "").toUpperCase();
   const staffRole = String(user?.staff_role ?? user?.role ?? "").toUpperCase();
+  return userType === "STAFF" && staffRole === "ADMIN";
+}
 
-  if (userType === "STAFF" && staffRole === "ADMIN") {
-    return "/admin/manage-users";
-  }
-
-  return "/";
+export function getHomeHrefForUser(user: HomeRouteUser) {
+  return isAdmin(user) ? "/admin/manage-users" : "/";
 }
 
 export function getHomeLabelForUser(user: HomeRouteUser) {
-  const userType = String(user?.type ?? user?.userType ?? "").toUpperCase();
-  const staffRole = String(user?.staff_role ?? user?.role ?? "").toUpperCase();
-
-  if (userType === "STAFF" && staffRole === "ADMIN") {
-    return "กลับหน้าจัดการผู้ใช้";
-  }
-
-  return "กลับหน้าหลัก";
+  return isAdmin(user) ? "กลับหน้าจัดการผู้ใช้" : "กลับหน้าหลัก";
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import NavBar from "@/components/layout/NavBar";
 import { useHomeRoute } from "@/hooks/useHomeRoute";
@@ -12,7 +14,21 @@ import {
 } from "lucide-react";
 
 export default function NotFoundPage() {
+  const router = useRouter();
   const homeRoute = useHomeRoute();
+  const [canGoBack, setCanGoBack] = useState(false);
+
+  useEffect(() => {
+    setCanGoBack(window.history.length > 1);
+  }, []);
+
+  function handleBack() {
+    if (canGoBack) {
+      router.back();
+    } else {
+      router.push(homeRoute.href);
+    }
+  }
 
   return (
     <NavBar>
@@ -50,11 +66,11 @@ export default function NotFoundPage() {
                   </Link>
                   <button
                     type="button"
-                    onClick={() => window.history.back()}
+                    onClick={handleBack}
                     className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-[#7C5BD9] shadow-sm ring-1 ring-[#D9CCF2] transition-colors hover:bg-[#F4EFFF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C5BD9] sm:text-base"
                   >
                     <ArrowLeft size={18} />
-                    กลับหน้าก่อนหน้า
+                    {canGoBack ? "กลับหน้าก่อนหน้า" : homeRoute.label}
                   </button>
                 </div>
               </div>
