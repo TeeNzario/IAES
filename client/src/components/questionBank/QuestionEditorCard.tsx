@@ -631,6 +631,9 @@ function NumberField({
           if (min !== undefined && min >= 0 && e.key === "-") {
             e.preventDefault();
           }
+          if (e.key === "e" || e.key === "E" || e.key === "+") {
+            e.preventDefault();
+          }
         }}
         onChange={(e) => {
           const raw = e.target.value;

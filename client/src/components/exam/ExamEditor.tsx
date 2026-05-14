@@ -15,6 +15,7 @@ import {
   Trash2,
 } from "lucide-react";
 import ExamQuestionPickerModal from "@/components/exam/ExamQuestionPickerModal";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 import {
   dateOnlyMs,
   parseDateTimeLocalInput,
@@ -580,7 +581,7 @@ export default function ExamEditor({
                 onClick={() => setQuestionDifficultyFilter(null)}
                 className="mt-3 inline-flex h-9 items-center rounded-xl bg-white px-4 text-sm font-semibold text-[#7C5BD9] ring-1 ring-[#E7DDF8] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
               >
-                ล้าง filter
+                ล้างตัวกรอง
               </button>
             </div>
           ) : (
@@ -608,36 +609,19 @@ export default function ExamEditor({
         />
       )}
 
-      {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-[#E7DDF8]">
-            <h3 className="mb-2 text-lg font-semibold text-[#2F2A3A]">
-              ยืนยันการลบ
-            </h3>
-            <p className="mb-5 text-sm font-normal text-[#7A7287]">
-              คุณแน่ใจหรือไม่ว่าต้องการลบชุดข้อสอบนี้?
-            </p>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                disabled={deleting}
-                onClick={() => setConfirmDelete(false)}
-                className="flex-1 rounded-xl border-2 border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-50 cursor-pointer disabled:opacity-50"
-              >
-                ยกเลิก
-              </button>
-              <button
-                type="button"
-                disabled={deleting}
-                onClick={handleDeleteConfirmed}
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-red-600 cursor-pointer disabled:opacity-50"
-              >
-                {deleting ? "กำลังลบ..." : "ยืนยันลบ"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={confirmDelete}
+        onClose={() => {
+          if (!deleting) setConfirmDelete(false);
+        }}
+        onConfirm={handleDeleteConfirmed}
+        title="ลบชุดข้อสอบ"
+        message="คุณแน่ใจหรือไม่ว่าต้องการลบชุดข้อสอบนี้?"
+        confirmText="ลบ"
+        cancelText="ยกเลิก"
+        isLoading={deleting}
+        variant="danger"
+      />
     </>
   );
 }
@@ -1190,8 +1174,8 @@ function StatCard({
         className={className}
         title={
           active
-            ? `ยกเลิก filter ระดับ${label}`
-            : `Filter คำถามระดับ${label}`
+            ? `ยกเลิกตัวกรองระดับ${label}`
+            : `กรองคำถามระดับ${label}`
         }
       >
         {content}

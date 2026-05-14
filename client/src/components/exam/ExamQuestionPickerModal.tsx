@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
   ChevronLeft,
@@ -80,6 +80,22 @@ export default function ExamQuestionPickerModal({
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [categoryExpanded, setCategoryExpanded] = useState<string | null>(null);
+  const [hiddenCategoryPreviews, setHiddenCategoryPreviews] = useState<
+    Set<string>
+  >(new Set());
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  // Close filter dropdown on click outside.
+  useEffect(() => {
+    if (!filterOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setFilterOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [filterOpen]);
 
   /**
    * Master selection map keyed by question_id. Survives pagination/filtering.
@@ -276,7 +292,7 @@ export default function ExamQuestionPickerModal({
             )}
           </span>
 
-          <div className="relative">
+          <div ref={filterRef} className="relative">
             <button
               type="button"
               onClick={() => setFilterOpen((v) => !v)}
@@ -380,7 +396,7 @@ export default function ExamQuestionPickerModal({
                       className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8F84A3]"
                     />
                     <input
-                      type="search"
+                      type="text"
                       value={categorySearch}
                       onChange={(event) => setCategorySearch(event.target.value)}
                       placeholder="ค้นหาหมวดหมู่ความรู้"
@@ -507,7 +523,14 @@ export default function ExamQuestionPickerModal({
           </div>
         )}
 
-        <div className="max-h-[460px] overflow-x-auto overflow-y-auto rounded-2xl bg-white ring-1 ring-[#E7DDF8]">
+        <div className="relative max-h-[460px] overflow-x-auto overflow-y-auto rounded-2xl bg-white ring-1 ring-[#E7DDF8]">
+          {loading && questions.length > 0 && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60">
+              <span className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-[#7C5BD9] shadow-md ring-1 ring-[#E7DDF8]">
+                กำลังโหลด...
+              </span>
+            </div>
+          )}
           <div className="sticky top-0 z-[1] grid min-w-[1120px] grid-cols-[56px_minmax(360px,1fr)_220px_132px_220px_116px] items-center bg-[#B7A3E3] px-6 py-3 text-sm font-semibold text-white">
             <div></div>
             <div>คำถาม</div>
@@ -517,13 +540,7 @@ export default function ExamQuestionPickerModal({
             <div className="text-center">จัดการ</div>
           </div>
 
-          {loading ? (
-            <p className="px-5 py-6 text-sm font-medium text-[#7A7287]">กำลังโหลด...</p>
-          ) : error ? (
-            <p className="px-5 py-6 text-sm font-medium text-red-500">{error}</p>
-          ) : questions.length === 0 ? (
-            <p className="px-5 py-6 text-sm font-medium text-[#7A7287]">ไม่พบคำถาม</p>
-          ) : (
+          {questions.length > 0 ? (
             <ul className="divide-y divide-[#EFE8FB]">
               {questions.map((q, idx) => {
                 const diff = difficultyLabel(q.difficulty_param);
@@ -590,7 +607,23 @@ export default function ExamQuestionPickerModal({
                       </div>
                     </div>
                     {isOpen && (
-                      <QuestionPreview question={q} />
+                      <QuestionPreview
+                        question={q}
+                        categoryHidden={hiddenCategoryPreviews.has(
+                          q.question_id,
+                        )}
+                        onToggleCategoryHidden={() => {
+                          setHiddenCategoryPreviews((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(q.question_id)) {
+                              next.delete(q.question_id);
+                            } else {
+                              next.add(q.question_id);
+                            }
+                            return next;
+                          });
+                        }}
+                      />
                     )}
                     {categoryExpanded === q.question_id && (
                       <KnowledgeCategoryPreview categories={tags} />
@@ -599,6 +632,12 @@ export default function ExamQuestionPickerModal({
                 );
               })}
             </ul>
+          ) : loading ? (
+            <p className="px-5 py-6 text-sm font-medium text-[#7A7287]">กำลังโหลด...</p>
+          ) : error ? (
+            <p className="px-5 py-6 text-sm font-medium text-red-500">{error}</p>
+          ) : (
+            <p className="px-5 py-6 text-sm font-medium text-[#7A7287]">ไม่พบคำถาม</p>
           )}
         </div>
 
@@ -685,11 +724,17 @@ function QuestionParameterPills({ question }: { question: Question }) {
   );
 }
 
-function QuestionPreview({ question }: { question: Question }) {
+function QuestionPreview({
+  question,
+  categoryHidden,
+  onToggleCategoryHidden,
+}: {
+  question: Question;
+  categoryHidden: boolean;
+  onToggleCategoryHidden: () => void;
+}) {
   const categories = question.knowledge_categories ?? [];
-  const [showCategories, setShowCategories] = useState(
-    categories.length > 0,
-  );
+  const showCategories = categories.length > 0 && !categoryHidden;
   const parameterItems = [
     {
       label: "ความยาก (b)",
@@ -714,7 +759,7 @@ function QuestionPreview({ question }: { question: Question }) {
         {categories.length > 0 && (
           <button
             type="button"
-            onClick={() => setShowCategories((current) => !current)}
+            onClick={onToggleCategoryHidden}
             className="inline-flex h-9 w-fit shrink-0 items-center gap-2 rounded-xl bg-white px-3 text-sm font-semibold text-[#7C5BD9] ring-1 ring-[#E7DDF8] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
           >
             <Tags size={15} />

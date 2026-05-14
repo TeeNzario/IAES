@@ -23,5 +23,5 @@ export const QUESTION_PARAM_LABELS: Record<QuestionParamKey, string> = {
 
 export function questionParamRangeMessage(param: QuestionParamKey) {
   const { min, max } = QUESTION_PARAM_LIMITS[param];
-  return `${QUESTION_PARAM_LABELS[param]}ต้องอยู่ระหว่าง ${min} ถึง ${max}`;
+  return `${QUESTION_PARAM_LABELS[param]} ต้องอยู่ระหว่าง ${min} ถึง ${max}`;
 }

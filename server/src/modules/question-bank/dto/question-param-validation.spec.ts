@@ -52,32 +52,32 @@ describe('question parameter validation', () => {
     [
       'difficulty_param',
       { difficulty_param: -3.01 },
-      'ความยากต้องอยู่ระหว่าง -3 ถึง 3',
+      'ความยาก ต้องอยู่ระหว่าง -3 ถึง 3',
     ],
     [
       'difficulty_param',
       { difficulty_param: 3.01 },
-      'ความยากต้องอยู่ระหว่าง -3 ถึง 3',
+      'ความยาก ต้องอยู่ระหว่าง -3 ถึง 3',
     ],
     [
       'discrimination_param',
       { discrimination_param: -0.01 },
-      'อำนาจการจำแนกต้องอยู่ระหว่าง 0 ถึง 3',
+      'อำนาจการจำแนก ต้องอยู่ระหว่าง 0 ถึง 3',
     ],
     [
       'discrimination_param',
       { discrimination_param: 3.01 },
-      'อำนาจการจำแนกต้องอยู่ระหว่าง 0 ถึง 3',
+      'อำนาจการจำแนก ต้องอยู่ระหว่าง 0 ถึง 3',
     ],
     [
       'guessing_param',
       { guessing_param: -0.01 },
-      'โอกาสการเดาต้องอยู่ระหว่าง 0 ถึง 1',
+      'โอกาสการเดา ต้องอยู่ระหว่าง 0 ถึง 1',
     ],
     [
       'guessing_param',
       { guessing_param: 1.01 },
-      'โอกาสการเดาต้องอยู่ระหว่าง 0 ถึง 1',
+      'โอกาสการเดา ต้องอยู่ระหว่าง 0 ถึง 1',
     ],
   ] as const)(
     'rejects %s outside the allowed range',
