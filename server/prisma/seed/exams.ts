@@ -240,6 +240,7 @@ export async function seedExams(
           end_time: seed.end_time,
           show_results_immediately: seed.show_results_immediately,
           is_active: seed.is_active,
+          is_published: true,
         },
       });
     } else {
@@ -252,6 +253,7 @@ export async function seedExams(
           end_time: seed.end_time,
           show_results_immediately: seed.show_results_immediately,
           is_active: seed.is_active,
+          is_published: true,
         },
       });
     }
