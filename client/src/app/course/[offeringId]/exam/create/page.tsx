@@ -589,7 +589,7 @@ export default function CreateExamSchedulePage() {
                     min={minDate}
                     onChange={(e) => setStartDate(e.target.value)}
                     className={`h-11 w-full rounded-xl bg-white px-4 text-sm font-medium text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 ${
-                      startDate && errors.startDate
+                      (startDate || submitted) && errors.startDate
                         ? "ring-2 ring-rose-300 focus:ring-rose-400"
                         : "focus:ring-[#B7A3E3]"
                     }`}
@@ -610,7 +610,7 @@ export default function CreateExamSchedulePage() {
                     value={startTime}
                     onChange={(e) => setStartTime(e.target.value)}
                     className={`h-11 w-full rounded-xl bg-white px-4 text-sm font-medium text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 ${
-                      startDate && errors.startTime
+                      (startTime || submitted) && errors.startTime
                         ? "ring-2 ring-rose-300 focus:ring-rose-400"
                         : "focus:ring-[#B7A3E3]"
                     }`}
@@ -638,7 +638,7 @@ export default function CreateExamSchedulePage() {
                     min={startDate || minDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     className={`h-11 w-full rounded-xl bg-white px-4 text-sm font-medium text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 ${
-                      endDate && errors.endDate
+                      (endDate || submitted) && errors.endDate
                         ? "ring-2 ring-rose-300 focus:ring-rose-400"
                         : "focus:ring-[#B7A3E3]"
                     }`}
@@ -659,7 +659,7 @@ export default function CreateExamSchedulePage() {
                     value={endTime}
                     onChange={(e) => setEndTime(e.target.value)}
                     className={`h-11 w-full rounded-xl bg-white px-4 text-sm font-medium text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 ${
-                      endDate && errors.endTime
+                      (endTime || submitted) && errors.endTime
                         ? "ring-2 ring-rose-300 focus:ring-rose-400"
                         : "focus:ring-[#B7A3E3]"
                     }`}

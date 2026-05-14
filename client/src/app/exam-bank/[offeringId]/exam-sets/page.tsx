@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
+  AlertCircle,
   BarChart3,
   ChevronDown,
   ChevronLeft,
@@ -60,6 +61,7 @@ export default function ExamSetsListPage() {
 
   const [exams, setExams] = useState<ExamListItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [listError, setListError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [page, setPage] = useState(1);
@@ -72,9 +74,13 @@ export default function ExamSetsListPage() {
   const fetchExams = useCallback(() => {
     if (!offeringId) return;
     setLoading(true);
+    setListError(null);
     apiFetch<ExamListItem[]>(`/course-offerings/${offeringId}/exams`)
       .then(setExams)
-      .catch(() => setExams([]))
+      .catch(() => {
+        setExams([]);
+        setListError("ไม่สามารถโหลดรายการชุดข้อสอบได้");
+      })
       .finally(() => setLoading(false));
   }, [offeringId]);
 
@@ -249,6 +255,12 @@ export default function ExamSetsListPage() {
             </div>
           )}
 
+          {listError && (
+            <div className="mb-4 flex items-center gap-2 rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 ring-1 ring-rose-200">
+              <AlertCircle size={14} />
+              {listError}
+            </div>
+          )}
           {loading ? (
             <div className="rounded-2xl bg-white px-6 py-6 text-sm font-medium text-[#7A7287] shadow-sm ring-1 ring-[#E7DDF8]">
               กำลังโหลด...
