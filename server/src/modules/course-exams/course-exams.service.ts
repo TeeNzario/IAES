@@ -179,21 +179,34 @@ export class CourseExamsService {
     }
   }
 
-  /** All exams of the offering, ordered by start_time descending (latest first). */
-  async listByOffering(offeringId: string, user: JwtPayload) {
-    if (user.type === 'student') {
-      await this.verifyStudentEnrollment(offeringId, user.sub);
-    } else {
+  /**
+   * All exams of the offering, ordered by start_time ascending.
+   * By default returns only published exams. Pass includeDrafts=true
+   * (staff only) to see unpublished exams too (used in exam-bank list).
+   */
+  async listByOffering(
+    offeringId: string,
+    user: JwtPayload,
+    includeDrafts = false,
+  ) {
+    const isStaff = user.type === 'staff';
+    if (isStaff) {
       await this.resolveCourseAndAuthorize(offeringId, {
         staffUserId: user.sub,
         role: user.role,
       });
+    } else {
+      await this.verifyStudentEnrollment(offeringId, user.sub);
     }
+
+    // Students can never see unpublished exams regardless of query param
+    const showDrafts = isStaff && includeDrafts;
 
     const rows = await this.prisma.course_exams.findMany({
       where: {
         course_offerings_id: BigInt(offeringId),
         is_active: true,
+        ...(showDrafts ? {} : { is_published: true }),
       },
       orderBy: { start_time: 'asc' },
       select: {
@@ -203,6 +216,7 @@ export class CourseExamsService {
         start_time: true,
         end_time: true,
         show_results_immediately: true,
+        is_published: true,
         created_at: true,
         updated_at: true,
         _count: { select: { exam_questions: true } },
@@ -238,6 +252,7 @@ export class CourseExamsService {
       start_time: e.start_time,
       end_time: e.end_time,
       show_results_immediately: e.show_results_immediately,
+      is_published: e.is_published,
       question_count: e._count.exam_questions,
       status: computeStatus(e.start_time, e.end_time, now),
       created_at: e.created_at,
@@ -275,6 +290,7 @@ export class CourseExamsService {
         course_exams_id: true,
         course_offerings_id: true,
         is_active: true,
+        is_published: true,
         title: true,
         description: true,
         start_time: true,
@@ -318,6 +334,11 @@ export class CourseExamsService {
     if (!exam || !exam.is_active) throw new NotFoundException('Exam not found');
     if (exam.course_offerings_id.toString() !== offeringId) {
       throw new ForbiddenException('Exam does not belong to this offering');
+    }
+
+    // Students can only access published exams
+    if (user.type !== 'staff' && !exam.is_published) {
+      throw new NotFoundException('Exam not found');
     }
 
     const questions = exam.exam_questions.map((eq) => ({
@@ -413,6 +434,9 @@ export class CourseExamsService {
           end_time: end,
           ...(dto.show_results_immediately !== undefined
             ? { show_results_immediately: dto.show_results_immediately }
+            : {}),
+          ...(dto.is_published !== undefined
+            ? { is_published: dto.is_published }
             : {}),
         },
       });

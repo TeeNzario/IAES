@@ -30,6 +30,7 @@ interface ExamListItem {
   end_time: string;
   question_count: number;
   status: "UPCOMING" | "ONGOING" | "ENDED";
+  is_published: boolean;
 }
 
 export default function CoursePage() {

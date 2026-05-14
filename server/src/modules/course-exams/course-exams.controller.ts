@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
 } from '@nestjs/common';
 import { Auth, Roles } from 'src/auth/guards';
@@ -42,13 +43,18 @@ export class CourseExamsController {
     return this.service.create(offeringId, dto, staffActor(req));
   }
 
-  /** All exams for this offering, with derived status. */
+  /**
+   * All exams for this offering, with derived status.
+   * Pass ?draft=true to include unpublished exams (staff-only in exam-bank).
+   * By default only is_published exams are returned.
+   */
   @Get()
   list(
     @Req() req: AuthenticatedRequest,
     @Param('offeringId') offeringId: string,
+    @Query('draft') draft?: string,
   ) {
-    return this.service.listByOffering(offeringId, req.user);
+    return this.service.listByOffering(offeringId, req.user, draft === 'true');
   }
 
   /** Full exam detail including its ordered questions. */

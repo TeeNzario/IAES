@@ -132,7 +132,7 @@ export default function CreateExamSchedulePage() {
 
   useEffect(() => {
     if (!offeringId) return;
-    apiFetch<ExamListItem[]>(`/course-offerings/${offeringId}/exams`)
+    apiFetch<ExamListItem[]>(`/course-offerings/${offeringId}/exams?draft=true`)
       .then(setExams)
       .catch(() => {
         setExams([]);
@@ -330,6 +330,7 @@ export default function CreateExamSchedulePage() {
           description: detail.description ?? "",
           start_time: localToIso(startDate, startTime),
           end_time: localToIso(endDate, endTime),
+          is_published: true,
           question_ids: [...detail.questions]
             .sort((a, b) => a.sequence_index - b.sequence_index)
             .map((q) => q.question_id),
