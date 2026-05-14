@@ -124,6 +124,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
     async function fetchCourses() {
       setLoadingCourses(true);
       setCoursesError(false);
+      setCourses([]);
       try {
         const endpoint =
           userType === "STAFF"
@@ -152,12 +153,20 @@ const NavBar = ({ children }: PageLayoutProps) => {
       }
     };
 
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsUserMenuOpen(false);
+      }
+    };
+
     document.addEventListener("mousedown", closeOnOutsidePointer);
     document.addEventListener("touchstart", closeOnOutsidePointer);
+    document.addEventListener("keydown", closeOnEscape);
 
     return () => {
       document.removeEventListener("mousedown", closeOnOutsidePointer);
       document.removeEventListener("touchstart", closeOnOutsidePointer);
+      document.removeEventListener("keydown", closeOnEscape);
     };
   }, [isUserMenuOpen]);
 
@@ -414,10 +423,10 @@ const NavBar = ({ children }: PageLayoutProps) => {
               className="min-w-0 flex items-center gap-3 hover:opacity-80 transition-opacity sm:gap-4"
             >
               <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-                <div className="h-8 w-8 flex-shrink-0 bg-white rounded-full flex items-center justify-center sm:h-10 sm:w-10">
+                <div className="h-10 w-10 flex-shrink-0 bg-white rounded-full flex items-center justify-center sm:h-12 sm:w-12">
                   <Image src="/IAES_logo.png" alt="" width={100} height={100} />
                 </div>
-                <span className="truncate text-lg font-bold text-gray-800 sm:text-xl">
+                <span className="truncate text-lg font-bold text-gray-800 sm:text-2xl">
                   IAES System
                 </span>
               </div>
