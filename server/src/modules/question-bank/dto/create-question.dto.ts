@@ -10,12 +10,17 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Max,
   MaxLength,
   Min,
   MinLength,
   ValidateNested,
 } from 'class-validator';
 import { FIELD_LENGTHS, maxLengthMessage } from 'src/lib/field-lengths';
+import {
+  QUESTION_PARAM_LIMITS,
+  questionParamRangeMessage,
+} from 'src/lib/question-param-limits';
 
 export enum QuestionTypeDto {
   MCQ_SINGLE = 'MCQ_SINGLE',
@@ -63,12 +68,30 @@ export class CreateQuestionDto {
 
   // IRT params are required at create time (per agreed spec).
   @IsNumber()
+  @Min(QUESTION_PARAM_LIMITS.difficulty.min, {
+    message: questionParamRangeMessage('difficulty'),
+  })
+  @Max(QUESTION_PARAM_LIMITS.difficulty.max, {
+    message: questionParamRangeMessage('difficulty'),
+  })
   difficulty_param!: number;
 
   @IsNumber()
+  @Min(QUESTION_PARAM_LIMITS.discrimination.min, {
+    message: questionParamRangeMessage('discrimination'),
+  })
+  @Max(QUESTION_PARAM_LIMITS.discrimination.max, {
+    message: questionParamRangeMessage('discrimination'),
+  })
   discrimination_param!: number;
 
   @IsNumber()
+  @Min(QUESTION_PARAM_LIMITS.guessing.min, {
+    message: questionParamRangeMessage('guessing'),
+  })
+  @Max(QUESTION_PARAM_LIMITS.guessing.max, {
+    message: questionParamRangeMessage('guessing'),
+  })
   guessing_param!: number;
 
   /** Tag ids (knowledge_category_id). Must all be linked to the course. */

@@ -412,8 +412,8 @@ export default function ExamEditor({
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_1fr]">
-            <label className="block">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+            <label className="block lg:col-span-5">
               <span className="mb-1.5 block text-[15px] font-semibold text-[#514667]">
                 ชื่อชุดข้อสอบ
               </span>
@@ -425,25 +425,24 @@ export default function ExamEditor({
                   setConfig({ ...config, title: e.target.value })
                 }
                 placeholder="สร้างชุดข้อสอบ"
-                className="h-11 w-full rounded-xl bg-[#FAF8FF] px-4 text-[15px] font-medium text-[#2F2A3A] placeholder:text-[#B7AFC6] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
+                className="h-12 w-full rounded-xl bg-[#FAF8FF] px-4 text-[15px] font-medium text-[#2F2A3A] placeholder:text-[#B7AFC6] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
               />
               <span className="mt-1 block text-right text-xs font-medium text-[#7A7287]">
                 {config.title.length}/{EXAM_TITLE_MAX_LENGTH}
               </span>
             </label>
-            <label className="block">
+            <label className="block lg:col-span-7">
               <span className="mb-1.5 block text-[15px] font-semibold text-[#514667]">
                 คำอธิบาย
               </span>
-              <input
-                type="text"
+              <textarea
                 value={config.description}
                 maxLength={EXAM_DESCRIPTION_MAX_LENGTH}
                 onChange={(e) =>
                   setConfig({ ...config, description: e.target.value })
                 }
                 placeholder="เช่น REST API, Database, Security"
-                className="h-11 w-full rounded-xl bg-[#FAF8FF] px-4 text-[15px] font-medium text-[#2F2A3A] placeholder:text-[#B7AFC6] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
+                className="min-h-28 max-h-56 w-full resize-y rounded-xl bg-[#FAF8FF] px-4 py-3 text-[15px] font-medium leading-relaxed text-[#2F2A3A] placeholder:text-[#B7AFC6] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3]"
               />
               <span className="mt-1 block text-right text-xs font-medium text-[#7A7287]">
                 {config.description.length}/{EXAM_DESCRIPTION_MAX_LENGTH}
@@ -864,7 +863,8 @@ function ExamStatsPanel({
     allStats.total > 0 ? Math.round((n / allStats.total) * 100) : 0;
   const allPct = (n: number) =>
     allStats.total > 0 ? Math.round((n / allStats.total) * 100) : 0;
-  const maxCat = categories.reduce((m, c) => Math.max(m, c.count), 0);
+  const categoryPct = (n: number) =>
+    total > 0 ? Math.min(100, Math.round((n / total) * 100)) : 0;
   const activeFilterLabel = activeDifficultyFilter
     ? QUESTION_DIFFICULTY_LABELS[activeDifficultyFilter]
     : null;
@@ -902,7 +902,7 @@ function ExamStatsPanel({
                     onDifficultyFilterChange(activeDifficultyFilter);
                   }
                 }}
-                className="inline-flex h-11 items-center rounded-xl bg-white px-5 text-[15px] font-semibold text-[#7C5BD9] ring-1 ring-[#D9C9F4] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
+                className="inline-flex h-9 items-center rounded-lg bg-white px-3.5 text-sm font-semibold text-[#7C5BD9] ring-1 ring-[#D9C9F4] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
               >
                 ล้างตัวกรอง
               </button>
@@ -979,36 +979,58 @@ function ExamStatsPanel({
         </div>
 
         <aside className="rounded-xl bg-[#FAF8FF] p-4 ring-1 ring-[#EFE8FB]">
-          <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[#514667]">
-            <Tags size={15} className="text-[#7C5BD9]" />
-            จำนวนข้อตามหมวดหมู่ความรู้
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[#514667]">
+              <Tags size={15} className="text-[#7C5BD9]" />
+              จำนวนข้อตามหมวดหมู่ความรู้
+            </div>
+            {categories.length > 0 && (
+              <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-[#7C5BD9] ring-1 ring-[#E7DDF8]">
+                {categories.length} หมวดหมู่
+              </span>
+            )}
           </div>
           {categories.length === 0 ? (
             <p className="text-sm font-medium text-[#B7AFC6]">
               ไม่มีหมวดหมู่ที่กำหนด
             </p>
           ) : (
-            <ul className="space-y-3">
-              {categories.map((c) => (
-                <li key={c.name} className="text-sm font-medium text-[#514667]">
-                  <div className="mb-1.5 flex items-center justify-between gap-3">
-                    <span className="min-w-0 break-words leading-snug" title={c.name}>
-                      {c.name}
-                    </span>
-                    <span className="shrink-0 font-semibold text-[#2F2A3A]">
-                      {c.count}
-                    </span>
-                  </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-white ring-1 ring-[#E7DDF8]">
-                    <div
-                      className="h-full rounded-full bg-[#B7A3E3]"
-                      style={{
-                        width: `${maxCat > 0 ? (c.count / maxCat) * 100 : 0}%`,
-                      }}
-                    />
-                  </div>
-                </li>
-              ))}
+            <ul className="max-h-[360px] space-y-2.5 overflow-y-auto pr-1">
+              {categories.map((c) => {
+                const percent = categoryPct(c.count);
+                return (
+                  <li
+                    key={c.name}
+                    className="rounded-xl bg-white p-3 text-sm font-medium text-[#514667] ring-1 ring-[#E7DDF8]"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <span
+                        className="line-clamp-2 min-w-0 break-words leading-snug"
+                        title={c.name}
+                      >
+                        {c.name}
+                      </span>
+                      <span className="shrink-0 rounded-full bg-[#F4EFFF] px-2.5 py-1 text-xs font-semibold text-[#7C5BD9]">
+                        {c.count} ข้อ
+                      </span>
+                    </div>
+                    <div className="mt-3 flex items-center gap-2">
+                      <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-[#F4EFFF]">
+                        <div
+                          className="h-full rounded-full bg-[#9C7AE6]"
+                          style={{ width: `${percent}%` }}
+                        />
+                      </div>
+                      <span className="w-12 text-right text-xs font-semibold text-[#7C5BD9]">
+                        {percent}%
+                      </span>
+                    </div>
+                    <div className="mt-1 text-xs font-medium text-[#7A7287]">
+                      {c.count} จาก {total} ข้อ
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </aside>

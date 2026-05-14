@@ -5,9 +5,20 @@ import { Pencil, Plus, Tags, Trash2 } from "lucide-react";
 import TagSelect, { KnowledgeTag } from "./TagSelect";
 import type { Choice, Question, QuestionType } from "./types";
 import { FIELD_LIMITS, maxLengthMessage } from "@/config/fieldLimits";
+import {
+  QUESTION_PARAM_LIMITS,
+  QuestionParamKey,
+  questionParamRangeMessage,
+} from "@/config/questionParamLimits";
 
 const QUESTION_TEXT_MAX_LENGTH = FIELD_LIMITS.questionText;
 const CHOICE_TEXT_MAX_LENGTH = FIELD_LIMITS.choiceText;
+const DIFFICULTY_PARAM_MIN = QUESTION_PARAM_LIMITS.difficulty.min;
+const DIFFICULTY_PARAM_MAX = QUESTION_PARAM_LIMITS.difficulty.max;
+const DISCRIMINATION_PARAM_MIN = QUESTION_PARAM_LIMITS.discrimination.min;
+const DISCRIMINATION_PARAM_MAX = QUESTION_PARAM_LIMITS.discrimination.max;
+const GUESSING_PARAM_MIN = QUESTION_PARAM_LIMITS.guessing.min;
+const GUESSING_PARAM_MAX = QUESTION_PARAM_LIMITS.guessing.max;
 
 export interface DraftQuestion {
   /** Local-only id; not sent to the backend. */
@@ -42,6 +53,31 @@ export function makeEmptyDraft(): DraftQuestion {
     guessing_param: 0.25,
     knowledge_category_ids: [],
   };
+}
+
+function isFiniteNumber(value: number | ""): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function questionParamRangeError(
+  value: number | "",
+  param: QuestionParamKey,
+): string | null {
+  if (!isFiniteNumber(value)) return null;
+  const { min, max } = QUESTION_PARAM_LIMITS[param];
+  if (value < min || value > max) {
+    return questionParamRangeMessage(param);
+  }
+  return null;
+}
+
+function questionParamRequiredOrRangeError(
+  value: number | "",
+  param: QuestionParamKey,
+  requiredMessage: string,
+): string | null {
+  if (!isFiniteNumber(value)) return requiredMessage;
+  return questionParamRangeError(value, param);
 }
 
 /**
@@ -97,8 +133,14 @@ export function isDraftValid(d: DraftQuestion): boolean {
     d.discrimination_param,
     d.guessing_param,
   ]) {
-    if (typeof v !== "number" || !Number.isFinite(v)) return false;
+    if (!isFiniteNumber(v)) return false;
   }
+  if (
+    questionParamRangeError(d.difficulty_param, "difficulty") ||
+    questionParamRangeError(d.discrimination_param, "discrimination") ||
+    questionParamRangeError(d.guessing_param, "guessing")
+  )
+    return false;
   if (d.knowledge_category_ids.length < 1) return false;
   return true;
 }
@@ -123,11 +165,29 @@ export function firstInvalidReason(
   const correct = d.choices.filter((c) => c.is_correct).length;
   if (correct !== 1) return "ต้องเลือกคำตอบที่ถูกเพียง 1 ข้อ";
   if (
-    typeof d.difficulty_param !== "number" ||
-    typeof d.discrimination_param !== "number" ||
-    typeof d.guessing_param !== "number"
+    !isFiniteNumber(d.difficulty_param) ||
+    !isFiniteNumber(d.discrimination_param) ||
+    !isFiniteNumber(d.guessing_param)
   )
     return "ต้องกรอกความยาก / อำนาจการจำแนก / โอกาสการเดา";
+  const difficultyError = questionParamRequiredOrRangeError(
+    d.difficulty_param,
+    "difficulty",
+    "ต้องกรอกความยาก",
+  );
+  if (difficultyError) return difficultyError;
+  const discriminationError = questionParamRequiredOrRangeError(
+    d.discrimination_param,
+    "discrimination",
+    "ต้องกรอกอำนาจการจำแนก",
+  );
+  if (discriminationError) return discriminationError;
+  const guessingError = questionParamRequiredOrRangeError(
+    d.guessing_param,
+    "guessing",
+    "ต้องกรอกโอกาสการเดา",
+  );
+  if (guessingError) return guessingError;
   if (d.knowledge_category_ids.length < 1)
     return "ต้องเลือกหมวดหมู่ความรู้อย่างน้อย 1 รายการ";
   return null;
@@ -210,6 +270,15 @@ export default function QuestionEditorCard({
   const selectedKnowledgeTags = draft.knowledge_category_ids
     .map((id) => tags.find((tg) => tg.knowledge_category_id === id))
     .filter((t): t is KnowledgeTag => Boolean(t));
+  const currentGuessingParamError = editing
+    ? questionParamRangeError(draft.guessing_param, "guessing")
+    : null;
+  const currentDifficultyParamError = editing
+    ? questionParamRangeError(draft.difficulty_param, "difficulty")
+    : null;
+  const currentDiscriminationParamError = editing
+    ? questionParamRangeError(draft.discrimination_param, "discrimination")
+    : null;
 
   const startEdit = () => {
     setSnapshot(draft);
@@ -350,6 +419,11 @@ export default function QuestionEditorCard({
             label="ความยาก"
             value={draft.difficulty_param}
             editing={editing}
+            min={DIFFICULTY_PARAM_MIN}
+            max={DIFFICULTY_PARAM_MAX}
+            step={0.01}
+            helpText={`กรอกได้ตั้งแต่ ${DIFFICULTY_PARAM_MIN} ถึง ${DIFFICULTY_PARAM_MAX}`}
+            error={currentDifficultyParamError}
             onChange={(v) => update({ difficulty_param: v })}
           />
         )}
@@ -357,12 +431,22 @@ export default function QuestionEditorCard({
           label="อำนาจการจำแนก"
           value={draft.discrimination_param}
           editing={editing}
+          min={DISCRIMINATION_PARAM_MIN}
+          max={DISCRIMINATION_PARAM_MAX}
+          step={0.01}
+          helpText={`กรอกได้ตั้งแต่ ${DISCRIMINATION_PARAM_MIN} ถึง ${DISCRIMINATION_PARAM_MAX}`}
+          error={currentDiscriminationParamError}
           onChange={(v) => update({ discrimination_param: v })}
         />
         <NumberField
           label="โอกาสการเดา"
           value={draft.guessing_param}
           editing={editing}
+          min={GUESSING_PARAM_MIN}
+          max={GUESSING_PARAM_MAX}
+          step={0.01}
+          helpText={`กรอกได้ตั้งแต่ ${GUESSING_PARAM_MIN} ถึง ${GUESSING_PARAM_MAX}`}
+          error={currentGuessingParamError}
           onChange={(v) => update({ guessing_param: v })}
         />
       </div>
@@ -511,12 +595,24 @@ function NumberField({
   value,
   editing,
   onChange,
+  min,
+  max,
+  step = 0.1,
+  helpText,
+  error,
 }: {
   label: string;
   value: number | "";
   editing: boolean;
   onChange: (v: number | "") => void;
+  min?: number;
+  max?: number;
+  step?: number;
+  helpText?: string;
+  error?: string | null;
 }) {
+  const hintId = `${label.replace(/\s+/g, "-")}-hint`;
+
   return (
     <div>
       <label className="mb-2 block text-sm font-medium text-[#514667]">
@@ -524,15 +620,38 @@ function NumberField({
       </label>
       <input
         type="number"
-        step="0.1"
+        step={step}
+        min={min}
+        max={max}
         value={value}
         readOnly={!editing}
+        aria-invalid={Boolean(error)}
+        aria-describedby={error || helpText ? hintId : undefined}
+        onKeyDown={(e) => {
+          if (min !== undefined && min >= 0 && e.key === "-") {
+            e.preventDefault();
+          }
+        }}
         onChange={(e) => {
           const raw = e.target.value;
           onChange(raw === "" ? "" : Number(raw));
         }}
-        className="w-full rounded-xl bg-white px-4 py-3 text-sm font-normal text-[#2F2A3A] shadow-sm outline-none ring-1 ring-[#E7DDF8] transition focus:ring-2 focus:ring-[#B7A3E3] read-only:bg-[#FAF8FF]"
+        className={`w-full rounded-xl bg-white px-4 py-3 text-sm font-normal text-[#2F2A3A] shadow-sm outline-none ring-1 transition focus:ring-2 read-only:bg-[#FAF8FF] ${
+          error
+            ? "ring-rose-300 focus:ring-rose-400"
+            : "ring-[#E7DDF8] focus:ring-[#B7A3E3]"
+        }`}
       />
+      {(error || helpText) && (
+        <p
+          id={hintId}
+          className={`mt-1.5 text-xs font-medium ${
+            error ? "text-rose-500" : "text-[#7A7287]"
+          }`}
+        >
+          {error ?? helpText}
+        </p>
+      )}
     </div>
   );
 }
