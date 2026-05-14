@@ -206,6 +206,27 @@ export class CourseExamsService {
         created_at: true,
         updated_at: true,
         _count: { select: { exam_questions: true } },
+        exam_questions: {
+          orderBy: { sequence_index: 'asc' },
+          select: {
+            sequence_index: true,
+            question_bank: {
+              select: {
+                question_id: true,
+                difficulty_param: true,
+                discrimination_param: true,
+                guessing_param: true,
+                question_knowledge: {
+                  select: {
+                    knowledge_categories: {
+                      select: { knowledge_category_id: true, name: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -221,6 +242,16 @@ export class CourseExamsService {
       status: computeStatus(e.start_time, e.end_time, now),
       created_at: e.created_at,
       updated_at: e.updated_at,
+      questions: e.exam_questions.map((eq) => ({
+        sequence_index: eq.sequence_index,
+        question_id: eq.question_bank.question_id,
+        difficulty_param: eq.question_bank.difficulty_param,
+        discrimination_param: eq.question_bank.discrimination_param,
+        guessing_param: eq.question_bank.guessing_param,
+        knowledge_categories: eq.question_bank.question_knowledge.map(
+          (k) => k.knowledge_categories,
+        ),
+      })),
     }));
 
     return serializeBigInt(data);
@@ -351,6 +382,11 @@ export class CourseExamsService {
     }
     if (start >= end) {
       throw new BadRequestException('start_time must be before end_time');
+    }
+    // Allow a small clock-skew tolerance (60 seconds in the past is OK).
+    const now = Date.now();
+    if (start.getTime() < now - 60_000) {
+      throw new BadRequestException('start_time cannot be in the past');
     }
 
     if (!Array.isArray(dto.question_ids) || dto.question_ids.length < 1) {

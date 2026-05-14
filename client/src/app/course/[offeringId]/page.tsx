@@ -13,11 +13,13 @@ import {
 import { toBuddhistYear } from "@/utils/academicYear";
 import { AuthUser } from "@/types/auth";
 import {
+  AlertCircle,
   CalendarClock,
   ClipboardPlus,
   FileText,
   Pencil,
   UsersRound,
+  X,
 } from "lucide-react";
 
 interface ExamListItem {
@@ -41,6 +43,7 @@ export default function CoursePage() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
   const [exams, setExams] = useState<ExamListItem[]>([]);
+  const [examFetchError, setExamFetchError] = useState<string | null>(null);
 
   const userType = String(user?.type ?? user?.userType ?? "").toUpperCase();
   const staffRole = String(user?.staff_role ?? user?.role ?? "").toUpperCase();
@@ -81,7 +84,10 @@ export default function CoursePage() {
         if (isMounted) setExams(data);
       })
       .catch(() => {
-        if (isMounted) setExams([]);
+        if (isMounted) {
+          setExams([]);
+          setExamFetchError("ไม่สามารถโหลดรายการข้อสอบได้");
+        }
       });
 
     return () => {
@@ -258,19 +264,19 @@ export default function CoursePage() {
                 </div>
 
                 <div className="grid w-full grid-cols-2 gap-3 sm:w-80">
-                  <div className="rounded-xl bg-[#FAF8FF] px-4 py-3">
-                    <p className="text-xs font-medium text-[#7C5BD9]">
+                  <div className="rounded-xl bg-[#FAF8FF] px-4 py-3.5">
+                    <p className="text-sm font-semibold leading-5 text-[#7C5BD9] sm:text-[15px]">
                       ข้อสอบทั้งหมด
                     </p>
-                    <p className="mt-1 text-2xl font-semibold text-[#2F2A3A]">
+                    <p className="mt-1.5 text-3xl font-semibold leading-none text-[#2F2A3A]">
                       {exams.length}
                     </p>
                   </div>
-                  <div className="rounded-xl bg-[#FAF8FF] px-4 py-3">
-                    <p className="text-xs font-medium text-[#7C5BD9]">
+                  <div className="rounded-xl bg-[#FAF8FF] px-4 py-3.5">
+                    <p className="text-sm font-semibold leading-5 text-[#7C5BD9] sm:text-[15px]">
                       ใกล้เปิด
                     </p>
-                    <p className="mt-1 text-2xl font-semibold text-[#2F2A3A]">
+                    <p className="mt-1.5 text-3xl font-semibold leading-none text-[#2F2A3A]">
                       {upcomingExams.length}
                     </p>
                   </div>
@@ -293,8 +299,8 @@ export default function CoursePage() {
 
 
               <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#E7DDF8]">
-                <h2 className="flex items-center gap-2 text-sm font-semibold text-[#2F2A3A]">
-                  <CalendarClock size={17} className="text-[#B7A3E3]" />
+                <h2 className="flex items-center gap-2 text-base font-semibold text-[#2F2A3A]">
+                  <CalendarClock size={18} className="text-[#B7A3E3]" />
                   ข้อสอบที่ใกล้เปิด
                 </h2>
                 <div className="mt-4 space-y-2">
@@ -305,10 +311,10 @@ export default function CoursePage() {
                         type="button"
                         className="w-full rounded-xl bg-[#FAF8FF] px-3 py-2 text-left transition-colors hover:bg-[#F4EFFF]"
                       >
-                        <p className="truncate text-sm font-medium text-[#2F2A3A]">
+                        <p className="truncate text-[15px] font-semibold leading-6 text-[#2F2A3A]">
                           {exam.title}
                         </p>
-                        <p className="mt-1 text-xs font-normal text-[#7A7287]">
+                        <p className="mt-1 text-sm font-medium leading-5 text-[#7A7287]">
                           {formatExamDate(exam.start_time)}
                         </p>
                       </button>
@@ -323,7 +329,13 @@ export default function CoursePage() {
             </aside>
 
             <section className="space-y-4">
-              {exams.length === 0 ? (
+              {examFetchError && (
+                <div className="flex items-center gap-2 rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 ring-1 ring-rose-200">
+                  <AlertCircle size={14} />
+                  {examFetchError}
+                </div>
+              )}
+              {exams.length === 0 && !examFetchError ? (
                 <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-[#E7DDF8]">
                   <FileText size={28} className="mx-auto text-[#B7A3E3]" />
                   <p className="mt-3 text-sm font-medium text-[#7A7287]">
@@ -341,17 +353,16 @@ export default function CoursePage() {
                         <h3 className="text-base font-semibold leading-6 text-[#2F2A3A] sm:text-lg">
                           {exam.title}
                         </h3>
-                        {exam.description && (
-                          <p className="mt-1 line-clamp-2 text-sm font-normal leading-6 text-[#7A7287]">
-                            {exam.description}
-                          </p>
-                        )}
+                        <ExamDescriptionPreview
+                          title={exam.title}
+                          description={exam.description}
+                        />
 
                         <div className="mt-3 flex flex-wrap items-center gap-2">
-                          <span className="rounded-full bg-[#F4EFFF] px-3 py-1 text-xs font-semibold text-[#7C5BD9]">
+                          <span className="rounded-full bg-[#F4EFFF] px-3.5 py-1.5 text-sm font-semibold text-[#7C5BD9]">
                             {formatExamDate(exam.start_time)}
                           </span>
-                          <span className="rounded-full bg-[#FAF8FF] px-3 py-1 text-xs font-medium text-[#514667]">
+                          <span className="rounded-full bg-[#FAF8FF] px-3.5 py-1.5 text-sm font-semibold text-[#514667]">
                             {exam.question_count} ข้อ
                           </span>
                         </div>
@@ -390,5 +401,95 @@ export default function CoursePage() {
         </main>
       </div>
     </Navbar>
+  );
+}
+
+function ExamDescriptionPreview({
+  title,
+  description,
+}: {
+  title: string;
+  description: string | null;
+}) {
+  const [open, setOpen] = useState(false);
+  const text = description?.trim() ?? "";
+  const shouldTruncate = text.length > 110 || text.split(/\r?\n/).length > 2;
+
+  if (!text) return null;
+
+  return (
+    <div className="mt-2 max-w-4xl rounded-xl bg-[#FAF8FF] p-3 ring-1 ring-[#EFE8FB]">
+      <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+        <span className="text-sm font-semibold text-[#7C5BD9]">
+          คำอธิบาย
+        </span>
+        {shouldTruncate && (
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="inline-flex h-8 items-center rounded-lg bg-white px-3 text-sm font-semibold text-[#7C5BD9] shadow-sm ring-1 ring-[#D9CCF2] transition-colors hover:bg-[#F4EFFF] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C5BD9]"
+            aria-haspopup="dialog"
+          >
+            อ่านเพิ่มเติม
+          </button>
+        )}
+      </div>
+
+      <p
+        className={`break-words text-[13px] font-normal leading-5 text-[#6B617A] sm:text-sm sm:leading-6 ${
+          shouldTruncate ? "line-clamp-2" : "whitespace-pre-line"
+        }`}
+        title={text}
+      >
+        {text}
+      </p>
+
+      {open && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#2F2A3A]/35 p-4"
+          role="presentation"
+          onClick={() => setOpen(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="course-exam-description-dialog-title"
+            className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white text-left shadow-xl ring-1 ring-[#D9CCF2]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-[#EFE8FB] px-5 py-4">
+              <div className="min-w-0">
+                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-[#F4EFFF] text-[#7C5BD9]">
+                  <FileText size={19} />
+                </div>
+                <h4
+                  id="course-exam-description-dialog-title"
+                  className="line-clamp-2 break-words text-lg font-semibold leading-7 text-[#2F2A3A]"
+                >
+                  {title}
+                </h4>
+                <p className="mt-1 text-sm font-medium leading-6 text-[#7A7287] sm:text-[15px]">
+                  คำอธิบายชุดข้อสอบ
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#FAF8FF] text-[#7A7287] ring-1 ring-[#E7DDF8] transition-colors hover:bg-[#F4EFFF] hover:text-[#7C5BD9] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C5BD9]"
+                aria-label="ปิดหน้าต่างคำอธิบายชุดข้อสอบ"
+              >
+                <X size={17} />
+              </button>
+            </div>
+
+            <div className="max-h-[55vh] overflow-y-auto px-5 py-4">
+              <p className="whitespace-pre-line break-words rounded-xl bg-[#FAF8FF] p-4 text-sm font-normal leading-7 text-[#514667] ring-1 ring-[#EFE8FB]">
+                {text}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
