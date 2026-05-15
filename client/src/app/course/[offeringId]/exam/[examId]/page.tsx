@@ -468,7 +468,9 @@ export default function ExamAttemptPage() {
                       ความคืบหน้า
                     </h2>
                     <p className="mt-1 text-sm font-normal text-[#7A7287]">
-                      ระบบจะบันทึกคำตอบอัตโนมัติหลังเลือกตัวเลือก
+                      {currentItem?.question.question_type === "MCQ_MULTI"
+                        ? "เลือกคำตอบได้มากกว่าหนึ่งข้อ แล้วกดบันทึกเพื่อไปข้อถัดไป"
+                        : "ระบบจะบันทึกคำตอบอัตโนมัติหลังเลือกตัวเลือก"}
                     </p>
                   </div>
                   <button
@@ -507,7 +509,11 @@ export default function ExamAttemptPage() {
                     </div>
                     <span className="inline-flex items-center gap-1.5 rounded-xl bg-[#FAF8FF] px-3 py-2 text-sm font-semibold text-[#514667] ring-1 ring-[#EFE8FB]">
                       <Clock3 size={15} className="text-[#7C5BD9]" />
-                      {savingAnswer ? "กำลังบันทึก..." : "บันทึกอัตโนมัติ"}
+                      {savingAnswer
+                        ? "กำลังบันทึก..."
+                        : currentItem.question.question_type === "MCQ_MULTI"
+                          ? "รอกดบันทึกคำตอบ"
+                          : "บันทึกอัตโนมัติ"}
                     </span>
                   </div>
 
