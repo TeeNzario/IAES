@@ -1,9 +1,9 @@
 import {
   clampTheta,
-  computePercentScore,
   correctnessDelta,
   pickNextQuestion,
-} from './exam-attempts.service';
+} from './adaptive/adaptive-selector';
+import { computePercentScore } from './scoring/scoring-engine';
 
 describe('ExamAttemptsService adaptive helpers', () => {
   const questions = [

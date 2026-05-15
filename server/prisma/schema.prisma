@@ -42,6 +42,7 @@ model attempt_items {
   shown_at             DateTime             @default(now()) @db.Timestamptz(6)
   answered_at          DateTime?            @db.Timestamptz(6)
   time_per_item        Int?
+  theta_at_selection   Float?
   choice_selection_log Json?
   attempt_answers      attempt_answers[]
   exam_behavior_logs   exam_behavior_logs[]
@@ -119,6 +120,7 @@ model exam_attempts {
   total_score        Decimal?             @db.Decimal(7, 2)
   passed             Boolean?
   total_level        Float?
+  theta_estimate     Float?
   time_per_exam      Int?
   created_at         DateTime             @default(now()) @db.Timestamptz(6)
   updated_at         DateTime             @default(now()) @db.Timestamptz(6)

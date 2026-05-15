@@ -13,11 +13,16 @@ import type {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SaveAnswerDto } from './dto/save-answer.dto';
 import { BehaviorEventDto } from './dto/behavior-event.dto';
-
-const THETA_STEP = 0.35;
-const THETA_MIN = -3;
-const THETA_MAX = 3;
-const PASSING_SCORE = 50;
+import {
+  clampTheta,
+  correctnessDelta,
+  ExamQuestionCandidate,
+  pickNextQuestion,
+} from './adaptive/adaptive-selector';
+import {
+  computePercentScore,
+  didPass,
+} from './scoring/scoring-engine';
 
 type DbClient = PrismaService | Prisma.TransactionClient;
 
@@ -26,55 +31,12 @@ interface StaffActor {
   role: StaffRole;
 }
 
-interface ExamQuestionCandidate {
-  question_id: bigint;
-  sequence_index: number;
-  difficulty_param: number | null;
-  discrimination_param: number | null;
-}
-
 function serializeBigInt<T>(data: T): T {
   return JSON.parse(
     JSON.stringify(data, (_, value) =>
       typeof value === 'bigint' ? value.toString() : value,
     ),
   );
-}
-
-export function clampTheta(value: number) {
-  return Math.max(THETA_MIN, Math.min(THETA_MAX, value));
-}
-
-export function correctnessDelta(isCorrect: boolean) {
-  return isCorrect ? THETA_STEP : -THETA_STEP;
-}
-
-export function pickNextQuestion(
-  questions: ExamQuestionCandidate[],
-  shownQuestionIds: Set<string>,
-  theta: number,
-) {
-  return questions
-    .filter((question) => !shownQuestionIds.has(question.question_id.toString()))
-    .sort((a, b) => {
-      const difficultyA = a.difficulty_param ?? 0;
-      const difficultyB = b.difficulty_param ?? 0;
-      const distance =
-        Math.abs(difficultyA - theta) - Math.abs(difficultyB - theta);
-      if (distance !== 0) return distance;
-
-      const discrimination =
-        (b.discrimination_param ?? Number.NEGATIVE_INFINITY) -
-        (a.discrimination_param ?? Number.NEGATIVE_INFINITY);
-      if (discrimination !== 0) return discrimination;
-
-      return a.sequence_index - b.sequence_index;
-    })[0];
-}
-
-export function computePercentScore(correctCount: number, totalQuestions: number) {
-  if (totalQuestions <= 0) return 0;
-  return (correctCount / totalQuestions) * 100;
 }
 
 function isFiniteNumber(value: unknown): value is number {
@@ -305,6 +267,7 @@ export class ExamAttemptsService {
         total_score: true,
         passed: true,
         total_level: true,
+        theta_estimate: true,
         time_per_exam: true,
         attempt_items: {
           orderBy: { sequence_index: 'asc' },
@@ -315,6 +278,7 @@ export class ExamAttemptsService {
             shown_at: true,
             answered_at: true,
             time_per_item: true,
+            theta_at_selection: true,
             question_bank: {
               select: {
                 question_id: true,
@@ -372,6 +336,7 @@ export class ExamAttemptsService {
         ? Math.max(0, Math.floor((exam.end_time.getTime() - now.getTime()) / 1000))
         : 0;
     const canViewResult = this.canViewResult(exam, attempt.status);
+    const thetaEstimate = attempt.theta_estimate ?? attempt.total_level ?? 0;
 
     return serializeBigInt({
       attempt_id: attempt.exam_attempts_id,
@@ -380,7 +345,8 @@ export class ExamAttemptsService {
       submitted_at: attempt.submitted_at,
       total_score: canViewResult ? attempt.total_score : null,
       passed: canViewResult ? attempt.passed : null,
-      total_level: attempt.total_level ?? 0,
+      total_level: thetaEstimate,
+      theta_estimate: thetaEstimate,
       time_per_exam: attempt.time_per_exam,
       can_view_result: canViewResult,
       result_hidden:
@@ -413,6 +379,7 @@ export class ExamAttemptsService {
             shown_at: currentItem.shown_at,
             answered_at: currentItem.answered_at,
             time_per_item: currentItem.time_per_item,
+            theta_at_selection: currentItem.theta_at_selection,
             selected_choice_id:
               currentItem.attempt_answers[0]?.selected_choice_id ?? null,
             answer_text: currentItem.attempt_answers[0]?.answer_text ?? null,
@@ -429,6 +396,7 @@ export class ExamAttemptsService {
         question_id: item.question_id,
         sequence_index: item.sequence_index,
         answered_at: item.answered_at,
+        theta_at_selection: item.theta_at_selection,
         selected_choice_id: item.attempt_answers[0]?.selected_choice_id ?? null,
       })),
     });
@@ -460,6 +428,7 @@ export class ExamAttemptsService {
         exam_attempts_id: attemptId,
         question_id: nextQuestion.question_id,
         sequence_index: shownItems.length,
+        theta_at_selection: theta,
       },
       select: { attempt_items_id: true },
     });
@@ -492,6 +461,8 @@ export class ExamAttemptsService {
           exam_attempts_id: true,
           status: true,
           started_at: true,
+          total_level: true,
+          theta_estimate: true,
         },
       });
       if (!attempt || attempt.status !== 'IN_PROGRESS') return;
@@ -509,11 +480,13 @@ export class ExamAttemptsService {
       );
 
       if (missingQuestions.length > 0) {
+        const thetaAtSelection = attempt.theta_estimate ?? attempt.total_level ?? 0;
         await tx.attempt_items.createMany({
           data: missingQuestions.map((question, index) => ({
             exam_attempts_id: attemptId,
             question_id: question.question_id,
             sequence_index: existingItems.length + index,
+            theta_at_selection: thetaAtSelection,
           })),
           skipDuplicates: true,
         });
@@ -545,7 +518,7 @@ export class ExamAttemptsService {
           status: 'SUBMITTED',
           submitted_at: submittedAt,
           total_score: rawScore.toFixed(2),
-          passed: rawScore >= PASSING_SCORE,
+          passed: didPass(rawScore),
           time_per_exam: elapsedSeconds,
           updated_at: new Date(),
         },
@@ -594,6 +567,7 @@ export class ExamAttemptsService {
           course_exams_id: parseBigIntId(examId, 'examId'),
           student_code: student.sub,
           total_level: 0,
+          theta_estimate: 0,
         },
         select: { exam_attempts_id: true },
       });
@@ -603,6 +577,7 @@ export class ExamAttemptsService {
           exam_attempts_id: attempt.exam_attempts_id,
           question_id: firstQuestion.question_id,
           sequence_index: 0,
+          theta_at_selection: 0,
         },
         select: { attempt_items_id: true },
       });
@@ -741,7 +716,7 @@ export class ExamAttemptsService {
           ? correctnessDelta(previousCorrectness)
           : 0;
       const nextDelta = correctnessDelta(isCorrect);
-      const currentTheta = attempt.total_level ?? 0;
+      const currentTheta = attempt.theta_estimate ?? attempt.total_level ?? 0;
       const nextTheta = clampTheta(currentTheta - previousDelta + nextDelta);
       const savedAt = new Date();
       const existingLog = Array.isArray(item.choice_selection_log)
@@ -784,6 +759,7 @@ export class ExamAttemptsService {
         where: { exam_attempts_id: attempt.exam_attempts_id },
         data: {
           total_level: nextTheta,
+          theta_estimate: nextTheta,
           updated_at: savedAt,
         },
       });

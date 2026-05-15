@@ -395,6 +395,8 @@ export async function seedAttempts(
         status: plan.mode.status as exam_attempt_status,
         started_at: startedAt,
         submitted_at: submittedAt,
+        total_level: 0,
+        theta_estimate: 0,
         time_per_exam: timePerExam,
       },
     });
@@ -434,6 +436,7 @@ export async function seedAttempts(
           sequence_index: i + 1,
           shown_at: shownAt,
           answered_at: answeredAt,
+          theta_at_selection: 0,
           time_per_item: answeredAt
             ? Math.floor((answeredAt.getTime() - shownAt.getTime()) / 1000)
             : null,
@@ -514,6 +517,7 @@ export async function seedAttempts(
           total_score: rawScore.toFixed(2),
           passed,
           total_level: level,
+          theta_estimate: level,
         },
       });
     }

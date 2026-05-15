@@ -15,7 +15,6 @@ import {
   ShieldAlert,
   Trophy,
 } from "lucide-react";
-import NavBar from "@/components/layout/NavBar";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { apiFetch } from "@/lib/api";
 import { ExamAttemptState } from "@/types/examAttempt";
@@ -197,15 +196,31 @@ export default function ExamAttemptPage() {
     };
     const onBlur = () => sendEvent("window_blur");
     const onFocus = () => sendEvent("window_focus");
-    const onCopy = () => sendEvent("copy");
-    const onPaste = () => sendEvent("paste");
+    const onCopy = (event: ClipboardEvent) => {
+      event.preventDefault();
+      sendEvent("copy_attempt");
+    };
+    const onCut = (event: ClipboardEvent) => {
+      event.preventDefault();
+      sendEvent("cut_attempt");
+    };
+    const onPaste = (event: ClipboardEvent) => {
+      event.preventDefault();
+      sendEvent("paste_attempt");
+    };
+    const onContextMenu = (event: MouseEvent) => {
+      event.preventDefault();
+      sendEvent("right_click");
+    };
     const onFullscreen = () => {
       if (!document.fullscreenElement) sendEvent("fullscreen_exit");
     };
 
     document.addEventListener("visibilitychange", onVisibilityChange);
     document.addEventListener("copy", onCopy);
+    document.addEventListener("cut", onCut);
     document.addEventListener("paste", onPaste);
+    document.addEventListener("contextmenu", onContextMenu);
     document.addEventListener("fullscreenchange", onFullscreen);
     window.addEventListener("blur", onBlur);
     window.addEventListener("focus", onFocus);
@@ -213,7 +228,9 @@ export default function ExamAttemptPage() {
     return () => {
       document.removeEventListener("visibilitychange", onVisibilityChange);
       document.removeEventListener("copy", onCopy);
+      document.removeEventListener("cut", onCut);
       document.removeEventListener("paste", onPaste);
+      document.removeEventListener("contextmenu", onContextMenu);
       document.removeEventListener("fullscreenchange", onFullscreen);
       window.removeEventListener("blur", onBlur);
       window.removeEventListener("focus", onFocus);
@@ -278,10 +295,10 @@ export default function ExamAttemptPage() {
   }, [attempt]);
 
   return (
-    <NavBar>
-      <div className="min-h-screen bg-[#F4EFFF] px-4 py-6 sm:px-8 lg:px-10">
+    <>
+      <div className="min-h-dvh bg-[#F4EFFF] px-4 py-5 sm:px-8 lg:px-10">
         <main className="mx-auto flex w-full max-w-7xl flex-col gap-5">
-          <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6">
+          <section className="sticky top-4 z-20 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex min-w-0 items-start gap-3">
                 <button
@@ -455,7 +472,7 @@ export default function ExamAttemptPage() {
                           ข้อที่กำลังทำ
                         </p>
                         <p className="text-sm font-semibold text-[#7C5BD9]">
-                          Adaptive level {attempt.total_level.toFixed(2)}
+                          Adaptive level {attempt.theta_estimate.toFixed(2)}
                         </p>
                       </div>
                     </div>
@@ -537,6 +554,6 @@ export default function ExamAttemptPage() {
         isLoading={submitting}
         variant="warning"
       />
-    </NavBar>
+    </>
   );
 }

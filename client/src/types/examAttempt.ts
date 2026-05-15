@@ -20,6 +20,7 @@ export interface CurrentAttemptItem {
   shown_at: string;
   answered_at: string | null;
   time_per_item: number | null;
+  theta_at_selection: number | null;
   selected_choice_id: string | null;
   answer_text: string | null;
   question: ExamAttemptQuestion;
@@ -33,6 +34,7 @@ export interface ExamAttemptState {
   total_score: string | number | null;
   passed: boolean | null;
   total_level: number;
+  theta_estimate: number;
   time_per_exam: number | null;
   can_view_result: boolean;
   result_hidden: string | null;
@@ -58,6 +60,7 @@ export interface ExamAttemptState {
     question_id: string;
     sequence_index: number;
     answered_at: string;
+    theta_at_selection: number | null;
     selected_choice_id: string | null;
   }[];
 }
