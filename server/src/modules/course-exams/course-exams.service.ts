@@ -219,7 +219,21 @@ export class CourseExamsService {
         is_published: true,
         created_at: true,
         updated_at: true,
-        _count: { select: { exam_questions: true } },
+        _count: { select: { exam_questions: true, exam_attempts: true } },
+        exam_attempts: {
+          where:
+            user.type === 'student'
+              ? { student_code: user.sub }
+              : { student_code: '__staff_no_student_attempt__' },
+          take: 1,
+          select: {
+            exam_attempts_id: true,
+            status: true,
+            submitted_at: true,
+            total_score: true,
+            passed: true,
+          },
+        },
         exam_questions: {
           orderBy: { sequence_index: 'asc' },
           select: {
@@ -245,29 +259,47 @@ export class CourseExamsService {
     });
 
     const now = new Date();
-    const data = rows.map((e) => ({
-      course_exams_id: e.course_exams_id,
-      title: e.title,
-      description: e.description,
-      start_time: e.start_time,
-      end_time: e.end_time,
-      show_results_immediately: e.show_results_immediately,
-      is_published: e.is_published,
-      question_count: e._count.exam_questions,
-      status: computeStatus(e.start_time, e.end_time, now),
-      created_at: e.created_at,
-      updated_at: e.updated_at,
-      questions: e.exam_questions.map((eq) => ({
-        sequence_index: eq.sequence_index,
-        question_id: eq.question_bank.question_id,
-        difficulty_param: eq.question_bank.difficulty_param,
-        discrimination_param: eq.question_bank.discrimination_param,
-        guessing_param: eq.question_bank.guessing_param,
-        knowledge_categories: eq.question_bank.question_knowledge.map(
-          (k) => k.knowledge_categories,
-        ),
-      })),
-    }));
+    const data = rows.map((e) => {
+      const attempt = e.exam_attempts[0] ?? null;
+      const canViewResult =
+        attempt?.status === 'SUBMITTED' &&
+        (e.show_results_immediately || now > e.end_time);
+
+      return {
+        course_exams_id: e.course_exams_id,
+        title: e.title,
+        description: e.description,
+        start_time: e.start_time,
+        end_time: e.end_time,
+        show_results_immediately: e.show_results_immediately,
+        is_published: e.is_published,
+        question_count: e._count.exam_questions,
+        attempt_count: e._count.exam_attempts,
+        status: computeStatus(e.start_time, e.end_time, now),
+        created_at: e.created_at,
+        updated_at: e.updated_at,
+        attempt: attempt
+          ? {
+              attempt_id: attempt.exam_attempts_id,
+              status: attempt.status,
+              submitted_at: attempt.submitted_at,
+              can_view_result: canViewResult,
+              total_score: canViewResult ? attempt.total_score : null,
+              passed: canViewResult ? attempt.passed : null,
+            }
+          : null,
+        questions: e.exam_questions.map((eq) => ({
+          sequence_index: eq.sequence_index,
+          question_id: eq.question_bank.question_id,
+          difficulty_param: eq.question_bank.difficulty_param,
+          discrimination_param: eq.question_bank.discrimination_param,
+          guessing_param: eq.question_bank.guessing_param,
+          knowledge_categories: eq.question_bank.question_knowledge.map(
+            (k) => k.knowledge_categories,
+          ),
+        })),
+      };
+    });
 
     return serializeBigInt(data);
   }
@@ -340,10 +372,24 @@ export class CourseExamsService {
     if (user.type !== 'staff' && !exam.is_published) {
       throw new NotFoundException('Exam not found');
     }
+    if (user.type !== 'staff') {
+      const now = new Date();
+      if (now < exam.start_time || now > exam.end_time) {
+        throw new BadRequestException('Exam is not open');
+      }
+    }
 
     const questions = exam.exam_questions.map((eq) => ({
       sequence_index: eq.sequence_index,
       ...eq.question_bank,
+      choices:
+        user.type === 'staff'
+          ? eq.question_bank.choices
+          : eq.question_bank.choices.map((choice) => ({
+              choice_id: choice.choice_id,
+              choice_text: choice.choice_text,
+              display_order: choice.display_order,
+            })),
       knowledge_categories: eq.question_bank.question_knowledge.map(
         (k) => k.knowledge_categories,
       ),
