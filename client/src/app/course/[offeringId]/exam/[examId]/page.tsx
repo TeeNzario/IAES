@@ -9,10 +9,12 @@ import {
   Circle,
   Clock3,
   FileText,
+  CheckSquare,
   ListChecks,
   Loader2,
   Send,
   ShieldAlert,
+  Square,
   Trophy,
 } from "lucide-react";
 import ConfirmModal from "@/components/ui/ConfirmModal";
@@ -45,6 +47,10 @@ function scoreNumber(value: string | number | null) {
   return Number.isFinite(numeric) ? numeric : null;
 }
 
+function answerKey(choiceIds: string[]) {
+  return [...choiceIds].sort().join("|");
+}
+
 export default function ExamAttemptPage() {
   const router = useRouter();
   const { offeringId, examId } = useParams<{
@@ -55,14 +61,14 @@ export default function ExamAttemptPage() {
   const [attempt, setAttempt] = useState<ExamAttemptState | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedChoiceId, setSelectedChoiceId] = useState<string | null>(null);
+  const [selectedChoiceIds, setSelectedChoiceIds] = useState<string[]>([]);
   const [savingAnswer, setSavingAnswer] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [confirmSubmitOpen, setConfirmSubmitOpen] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const attemptRef = useRef<ExamAttemptState | null>(null);
   const remainingSecondsRef = useRef(0);
-  const lastSavedChoiceRef = useRef<string | null>(null);
+  const lastSavedAnswerKeyRef = useRef("");
   const autoSubmitRef = useRef(false);
 
   useEffect(() => {
@@ -120,10 +126,16 @@ export default function ExamAttemptPage() {
   }, [loadAttempt]);
 
   useEffect(() => {
-    const nextSelected = currentItem?.selected_choice_id ?? null;
-    setSelectedChoiceId(nextSelected);
-    lastSavedChoiceRef.current = nextSelected;
-  }, [currentItem?.attempt_items_id, currentItem?.selected_choice_id]);
+    const nextSelected =
+      currentItem?.selected_choice_ids ??
+      (currentItem?.selected_choice_id ? [currentItem.selected_choice_id] : []);
+    setSelectedChoiceIds(nextSelected);
+    lastSavedAnswerKeyRef.current = answerKey(nextSelected);
+  }, [
+    currentItem?.attempt_items_id,
+    currentItem?.selected_choice_id,
+    currentItem?.selected_choice_ids,
+  ]);
 
   useEffect(() => {
     if (!attempt || attempt.status !== "IN_PROGRESS") return;
@@ -237,6 +249,42 @@ export default function ExamAttemptPage() {
     };
   }, [attempt?.status, sendEvent]);
 
+  const saveSelectedAnswer = useCallback(async () => {
+    if (
+      !attempt ||
+      attempt.status !== "IN_PROGRESS" ||
+      !currentItem ||
+      selectedChoiceIds.length === 0 ||
+      answerKey(selectedChoiceIds) === lastSavedAnswerKeyRef.current
+    ) {
+      return;
+    }
+
+    setSavingAnswer(true);
+    setError(null);
+    try {
+      const data = await apiFetch<ExamAttemptState>(
+        `/course-offerings/${offeringId}/exams/${examId}/attempt/items/${currentItem.attempt_items_id}/answer`,
+        {
+          method: "PATCH",
+          data:
+            currentItem.question.question_type === "MCQ_MULTI"
+              ? { selected_choice_ids: selectedChoiceIds }
+              : { selected_choice_id: selectedChoiceIds[0] },
+        },
+      );
+      lastSavedAnswerKeyRef.current = answerKey(selectedChoiceIds);
+      setAttempt(data);
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string | string[] } } })
+          ?.response?.data?.message ?? "à¸šà¸±à¸™à¸—à¸¶à¸à¸„à¸³à¸•à¸­à¸šà¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ";
+      setError(Array.isArray(message) ? message.join("; ") : message);
+    } finally {
+      setSavingAnswer(false);
+    }
+  }, [attempt, currentItem, examId, offeringId, selectedChoiceIds]);
+
   useEffect(() => {
     if (!currentItem) return;
     sendEvent("question_view", {
@@ -249,42 +297,23 @@ export default function ExamAttemptPage() {
       !attempt ||
       attempt.status !== "IN_PROGRESS" ||
       !currentItem ||
-      !selectedChoiceId ||
-      selectedChoiceId === lastSavedChoiceRef.current
+      currentItem.question.question_type === "MCQ_MULTI" ||
+      selectedChoiceIds.length === 0 ||
+      answerKey(selectedChoiceIds) === lastSavedAnswerKeyRef.current
     ) {
       return;
     }
 
-    const timeout = window.setTimeout(async () => {
-      setSavingAnswer(true);
-      setError(null);
-      try {
-        const data = await apiFetch<ExamAttemptState>(
-          `/course-offerings/${offeringId}/exams/${examId}/attempt/items/${currentItem.attempt_items_id}/answer`,
-          {
-            method: "PATCH",
-            data: { selected_choice_id: selectedChoiceId },
-          },
-        );
-        lastSavedChoiceRef.current = selectedChoiceId;
-        setAttempt(data);
-      } catch (err: unknown) {
-        const message =
-          (err as { response?: { data?: { message?: string | string[] } } })
-            ?.response?.data?.message ?? "บันทึกคำตอบไม่สำเร็จ";
-        setError(Array.isArray(message) ? message.join("; ") : message);
-      } finally {
-        setSavingAnswer(false);
-      }
+    const timeout = window.setTimeout(() => {
+      void saveSelectedAnswer();
     }, 450);
 
     return () => window.clearTimeout(timeout);
   }, [
     attempt,
     currentItem,
-    examId,
-    offeringId,
-    selectedChoiceId,
+    saveSelectedAnswer,
+    selectedChoiceIds,
   ]);
 
   const progressPercent = useMemo(() => {
@@ -490,15 +519,26 @@ export default function ExamAttemptPage() {
 
                   <div className="mt-5 grid gap-3">
                     {currentItem.question.choices.map((choice, index) => {
-                      const checked = selectedChoiceId === choice.choice_id;
+                      const isMulti =
+                        currentItem.question.question_type === "MCQ_MULTI";
+                      const checked = selectedChoiceIds.includes(choice.choice_id);
                       return (
                         <button
                           key={choice.choice_id}
                           type="button"
                           onClick={() => {
-                            setSelectedChoiceId(choice.choice_id);
+                            const nextSelected = isMulti
+                              ? checked
+                                ? selectedChoiceIds.filter(
+                                    (choiceId) => choiceId !== choice.choice_id,
+                                  )
+                                : [...selectedChoiceIds, choice.choice_id]
+                              : [choice.choice_id];
+                            setSelectedChoiceIds(nextSelected);
                             sendEvent("choice_select", {
                               choice_id: choice.choice_id,
+                              selected_choice_ids: nextSelected,
+                              question_type: currentItem.question.question_type,
                             });
                           }}
                           className={`flex w-full items-start gap-3 rounded-xl px-4 py-3 text-left ring-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C5BD9] ${
@@ -508,7 +548,13 @@ export default function ExamAttemptPage() {
                           }`}
                         >
                           <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-[#7C5BD9] ring-1 ring-[#E7DDF8]">
-                            {checked ? (
+                            {isMulti ? (
+                              checked ? (
+                                <CheckSquare size={17} />
+                              ) : (
+                                <Square size={16} />
+                              )
+                            ) : checked ? (
                               <CheckCircle2 size={17} />
                             ) : (
                               <Circle size={16} />
@@ -524,6 +570,20 @@ export default function ExamAttemptPage() {
                       );
                     })}
                   </div>
+
+                  {currentItem.question.question_type === "MCQ_MULTI" && (
+                    <div className="mt-5 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => void saveSelectedAnswer()}
+                        disabled={savingAnswer || selectedChoiceIds.length === 0}
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#A48FD6] disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <CheckSquare size={16} />
+                        บันทึกและไปข้อถัดไป
+                      </button>
+                    </div>
+                  )}
                 </section>
               ) : (
                 <section className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-[#E7DDF8]">

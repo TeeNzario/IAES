@@ -11,3 +11,17 @@ export function computePercentScore(
 export function didPass(totalScore: number) {
   return totalScore >= PASSING_SCORE;
 }
+
+export function isExactChoiceSelectionCorrect(
+  correctChoiceIds: Iterable<string>,
+  selectedChoiceIds: Iterable<string>,
+) {
+  const correct = new Set(correctChoiceIds);
+  const selected = new Set(selectedChoiceIds);
+
+  if (correct.size !== selected.size) return false;
+  for (const id of correct) {
+    if (!selected.has(id)) return false;
+  }
+  return true;
+}

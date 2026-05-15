@@ -3,7 +3,10 @@ import {
   correctnessDelta,
   pickNextQuestion,
 } from './adaptive/adaptive-selector';
-import { computePercentScore } from './scoring/scoring-engine';
+import {
+  computePercentScore,
+  isExactChoiceSelectionCorrect,
+} from './scoring/scoring-engine';
 
 describe('ExamAttemptsService adaptive helpers', () => {
   const questions = [
@@ -55,5 +58,13 @@ describe('ExamAttemptsService adaptive helpers', () => {
   it('scores unanswered questions as incorrect through the total denominator', () => {
     expect(computePercentScore(2, 4)).toBe(50);
     expect(computePercentScore(0, 0)).toBe(0);
+  });
+
+  it('scores multi-select choices by exact selected set', () => {
+    expect(isExactChoiceSelectionCorrect(['1', '3'], ['3', '1'])).toBe(true);
+    expect(isExactChoiceSelectionCorrect(['1', '3'], ['1'])).toBe(false);
+    expect(isExactChoiceSelectionCorrect(['1', '3'], ['1', '2', '3'])).toBe(
+      false,
+    );
   });
 });

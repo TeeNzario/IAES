@@ -22,6 +22,7 @@ import {
 import {
   computePercentScore,
   didPass,
+  isExactChoiceSelectionCorrect,
 } from './scoring/scoring-engine';
 
 type DbClient = PrismaService | Prisma.TransactionClient;
@@ -214,9 +215,15 @@ export class ExamAttemptsService {
       }
 
       const correctChoices = question.choices.filter((choice) => choice.is_correct);
-      if (correctChoices.length !== 1) {
+      const expectedCorrectChoices =
+        question.question_type === 'MCQ_MULTI'
+          ? correctChoices.length >= 1
+          : correctChoices.length === 1;
+      if (!expectedCorrectChoices) {
         throw new BadRequestException(
-          'Every exam question must have exactly one correct choice',
+          question.question_type === 'MCQ_MULTI'
+            ? 'Every multi-select exam question must have at least one correct choice'
+            : 'Every single-select exam question must have exactly one correct choice',
         );
       }
     }
@@ -296,7 +303,6 @@ export class ExamAttemptsService {
             },
             attempt_answers: {
               orderBy: { saved_at: 'desc' },
-              take: 1,
               select: {
                 selected_choice_id: true,
                 answer_text: true,
@@ -337,6 +343,10 @@ export class ExamAttemptsService {
         : 0;
     const canViewResult = this.canViewResult(exam, attempt.status);
     const thetaEstimate = attempt.theta_estimate ?? attempt.total_level ?? 0;
+    const selectedChoiceIds = (item: (typeof attempt.attempt_items)[number]) =>
+      item.attempt_answers
+        .map((answer) => answer.selected_choice_id?.toString())
+        .filter((choiceId): choiceId is string => Boolean(choiceId));
 
     return serializeBigInt({
       attempt_id: attempt.exam_attempts_id,
@@ -382,6 +392,7 @@ export class ExamAttemptsService {
             theta_at_selection: currentItem.theta_at_selection,
             selected_choice_id:
               currentItem.attempt_answers[0]?.selected_choice_id ?? null,
+            selected_choice_ids: selectedChoiceIds(currentItem),
             answer_text: currentItem.attempt_answers[0]?.answer_text ?? null,
             question: {
               question_id: currentItem.question_bank.question_id,
@@ -398,6 +409,7 @@ export class ExamAttemptsService {
         answered_at: item.answered_at,
         theta_at_selection: item.theta_at_selection,
         selected_choice_id: item.attempt_answers[0]?.selected_choice_id ?? null,
+        selected_choice_ids: selectedChoiceIds(item),
       })),
     });
   }
@@ -660,12 +672,28 @@ export class ExamAttemptsService {
     }
     this.validateExamReadiness(exam);
     if (!dto.selected_choice_id && !dto.answer_text?.trim()) {
-      throw new BadRequestException('Answer is required');
+      const hasSelectedChoices = (dto.selected_choice_ids?.length ?? 0) > 0;
+      if (!hasSelectedChoices) {
+        throw new BadRequestException('Answer is required');
+      }
+    }
+    if (
+      dto.selected_choice_id &&
+      dto.selected_choice_ids &&
+      dto.selected_choice_ids.length > 0
+    ) {
+      throw new BadRequestException(
+        'Use either selected_choice_id or selected_choice_ids',
+      );
     }
     const attemptItemBigInt = parseBigIntId(attemptItemId, 'attemptItemId');
-    const requestedChoiceId = dto.selected_choice_id
-      ? parseBigIntId(dto.selected_choice_id, 'selected_choice_id')
-      : null;
+    const requestedChoiceIds = dto.selected_choice_ids?.length
+      ? dto.selected_choice_ids.map((choiceId) =>
+          parseBigIntId(choiceId, 'selected_choice_ids'),
+        )
+      : dto.selected_choice_id
+        ? [parseBigIntId(dto.selected_choice_id, 'selected_choice_id')]
+        : [];
 
     await this.prisma.$transaction(async (tx) => {
       const item = await tx.attempt_items.findUnique({
@@ -678,6 +706,7 @@ export class ExamAttemptsService {
           choice_selection_log: true,
           question_bank: {
             select: {
+              question_type: true,
               choices: {
                 select: {
                   choice_id: true,
@@ -698,18 +727,50 @@ export class ExamAttemptsService {
         throw new NotFoundException('Attempt item not found');
       }
 
-      const selectedChoiceId = requestedChoiceId;
-      const selectedChoice = selectedChoiceId
-        ? item.question_bank.choices.find(
-            (choice) => choice.choice_id === selectedChoiceId,
-          )
-        : null;
-
-      if (selectedChoiceId && !selectedChoice) {
-        throw new BadRequestException('Choice does not belong to this question');
+      const uniqueChoiceIds = new Set(
+        requestedChoiceIds.map((choiceId) => choiceId.toString()),
+      );
+      if (uniqueChoiceIds.size !== requestedChoiceIds.length) {
+        throw new BadRequestException('Duplicate choices are not allowed');
       }
 
-      const isCorrect = selectedChoice?.is_correct ?? false;
+      if (
+        item.question_bank.question_type === 'MCQ_SINGLE' &&
+        requestedChoiceIds.length !== 1
+      ) {
+        throw new BadRequestException('Single-select questions require one choice');
+      }
+      if (
+        item.question_bank.question_type === 'MCQ_MULTI' &&
+        requestedChoiceIds.length < 1
+      ) {
+        throw new BadRequestException(
+          'Multi-select questions require at least one choice',
+        );
+      }
+
+      const selectedChoices = requestedChoiceIds.map((selectedChoiceId) => {
+        const selectedChoice = item.question_bank.choices.find(
+          (choice) => choice.choice_id === selectedChoiceId,
+        );
+        if (!selectedChoice) {
+          throw new BadRequestException('Choice does not belong to this question');
+        }
+        return selectedChoice;
+      });
+
+      const selectedChoiceIds = selectedChoices.map((choice) =>
+        choice.choice_id.toString(),
+      );
+      const isCorrect =
+        selectedChoices.length > 0
+          ? isExactChoiceSelectionCorrect(
+              item.question_bank.choices
+                .filter((choice) => choice.is_correct)
+                .map((choice) => choice.choice_id.toString()),
+              selectedChoiceIds,
+            )
+          : false;
       const previousCorrectness = item.attempt_answers[0]?.is_correct;
       const previousDelta =
         typeof previousCorrectness === 'boolean'
@@ -725,7 +786,8 @@ export class ExamAttemptsService {
       const nextLog = [
         ...existingLog.slice(-49),
         {
-          selected_choice_id: selectedChoiceId?.toString() ?? null,
+          selected_choice_id: selectedChoiceIds[0] ?? null,
+          selected_choice_ids: selectedChoiceIds,
           answer_text: dto.answer_text?.trim() || null,
           is_correct: isCorrect,
           saved_at: savedAt.toISOString(),
@@ -735,15 +797,26 @@ export class ExamAttemptsService {
       await tx.attempt_answers.deleteMany({
         where: { attempt_items_id: item.attempt_items_id },
       });
-      await tx.attempt_answers.create({
-        data: {
-          attempt_items_id: item.attempt_items_id,
-          selected_choice_id: selectedChoiceId,
-          answer_text: dto.answer_text?.trim() || null,
-          is_correct: isCorrect,
-          saved_at: savedAt,
-        },
-      });
+      if (selectedChoices.length > 0) {
+        await tx.attempt_answers.createMany({
+          data: selectedChoices.map((choice) => ({
+            attempt_items_id: item.attempt_items_id,
+            selected_choice_id: choice.choice_id,
+            answer_text: dto.answer_text?.trim() || null,
+            is_correct: isCorrect,
+            saved_at: savedAt,
+          })),
+        });
+      } else {
+        await tx.attempt_answers.create({
+          data: {
+            attempt_items_id: item.attempt_items_id,
+            answer_text: dto.answer_text?.trim() || null,
+            is_correct: false,
+            saved_at: savedAt,
+          },
+        });
+      }
       await tx.attempt_items.update({
         where: { attempt_items_id: item.attempt_items_id },
         data: {

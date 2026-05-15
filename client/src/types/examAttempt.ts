@@ -22,6 +22,7 @@ export interface CurrentAttemptItem {
   time_per_item: number | null;
   theta_at_selection: number | null;
   selected_choice_id: string | null;
+  selected_choice_ids: string[];
   answer_text: string | null;
   question: ExamAttemptQuestion;
 }
@@ -62,6 +63,7 @@ export interface ExamAttemptState {
     answered_at: string;
     theta_at_selection: number | null;
     selected_choice_id: string | null;
+    selected_choice_ids: string[];
   }[];
 }
 
