@@ -62,12 +62,17 @@ export default function ExamAttemptPage() {
   const [confirmSubmitOpen, setConfirmSubmitOpen] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const attemptRef = useRef<ExamAttemptState | null>(null);
+  const remainingSecondsRef = useRef(0);
   const lastSavedChoiceRef = useRef<string | null>(null);
   const autoSubmitRef = useRef(false);
 
   useEffect(() => {
     attemptRef.current = attempt;
   }, [attempt]);
+
+  useEffect(() => {
+    remainingSecondsRef.current = remainingSeconds;
+  }, [remainingSeconds]);
 
   const currentItem = attempt?.current_item ?? null;
   const score = scoreNumber(attempt?.total_score ?? null);
@@ -176,13 +181,13 @@ export default function ExamAttemptPage() {
     if (!attempt || attempt.status !== "IN_PROGRESS") return;
     const heartbeat = window.setInterval(() => {
       sendEvent("heartbeat", {
-        remaining_seconds: remainingSeconds,
+        remaining_seconds: remainingSecondsRef.current,
         answered_count: attemptRef.current?.progress.answered_count ?? 0,
       });
     }, 30000);
 
     return () => window.clearInterval(heartbeat);
-  }, [attempt?.status, remainingSeconds, sendEvent]);
+  }, [attempt?.status, sendEvent]);
 
   useEffect(() => {
     if (!attempt || attempt.status !== "IN_PROGRESS") return;
@@ -423,7 +428,7 @@ export default function ExamAttemptPage() {
                   <button
                     type="button"
                     onClick={() => setConfirmSubmitOpen(true)}
-                    disabled={submitting || attempt.progress.answered_count === 0}
+                    disabled={submitting}
                     className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#A48FD6] disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Send size={16} />

@@ -81,6 +81,14 @@ function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
+function parseBigIntId(value: string, label: string) {
+  const normalized = String(value ?? '').trim();
+  if (!/^[1-9]\d*$/.test(normalized)) {
+    throw new BadRequestException(`${label} must be a positive integer`);
+  }
+  return BigInt(normalized);
+}
+
 @Injectable()
 export class ExamAttemptsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -97,10 +105,11 @@ export class ExamAttemptsService {
     studentCode: string,
     client: DbClient = this.prisma,
   ) {
+    const offeringBigInt = parseBigIntId(offeringId, 'offeringId');
     const enrollment = await client.course_enrollments.findUnique({
       where: {
         course_offerings_id_student_code: {
-          course_offerings_id: BigInt(offeringId),
+          course_offerings_id: offeringBigInt,
           student_code: studentCode,
         },
       },
@@ -117,8 +126,10 @@ export class ExamAttemptsService {
     actor: StaffActor,
     client: DbClient = this.prisma,
   ) {
+    const offeringBigInt = parseBigIntId(offeringId, 'offeringId');
+    const staffUserBigInt = parseBigIntId(actor.staffUserId, 'staffUserId');
     const offering = await client.course_offerings.findUnique({
-      where: { course_offerings_id: BigInt(offeringId) },
+      where: { course_offerings_id: offeringBigInt },
       select: { courses_id: true },
     });
 
@@ -130,7 +141,7 @@ export class ExamAttemptsService {
 
     const link = await client.course_instructors.findFirst({
       where: {
-        staff_users_id: BigInt(actor.staffUserId),
+        staff_users_id: staffUserBigInt,
         course_offerings: { courses_id: offering.courses_id },
       },
       select: { staff_users_id: true },
@@ -144,8 +155,9 @@ export class ExamAttemptsService {
   }
 
   private async loadExam(offeringId: string, examId: string, client: DbClient = this.prisma) {
+    const examBigInt = parseBigIntId(examId, 'examId');
     const exam = await client.course_exams.findUnique({
-      where: { course_exams_id: BigInt(examId) },
+      where: { course_exams_id: examBigInt },
       select: {
         course_exams_id: true,
         course_offerings_id: true,
@@ -275,10 +287,11 @@ export class ExamAttemptsService {
   }
 
   private async loadAttempt(examId: string, studentCode: string, client: DbClient = this.prisma) {
+    const examBigInt = parseBigIntId(examId, 'examId');
     return client.exam_attempts.findUnique({
       where: {
         course_exams_id_student_code: {
-          course_exams_id: BigInt(examId),
+          course_exams_id: examBigInt,
           student_code: studentCode,
         },
       },
@@ -578,7 +591,7 @@ export class ExamAttemptsService {
     await this.prisma.$transaction(async (tx) => {
       const attempt = await tx.exam_attempts.create({
         data: {
-          course_exams_id: BigInt(examId),
+          course_exams_id: parseBigIntId(examId, 'examId'),
           student_code: student.sub,
           total_level: 0,
         },
@@ -674,10 +687,14 @@ export class ExamAttemptsService {
     if (!dto.selected_choice_id && !dto.answer_text?.trim()) {
       throw new BadRequestException('Answer is required');
     }
+    const attemptItemBigInt = parseBigIntId(attemptItemId, 'attemptItemId');
+    const requestedChoiceId = dto.selected_choice_id
+      ? parseBigIntId(dto.selected_choice_id, 'selected_choice_id')
+      : null;
 
     await this.prisma.$transaction(async (tx) => {
       const item = await tx.attempt_items.findUnique({
-        where: { attempt_items_id: BigInt(attemptItemId) },
+        where: { attempt_items_id: attemptItemBigInt },
         select: {
           attempt_items_id: true,
           exam_attempts_id: true,
@@ -706,9 +723,7 @@ export class ExamAttemptsService {
         throw new NotFoundException('Attempt item not found');
       }
 
-      const selectedChoiceId = dto.selected_choice_id
-        ? BigInt(dto.selected_choice_id)
-        : null;
+      const selectedChoiceId = requestedChoiceId;
       const selectedChoice = selectedChoiceId
         ? item.question_bank.choices.find(
             (choice) => choice.choice_id === selectedChoiceId,
@@ -824,11 +839,12 @@ export class ExamAttemptsService {
   ) {
     const student = this.assertStudent(user);
     await this.verifyStudentEnrollment(offeringId, student.sub);
+    const examBigInt = parseBigIntId(examId, 'examId');
 
     const attempt = await this.prisma.exam_attempts.findUnique({
       where: {
         course_exams_id_student_code: {
-          course_exams_id: BigInt(examId),
+          course_exams_id: examBigInt,
           student_code: student.sub,
         },
       },
@@ -850,17 +866,39 @@ export class ExamAttemptsService {
     ) {
       throw new NotFoundException('Attempt not found');
     }
+    const eventType = dto.event_type.trim();
+    if (!eventType) {
+      throw new BadRequestException('event_type is required');
+    }
 
     const attemptItemId = dto.attempt_items_id
-      ? BigInt(dto.attempt_items_id)
+      ? parseBigIntId(dto.attempt_items_id, 'attempt_items_id')
       : null;
+    const questionId = dto.question_id
+      ? parseBigIntId(dto.question_id, 'question_id')
+      : null;
+
     if (attemptItemId) {
       const item = await this.prisma.attempt_items.findUnique({
         where: { attempt_items_id: attemptItemId },
-        select: { exam_attempts_id: true },
+        select: { exam_attempts_id: true, question_id: true },
       });
       if (!item || item.exam_attempts_id !== attempt.exam_attempts_id) {
         throw new BadRequestException('Attempt item does not belong to attempt');
+      }
+      if (questionId && item.question_id !== questionId) {
+        throw new BadRequestException('question_id does not match attempt item');
+      }
+    } else if (questionId) {
+      const item = await this.prisma.attempt_items.findFirst({
+        where: {
+          exam_attempts_id: attempt.exam_attempts_id,
+          question_id: questionId,
+        },
+        select: { attempt_items_id: true },
+      });
+      if (!item) {
+        throw new BadRequestException('Question does not belong to attempt');
       }
     }
 
@@ -868,8 +906,8 @@ export class ExamAttemptsService {
       data: {
         exam_attempts_id: attempt.exam_attempts_id,
         attempt_items_id: attemptItemId,
-        question_id: dto.question_id ? BigInt(dto.question_id) : null,
-        event_type: dto.event_type.trim(),
+        question_id: questionId,
+        event_type: eventType,
         metadata:
           dto.metadata === undefined
             ? Prisma.JsonNull
@@ -883,13 +921,15 @@ export class ExamAttemptsService {
   async getSummary(offeringId: string, examId: string, actor: StaffActor) {
     await this.resolveCourseAndAuthorize(offeringId, actor);
     const exam = await this.loadExam(offeringId, examId);
+    const offeringBigInt = parseBigIntId(offeringId, 'offeringId');
+    const examBigInt = parseBigIntId(examId, 'examId');
 
     const [totalEnrolled, attempts] = await Promise.all([
       this.prisma.course_enrollments.count({
-        where: { course_offerings_id: BigInt(offeringId) },
+        where: { course_offerings_id: offeringBigInt },
       }),
       this.prisma.exam_attempts.findMany({
-        where: { course_exams_id: BigInt(examId) },
+        where: { course_exams_id: examBigInt },
         orderBy: { started_at: 'asc' },
         select: {
           exam_attempts_id: true,
