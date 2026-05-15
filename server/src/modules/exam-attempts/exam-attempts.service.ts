@@ -77,6 +77,10 @@ export function computePercentScore(correctCount: number, totalQuestions: number
   return (correctCount / totalQuestions) * 100;
 }
 
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
 @Injectable()
 export class ExamAttemptsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -159,11 +163,15 @@ export class ExamAttemptsService {
             question_bank: {
               select: {
                 question_id: true,
+                is_active: true,
                 question_text: true,
                 question_type: true,
                 difficulty_param: true,
                 discrimination_param: true,
                 guessing_param: true,
+                question_knowledge: {
+                  select: { knowledge_category_id: true },
+                },
                 choices: {
                   orderBy: { display_order: 'asc' },
                   select: {
@@ -193,6 +201,53 @@ export class ExamAttemptsService {
     return exam;
   }
 
+  private validateExamReadiness(
+    exam: Awaited<ReturnType<ExamAttemptsService['loadExam']>>,
+  ) {
+    if (exam.exam_questions.length === 0) {
+      throw new BadRequestException('Exam has no questions');
+    }
+
+    const inactive = exam.exam_questions.find(
+      (item) => !item.question_bank.is_active,
+    );
+    if (inactive) {
+      throw new BadRequestException('Exam contains inactive questions');
+    }
+
+    for (const item of exam.exam_questions) {
+      const question = item.question_bank;
+      if (
+        !isFiniteNumber(question.difficulty_param) ||
+        !isFiniteNumber(question.discrimination_param) ||
+        !isFiniteNumber(question.guessing_param)
+      ) {
+        throw new BadRequestException(
+          'Every exam question must have difficulty, discrimination, and guessing parameters',
+        );
+      }
+
+      if (question.question_knowledge.length < 1) {
+        throw new BadRequestException(
+          'Every exam question must have at least one knowledge category',
+        );
+      }
+
+      if (question.choices.length < 2) {
+        throw new BadRequestException(
+          'Every exam question must have at least two choices',
+        );
+      }
+
+      const correctChoices = question.choices.filter((choice) => choice.is_correct);
+      if (correctChoices.length !== 1) {
+        throw new BadRequestException(
+          'Every exam question must have exactly one correct choice',
+        );
+      }
+    }
+  }
+
   private assertExamOpen(exam: Awaited<ReturnType<ExamAttemptsService['loadExam']>>) {
     const now = new Date();
     if (!exam.is_published) {
@@ -209,12 +264,14 @@ export class ExamAttemptsService {
   private examQuestionCandidates(
     exam: Awaited<ReturnType<ExamAttemptsService['loadExam']>>,
   ): ExamQuestionCandidate[] {
-    return exam.exam_questions.map((item) => ({
-      question_id: item.question_bank.question_id,
-      sequence_index: item.sequence_index,
-      difficulty_param: item.question_bank.difficulty_param,
-      discrimination_param: item.question_bank.discrimination_param,
-    }));
+    return exam.exam_questions
+      .filter((item) => item.question_bank.is_active)
+      .map((item) => ({
+        question_id: item.question_bank.question_id,
+        sequence_index: item.sequence_index,
+        difficulty_param: item.question_bank.difficulty_param,
+        discrimination_param: item.question_bank.discrimination_param,
+      }));
   }
 
   private async loadAttempt(examId: string, studentCode: string, client: DbClient = this.prisma) {
@@ -385,11 +442,27 @@ export class ExamAttemptsService {
     );
     if (!nextQuestion) return;
 
-    await tx.attempt_items.create({
+    const created = await tx.attempt_items.create({
       data: {
         exam_attempts_id: attemptId,
         question_id: nextQuestion.question_id,
         sequence_index: shownItems.length,
+      },
+      select: { attempt_items_id: true },
+    });
+    await tx.exam_behavior_logs.create({
+      data: {
+        exam_attempts_id: attemptId,
+        attempt_items_id: created.attempt_items_id,
+        question_id: nextQuestion.question_id,
+        event_type: 'adaptive_question_selected',
+        metadata: {
+          theta,
+          difficulty_param: nextQuestion.difficulty_param,
+          discrimination_param: nextQuestion.discrimination_param,
+          sequence_index: shownItems.length,
+          shown_question_count: shownItems.length,
+        } as Prisma.InputJsonValue,
       },
     });
   }
@@ -446,7 +519,7 @@ export class ExamAttemptsService {
       const correctCount = items.filter(
         (item) => item.attempt_answers[0]?.is_correct === true,
       ).length;
-      const totalQuestions = exam.exam_questions.length;
+      const totalQuestions = this.examQuestionCandidates(exam).length;
       const rawScore = computePercentScore(correctCount, totalQuestions);
       const elapsedSeconds = Math.max(
         0,
@@ -484,10 +557,14 @@ export class ExamAttemptsService {
         await this.finalizeAttempt(existing.exam_attempts_id, exam, exam.end_time);
         return this.getAttempt(offeringId, examId, user);
       }
+      if (existing.status === 'IN_PROGRESS') {
+        this.validateExamReadiness(exam);
+      }
       return this.buildAttemptState(exam, existing);
     }
 
     this.assertExamOpen(exam);
+    this.validateExamReadiness(exam);
 
     const firstQuestion = pickNextQuestion(
       this.examQuestionCandidates(exam),
@@ -508,11 +585,27 @@ export class ExamAttemptsService {
         select: { exam_attempts_id: true },
       });
 
-      await tx.attempt_items.create({
+      const firstItem = await tx.attempt_items.create({
         data: {
           exam_attempts_id: attempt.exam_attempts_id,
           question_id: firstQuestion.question_id,
           sequence_index: 0,
+        },
+        select: { attempt_items_id: true },
+      });
+      await tx.exam_behavior_logs.create({
+        data: {
+          exam_attempts_id: attempt.exam_attempts_id,
+          attempt_items_id: firstItem.attempt_items_id,
+          question_id: firstQuestion.question_id,
+          event_type: 'adaptive_question_selected',
+          metadata: {
+            theta: 0,
+            difficulty_param: firstQuestion.difficulty_param,
+            discrimination_param: firstQuestion.discrimination_param,
+            sequence_index: 0,
+            shown_question_count: 0,
+          } as Prisma.InputJsonValue,
         },
       });
     });
@@ -541,6 +634,9 @@ export class ExamAttemptsService {
       const finalized = await this.loadAttempt(examId, student.sub);
       if (!finalized) throw new NotFoundException('Attempt not found');
       return this.buildAttemptState(exam, finalized);
+    }
+    if (attempt.status === 'IN_PROGRESS') {
+      this.validateExamReadiness(exam);
     }
 
     return this.buildAttemptState(exam, attempt);
@@ -574,6 +670,7 @@ export class ExamAttemptsService {
       await this.finalizeAttempt(attempt.exam_attempts_id, exam, exam.end_time);
       return this.getAttempt(offeringId, examId, user);
     }
+    this.validateExamReadiness(exam);
     if (!dto.selected_choice_id && !dto.answer_text?.trim()) {
       throw new BadRequestException('Answer is required');
     }
@@ -705,6 +802,9 @@ export class ExamAttemptsService {
       const now = new Date();
       if (now < exam.start_time) {
         throw new BadRequestException('Exam has not started');
+      }
+      if (now <= exam.end_time) {
+        this.validateExamReadiness(exam);
       }
       await this.finalizeAttempt(
         attempt.exam_attempts_id,
