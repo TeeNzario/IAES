@@ -7,6 +7,7 @@ export interface ExamQuestionCandidate {
   sequence_index: number;
   difficulty_param: number | null;
   discrimination_param: number | null;
+  guessing_param: number | null;
 }
 
 export function clampTheta(value: number) {

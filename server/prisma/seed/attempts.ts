@@ -433,7 +433,7 @@ export async function seedAttempts(
         data: {
           exam_attempts_id: attempt.exam_attempts_id,
           question_id: question.question_id,
-          sequence_index: i + 1,
+          sequence_index: i,
           shown_at: shownAt,
           answered_at: answeredAt,
           theta_at_selection: 0,

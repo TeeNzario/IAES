@@ -278,7 +278,7 @@ export default function ExamAttemptPage() {
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string | string[] } } })
-          ?.response?.data?.message ?? "à¸šà¸±à¸™à¸—à¸¶à¸à¸„à¸³à¸•à¸­à¸šà¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ";
+          ?.response?.data?.message ?? "บันทึกคำตอบไม่สำเร็จ";
       setError(Array.isArray(message) ? message.join("; ") : message);
     } finally {
       setSavingAnswer(false);

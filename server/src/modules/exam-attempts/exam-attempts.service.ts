@@ -252,6 +252,7 @@ export class ExamAttemptsService {
         sequence_index: item.sequence_index,
         difficulty_param: item.question_bank.difficulty_param,
         discrimination_param: item.question_bank.discrimination_param,
+        guessing_param: item.question_bank.guessing_param,
       }));
   }
 

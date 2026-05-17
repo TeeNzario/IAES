@@ -15,24 +15,28 @@ describe('ExamAttemptsService adaptive helpers', () => {
       sequence_index: 0,
       difficulty_param: -1,
       discrimination_param: 0.7,
+      guessing_param: 0.25,
     },
     {
       question_id: 2n,
       sequence_index: 1,
       difficulty_param: 0,
       discrimination_param: 0.5,
+      guessing_param: 0.2,
     },
     {
       question_id: 3n,
       sequence_index: 2,
       difficulty_param: 0,
       discrimination_param: 1.2,
+      guessing_param: 0.1,
     },
     {
       question_id: 4n,
       sequence_index: 3,
       difficulty_param: 1,
       discrimination_param: 1,
+      guessing_param: 0.15,
     },
   ];
 
