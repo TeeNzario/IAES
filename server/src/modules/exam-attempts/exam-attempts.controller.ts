@@ -9,10 +9,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { Auth, Roles } from 'src/auth/guards';
-import type {
-  AuthenticatedRequest,
-  StaffJwtPayload,
-} from 'src/auth/types/jwt-payload.type';
+import type { AuthenticatedRequest } from 'src/auth/types/jwt-payload.type';
 import { BehaviorEventDto } from './dto/behavior-event.dto';
 import { SaveAnswerDto } from './dto/save-answer.dto';
 import { ExamAttemptsService } from './exam-attempts.service';
@@ -21,7 +18,7 @@ function staffActor(req: AuthenticatedRequest) {
   if (req.user.type !== 'staff') {
     throw new BadRequestException('Staff access required');
   }
-  const user = req.user as StaffJwtPayload;
+  const user = req.user;
   return { staffUserId: user.sub, role: user.role };
 }
 

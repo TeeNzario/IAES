@@ -9,12 +9,12 @@ import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
 import type { JwtPayload, StaffRole } from 'src/auth/types/jwt-payload.type';
 
+function replaceBigInt(_key: string, value: unknown): unknown {
+  return typeof value === 'bigint' ? value.toString() : value;
+}
+
 function serializeBigInt<T>(data: T): T {
-  return JSON.parse(
-    JSON.stringify(data, (_, value) =>
-      typeof value === 'bigint' ? value.toString() : value,
-    ),
-  );
+  return JSON.parse(JSON.stringify(data, replaceBigInt)) as T;
 }
 
 interface StaffActor {
@@ -163,7 +163,10 @@ export class CourseExamsService {
   /**
    * Verify a student is enrolled in the given offering.
    */
-  private async verifyStudentEnrollment(offeringId: string, studentCode: string) {
+  private async verifyStudentEnrollment(
+    offeringId: string,
+    studentCode: string,
+  ) {
     const enrollment = await this.prisma.course_enrollments.findFirst({
       where: {
         course_offerings_id: BigInt(offeringId),

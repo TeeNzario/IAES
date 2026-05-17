@@ -440,6 +440,14 @@ function ExamStudentActionButton({
   const score =
     attempt?.total_score == null ? null : Number(attempt.total_score);
 
+  if (attempt?.status === "CANCELLED") {
+    return (
+      <span className="inline-flex h-9 items-center justify-center rounded-xl bg-rose-50 px-3 text-sm font-semibold text-rose-700 ring-1 ring-rose-200">
+        ยกเลิกแล้ว
+      </span>
+    );
+  }
+
   if (attempt?.status === "SUBMITTED") {
     if (attempt.can_view_result) {
       return (
@@ -458,6 +466,19 @@ function ExamStudentActionButton({
       <span className="inline-flex h-9 items-center justify-center rounded-xl bg-[#FAF8FF] px-3 text-sm font-semibold text-[#7A7287] ring-1 ring-[#E7DDF8]">
         ส่งแล้ว
       </span>
+    );
+  }
+
+  if (attempt?.status === "IN_PROGRESS" && exam.status === "ENDED") {
+    return (
+      <button
+        type="button"
+        onClick={onNavigate}
+        className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-[#B7A3E3] px-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#A48FD6] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C5BD9]"
+      >
+        <Eye size={15} />
+        สรุปผล
+      </button>
     );
   }
 

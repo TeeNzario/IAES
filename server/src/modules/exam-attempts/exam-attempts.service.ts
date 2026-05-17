@@ -32,12 +32,12 @@ interface StaffActor {
   role: StaffRole;
 }
 
+function replaceBigInt(_key: string, value: unknown): unknown {
+  return typeof value === 'bigint' ? value.toString() : value;
+}
+
 function serializeBigInt<T>(data: T): T {
-  return JSON.parse(
-    JSON.stringify(data, (_, value) =>
-      typeof value === 'bigint' ? value.toString() : value,
-    ),
-  );
+  return JSON.parse(JSON.stringify(data, replaceBigInt)) as T;
 }
 
 function isFiniteNumber(value: unknown): value is number {
@@ -117,7 +117,11 @@ export class ExamAttemptsService {
     return offering.courses_id;
   }
 
-  private async loadExam(offeringId: string, examId: string, client: DbClient = this.prisma) {
+  private async loadExam(
+    offeringId: string,
+    examId: string,
+    client: DbClient = this.prisma,
+  ) {
     const examBigInt = parseBigIntId(examId, 'examId');
     const exam = await client.course_exams.findUnique({
       where: { course_exams_id: examBigInt },
@@ -214,7 +218,9 @@ export class ExamAttemptsService {
         );
       }
 
-      const correctChoices = question.choices.filter((choice) => choice.is_correct);
+      const correctChoices = question.choices.filter(
+        (choice) => choice.is_correct,
+      );
       const expectedCorrectChoices =
         question.question_type === 'MCQ_MULTI'
           ? correctChoices.length >= 1
@@ -229,7 +235,9 @@ export class ExamAttemptsService {
     }
   }
 
-  private assertExamOpen(exam: Awaited<ReturnType<ExamAttemptsService['loadExam']>>) {
+  private assertExamOpen(
+    exam: Awaited<ReturnType<ExamAttemptsService['loadExam']>>,
+  ) {
     const now = new Date();
     if (!exam.is_published) {
       throw new NotFoundException('Exam not found');
@@ -256,7 +264,11 @@ export class ExamAttemptsService {
       }));
   }
 
-  private async loadAttempt(examId: string, studentCode: string, client: DbClient = this.prisma) {
+  private async loadAttempt(
+    examId: string,
+    studentCode: string,
+    client: DbClient = this.prisma,
+  ) {
     const examBigInt = parseBigIntId(examId, 'examId');
     return client.exam_attempts.findUnique({
       where: {
@@ -329,18 +341,25 @@ export class ExamAttemptsService {
 
   private buildAttemptState(
     exam: Awaited<ReturnType<ExamAttemptsService['loadExam']>>,
-    attempt: NonNullable<Awaited<ReturnType<ExamAttemptsService['loadAttempt']>>>,
+    attempt: NonNullable<
+      Awaited<ReturnType<ExamAttemptsService['loadAttempt']>>
+    >,
   ) {
     const totalQuestions = exam.exam_questions.length;
-    const answeredItems = attempt.attempt_items.filter((item) => item.answered_at);
+    const answeredItems = attempt.attempt_items.filter(
+      (item) => item.answered_at,
+    );
     const currentItem =
       attempt.status === 'IN_PROGRESS'
-        ? attempt.attempt_items.find((item) => !item.answered_at) ?? null
+        ? (attempt.attempt_items.find((item) => !item.answered_at) ?? null)
         : null;
     const now = new Date();
     const remainingSeconds =
       attempt.status === 'IN_PROGRESS'
-        ? Math.max(0, Math.floor((exam.end_time.getTime() - now.getTime()) / 1000))
+        ? Math.max(
+            0,
+            Math.floor((exam.end_time.getTime() - now.getTime()) / 1000),
+          )
         : 0;
     const canViewResult = this.canViewResult(exam, attempt.status);
     const thetaEstimate = attempt.theta_estimate ?? attempt.total_level ?? 0;
@@ -493,7 +512,8 @@ export class ExamAttemptsService {
       );
 
       if (missingQuestions.length > 0) {
-        const thetaAtSelection = attempt.theta_estimate ?? attempt.total_level ?? 0;
+        const thetaAtSelection =
+          attempt.theta_estimate ?? attempt.total_level ?? 0;
         await tx.attempt_items.createMany({
           data: missingQuestions.map((question, index) => ({
             exam_attempts_id: attemptId,
@@ -522,7 +542,9 @@ export class ExamAttemptsService {
       const rawScore = computePercentScore(correctCount, totalQuestions);
       const elapsedSeconds = Math.max(
         0,
-        Math.floor((submittedAt.getTime() - attempt.started_at.getTime()) / 1000),
+        Math.floor(
+          (submittedAt.getTime() - attempt.started_at.getTime()) / 1000,
+        ),
       );
 
       await tx.exam_attempts.update({
@@ -553,7 +575,11 @@ export class ExamAttemptsService {
         throw new BadRequestException('Exam has not started');
       }
       if (existing.status === 'IN_PROGRESS' && new Date() > exam.end_time) {
-        await this.finalizeAttempt(existing.exam_attempts_id, exam, exam.end_time);
+        await this.finalizeAttempt(
+          existing.exam_attempts_id,
+          exam,
+          exam.end_time,
+        );
         return this.getAttempt(offeringId, examId, user);
       }
       if (existing.status === 'IN_PROGRESS') {
@@ -661,6 +687,9 @@ export class ExamAttemptsService {
     if (!attempt) {
       throw new NotFoundException('Attempt not found');
     }
+    if (attempt.status === 'CANCELLED') {
+      throw new BadRequestException('Attempt has been cancelled');
+    }
     if (attempt.status !== 'IN_PROGRESS') {
       throw new BadRequestException('Attempt has already been submitted');
     }
@@ -704,6 +733,7 @@ export class ExamAttemptsService {
           exam_attempts_id: true,
           question_id: true,
           shown_at: true,
+          answered_at: true,
           choice_selection_log: true,
           question_bank: {
             select: {
@@ -727,6 +757,11 @@ export class ExamAttemptsService {
       if (!item || item.exam_attempts_id !== attempt.exam_attempts_id) {
         throw new NotFoundException('Attempt item not found');
       }
+      if (item.answered_at) {
+        throw new BadRequestException(
+          'This question has already been answered',
+        );
+      }
 
       const uniqueChoiceIds = new Set(
         requestedChoiceIds.map((choiceId) => choiceId.toString()),
@@ -739,7 +774,9 @@ export class ExamAttemptsService {
         item.question_bank.question_type === 'MCQ_SINGLE' &&
         requestedChoiceIds.length !== 1
       ) {
-        throw new BadRequestException('Single-select questions require one choice');
+        throw new BadRequestException(
+          'Single-select questions require one choice',
+        );
       }
       if (
         item.question_bank.question_type === 'MCQ_MULTI' &&
@@ -755,7 +792,9 @@ export class ExamAttemptsService {
           (choice) => choice.choice_id === selectedChoiceId,
         );
         if (!selectedChoice) {
-          throw new BadRequestException('Choice does not belong to this question');
+          throw new BadRequestException(
+            'Choice does not belong to this question',
+          );
         }
         return selectedChoice;
       });
@@ -863,6 +902,9 @@ export class ExamAttemptsService {
     if (!attempt) {
       throw new NotFoundException('Attempt not found');
     }
+    if (attempt.status === 'CANCELLED') {
+      throw new BadRequestException('Attempt has been cancelled');
+    }
     if (attempt.status === 'IN_PROGRESS') {
       const now = new Date();
       if (now < exam.start_time) {
@@ -934,10 +976,14 @@ export class ExamAttemptsService {
         select: { exam_attempts_id: true, question_id: true },
       });
       if (!item || item.exam_attempts_id !== attempt.exam_attempts_id) {
-        throw new BadRequestException('Attempt item does not belong to attempt');
+        throw new BadRequestException(
+          'Attempt item does not belong to attempt',
+        );
       }
       if (questionId && item.question_id !== questionId) {
-        throw new BadRequestException('question_id does not match attempt item');
+        throw new BadRequestException(
+          'question_id does not match attempt item',
+        );
       }
     } else if (questionId) {
       const item = await this.prisma.attempt_items.findFirst({
@@ -1016,7 +1062,9 @@ export class ExamAttemptsService {
       }),
     ]);
 
-    const submitted = attempts.filter((attempt) => attempt.status === 'SUBMITTED');
+    const submitted = attempts.filter(
+      (attempt) => attempt.status === 'SUBMITTED',
+    );
     const scores = submitted
       .map((attempt) =>
         attempt.total_score == null ? null : Number(attempt.total_score),
@@ -1025,9 +1073,9 @@ export class ExamAttemptsService {
     const averageScore =
       scores.length > 0
         ? Number(
-            (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(
-              2,
-            ),
+            (
+              scores.reduce((sum, score) => sum + score, 0) / scores.length
+            ).toFixed(2),
           )
         : null;
 
@@ -1045,8 +1093,9 @@ export class ExamAttemptsService {
         total_enrolled: totalEnrolled,
         attempts_started: attempts.length,
         submitted: submitted.length,
-        in_progress: attempts.filter((attempt) => attempt.status === 'IN_PROGRESS')
-          .length,
+        in_progress: attempts.filter(
+          (attempt) => attempt.status === 'IN_PROGRESS',
+        ).length,
         average_score: averageScore,
         behavior_events: attempts.reduce(
           (sum, attempt) => sum + attempt._count.exam_behavior_logs,

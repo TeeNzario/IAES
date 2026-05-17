@@ -24,7 +24,9 @@ export function pickNextQuestion(
   theta: number,
 ) {
   return questions
-    .filter((question) => !shownQuestionIds.has(question.question_id.toString()))
+    .filter(
+      (question) => !shownQuestionIds.has(question.question_id.toString()),
+    )
     .sort((a, b) => {
       const difficultyA = a.difficulty_param ?? 0;
       const difficultyB = b.difficulty_param ?? 0;

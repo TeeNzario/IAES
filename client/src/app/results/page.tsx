@@ -5,9 +5,10 @@ import Link from "next/link";
 import NavBar from "@/components/layout/NavBar";
 import { useHomeRoute } from "@/hooks/useHomeRoute";
 import { apiFetch } from "@/lib/api";
-import { AuthUser, getUser } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { formatCourseName } from "@/utils/formatCourseName";
 import { CourseOffering } from "@/types/course";
+import type { AuthUser } from "@/types/auth";
 import { ExamAttemptSummary } from "@/types/examAttempt";
 import {
   AlertCircle,
@@ -49,11 +50,11 @@ interface ResultRow {
 }
 
 function getUserType(user: AuthUser | null) {
-  return String(user?.type ?? "").toUpperCase();
+  return String(user?.type ?? user?.userType ?? "").toUpperCase();
 }
 
 function getStaffRole(user: AuthUser | null) {
-  return String(user?.staff_role ?? "").toUpperCase();
+  return String(user?.staff_role ?? user?.role ?? "").toUpperCase();
 }
 
 function scoreNumber(value: string | number | null | undefined) {

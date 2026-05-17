@@ -81,6 +81,15 @@ export default function ExamAttemptPage() {
 
   const currentItem = attempt?.current_item ?? null;
   const score = scoreNumber(attempt?.total_score ?? null);
+  const isAttemptInProgress = attempt?.status === "IN_PROGRESS";
+  const currentAttemptItemId = currentItem?.attempt_items_id;
+  const currentSequenceIndex = currentItem?.sequence_index;
+  const attemptStatusLabel =
+    attempt?.status === "SUBMITTED"
+      ? "ส่งแล้ว"
+      : attempt?.status === "CANCELLED"
+        ? "ยกเลิกแล้ว"
+        : "กำลังสอบ";
 
   const sendEvent = useCallback(
     (eventType: string, metadata?: Record<string, unknown>) => {
@@ -138,9 +147,9 @@ export default function ExamAttemptPage() {
   ]);
 
   useEffect(() => {
-    if (!attempt || attempt.status !== "IN_PROGRESS") return;
-    setRemainingSeconds(attempt.progress.remaining_seconds);
-  }, [attempt]);
+    if (!isAttemptInProgress) return;
+    setRemainingSeconds(attempt?.progress.remaining_seconds ?? 0);
+  }, [attempt?.progress.remaining_seconds, isAttemptInProgress]);
 
   const submitAttempt = useCallback(
     async (auto = false) => {
@@ -170,7 +179,7 @@ export default function ExamAttemptPage() {
   );
 
   useEffect(() => {
-    if (!attempt || attempt.status !== "IN_PROGRESS") return;
+    if (!isAttemptInProgress) return;
     const timer = window.setInterval(() => {
       setRemainingSeconds((current) => {
         if (current <= 1) {
@@ -186,10 +195,10 @@ export default function ExamAttemptPage() {
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, [attempt?.status, submitAttempt]);
+  }, [isAttemptInProgress, submitAttempt]);
 
   useEffect(() => {
-    if (!attempt || attempt.status !== "IN_PROGRESS") return;
+    if (!isAttemptInProgress) return;
     const heartbeat = window.setInterval(() => {
       sendEvent("heartbeat", {
         remaining_seconds: remainingSecondsRef.current,
@@ -198,10 +207,10 @@ export default function ExamAttemptPage() {
     }, 30000);
 
     return () => window.clearInterval(heartbeat);
-  }, [attempt?.status, sendEvent]);
+  }, [isAttemptInProgress, sendEvent]);
 
   useEffect(() => {
-    if (!attempt || attempt.status !== "IN_PROGRESS") return;
+    if (!isAttemptInProgress) return;
 
     const onVisibilityChange = () => {
       sendEvent(document.hidden ? "visibility_hidden" : "visibility_visible");
@@ -247,7 +256,7 @@ export default function ExamAttemptPage() {
       window.removeEventListener("blur", onBlur);
       window.removeEventListener("focus", onFocus);
     };
-  }, [attempt?.status, sendEvent]);
+  }, [isAttemptInProgress, sendEvent]);
 
   const saveSelectedAnswer = useCallback(async () => {
     if (
@@ -286,16 +295,15 @@ export default function ExamAttemptPage() {
   }, [attempt, currentItem, examId, offeringId, selectedChoiceIds]);
 
   useEffect(() => {
-    if (!currentItem) return;
+    if (!currentAttemptItemId || currentSequenceIndex == null) return;
     sendEvent("question_view", {
-      sequence_index: currentItem.sequence_index,
+      sequence_index: currentSequenceIndex,
     });
-  }, [currentItem?.attempt_items_id, currentItem?.sequence_index, sendEvent]);
+  }, [currentAttemptItemId, currentSequenceIndex, sendEvent]);
 
   useEffect(() => {
     if (
-      !attempt ||
-      attempt.status !== "IN_PROGRESS" ||
+      !isAttemptInProgress ||
       !currentItem ||
       currentItem.question.question_type === "MCQ_MULTI" ||
       selectedChoiceIds.length === 0 ||
@@ -310,7 +318,7 @@ export default function ExamAttemptPage() {
 
     return () => window.clearTimeout(timeout);
   }, [
-    attempt,
+    isAttemptInProgress,
     currentItem,
     saveSelectedAnswer,
     selectedChoiceIds,
@@ -377,7 +385,7 @@ export default function ExamAttemptPage() {
                     สถานะ
                   </p>
                   <p className="mt-1 text-sm font-semibold text-[#7C5BD9]">
-                    {attempt?.status === "SUBMITTED" ? "ส่งแล้ว" : "กำลังสอบ"}
+                    {attemptStatusLabel}
                   </p>
                 </div>
               </div>
@@ -457,6 +465,24 @@ export default function ExamAttemptPage() {
                   </div>
                 )}
               </div>
+            </section>
+          ) : attempt.status === "CANCELLED" ? (
+            <section className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-[#E7DDF8]">
+              <ShieldAlert size={34} className="mx-auto text-rose-500" />
+              <h2 className="mt-4 text-xl font-semibold text-[#2F2A3A]">
+                การสอบนี้ถูกยกเลิกแล้ว
+              </h2>
+              <p className="mt-2 text-sm font-normal leading-6 text-[#7A7287]">
+                ไม่สามารถทำต่อหรือส่งคำตอบสำหรับการสอบนี้ได้
+              </p>
+              <button
+                type="button"
+                onClick={() => router.push(`/course/${offeringId}`)}
+                className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#A48FD6] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C5BD9]"
+              >
+                <ChevronLeft size={16} />
+                กลับไปรายวิชา
+              </button>
             </section>
           ) : (
             <>
