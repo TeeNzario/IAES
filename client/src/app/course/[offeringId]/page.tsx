@@ -16,8 +16,11 @@ import {
   AlertCircle,
   CalendarClock,
   ClipboardPlus,
+  Eye,
   FileText,
+  Lock,
   Pencil,
+  PlayCircle,
   UsersRound,
   X,
 } from "lucide-react";
@@ -31,6 +34,16 @@ interface ExamListItem {
   question_count: number;
   status: "UPCOMING" | "ONGOING" | "ENDED";
   is_published: boolean;
+  show_results_immediately: boolean;
+  attempt_count?: number;
+  attempt: {
+    attempt_id: string;
+    status: "IN_PROGRESS" | "SUBMITTED" | "CANCELLED";
+    submitted_at: string | null;
+    can_view_result: boolean;
+    total_score: string | number | null;
+    passed: boolean | null;
+  } | null;
 }
 
 export default function CoursePage() {
@@ -51,6 +64,7 @@ export default function CoursePage() {
   const canManageExams =
     userType === "STAFF" &&
     (staffRole === "INSTRUCTOR" || staffRole === "ADMIN");
+  const isStudent = userType === "STUDENT";
 
   useEffect(() => {
     if (!offeringId) return;
@@ -377,6 +391,16 @@ export default function CoursePage() {
                         >
                           {statusLabel(exam.status)}
                         </span>
+                        {isStudent && (
+                          <ExamStudentActionButton
+                            exam={exam}
+                            onNavigate={() =>
+                              router.push(
+                                `/course/${offeringId}/exam/${exam.course_exams_id}`,
+                              )
+                            }
+                          />
+                        )}
                         {canManageExams && (
                           <button
                             type="button"
@@ -402,6 +426,80 @@ export default function CoursePage() {
         </main>
       </div>
     </Navbar>
+  );
+}
+
+function ExamStudentActionButton({
+  exam,
+  onNavigate,
+}: {
+  exam: ExamListItem;
+  onNavigate: () => void;
+}) {
+  const attempt = exam.attempt;
+  const score =
+    attempt?.total_score == null ? null : Number(attempt.total_score);
+
+  if (attempt?.status === "CANCELLED") {
+    return (
+      <span className="inline-flex h-9 items-center justify-center rounded-xl bg-rose-50 px-3 text-sm font-semibold text-rose-700 ring-1 ring-rose-200">
+        ยกเลิกแล้ว
+      </span>
+    );
+  }
+
+  if (attempt?.status === "SUBMITTED") {
+    if (attempt.can_view_result) {
+      return (
+        <button
+          type="button"
+          onClick={onNavigate}
+          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-[#B7A3E3] px-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#A48FD6] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C5BD9]"
+        >
+          <Eye size={15} />
+          ดูผล{score !== null && Number.isFinite(score) ? ` ${score.toFixed(0)}%` : ""}
+        </button>
+      );
+    }
+
+    return (
+      <span className="inline-flex h-9 items-center justify-center rounded-xl bg-[#FAF8FF] px-3 text-sm font-semibold text-[#7A7287] ring-1 ring-[#E7DDF8]">
+        ส่งแล้ว
+      </span>
+    );
+  }
+
+  if (attempt?.status === "IN_PROGRESS" && exam.status === "ENDED") {
+    return (
+      <button
+        type="button"
+        onClick={onNavigate}
+        className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-[#B7A3E3] px-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#A48FD6] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C5BD9]"
+      >
+        <Eye size={15} />
+        สรุปผล
+      </button>
+    );
+  }
+
+  if (exam.status === "ONGOING") {
+    return (
+      <button
+        type="button"
+        onClick={onNavigate}
+        className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-[#B7A3E3] px-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#A48FD6] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C5BD9]"
+      >
+        <PlayCircle size={15} />
+        {attempt?.status === "IN_PROGRESS" ? "ทำต่อ" : "เริ่มสอบ"}
+      </button>
+    );
+  }
+
+  return (
+    <span className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-[#FAF8FF] px-3 text-sm font-semibold text-[#7A7287] ring-1 ring-[#E7DDF8]">
+      <Lock size={14} />
+      {exam.status === "UPCOMING" ? "ยังไม่เปิด" : "ปิดสอบแล้ว"}
+    </span>
   );
 }
 

@@ -180,7 +180,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
     if (!user) return "เข้าสู่ระบบ";
 
     if (user.type === "STUDENT") {
-      return `${user.student_code ?? ""} ${user.title ?? ""} ${user.first_name ?? ""}`.trim() || "นักศึกษา";
+      return `${user.title ?? ""} ${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() || "นักศึกษา";
     }
 
     // STAFF
@@ -189,7 +189,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
 
   const getProfileSubtitle = () => {
     if (!user) return "IAES";
-    if (user.type === "STUDENT") return user.student_code ?? "นักศึกษา";
+    if (user.type === "STUDENT") return "นักศึกษา";
     if (user.staff_role === "ADMIN") return "ผู้ดูแลระบบ";
     if (user.staff_role === "INSTRUCTOR") return "อาจารย์";
     return user.email ?? "บุคลากร";
