@@ -29,6 +29,12 @@ export default function AcademicSettingsPage() {
   );
 
   useEffect(() => {
+    if (!success) return;
+    const timer = setTimeout(() => setSuccess(null), 5000);
+    return () => clearTimeout(timer);
+  }, [success]);
+
+  useEffect(() => {
     let cancelled = false;
 
     async function loadSettings() {
@@ -40,9 +46,15 @@ export default function AcademicSettingsPage() {
         setSettings(current);
         setAcademicYear(String(current.academic_year));
         setSemester(String(current.semester));
-      } catch {
+      } catch (err: any) {
         if (!cancelled) {
-          setError("ไม่สามารถโหลดการตั้งค่าปีการศึกษาได้");
+          const msg =
+            err?.response?.data?.message ?? err?.message;
+          setError(
+            Array.isArray(msg)
+              ? msg.join(", ")
+              : msg || "ไม่สามารถโหลดการตั้งค่าปีการศึกษาได้",
+          );
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -82,8 +94,13 @@ export default function AcademicSettingsPage() {
       setAcademicYear(String(updated.academic_year));
       setSemester(String(updated.semester));
       setSuccess("บันทึกการตั้งค่าปีการศึกษาเรียบร้อยแล้ว");
-    } catch {
-      setError("ไม่สามารถบันทึกการตั้งค่าปีการศึกษาได้");
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? err?.message;
+      setError(
+        Array.isArray(msg)
+          ? msg.join(", ")
+          : msg || "ไม่สามารถบันทึกการตั้งค่าปีการศึกษาได้",
+      );
     } finally {
       setSaving(false);
     }
@@ -173,9 +190,11 @@ export default function AcademicSettingsPage() {
                         value={academicYear}
                         onChange={(event) => {
                           setAcademicYear(event.target.value);
+                          setError(null);
                           setSuccess(null);
                         }}
                         className={selectFieldClass}
+                        aria-label="ปีการศึกษา"
                       >
                         {yearOptions.map((year) => (
                           <option key={year} value={year}>
@@ -194,9 +213,11 @@ export default function AcademicSettingsPage() {
                         value={semester}
                         onChange={(event) => {
                           setSemester(event.target.value);
+                          setError(null);
                           setSuccess(null);
                         }}
                         className={selectFieldClass}
+                        aria-label="ภาคการศึกษา"
                       >
                         <option value="1">1</option>
                         <option value="2">2</option>
