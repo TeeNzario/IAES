@@ -1,12 +1,19 @@
-import { IsOptional, IsNumber, IsBoolean, IsArray } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsOptional, IsInt, IsBoolean, IsArray, IsNumber, Max, Min } from 'class-validator';
 
 export class UpdateCourseOfferingDto {
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
+  @IsInt()
+  @Min(2000)
+  @Max(2200)
   academic_year?: number;
 
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(3)
   semester?: number;
 
   @IsOptional()

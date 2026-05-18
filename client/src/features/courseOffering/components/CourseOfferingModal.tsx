@@ -138,6 +138,7 @@ export default function CourseOfferingModal({
     setError(null);
     if (!courseId) {
       setError("ไม่พบรหัสรายวิชา");
+      setIsSubmitting(false);
       return;
     }
 
