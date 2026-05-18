@@ -263,14 +263,10 @@ export default function BulkUploadModal({
       errs.first_name = "กรุณากรอกชื่อ";
     else if (editForm.first_name.length > FIRST_NAME_MAX_LENGTH)
       errs.first_name = maxLengthMessage("ชื่อ", FIRST_NAME_MAX_LENGTH);
-    else if (!/^[ก-๙\s]+$/.test(editForm.first_name))
-      errs.first_name = "ชื่อต้องเป็นภาษาไทยเท่านั้น";
     if (!editForm.last_name.trim())
       errs.last_name = "กรุณากรอกนามสกุล";
     else if (editForm.last_name.length > LAST_NAME_MAX_LENGTH)
       errs.last_name = maxLengthMessage("นามสกุล", LAST_NAME_MAX_LENGTH);
-    else if (!/^[ก-๙\s]+$/.test(editForm.last_name))
-      errs.last_name = "นามสกุลต้องเป็นภาษาไทยเท่านั้น";
     if (!editForm.curriculumId)
       errs.curriculumId = "กรุณาเลือกหลักสูตร";
     else if (!isKnownCurriculumId(editForm.curriculumId))

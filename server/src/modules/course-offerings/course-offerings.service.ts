@@ -27,7 +27,6 @@ import type { RequestUser } from 'src/auth/types/jwt-payload.type';
 import { AuditActor, AuditService } from '../audit/audit.service';
 import { AcademicSettingsService } from '../academic-settings/academic-settings.service';
 
-const THAI_NAME_REGEX = /^[ก-๙\s]+$/;
 const STUDENT_CODE_REGEX = /^\d{8}$/;
 const EMAIL_DOMAIN = '@mail.wu.ac.th';
 const CANONICAL_CURRICULUM_ID_REGEX = /^CUR(00[1-9]|0[1-6][0-9])$/;
@@ -347,14 +346,6 @@ export class CourseOfferingsService {
       !dto.email.split('@')[0]
     ) {
       throw new BadRequestException('อีเมลต้องเป็น @mail.wu.ac.th เท่านั้น');
-    }
-
-    // Validate Thai-only names (consistent with CSV import validation)
-    if (
-      !THAI_NAME_REGEX.test(dto.first_name) ||
-      !THAI_NAME_REGEX.test(dto.last_name)
-    ) {
-      throw new BadRequestException('ชื่อและนามสกุลต้องเป็นภาษาไทยเท่านั้น');
     }
 
     if (!VALID_FACULTY_CODES.has(dto.facultyCode)) {

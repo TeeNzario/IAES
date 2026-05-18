@@ -25,7 +25,6 @@ import { hashPassword } from '../../lib/password';
 import { AuditActor, AuditService } from '../audit/audit.service';
 import { FIELD_LENGTHS, maxLengthMessage } from 'src/lib/field-lengths';
 
-const THAI_NAME_REGEX = /^[ก-๙\s]+$/;
 const STUDENT_CODE_REGEX = /^\d{8}$/;
 const EMAIL_DOMAIN = '@mail.wu.ac.th';
 const CANONICAL_CURRICULUM_ID_REGEX = /^CUR(00[1-9]|0[1-6][0-9])$/;
@@ -595,10 +594,6 @@ export class PreviewImportService {
         status: 'MISSING',
         note: maxLengthMessage('นามสกุล', FIELD_LENGTHS.lastName),
       };
-    }
-
-    if (!THAI_NAME_REGEX.test(firstName) || !THAI_NAME_REGEX.test(lastName)) {
-      return { status: 'MISSING', note: 'ชื่อและนามสกุลต้องเป็นภาษาไทย' };
     }
 
     // 2. Check required facultyCode

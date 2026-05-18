@@ -37,9 +37,8 @@ const EMAIL_MAX_LENGTH = FIELD_LIMITS.email;
 const FIRST_NAME_MAX_LENGTH = FIELD_LIMITS.firstName;
 const LAST_NAME_MAX_LENGTH = FIELD_LIMITS.lastName;
 
-// Email and Name validation regex pattern
+// Email validation regex pattern
 const EMAIL_REGEX = /^[^\s@]+@mail\.wu\.ac\.th$/;
-const NAME_REGEX = /^[ก-๙\s]+$/;
 
 function formatCurriculumDisplay(curriculumId: string | null | undefined) {
   return getCurriculumName(
@@ -221,8 +220,6 @@ export default function SimpleShowUsers() {
     if (!trimmed) return ERROR_MESSAGES.first_name.required;
     if (trimmed.length > FIRST_NAME_MAX_LENGTH)
       return ERROR_MESSAGES.first_name.maxLength;
-    if (!NAME_REGEX.test(trimmed))
-      return "ชื่อต้องเป็นภาษาไทยเท่านั้น";
     return undefined;
   };
 
@@ -234,8 +231,6 @@ export default function SimpleShowUsers() {
     if (!trimmed) return ERROR_MESSAGES.last_name.required;
     if (trimmed.length > LAST_NAME_MAX_LENGTH)
       return ERROR_MESSAGES.last_name.maxLength;
-    if (!NAME_REGEX.test(trimmed))
-      return "นามสกุลต้องเป็นภาษาไทยเท่านั้น";
     return undefined;
   };
 
@@ -354,11 +349,7 @@ export default function SimpleShowUsers() {
   };
 
   const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-
-    const rawValue = e.target.value;
-    //only letter and space
-    const value = rawValue.replace(/[^ก-๙\s]/g, "");
-
+    const value = e.target.value;
     setFirstName(value);
     setErrors((prev) => ({
       ...prev,
@@ -367,11 +358,7 @@ export default function SimpleShowUsers() {
   };
 
   const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-
-    const rawValue = e.target.value;
-    //only letter and space
-    const value = rawValue.replace(/[^ก-๙\s]/g, "");
-
+    const value = e.target.value;
     setLastName(value);
     setErrors((prev) => ({
       ...prev,
@@ -545,18 +532,36 @@ export default function SimpleShowUsers() {
     fetchOffering();
   }, [fetchOffering]);
 
-   useEffect(() => {
-  apiFetch<AuthUser>("/auth/me")
-    .then((user) => {
-      setUser(user);
-    })
-    .catch((err) => {
-      console.error("Failed to fetch user", err);
-    });
-}, []);
+  useEffect(() => {
+    let isMounted = true;
 
-const isStudent =
-  String(user?.type ?? user?.userType ?? "").toUpperCase() === "STUDENT";
+    apiFetch<AuthUser>("/auth/me")
+      .then((user) => {
+        if (isMounted) setUser(user);
+      })
+      .catch((err: unknown) => {
+        console.error("Failed to fetch user", err);
+        if (!isMounted) return;
+
+        setAlertState({
+          isOpen: true,
+          title: "เกิดข้อผิดพลาด",
+          message: getErrorMessage(
+            err,
+            "ไม่สามารถโหลดข้อมูลผู้ใช้ได้ กรุณาลองใหม่อีกครั้ง",
+          ),
+          variant: "error",
+        });
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const isStudent =
+    String(user?.type ?? user?.userType ?? "").toUpperCase() === "STUDENT";
+  const canManageMembers = user !== null && !isStudent;
 
   // ============================================================
   // COMPUTED VALUES
@@ -612,7 +617,7 @@ const isStudent =
           <div className="flex flex-col gap-4 lg:flex-row">
             {/* Left Section - Lists */}
             <div className="min-w-0 flex-1 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6 lg:p-8">
-              {hasCourseExams && !isStudent && (
+              {hasCourseExams && canManageMembers && (
                 <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800">
                   <AlertTriangle size={20} className="mt-0.5 shrink-0" />
                   <div>
@@ -673,7 +678,7 @@ const isStudent =
                           {getCurriculumName(ci.staff_users.curriculumId)}
                         </span>
                       </div>
-                      {!isStudent && (
+                      {canManageMembers && (
                         isPrimaryInstructor ? (
                           <span
                             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[#B7A3E3] md:justify-self-end md:self-start"
@@ -781,7 +786,7 @@ const isStudent =
                         </span>
                       </div>
                       {/* Delete button - visible on hover */}
-                      {!isStudent ? (
+                      {canManageMembers ? (
                         hasCourseExams ? (
                           <button
                             onClick={() =>
@@ -822,7 +827,7 @@ const isStudent =
             </div>
 
             {/* Right Section - Action Buttons */}
-            {!isStudent && (
+            {canManageMembers && (
             <div className="flex flex-row gap-3 lg:flex-col">
               {/* Add Student Button */}
               <div className="flex flex-row rounded-2xl bg-white p-1 shadow-sm ring-1 ring-[#E7DDF8] lg:flex-col">
@@ -966,7 +971,6 @@ const isStudent =
                     value={firstName}
                     onChange={handleFirstNameChange}
                     maxLength={FIRST_NAME_MAX_LENGTH}
-                    placeholder="ภาษาไทยเท่านั้น"
                     className={`w-full rounded-xl border-2 px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none ${
                       errors.first_name
                         ? "border-red-500 focus:border-red-500"
@@ -990,7 +994,6 @@ const isStudent =
                     value={lastName}
                     onChange={handleLastNameChange}
                     maxLength={LAST_NAME_MAX_LENGTH}
-                    placeholder="ภาษาไทยเท่านั้น"
                     className={`w-full rounded-xl border-2 px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none ${
                       errors.last_name
                         ? "border-red-500 focus:border-red-500"
