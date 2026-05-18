@@ -52,7 +52,9 @@ export default function AcademicSettingsPage() {
             err?.response?.data?.message ?? err?.message;
           setError(
             Array.isArray(msg)
-              ? msg.join(", ")
+              ? msg.length
+                ? msg.join(", ")
+                : "ไม่สามารถโหลดการตั้งค่าปีการศึกษาได้"
               : msg || "ไม่สามารถโหลดการตั้งค่าปีการศึกษาได้",
           );
         }
@@ -98,7 +100,9 @@ export default function AcademicSettingsPage() {
       const msg = err?.response?.data?.message ?? err?.message;
       setError(
         Array.isArray(msg)
-          ? msg.join(", ")
+          ? msg.length
+            ? msg.join(", ")
+            : "ไม่สามารถบันทึกการตั้งค่าปีการศึกษาได้"
           : msg || "ไม่สามารถบันทึกการตั้งค่าปีการศึกษาได้",
       );
     } finally {
