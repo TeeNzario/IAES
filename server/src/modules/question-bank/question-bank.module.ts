@@ -5,8 +5,10 @@ import { QuestionsController } from './questions.controller';
 import { QuestionsService } from './questions.service';
 import { QuestionImportController } from './question-import.controller';
 import { QuestionImportService } from './question-import.service';
+import { AcademicSettingsModule } from '../academic-settings/academic-settings.module';
 
 @Module({
+  imports: [AcademicSettingsModule],
   controllers: [QuestionBankController, QuestionsController, QuestionImportController],
   providers: [QuestionBankService, QuestionsService, QuestionImportService],
 })

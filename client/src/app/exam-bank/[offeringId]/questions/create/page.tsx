@@ -14,6 +14,7 @@ import {
   FIXED_CHOICE_COUNT,
 } from "@/components/questionBank/questionEditorConfig";
 import type { KnowledgeTag } from "@/components/questionBank/TagSelect";
+import { getCurrentAcademicSettings } from "@/features/academicSettings/academicSettings.api";
 
 interface Year {
   question_bank_year_id: string;
@@ -38,12 +39,13 @@ async function resolveDefaultCollectionId(
   const years = await apiFetch<Year[]>(
     `/course-offerings/${offeringId}/question-bank/years`,
   );
-  let yearRow = years.length > 0 ? years[0] : null;
+  const settings = await getCurrentAcademicSettings();
+  let yearRow =
+    years.find((year) => year.academic_year === settings.academic_year) ?? null;
   if (!yearRow) {
-    const currentYear = new Date().getFullYear() + 543;
     yearRow = await apiFetch<Year>(
       `/course-offerings/${offeringId}/question-bank/years`,
-      { method: "POST", data: { academic_year: currentYear } },
+      { method: "POST", data: { academic_year: settings.academic_year } },
     );
   }
   const collections = await apiFetch<Collection[]>(

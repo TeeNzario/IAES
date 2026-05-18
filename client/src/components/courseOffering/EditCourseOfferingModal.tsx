@@ -9,6 +9,12 @@ import { Instructor } from "@/types/staff";
 import { CourseOffering } from "@/types/course";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import axios from "axios";
+import { toBuddhistYear } from "@/utils/academicYear";
+import {
+  AcademicSettings,
+  buildAcademicYearOptions,
+  getCurrentAcademicSettings,
+} from "@/features/academicSettings/academicSettings.api";
 
 interface EditCourseOfferingModalProps {
   isOpen: boolean;
@@ -17,21 +23,18 @@ interface EditCourseOfferingModalProps {
   onSuccess?: () => void;
 }
 
-// Generate academic years: current year ±1 (Buddhist year)
-const getCurrentBuddhistYear = () => new Date().getFullYear() + 543;
-
 export default function EditCourseOfferingModal({
   isOpen,
   onClose,
   courseOffering,
   onSuccess,
 }: EditCourseOfferingModalProps) {
-  const currentYear = getCurrentBuddhistYear();
-  const academicYears = [
-    String(currentYear - 1),
-    String(currentYear),
-    String(currentYear + 1),
-  ];
+  const [academicSettings, setAcademicSettings] =
+    useState<AcademicSettings | null>(null);
+  const academicYears = buildAcademicYearOptions(
+    academicSettings?.academic_year,
+    courseOffering.academic_year,
+  );
   const semesters = ["1", "2", "3"];
   const statuses = ["Active", "Inactive"];
 
@@ -92,13 +95,15 @@ export default function EditCourseOfferingModal({
       setIsLoading(true);
       setError(null);
       try {
-        const [me, instructors] = await Promise.all([
+        const [me, instructors, settings] = await Promise.all([
           apiFetch<Instructor>("/staff/me"),
           apiFetch<Instructor[]>("/staff/instructors"),
+          getCurrentAcademicSettings(),
         ]);
         if (isMounted) {
           setCreatorInstructor(me);
           setAllInstructors(instructors);
+          setAcademicSettings(settings);
         }
       } catch {
         if (isMounted) setError("ไม่สามารถโหลดข้อมูลอาจารย์ได้");
@@ -246,7 +251,7 @@ export default function EditCourseOfferingModal({
             >
               {academicYears.map((year) => (
                 <option key={year} value={year}>
-                  {year}
+                  {toBuddhistYear(year)}
                 </option>
               ))}
             </select>

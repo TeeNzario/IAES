@@ -17,6 +17,7 @@ import {
   validDifficultyLabels,
 } from './dto/question-import.dto';
 import { FIELD_LENGTHS } from 'src/lib/field-lengths';
+import { AcademicSettingsService } from '../academic-settings/academic-settings.service';
 
 const DIFFICULTY_DEFAULTS: Record<
   string,
@@ -42,7 +43,10 @@ function serializeBigInt<T>(data: T): T {
 
 @Injectable()
 export class QuestionImportService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly academicSettings: AcademicSettingsService,
+  ) {}
 
   private async resolveCourseAndAuthorize(
     offeringId: string,
@@ -632,7 +636,8 @@ export class QuestionImportService {
     coursesId: bigint,
   ): Promise<string> {
     const DEFAULT_TITLE = 'คำถามทั่วไป';
-    const currentYear = new Date().getFullYear() + 543;
+    const { academic_year: currentYear } =
+      await this.academicSettings.getCurrentTerm();
 
     // Find or create a year for the current academic year
     let year = await this.prisma.question_bank_years.findFirst({
