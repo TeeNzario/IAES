@@ -80,7 +80,8 @@ const statusLabel: Record<ExamListItem["status"], string> = {
 
 export default function ResultsPage() {
   const homeRoute = useHomeRoute();
-  const [user, setUser] = useState<AuthUser | null>(() => getUser<AuthUser>());
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [userReady, setUserReady] = useState(false);
   const [rows, setRows] = useState<ResultRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -139,6 +140,7 @@ export default function ResultsPage() {
       setError("ไม่สามารถโหลดรายงานผลสอบได้");
     } finally {
       setLoading(false);
+      setUserReady(true);
     }
   }, []);
 
@@ -206,12 +208,18 @@ export default function ResultsPage() {
                     ผลสรุปการสอบ
                   </p>
                   <h1 className="mt-1 text-2xl font-semibold leading-tight text-[#2F2A3A] sm:text-3xl">
-                    {isStaffReport ? "รายงานภาพรวมการสอบ" : "ผลสอบของฉัน"}
+                    {!userReady
+                      ? "ผลสรุปการสอบ"
+                      : isStaffReport
+                        ? "รายงานภาพรวมการสอบ"
+                        : "ผลสอบของฉัน"}
                   </h1>
                   <p className="mt-2 max-w-3xl text-sm font-normal leading-6 text-[#7A7287] sm:text-base sm:leading-7">
-                    {isStaffReport
-                      ? "ติดตามจำนวนผู้เข้าสอบ คะแนนเฉลี่ย และพฤติกรรมระหว่างสอบของแต่ละชุดข้อสอบ"
-                      : "ดูสถานะการเข้าสอบและผลคะแนนที่เปิดให้ดูแล้วในรายวิชาของคุณ"}
+                    {!userReady
+                      ? "กำลังโหลด..."
+                      : isStaffReport
+                        ? "ติดตามจำนวนผู้เข้าสอบ คะแนนเฉลี่ย และพฤติกรรมระหว่างสอบของแต่ละชุดข้อสอบ"
+                        : "ดูสถานะการเข้าสอบและผลคะแนนที่เปิดให้ดูแล้วในรายวิชาของคุณ"}
                   </p>
                 </div>
               </div>
