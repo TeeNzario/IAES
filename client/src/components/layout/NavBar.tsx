@@ -69,13 +69,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Read user from localStorage on client mount only.
-  // Must use useEffect to avoid reading during SSR (window guard).
-  const [user, setUser] = useState<AuthUser | null>(null);
-
-  useEffect(() => {
-    setUser(getUser<AuthUser>());
-  }, []);
+  const [user] = useState<AuthUser | null>(() => getUser<AuthUser>());
 
   useEffect(() => {
     const mobileQuery = window.matchMedia("(max-width: 640px)");
@@ -288,7 +282,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
             <Menu size={28} className="text-gray-700" />
           </button>
 
-          {/* ADMIN-only menu: Show only "จัดการผู้ใช้" */}
+          {/* ADMIN-only menu */}
           {isAdmin ? (
             <>
               <button
@@ -311,6 +305,15 @@ const NavBar = ({ children }: PageLayoutProps) => {
                 {isSidebarOpen && (
                   <span className="font-medium">กำหนดปีและเทอม</span>
                 )}
+              </button>
+
+              <button
+                onClick={() => router.push("/results")}
+                className={getSideMenuStyle(isResultsActive)}
+                aria-label="ผลสรุปการสอบ"
+              >
+                <BookOpen size={22} />
+                {isSidebarOpen && <span>ผลสรุปการสอบ</span>}
               </button>
             </>
           ) : (
