@@ -69,7 +69,15 @@ const NavBar = ({ children }: PageLayoutProps) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  const [user] = useState<AuthUser | null>(() => getUser<AuthUser>());
+  // Load user from localStorage after mount to avoid hydration mismatch.
+  // SSR renders with user=null; client updates after mount.
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [userReady, setUserReady] = useState(false);
+
+  useEffect(() => {
+    setUser(getUser<AuthUser>());
+    setUserReady(true);
+  }, []);
 
   useEffect(() => {
     const mobileQuery = window.matchMedia("(max-width: 640px)");
@@ -282,8 +290,12 @@ const NavBar = ({ children }: PageLayoutProps) => {
             <Menu size={28} className="text-gray-700" />
           </button>
 
-          {/* ADMIN-only menu */}
-          {isAdmin ? (
+          {!userReady ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#B7A3E3] border-t-transparent" />
+            </div>
+          ) : isAdmin ? (
+            /* ADMIN-only menu */
             <>
               <button
                 onClick={() => router.push("/admin/manage-users")}
