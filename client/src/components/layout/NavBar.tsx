@@ -59,7 +59,9 @@ const NavBar = ({ children }: PageLayoutProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(cachedSidebarOpen ?? true);
-  const [isSidebarReady, setIsSidebarReady] = useState(cachedSidebarOpen !== null);
+  const [isSidebarReady, setIsSidebarReady] = useState(
+    cachedSidebarOpen !== null,
+  );
   const [courses, setCourses] = useState<CourseOffering[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
   const [coursesError, setCoursesError] = useState(false);
@@ -171,8 +173,10 @@ const NavBar = ({ children }: PageLayoutProps) => {
     };
   }, [isUserMenuOpen]);
 
-  const isInstructor = user?.type === "STAFF" && user?.staff_role === "INSTRUCTOR";
+  const isInstructor =
+    user?.type === "STAFF" && user?.staff_role === "INSTRUCTOR";
   const isAdmin = user?.type === "STAFF" && user?.staff_role === "ADMIN";
+  const courseMenuLabel = isInstructor ? "จัดการสอบ" : "รายวิชา";
 
   // Derive active state for admin menu
   const isManageUsersActive = pathname === "/admin/manage-users";
@@ -182,11 +186,17 @@ const NavBar = ({ children }: PageLayoutProps) => {
     if (!user) return "เข้าสู่ระบบ";
 
     if (user.type === "STUDENT") {
-      return `${user.title ?? ""} ${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() || "นักศึกษา";
+      return (
+        `${user.title ?? ""} ${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() ||
+        "นักศึกษา"
+      );
     }
 
     // STAFF
-    return `${user.title ?? ""} ${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() || "บุคลากร";
+    return (
+      `${user.title ?? ""} ${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() ||
+      "บุคลากร"
+    );
   };
 
   const getProfileSubtitle = () => {
@@ -237,14 +247,12 @@ const NavBar = ({ children }: PageLayoutProps) => {
   };
 
   const getSideMenuStyle = (isActive: boolean) => {
-    const sizeClass = isSidebarOpen
-      ? "px-4 py-3.5"
-      : "h-12 justify-center p-0";
+    const sizeClass = isSidebarOpen ? "px-4 py-3.5" : "h-12 justify-center p-0";
 
     if (isActive) {
-      return `w-full flex items-center gap-3 text-base font-medium ${sizeClass} bg-[#B7A3E3] text-white rounded-xl transition-colors cursor-pointer`;
+      return `mb-3 w-full flex items-center gap-3 text-base font-medium ${sizeClass} bg-[#B7A3E3] text-white rounded-xl transition-colors cursor-pointer`;
     }
-    return `w-full flex items-center gap-3 text-base font-medium ${sizeClass} text-[#575757] hover:bg-gray-100 rounded-xl transition-colors cursor-pointer`;
+    return `mb-3 w-full flex items-center gap-3 text-base font-medium ${sizeClass} text-[#575757] hover:bg-gray-100 rounded-xl transition-colors cursor-pointer`;
   };
 
   const getCourseItemStyle = (courseOfferingId: string) => {
@@ -271,7 +279,9 @@ const NavBar = ({ children }: PageLayoutProps) => {
           <button
             onClick={handleToggleSidebar}
             className={`mb-4 flex w-full rounded-xl transition-colors hover:bg-gray-100 ${
-              isSidebarOpen ? "justify-start p-2.5" : "h-12 items-center justify-center p-0"
+              isSidebarOpen
+                ? "justify-start p-2.5"
+                : "h-12 items-center justify-center p-0"
             }`}
             aria-label={isSidebarOpen ? "ปิดแถบเมนู" : "เปิดแถบเมนู"}
           >
@@ -316,6 +326,29 @@ const NavBar = ({ children }: PageLayoutProps) => {
                 {isSidebarOpen && <span className="font-medium">หน้าแรก</span>}
               </button>
 
+              {/* Instructor-only menus */}
+              {isInstructor && (
+                <>
+                  <button
+                    onClick={() => router.push("/course")}
+                    className={getSideMenuStyle(isCourseManageActive)}
+                    aria-label="จัดการรายวิชา"
+                  >
+                    <Settings size={22} />
+                    {isSidebarOpen && <span>จัดการรายวิชา</span>}
+                  </button>
+
+                  <button
+                    onClick={() => router.push("/exam-bank")}
+                    className={getSideMenuStyle(isExamBankActive)}
+                    aria-label="คลังข้อสอบ"
+                  >
+                    <Database size={22} />
+                    {isSidebarOpen && <span>คลังข้อสอบ</span>}
+                  </button>
+                </>
+              )}
+
               {/* Courses Section */}
               <div className="mb-3">
                 <button
@@ -329,12 +362,12 @@ const NavBar = ({ children }: PageLayoutProps) => {
                       ? "bg-[#B7A3E3]/80 text-white"
                       : "text-[#575757] hover:bg-gray-100"
                   } rounded-xl transition-colors cursor-pointer`}
-                  aria-label="รายวิชา"
+                  aria-label={courseMenuLabel}
                   aria-expanded={isCoursesExpanded}
                 >
                   <div className="flex items-center gap-3">
                     <FileText size={22} />
-                    {isSidebarOpen && <span>รายวิชา</span>}
+                    {isSidebarOpen && <span>{courseMenuLabel}</span>}
                   </div>
                   {isSidebarOpen && (
                     <ChevronDown
@@ -389,29 +422,6 @@ const NavBar = ({ children }: PageLayoutProps) => {
                   </div>
                 )}
               </div>
-
-              {/* Instructor-only menus */}
-              {isInstructor && (
-                <>
-                  <button
-                    onClick={() => router.push("/course")}
-                    className={getSideMenuStyle(isCourseManageActive)}
-                    aria-label="จัดการรายวิชา"
-                  >
-                    <Settings size={22} />
-                    {isSidebarOpen && <span>จัดการรายวิชา</span>}
-                  </button>
-
-                  <button
-                    onClick={() => router.push("/exam-bank")}
-                    className={getSideMenuStyle(isExamBankActive)}
-                    aria-label="คลังข้อสอบ"
-                  >
-                    <Database size={22} />
-                    {isSidebarOpen && <span>คลังข้อสอบ</span>}
-                  </button>
-                </>
-              )}
 
               {/* Results Section - Available to all, kept as the final menu item */}
               <button
