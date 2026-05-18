@@ -33,7 +33,7 @@ describe('field length validation', () => {
       first_name: repeat(FIELD_LENGTHS.firstName),
       last_name: repeat(FIELD_LENGTHS.lastName),
       role: StaffRole.INSTRUCTOR,
-      curriculumId: repeatAscii(FIELD_LENGTHS.curriculumId),
+      curriculumId: 'CUR067',
     });
 
     const student = plainToInstance(CreateStudentDto, {
@@ -44,7 +44,7 @@ describe('field length validation', () => {
       title: repeat(FIELD_LENGTHS.title),
       first_name: repeat(FIELD_LENGTHS.firstName),
       last_name: repeat(FIELD_LENGTHS.lastName),
-      curriculumId: repeatAscii(FIELD_LENGTHS.curriculumId),
+      curriculumId: 'CUR067',
     });
 
     const exam = plainToInstance(CreateExamDto, {
