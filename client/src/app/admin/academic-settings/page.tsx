@@ -91,7 +91,7 @@ export default function AcademicSettingsPage() {
 
   const labelClass = "block text-sm font-semibold text-gray-800 mb-1.5";
   const selectFieldClass =
-    "h-11 w-full appearance-none rounded-xl border border-[#E7DDF8] bg-white px-4 pr-10 text-sm font-medium text-[#2F2A3A] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#B7A3E3]";
+    "h-12 w-full appearance-none rounded-xl border border-[#E7DDF8] bg-white px-4 pr-10 text-base font-semibold text-[#2F2A3A] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#B7A3E3]";
   const dropdownIconClass =
     "absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none";
 
@@ -127,11 +127,11 @@ export default function AcademicSettingsPage() {
           </section>
 
           <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6">
-            <div className="mb-6 flex items-start gap-3">
+            <div className="mb-6 flex items-start gap-4">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#F4EFFF] text-[#7C5BD9]">
                 <CalendarDays size={22} />
               </span>
-              <div>
+              <div className="min-w-0">
                 <h2 className="text-xl font-semibold text-[#2F2A3A]">
                   ปีการศึกษาปัจจุบัน
                 </h2>
@@ -164,8 +164,8 @@ export default function AcademicSettingsPage() {
                 <Loader2 size={28} className="animate-spin text-[#B7A3E3]" />
               </div>
             ) : (
-              <>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="rounded-xl bg-[#FAF8FF] p-4 ring-1 ring-[#E7DDF8]">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,14rem)_minmax(0,14rem)_auto] md:items-end md:justify-center">
                   <div>
                     <label className={labelClass}>ปีการศึกษา</label>
                     <div className="relative">
@@ -205,14 +205,12 @@ export default function AcademicSettingsPage() {
                       <ChevronDown className={dropdownIconClass} size={18} />
                     </div>
                   </div>
-                </div>
 
-                <div className="mt-6 flex justify-end">
                   <button
                     type="button"
                     onClick={handleSave}
                     disabled={saving}
-                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#9264F5] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#9264F5] disabled:cursor-not-allowed disabled:opacity-60 md:w-32"
                   >
                     {saving ? (
                       <Loader2 size={18} className="animate-spin" />
@@ -222,7 +220,7 @@ export default function AcademicSettingsPage() {
                     บันทึก
                   </button>
                 </div>
-              </>
+              </div>
             )}
           </section>
         </main>
