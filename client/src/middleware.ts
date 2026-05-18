@@ -1,68 +1,14 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-
-// ============================================================
-// Role & Permission logic (self-contained for Edge Runtime)
-// ============================================================
-
-type Role = "ADMIN" | "INSTRUCTOR";
-type ResolvedRole = Role | null;
-
-interface ParsedUser {
-  type?: string;
-  staff_role?: string;
-  role?: string;
-}
-
-interface RouteRule {
-  path?: string;
-  prefix?: string;
-  allowedRoles: Role[];
-  allowNoRole?: boolean;
-}
-
-function getUserRole(user: ParsedUser | null): ResolvedRole {
-  if (!user) return null;
-  if (user.type === "STAFF") {
-    const role = user.staff_role ?? user.role;
-    if (role === "ADMIN" || role === "INSTRUCTOR") return role;
-    return null;
-  }
-  return null;
-}
-
-const ROUTE_RULES: RouteRule[] = [
-  // /admin — ADMIN only
-  { prefix: "/admin", allowedRoles: ["ADMIN"] },
-  // / (home) — INSTRUCTOR + students, block ADMIN
-  { path: "/", allowedRoles: ["INSTRUCTOR"], allowNoRole: true },
-  // /course (exact list page) — INSTRUCTOR only
-  { path: "/course", allowedRoles: ["INSTRUCTOR"] },
-  // /course/[offeringId] and children — INSTRUCTOR + students
-  { prefix: "/course/", allowedRoles: ["INSTRUCTOR"], allowNoRole: true },
-];
-
-function isAllowed(pathname: string, role: ResolvedRole): boolean {
-  for (const rule of ROUTE_RULES) {
-    const matchesExact = rule.path !== undefined && pathname === rule.path;
-    const matchesPrefix =
-      rule.prefix !== undefined && pathname.startsWith(rule.prefix);
-
-    if (!matchesExact && !matchesPrefix) continue;
-
-    if (role !== null && rule.allowedRoles.includes(role)) return true;
-    if (role === null && rule.allowNoRole) return true;
-    return false;
-  }
-  return true;
-}
+import {
+  type ParsedUser,
+  type ResolvedRole,
+  getUserRole,
+  isAllowed,
+} from "@/lib/auth.permissions";
 
 const FORBIDDEN_PATH = "/forbidden";
 const PUBLIC_FILE = /\.(.*)$/;
-
-// ============================================================
-// Middleware
-// ============================================================
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -93,21 +39,19 @@ export function middleware(request: NextRequest) {
   // Parse user from cookie
   let user: ParsedUser | null = null;
   try {
-    user = JSON.parse(decodeURIComponent(userCookie));
+    user = JSON.parse(decodeURIComponent(userCookie)) as ParsedUser;
   } catch {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  const role = getUserRole(user);
+  const role: ResolvedRole = getUserRole(user);
 
   // UX: ADMIN visiting "/" → redirect to admin dashboard
   if (pathname === "/" && role === "ADMIN") {
     return NextResponse.redirect(new URL("/admin/manage-users", request.url));
   }
 
-  const allowed = isAllowed(pathname, role);
-
-  if (!allowed) {
+  if (!isAllowed(pathname, role)) {
     return NextResponse.rewrite(new URL(FORBIDDEN_PATH, request.url));
   }
 

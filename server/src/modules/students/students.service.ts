@@ -310,6 +310,8 @@ export class StudentsService {
               select: {
                 course_code: true,
                 course_name: true,
+                course_name_th: true,
+                course_name_en: true,
               },
             },
           },
