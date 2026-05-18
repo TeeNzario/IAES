@@ -71,26 +71,31 @@ export class AcademicSettingsService {
     const existing = await this.readCurrentRow();
     if (existing) return existing;
 
-    await this.prisma.$executeRaw`
-      INSERT INTO "academic_settings" (
-        "id",
-        "academic_year",
-        "semester"
-      )
-      VALUES (
-        1,
-        ${this.fallbackAcademicYear()},
-        1
-      )
-      ON CONFLICT ("id") DO NOTHING
-    `;
+    return this.prisma.$transaction(async (tx) => {
+      const row = await this.readCurrentRow(tx);
+      if (row) return row;
 
-    const created = await this.readCurrentRow();
-    if (created) return created;
+      await tx.$executeRaw`
+        INSERT INTO "academic_settings" (
+          "id",
+          "academic_year",
+          "semester"
+        )
+        VALUES (
+          1,
+          ${this.fallbackAcademicYear()},
+          1
+        )
+        ON CONFLICT ("id") DO NOTHING
+      `;
 
-    throw new InternalServerErrorException(
-      'Unable to initialize academic settings',
-    );
+      const created = await this.readCurrentRow(tx);
+      if (created) return created;
+
+      throw new InternalServerErrorException(
+        'Unable to initialize academic settings',
+      );
+    });
   }
 
   async getCurrent(): Promise<AcademicSettingsResponse> {

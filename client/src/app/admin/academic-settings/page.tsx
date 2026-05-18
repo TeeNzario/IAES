@@ -29,6 +29,12 @@ export default function AcademicSettingsPage() {
   );
 
   useEffect(() => {
+    if (!success) return;
+    const timer = setTimeout(() => setSuccess(null), 5000);
+    return () => clearTimeout(timer);
+  }, [success]);
+
+  useEffect(() => {
     let cancelled = false;
 
     async function loadSettings() {
@@ -40,9 +46,17 @@ export default function AcademicSettingsPage() {
         setSettings(current);
         setAcademicYear(String(current.academic_year));
         setSemester(String(current.semester));
-      } catch {
+      } catch (err: any) {
         if (!cancelled) {
-          setError("ไม่สามารถโหลดการตั้งค่าปีการศึกษาได้");
+          const msg =
+            err?.response?.data?.message ?? err?.message;
+          setError(
+            Array.isArray(msg)
+              ? msg.length
+                ? msg.join(", ")
+                : "ไม่สามารถโหลดการตั้งค่าปีการศึกษาได้"
+              : msg || "ไม่สามารถโหลดการตั้งค่าปีการศึกษาได้",
+          );
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -82,8 +96,15 @@ export default function AcademicSettingsPage() {
       setAcademicYear(String(updated.academic_year));
       setSemester(String(updated.semester));
       setSuccess("บันทึกการตั้งค่าปีการศึกษาเรียบร้อยแล้ว");
-    } catch {
-      setError("ไม่สามารถบันทึกการตั้งค่าปีการศึกษาได้");
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? err?.message;
+      setError(
+        Array.isArray(msg)
+          ? msg.length
+            ? msg.join(", ")
+            : "ไม่สามารถบันทึกการตั้งค่าปีการศึกษาได้"
+          : msg || "ไม่สามารถบันทึกการตั้งค่าปีการศึกษาได้",
+      );
     } finally {
       setSaving(false);
     }
@@ -91,7 +112,7 @@ export default function AcademicSettingsPage() {
 
   const labelClass = "block text-sm font-semibold text-gray-800 mb-1.5";
   const selectFieldClass =
-    "h-11 w-full appearance-none rounded-xl border border-[#E7DDF8] bg-white px-4 pr-10 text-sm font-medium text-[#2F2A3A] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#B7A3E3]";
+    "h-12 w-full appearance-none rounded-xl border border-[#E7DDF8] bg-white px-4 pr-10 text-base font-semibold text-[#2F2A3A] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#B7A3E3]";
   const dropdownIconClass =
     "absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none";
 
@@ -105,10 +126,10 @@ export default function AcademicSettingsPage() {
                 <p className="text-sm font-semibold leading-6 text-[#7C5BD9]">
                   ผู้ดูแลระบบ
                 </p>
-                <h1 className="mt-2 text-2xl font-semibold leading-[1.35] text-[#2F2A3A] sm:text-3xl">
+                <h1 className="mt-1 text-2xl font-semibold text-[#2F2A3A] sm:text-3xl">
                   กำหนดปีและเทอม
                 </h1>
-                <p className="mt-3 max-w-2xl text-sm font-normal leading-6 text-[#7A7287]">
+                <p className="mt-2 max-w-2xl text-sm font-normal leading-6 text-[#7A7287]">
                   กำหนดปีการศึกษาและภาคการศึกษาปัจจุบันที่ระบบใช้ร่วมกัน
                 </p>
               </div>
@@ -127,11 +148,11 @@ export default function AcademicSettingsPage() {
           </section>
 
           <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6">
-            <div className="mb-6 flex items-start gap-3">
+            <div className="mb-6 flex items-start gap-4">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#F4EFFF] text-[#7C5BD9]">
                 <CalendarDays size={22} />
               </span>
-              <div>
+              <div className="min-w-0">
                 <h2 className="text-xl font-semibold text-[#2F2A3A]">
                   ปีการศึกษาปัจจุบัน
                 </h2>
@@ -164,8 +185,8 @@ export default function AcademicSettingsPage() {
                 <Loader2 size={28} className="animate-spin text-[#B7A3E3]" />
               </div>
             ) : (
-              <>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="rounded-xl bg-[#FAF8FF] p-4 ring-1 ring-[#E7DDF8]">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,14rem)_minmax(0,14rem)_auto] md:items-end md:justify-center">
                   <div>
                     <label className={labelClass}>ปีการศึกษา</label>
                     <div className="relative">
@@ -173,9 +194,11 @@ export default function AcademicSettingsPage() {
                         value={academicYear}
                         onChange={(event) => {
                           setAcademicYear(event.target.value);
+                          setError(null);
                           setSuccess(null);
                         }}
                         className={selectFieldClass}
+                        aria-label="ปีการศึกษา"
                       >
                         {yearOptions.map((year) => (
                           <option key={year} value={year}>
@@ -194,9 +217,11 @@ export default function AcademicSettingsPage() {
                         value={semester}
                         onChange={(event) => {
                           setSemester(event.target.value);
+                          setError(null);
                           setSuccess(null);
                         }}
                         className={selectFieldClass}
+                        aria-label="ภาคการศึกษา"
                       >
                         <option value="1">1</option>
                         <option value="2">2</option>
@@ -205,14 +230,12 @@ export default function AcademicSettingsPage() {
                       <ChevronDown className={dropdownIconClass} size={18} />
                     </div>
                   </div>
-                </div>
 
-                <div className="mt-6 flex justify-end">
                   <button
                     type="button"
                     onClick={handleSave}
                     disabled={saving}
-                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#9264F5] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#9264F5] disabled:cursor-not-allowed disabled:opacity-60 md:w-32"
                   >
                     {saving ? (
                       <Loader2 size={18} className="animate-spin" />
@@ -222,7 +245,7 @@ export default function AcademicSettingsPage() {
                     บันทึก
                   </button>
                 </div>
-              </>
+              </div>
             )}
           </section>
         </main>
