@@ -20,10 +20,22 @@ export default function ExamManagementCoursePickerPage() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
+    let cancelled = false;
+
     apiFetch<CourseOffering[]>("/course-offerings")
-      .then(setCourses)
-      .catch(() => setError("ไม่สามารถโหลดรายวิชาได้"))
-      .finally(() => setLoading(false));
+      .then((data) => {
+        if (!cancelled) setCourses(data);
+      })
+      .catch(() => {
+        if (!cancelled) setError("ไม่สามารถโหลดรายวิชาได้");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const q = search.trim().toLowerCase();
