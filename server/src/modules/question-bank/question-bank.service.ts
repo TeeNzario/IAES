@@ -9,6 +9,7 @@ import { CreateQuestionBankYearDto } from './dto/create-year.dto';
 import { CreateQuestionCollectionDto } from './dto/create-collection.dto';
 import { UpdateQuestionCollectionDto } from './dto/update-collection.dto';
 import type { StaffRole } from 'src/auth/types/jwt-payload.type';
+import { AcademicSettingsService } from '../academic-settings/academic-settings.service';
 
 function serializeBigInt<T>(data: T): T {
   return JSON.parse(
@@ -25,7 +26,10 @@ interface StaffActor {
 
 @Injectable()
 export class QuestionBankService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly academicSettings: AcademicSettingsService,
+  ) {}
 
   /**
    * Resolve a course offering id to its parent courses_id and authorize the
@@ -93,12 +97,17 @@ export class QuestionBankService {
     actor: StaffActor,
   ) {
     const coursesId = await this.resolveCourseAndAuthorize(offeringId, actor);
+    const currentTerm =
+      dto.academic_year === undefined
+        ? await this.academicSettings.getCurrentTerm()
+        : null;
+    const academicYear = dto.academic_year ?? currentTerm!.academic_year;
 
     try {
       const year = await this.prisma.question_bank_years.create({
         data: {
           courses_id: coursesId,
-          academic_year: dto.academic_year,
+          academic_year: academicYear,
           created_by_staff_id: BigInt(actor.staffUserId),
         },
       });

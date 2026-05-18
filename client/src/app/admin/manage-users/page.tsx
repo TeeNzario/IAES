@@ -1110,7 +1110,7 @@ export default function ManageUserPage() {
               </p>
             </div>
           ) : (
-            <div className="overflow-auto max-h-[calc(100vh-280px)]">
+            <div className="overflow-x-auto">
               <table className="w-full min-w-[900px] hidden table-fixed sm:table">
                 <colgroup>
                   <col className={showSequenceColumn ? "w-[7%]" : "w-[13%]"} />
@@ -1120,7 +1120,7 @@ export default function ManageUserPage() {
                   <col className="w-[10rem]" />
                   <col className="w-[5rem]" />
                 </colgroup>
-                <thead className="sticky top-0 z-10">
+                <thead>
                   <tr className="bg-[#B7A3E3] text-white">
                     <th className="px-5 py-4 text-left text-[15px] font-semibold">
                       {showSequenceColumn ? "ลำดับ" : "รหัสนักศึกษา"}

@@ -16,6 +16,7 @@ import { QuestionBankModule } from './modules/question-bank/question-bank.module
 import { CourseExamsModule } from './modules/course-exams/course-exams.module';
 import { ExamAttemptsModule } from './modules/exam-attempts/exam-attempts.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { AcademicSettingsModule } from './modules/academic-settings/academic-settings.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AuditModule } from './modules/audit/audit.module';
     StudentsModule,
     AuthModule,
     AuditModule,
+    AcademicSettingsModule,
     CourseOfferingsModule,
     KnowledgeCategoriesModule,
     QuestionBankModule,

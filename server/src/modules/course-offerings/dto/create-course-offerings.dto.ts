@@ -6,12 +6,12 @@ export class CreateCourseOfferingDto {
   courses_id: string;
 
   @IsInt()
-  @IsNotEmpty()
-  academic_year: number;
+  @IsOptional()
+  academic_year?: number;
 
   @IsInt()
-  @IsNotEmpty()
-  semester: number;
+  @IsOptional()
+  semester?: number;
 
   @IsBoolean()
   @IsOptional()

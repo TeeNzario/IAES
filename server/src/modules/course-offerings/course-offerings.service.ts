@@ -25,6 +25,7 @@ import { Prisma } from 'src/generated/prisma/client';
 import { hashPassword } from '../../lib/password';
 import type { RequestUser } from 'src/auth/types/jwt-payload.type';
 import { AuditActor, AuditService } from '../audit/audit.service';
+import { AcademicSettingsService } from '../academic-settings/academic-settings.service';
 
 const THAI_NAME_REGEX = /^[ก-๙\s]+$/;
 const STUDENT_CODE_REGEX = /^\d{8}$/;
@@ -85,6 +86,7 @@ export class CourseOfferingsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly academicSettings: AcademicSettingsService,
   ) {}
 
   private async assertInstructorForOffering(
@@ -147,6 +149,14 @@ export class CourseOfferingsService {
   }
 
   async create(dto: CreateCourseOfferingDto, creatorId: string) {
+    const currentTerm = await (
+      dto.academic_year === undefined || dto.semester === undefined
+        ? this.academicSettings.getCurrentTerm()
+        : Promise.resolve(null)
+    );
+    const academicYear = dto.academic_year ?? currentTerm!.academic_year;
+    const semester = dto.semester ?? currentTerm!.semester;
+
     // Prepend creator ID to instructor list (creator is always first)
     const allInstructorIds = [
       BigInt(creatorId),
@@ -168,8 +178,8 @@ export class CourseOfferingsService {
                 courses_id: courseId,
               },
             },
-            academic_year: dto.academic_year,
-            semester: dto.semester,
+            academic_year: academicYear,
+            semester,
             ...(dto.is_active !== undefined ? { is_active: dto.is_active } : {}),
           },
         });

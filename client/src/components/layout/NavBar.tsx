@@ -14,6 +14,7 @@ import {
   LogOut,
   Users,
   UserRound,
+  CalendarDays,
 } from "lucide-react";
 import { AuthUser, getUser, clearAuth } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
@@ -175,6 +176,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
 
   // Derive active state for admin menu
   const isManageUsersActive = pathname === "/admin/manage-users";
+  const isAcademicSettingsActive = pathname === "/admin/academic-settings";
 
   const getDisplayName = () => {
     if (!user) return "เข้าสู่ระบบ";
@@ -278,16 +280,29 @@ const NavBar = ({ children }: PageLayoutProps) => {
 
           {/* ADMIN-only menu: Show only "จัดการผู้ใช้" */}
           {isAdmin ? (
-            <button
-              onClick={() => router.push("/admin/manage-users")}
-              className={getMenuButtonStyle(isManageUsersActive)}
-              aria-label="จัดการผู้ใช้"
-            >
-              <Users size={22} />
-              {isSidebarOpen && (
-                <span className="font-medium">จัดการผู้ใช้</span>
-              )}
-            </button>
+            <>
+              <button
+                onClick={() => router.push("/admin/manage-users")}
+                className={getMenuButtonStyle(isManageUsersActive)}
+                aria-label="จัดการผู้ใช้"
+              >
+                <Users size={22} />
+                {isSidebarOpen && (
+                  <span className="font-medium">จัดการผู้ใช้</span>
+                )}
+              </button>
+
+              <button
+                onClick={() => router.push("/admin/academic-settings")}
+                className={getMenuButtonStyle(isAcademicSettingsActive)}
+                aria-label="กำหนดปีและเทอม"
+              >
+                <CalendarDays size={22} />
+                {isSidebarOpen && (
+                  <span className="font-medium">กำหนดปีและเทอม</span>
+                )}
+              </button>
+            </>
           ) : (
             /* Non-ADMIN menus */
             <>

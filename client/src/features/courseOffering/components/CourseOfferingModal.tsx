@@ -7,6 +7,11 @@ import { formatInstructorName } from "@/utils/formatName";
 import { Instructor } from "@/types/staff";
 import { useRouter } from "next/navigation";
 import { toBuddhistYear } from "@/utils/academicYear";
+import {
+  AcademicSettings,
+  buildAcademicYearOptions,
+  getCurrentAcademicSettings,
+} from "@/features/academicSettings/academicSettings.api";
 
 interface CourseOfferingModalProps {
   isOpen: boolean;
@@ -27,6 +32,8 @@ export default function CourseOfferingModal({
   const [academicYear, setAcademicYear] = useState(String(new Date().getFullYear()));
   const [semester, setSemester] = useState("1");
   const [status, setStatus] = useState("เปิดใช้งาน");
+  const [academicSettings, setAcademicSettings] =
+    useState<AcademicSettings | null>(null);
 
   // Instructor state
   const [creatorInstructor, setCreatorInstructor] = useState<Instructor | null>(
@@ -40,13 +47,10 @@ export default function CourseOfferingModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Generate academic years: current year ±1 (Buddhist year)
-  const currentYear = new Date().getFullYear();
-  const academicYears = [
-    String(currentYear - 1),
-    String(currentYear),
-    String(currentYear + 1),
-  ];
+  const academicYears = buildAcademicYearOptions(
+    academicSettings?.academic_year,
+    Number(academicYear),
+  );
   const semesters = ["1", "2", "3"];
   const statuses = ["เปิดใช้งาน", "ปิดใช้งาน"];
 
@@ -61,13 +65,17 @@ export default function CourseOfferingModal({
       setIsLoading(true);
       setError(null);
       try {
-        const [me, instructors] = await Promise.all([
+        const [me, instructors, settings] = await Promise.all([
           apiFetch<Instructor>("/staff/me"),
           apiFetch<Instructor[]>("/staff/instructors"),
+          getCurrentAcademicSettings(),
         ]);
         if (isMounted) {
           setCreatorInstructor(me);
           setAllInstructors(instructors);
+          setAcademicSettings(settings);
+          setAcademicYear(String(settings.academic_year));
+          setSemester(String(settings.semester));
         }
       } catch {
         if (isMounted) setError("ไม่สามารถโหลดข้อมูลอาจารย์ได้");
@@ -115,8 +123,10 @@ export default function CourseOfferingModal({
 
   // Reset form state
   const resetForm = () => {
-    setAcademicYear("2025");
-    setSemester("1");
+    setAcademicYear(
+      String(academicSettings?.academic_year ?? new Date().getFullYear()),
+    );
+    setSemester(String(academicSettings?.semester ?? 1));
     setStatus("เปิดใช้งาน");
     setAdditionalSlots([]);
     setError(null);
