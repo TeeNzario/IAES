@@ -319,14 +319,6 @@ const NavBar = ({ children }: PageLayoutProps) => {
                 )}
               </button>
 
-              <button
-                onClick={() => router.push("/results")}
-                className={getSideMenuStyle(isResultsActive)}
-                aria-label="ผลสรุปการสอบ"
-              >
-                <BookOpen size={22} />
-                {isSidebarOpen && <span>ผลสรุปการสอบ</span>}
-              </button>
             </>
           ) : (
             /* Non-ADMIN menus */
