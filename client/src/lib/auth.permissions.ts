@@ -69,6 +69,9 @@ export const ROUTE_RULES: RouteRule[] = [
   // /exam-management — INSTRUCTOR only
   { prefix: "/exam-management", allowedRoles: ["INSTRUCTOR"] },
 
+  // /exam-bank — INSTRUCTOR only
+  { prefix: "/exam-bank", allowedRoles: ["INSTRUCTOR"] },
+
   // /course/[offeringId] and children — INSTRUCTOR + students
   { prefix: "/course/", allowedRoles: ["INSTRUCTOR"], allowNoRole: true },
 ];
