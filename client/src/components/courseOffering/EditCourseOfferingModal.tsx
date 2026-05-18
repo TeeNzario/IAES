@@ -34,7 +34,6 @@ export default function EditCourseOfferingModal({
   const academicYears = buildAcademicYearOptions(
     academicSettings?.academic_year,
     courseOffering.academic_year,
-    Number(courseOffering.academic_year),
   );
   const semesters = ["1", "2", "3"];
   const statuses = ["Active", "Inactive"];

@@ -149,11 +149,10 @@ export class CourseOfferingsService {
   }
 
   async create(dto: CreateCourseOfferingDto, creatorId: string) {
-    const currentTerm = await (
-      dto.academic_year === undefined || dto.semester === undefined
-        ? this.academicSettings.getCurrentTerm()
-        : Promise.resolve(null)
-    );
+    const currentTerm =
+      dto.academic_year == null || dto.semester == null
+        ? await this.academicSettings.getCurrentTerm()
+        : null;
     const academicYear = dto.academic_year ?? currentTerm!.academic_year;
     const semester = dto.semester ?? currentTerm!.semester;
 

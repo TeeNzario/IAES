@@ -98,7 +98,7 @@ export class QuestionBankService {
   ) {
     const coursesId = await this.resolveCourseAndAuthorize(offeringId, actor);
     const currentTerm =
-      dto.academic_year === undefined
+      dto.academic_year == null
         ? await this.academicSettings.getCurrentTerm()
         : null;
     const academicYear = dto.academic_year ?? currentTerm!.academic_year;
