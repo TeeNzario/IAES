@@ -234,9 +234,19 @@ export default function ManageUserPage() {
 
   // Fetch current user on mount
   useEffect(() => {
+    let cancelled = false;
+
     apiFetch<AuthUser>("/auth/me")
-      .then((user) => setCurrentUser(user))
-      .catch(() => setAuthError(true));
+      .then((user) => {
+        if (!cancelled) setCurrentUser(user);
+      })
+      .catch(() => {
+        if (!cancelled) setAuthError(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Fetch users based on role filter
