@@ -38,6 +38,8 @@ const ROUTE_RULES: RouteRule[] = [
   { path: "/", allowedRoles: ["INSTRUCTOR"], allowNoRole: true },
   // /course (exact list page) — INSTRUCTOR only
   { path: "/course", allowedRoles: ["INSTRUCTOR"] },
+  // /exam-management — INSTRUCTOR only
+  { prefix: "/exam-management", allowedRoles: ["INSTRUCTOR"] },
   // /course/[offeringId] and children — INSTRUCTOR + students
   { prefix: "/course/", allowedRoles: ["INSTRUCTOR"], allowNoRole: true },
 ];

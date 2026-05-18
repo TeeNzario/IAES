@@ -8,6 +8,7 @@ import {
   Home,
   FileText,
   BookOpen,
+  ClipboardList,
   ChevronDown,
   Settings,
   Database,
@@ -103,6 +104,7 @@ const NavBar = ({ children }: PageLayoutProps) => {
   const isCourseSectionActive = pathname.startsWith("/course/");
   const isResultsActive = pathname.startsWith("/results");
   const isExamBankActive = pathname.startsWith("/exam-bank");
+  const isExamManagementRouteActive = pathname.startsWith("/exam-management");
 
   // Get active course offering ID from path
   const activeCourseOfferingId = isCourseSectionActive
@@ -121,20 +123,16 @@ const NavBar = ({ children }: PageLayoutProps) => {
 
   // Fetch courses for the logged-in user
   useEffect(() => {
-    if (!user) return;
-    const userType = user.type;
+    if (!user || user.type !== "STUDENT") return;
 
     async function fetchCourses() {
       setLoadingCourses(true);
       setCoursesError(false);
       setCourses([]);
       try {
-        const endpoint =
-          userType === "STAFF"
-            ? "/course-offerings"
-            : "/students/me/enrollments";
-
-        const courses = await apiFetch<CourseOffering[]>(endpoint);
+        const courses = await apiFetch<CourseOffering[]>(
+          "/students/me/enrollments",
+        );
         setCourses(courses);
       } catch (err) {
         console.error("[NavBar] Failed to fetch courses:", err);
@@ -176,7 +174,9 @@ const NavBar = ({ children }: PageLayoutProps) => {
   const isInstructor =
     user?.type === "STAFF" && user?.staff_role === "INSTRUCTOR";
   const isAdmin = user?.type === "STAFF" && user?.staff_role === "ADMIN";
-  const courseMenuLabel = isInstructor ? "จัดการสอบ" : "รายวิชา";
+  const isStudent = user?.type === "STUDENT";
+  const isExamManagementActive =
+    isExamManagementRouteActive || (isInstructor && isCourseSectionActive);
 
   // Derive active state for admin menu
   const isManageUsersActive = pathname === "/admin/manage-users";
@@ -346,82 +346,95 @@ const NavBar = ({ children }: PageLayoutProps) => {
                     <Database size={22} />
                     {isSidebarOpen && <span>คลังข้อสอบ</span>}
                   </button>
+
+                  <button
+                    onClick={() => router.push("/exam-management")}
+                    className={getSideMenuStyle(isExamManagementActive)}
+                    aria-label="จัดการสอบ"
+                  >
+                    <ClipboardList size={22} />
+                    {isSidebarOpen && <span>จัดการสอบ</span>}
+                  </button>
                 </>
               )}
 
               {/* Courses Section */}
-              <div className="mb-3">
-                <button
-                  onClick={() => setIsCoursesExpanded(!isCoursesExpanded)}
-                  className={`w-full flex items-center text-base font-medium ${
-                    isSidebarOpen
-                      ? "justify-between px-4 py-3.5"
-                      : "h-12 justify-center p-0"
-                  } ${
-                    isCourseSectionActive
-                      ? "bg-[#B7A3E3]/80 text-white"
-                      : "text-[#575757] hover:bg-gray-100"
-                  } rounded-xl transition-colors cursor-pointer`}
-                  aria-label={courseMenuLabel}
-                  aria-expanded={isCoursesExpanded}
-                >
-                  <div className="flex items-center gap-3">
-                    <FileText size={22} />
-                    {isSidebarOpen && <span>{courseMenuLabel}</span>}
-                  </div>
-                  {isSidebarOpen && (
-                    <ChevronDown
-                      size={18}
-                      className={`transition-transform ${isCoursesExpanded ? "rotate-180" : ""}`}
-                    />
-                  )}
-                </button>
-
-                {/* Course List */}
-                {isCoursesExpanded && isSidebarOpen && (
-                  <div className="ml-4 mt-2 space-y-1">
-                    {loadingCourses ? (
-                      <div className="px-4 py-2 text-sm font-medium text-gray-400">
-                        กำลังโหลด...
-                      </div>
-                    ) : coursesError ? (
-                      <div className="px-4 py-2 text-sm font-medium text-red-500">
-                        โหลดรายวิชาไม่สำเร็จ
-                      </div>
-                    ) : courses.length === 0 ? (
-                      <div className="px-4 py-2 text-sm font-medium text-gray-400">
-                        ไม่มีรายวิชา
-                      </div>
-                    ) : (
-                      courses.map((course) => (
-                        <button
-                          key={course.course_offerings_id}
-                          onClick={() =>
-                            router.push(`/course/${course.course_offerings_id}`)
-                          }
-                          className={getCourseItemStyle(
-                            course.course_offerings_id,
-                          )}
-                        >
-                          <span className="block text-base font-semibold">
-                            {course.courses.course_code}
-                          </span>
-                          <span
-                            className={`mt-1 block truncate text-sm font-medium ${
-                              activeCourseOfferingId ===
-                              course.course_offerings_id
-                                ? "text-white/80"
-                                : "text-gray-400 group-hover:text-white/80"
-                            }`}
-                          >
-                            {formatCourseName(course.courses)}
-                          </span>
-                        </button>
-                      ))
+              {isStudent && (
+                <div className="mb-3">
+                  <button
+                    onClick={() => setIsCoursesExpanded(!isCoursesExpanded)}
+                    className={`w-full flex items-center text-base font-medium ${
+                      isSidebarOpen
+                        ? "justify-between px-4 py-3.5"
+                        : "h-12 justify-center p-0"
+                    } ${
+                      isCourseSectionActive
+                        ? "bg-[#B7A3E3]/80 text-white"
+                        : "text-[#575757] hover:bg-gray-100"
+                    } rounded-xl transition-colors cursor-pointer`}
+                    aria-label="รายวิชา"
+                    aria-expanded={isCoursesExpanded}
+                  >
+                    <div className="flex items-center gap-3">
+                      <FileText size={22} />
+                      {isSidebarOpen && <span>รายวิชา</span>}
+                    </div>
+                    {isSidebarOpen && (
+                      <ChevronDown
+                        size={18}
+                        className={`transition-transform ${isCoursesExpanded ? "rotate-180" : ""}`}
+                      />
                     )}
-                  </div>
-                )}
-              </div>
+                  </button>
+
+                  {/* Course List */}
+                  {isCoursesExpanded && isSidebarOpen && (
+                    <div className="ml-4 mt-2 space-y-1">
+                      {loadingCourses ? (
+                        <div className="px-4 py-2 text-sm font-medium text-gray-400">
+                          กำลังโหลด...
+                        </div>
+                      ) : coursesError ? (
+                        <div className="px-4 py-2 text-sm font-medium text-red-500">
+                          โหลดรายวิชาไม่สำเร็จ
+                        </div>
+                      ) : courses.length === 0 ? (
+                        <div className="px-4 py-2 text-sm font-medium text-gray-400">
+                          ไม่มีรายวิชา
+                        </div>
+                      ) : (
+                        courses.map((course) => (
+                          <button
+                            key={course.course_offerings_id}
+                            onClick={() =>
+                              router.push(
+                                `/course/${course.course_offerings_id}`,
+                              )
+                            }
+                            className={getCourseItemStyle(
+                              course.course_offerings_id,
+                            )}
+                          >
+                            <span className="block text-base font-semibold">
+                              {course.courses.course_code}
+                            </span>
+                            <span
+                              className={`mt-1 block truncate text-sm font-medium ${
+                                activeCourseOfferingId ===
+                                course.course_offerings_id
+                                  ? "text-white/80"
+                                  : "text-gray-400 group-hover:text-white/80"
+                              }`}
+                            >
+                              {formatCourseName(course.courses)}
+                            </span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Results Section - Available to all, kept as the final menu item */}
               <button
