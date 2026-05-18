@@ -104,7 +104,7 @@ const LoginPage = () => {
     try {
       const payload: LoginDto = {
         identifier: trimmedIdentifier,
-        password,
+        password: password.trim(),
       };
       const res = await login(payload);
 
