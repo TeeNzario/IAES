@@ -10,6 +10,10 @@ import {
   MinLength,
 } from 'class-validator';
 import { FIELD_LENGTHS, maxLengthMessage } from 'src/lib/field-lengths';
+import {
+  IsCanonicalCurriculumId,
+  IsKnownFacultyCode,
+} from 'src/lib/academic-program-validation';
 
 export class CreateStudentDto {
   @IsString()
@@ -35,10 +39,14 @@ export class CreateStudentDto {
   @Type(() => Number)
   @IsInt()
   @IsNotEmpty()
+  @IsKnownFacultyCode({
+    message: 'รหัสสำนักวิชาไม่ถูกต้อง กรุณาใช้รหัส 1-18',
+  })
   facultyCode: number;
 
   @IsString()
   @IsNotEmpty()
+  @Matches(/^[ก-๙\s]+$/, { message: 'ชื่อต้องเป็นภาษาไทยเท่านั้น' })
   @MaxLength(FIELD_LENGTHS.firstName, {
     message: maxLengthMessage('ชื่อ', FIELD_LENGTHS.firstName),
   })
@@ -46,6 +54,7 @@ export class CreateStudentDto {
 
   @IsString()
   @IsNotEmpty()
+  @Matches(/^[ก-๙\s]+$/, { message: 'นามสกุลต้องเป็นภาษาไทยเท่านั้น' })
   @MaxLength(FIELD_LENGTHS.lastName, {
     message: maxLengthMessage('นามสกุล', FIELD_LENGTHS.lastName),
   })
@@ -60,6 +69,9 @@ export class CreateStudentDto {
 
   @IsString()
   @IsOptional()
+  @IsCanonicalCurriculumId({
+    message: 'รหัสหลักสูตรไม่ถูกต้อง กรุณาใช้รหัส CUR001-CUR069',
+  })
   @MaxLength(FIELD_LENGTHS.curriculumId, {
     message: maxLengthMessage('รหัสหลักสูตร', FIELD_LENGTHS.curriculumId),
   })

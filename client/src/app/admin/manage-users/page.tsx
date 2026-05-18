@@ -47,10 +47,12 @@ const ERROR_MESSAGES = {
   firstName: {
     required: "กรุณากรอกชื่อ",
     maxLength: `ชื่อต้องไม่เกิน ${USER_VALIDATION_CONFIG.firstName.max} ตัวอักษร`,
+    invalidLanguage: "ชื่อต้องเป็นภาษาไทยเท่านั้น",
   },
   lastName: {
     required: "กรุณากรอกนามสกุล",
     maxLength: `นามสกุลต้องไม่เกิน ${USER_VALIDATION_CONFIG.lastName.max} ตัวอักษร`,
+    invalidLanguage: "นามสกุลต้องเป็นภาษาไทยเท่านั้น",
   },
   email: {
     required: "กรุณากรอกอีเมล",
@@ -168,6 +170,7 @@ function getStudentCohort(user: User) {
 
 // Email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const THAI_NAME_REGEX = /^[ก-๙\s]+$/;
 
 
 export default function ManageUserPage() {
@@ -442,12 +445,16 @@ export default function ManageUserPage() {
       errors.first_name = ERROR_MESSAGES.firstName.required;
     } else if (editFirstName.length > USER_VALIDATION_CONFIG.firstName.max) {
       errors.first_name = ERROR_MESSAGES.firstName.maxLength;
+    } else if (!THAI_NAME_REGEX.test(editFirstName.trim())) {
+      errors.first_name = ERROR_MESSAGES.firstName.invalidLanguage;
     }
 
     if (!editLastName.trim()) {
       errors.last_name = ERROR_MESSAGES.lastName.required;
     } else if (editLastName.length > USER_VALIDATION_CONFIG.lastName.max) {
       errors.last_name = ERROR_MESSAGES.lastName.maxLength;
+    } else if (!THAI_NAME_REGEX.test(editLastName.trim())) {
+      errors.last_name = ERROR_MESSAGES.lastName.invalidLanguage;
     }
 
     const isChangingPassword = editPassword.length > 0 || editConfirmPassword.length > 0;
@@ -586,6 +593,8 @@ export default function ManageUserPage() {
       errors.first_name = ERROR_MESSAGES.firstName.required;
     } else if (createFirstName.length > USER_VALIDATION_CONFIG.firstName.max) {
       errors.first_name = ERROR_MESSAGES.firstName.maxLength;
+    } else if (!THAI_NAME_REGEX.test(createFirstName.trim())) {
+      errors.first_name = ERROR_MESSAGES.firstName.invalidLanguage;
     }
 
     // Last name
@@ -593,6 +602,8 @@ export default function ManageUserPage() {
       errors.last_name = ERROR_MESSAGES.lastName.required;
     } else if (createLastName.length > USER_VALIDATION_CONFIG.lastName.max) {
       errors.last_name = ERROR_MESSAGES.lastName.maxLength;
+    } else if (!THAI_NAME_REGEX.test(createLastName.trim())) {
+      errors.last_name = ERROR_MESSAGES.lastName.invalidLanguage;
     }
 
 
@@ -709,12 +720,16 @@ export default function ManageUserPage() {
       studentFirstName.length > USER_VALIDATION_CONFIG.firstName.max
     ) {
       errors.first_name = ERROR_MESSAGES.firstName.maxLength;
+    } else if (!THAI_NAME_REGEX.test(studentFirstName.trim())) {
+      errors.first_name = ERROR_MESSAGES.firstName.invalidLanguage;
     }
 
     if (!studentLastName.trim()) {
       errors.last_name = ERROR_MESSAGES.lastName.required;
     } else if (studentLastName.length > USER_VALIDATION_CONFIG.lastName.max) {
       errors.last_name = ERROR_MESSAGES.lastName.maxLength;
+    } else if (!THAI_NAME_REGEX.test(studentLastName.trim())) {
+      errors.last_name = ERROR_MESSAGES.lastName.invalidLanguage;
     }
 
     if (!studentEmail.trim()) {

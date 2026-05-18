@@ -32,6 +32,7 @@ export class BulkEnrollStudentRowDto {
 
   @IsString()
   @IsNotEmpty()
+  @Matches(/^[ก-๙\s]+$/, { message: 'ชื่อต้องเป็นภาษาไทยเท่านั้น' })
   @MaxLength(FIELD_LENGTHS.firstName, {
     message: maxLengthMessage('ชื่อ', FIELD_LENGTHS.firstName),
   })
@@ -39,6 +40,7 @@ export class BulkEnrollStudentRowDto {
 
   @IsString()
   @IsNotEmpty()
+  @Matches(/^[ก-๙\s]+$/, { message: 'นามสกุลต้องเป็นภาษาไทยเท่านั้น' })
   @MaxLength(FIELD_LENGTHS.lastName, {
     message: maxLengthMessage('นามสกุล', FIELD_LENGTHS.lastName),
   })
