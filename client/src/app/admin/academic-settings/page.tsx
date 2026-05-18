@@ -105,10 +105,10 @@ export default function AcademicSettingsPage() {
                 <p className="text-sm font-semibold leading-6 text-[#7C5BD9]">
                   ผู้ดูแลระบบ
                 </p>
-                <h1 className="mt-2 text-2xl font-semibold leading-[1.35] text-[#2F2A3A] sm:text-3xl">
+                <h1 className="mt-1 text-2xl font-semibold text-[#2F2A3A] sm:text-3xl">
                   กำหนดปีและเทอม
                 </h1>
-                <p className="mt-3 max-w-2xl text-sm font-normal leading-6 text-[#7A7287]">
+                <p className="mt-2 max-w-2xl text-sm font-normal leading-6 text-[#7A7287]">
                   กำหนดปีการศึกษาและภาคการศึกษาปัจจุบันที่ระบบใช้ร่วมกัน
                 </p>
               </div>
