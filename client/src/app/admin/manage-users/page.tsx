@@ -86,6 +86,7 @@ interface FormErrors {
   email?: string;
   password?: string;
   confirmPassword?: string;
+  general?: string;
 }
 
 interface StudentUserResponse {
@@ -165,9 +166,8 @@ function getStudentCohort(user: User) {
   return user.id.match(/^\d{2}/)?.[0] ?? "";
 }
 
-// Email and Name validation regex pattern
+// Email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const NAME_REGEX = /^[ก-๙\s]+$/;
 
 
 export default function ManageUserPage() {
@@ -432,16 +432,12 @@ export default function ManageUserPage() {
       errors.first_name = ERROR_MESSAGES.firstName.required;
     } else if (editFirstName.length > USER_VALIDATION_CONFIG.firstName.max) {
       errors.first_name = ERROR_MESSAGES.firstName.maxLength;
-    } else if (!NAME_REGEX.test(editFirstName.trim())) {
-      errors.first_name = "ชื่อต้องเป็นภาษาไทยเท่านั้น";
     }
 
     if (!editLastName.trim()) {
       errors.last_name = ERROR_MESSAGES.lastName.required;
     } else if (editLastName.length > USER_VALIDATION_CONFIG.lastName.max) {
       errors.last_name = ERROR_MESSAGES.lastName.maxLength;
-    } else if (!NAME_REGEX.test(editLastName.trim())) {
-      errors.last_name = "นามสกุลต้องเป็นภาษาไทยเท่านั้น";
     }
 
     const isChangingPassword = editPassword.length > 0 || editConfirmPassword.length > 0;
@@ -537,8 +533,15 @@ export default function ManageUserPage() {
     } catch (error: unknown) {
       if (getApiStatus(error) === 409) {
         setEditErrors((p) => ({ ...p, email: ERROR_MESSAGES.email.duplicate }));
+      } else {
+        const msg =
+          (error as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message;
+        const fallback = "เกิดข้อผิดพลาดในการบันทึก";
+        setEditErrors((p) => ({
+          ...p,
+          general: Array.isArray(msg) ? (msg.length ? msg.join(", ") : fallback) : (msg as string) || fallback,
+        }));
       }
-      console.error("Error updating user on server:", error);
     } finally {
       setIsSaving(false);
     }
@@ -573,8 +576,6 @@ export default function ManageUserPage() {
       errors.first_name = ERROR_MESSAGES.firstName.required;
     } else if (createFirstName.length > USER_VALIDATION_CONFIG.firstName.max) {
       errors.first_name = ERROR_MESSAGES.firstName.maxLength;
-    } else if (!NAME_REGEX.test(createFirstName.trim())) {
-      errors.first_name = "ชื่อต้องเป็นภาษาไทยเท่านั้น";
     }
 
     // Last name
@@ -582,8 +583,6 @@ export default function ManageUserPage() {
       errors.last_name = ERROR_MESSAGES.lastName.required;
     } else if (createLastName.length > USER_VALIDATION_CONFIG.lastName.max) {
       errors.last_name = ERROR_MESSAGES.lastName.maxLength;
-    } else if (!NAME_REGEX.test(createLastName.trim())) {
-      errors.last_name = "นามสกุลต้องเป็นภาษาไทยเท่านั้น";
     }
 
 
@@ -652,7 +651,13 @@ export default function ManageUserPage() {
       if (getApiStatus(error) === 409) {
         setCreateErrors((p) => ({ ...p, email: ERROR_MESSAGES.email.duplicate }));
       } else {
-        console.error("Error creating staff:", error);
+        const msg =
+          (error as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message;
+        const fallback = "เกิดข้อผิดพลาดในการสร้างผู้ใช้";
+        setCreateErrors((p) => ({
+          ...p,
+          general: Array.isArray(msg) ? (msg.length ? msg.join(", ") : fallback) : (msg as string) || fallback,
+        }));
       }
     } finally {
       setIsCreating(false);
@@ -694,16 +699,12 @@ export default function ManageUserPage() {
       studentFirstName.length > USER_VALIDATION_CONFIG.firstName.max
     ) {
       errors.first_name = ERROR_MESSAGES.firstName.maxLength;
-    } else if (!NAME_REGEX.test(studentFirstName.trim())) {
-      errors.first_name = "ชื่อต้องเป็นภาษาไทยเท่านั้น";
     }
 
     if (!studentLastName.trim()) {
       errors.last_name = ERROR_MESSAGES.lastName.required;
     } else if (studentLastName.length > USER_VALIDATION_CONFIG.lastName.max) {
       errors.last_name = ERROR_MESSAGES.lastName.maxLength;
-    } else if (!NAME_REGEX.test(studentLastName.trim())) {
-      errors.last_name = "นามสกุลต้องเป็นภาษาไทยเท่านั้น";
     }
 
     if (!studentEmail.trim()) {
@@ -766,7 +767,13 @@ export default function ManageUserPage() {
           setStudentErrors((p) => ({ ...p, student_code: "รหัสนักศึกษานี้ถูกใช้งานแล้ว" }));
         }
       } else {
-        console.error("Error creating student:", error);
+        const msg =
+          (error as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message;
+        const fallback = "เกิดข้อผิดพลาดในการสร้างนักศึกษา";
+        setStudentErrors((p) => ({
+          ...p,
+          general: Array.isArray(msg) ? (msg.length ? msg.join(", ") : fallback) : (msg as string) || fallback,
+        }));
       }
     } finally {
       setIsCreatingStudent(false);
@@ -1237,8 +1244,8 @@ export default function ManageUserPage() {
 
         {/* Edit Modal */}
         {editingUser && (
-          <div className={modalBackdropClass}>
-            <div className={modalPanelClass}>
+          <div className={modalBackdropClass} onClick={() => setEditingUser(null)}>
+            <div className={modalPanelClass} onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
                 onClick={() => setEditingUser(null)}
@@ -1255,6 +1262,12 @@ export default function ManageUserPage() {
                   แก้ไขข้อมูล{currentRoleLabel}
                 </h2>
               </div>
+
+              {editErrors.general && (
+                <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  {editErrors.general}
+                </div>
+              )}
 
               {editingUser.role === "STUDENT" && (
                 <div className={fieldGroupClass}>
@@ -1341,8 +1354,7 @@ export default function ManageUserPage() {
                     type="text"
                     value={editFirstName}
                     onChange={(e) => {
-                      const value = e.target.value.replace(/[^ก-๙\s]/g, "");
-                      setEditFirstName(value);
+                      setEditFirstName(e.target.value);
                       if (editErrors.first_name)
                         setEditErrors((p) => ({ ...p, first_name: undefined }));
                     }}
@@ -1371,8 +1383,7 @@ export default function ManageUserPage() {
                     type="text"
                     value={editLastName}
                     onChange={(e) => {
-                      const value = e.target.value.replace(/[^ก-๙\s]/g, "");
-                      setEditLastName(value);
+                      setEditLastName(e.target.value);
                       if (editErrors.last_name)
                         setEditErrors((p) => ({ ...p, last_name: undefined }));
                     }}
@@ -1555,11 +1566,30 @@ export default function ManageUserPage() {
 
         {/* Create Student Modal */}
         {showCreateStudentModal && (
-          <div className={modalBackdropClass}>
-            <div className={modalPanelClass}>
-              <h2 className="text-xl font-bold text-gray-800 mb-6">
-                เพิ่มนักศึกษา
-              </h2>
+          <div className={modalBackdropClass} onClick={() => setShowCreateStudentModal(false)}>
+            <div className={modalPanelClass} onClick={(e) => e.stopPropagation()}>
+              <button
+                type="button"
+                onClick={() => setShowCreateStudentModal(false)}
+                disabled={isCreatingStudent}
+                className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="ปิดหน้าต่างเพิ่มนักศึกษา"
+                title="ปิด"
+              >
+                <X size={18} />
+              </button>
+
+              <div className="mb-5 pr-10">
+                <h2 className="text-xl font-bold text-gray-800">
+                  เพิ่มนักศึกษา
+                </h2>
+              </div>
+
+              {studentErrors.general && (
+                <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  {studentErrors.general}
+                </div>
+              )}
 
               {/* Student Code Field */}
               <div className={fieldGroupClass}>
@@ -1630,8 +1660,7 @@ export default function ManageUserPage() {
                     type="text"
                     value={studentFirstName}
                     onChange={(e) => {
-                      const value = e.target.value.replace(/[^ก-๙\s]/g, "");
-                      setStudentFirstName(value);
+                      setStudentFirstName(e.target.value);
                       if (studentErrors.first_name)
                         setStudentErrors((p) => ({ ...p, first_name: undefined }));
                     }}
@@ -1656,8 +1685,7 @@ export default function ManageUserPage() {
                     type="text"
                     value={studentLastName}
                     onChange={(e) => {
-                      const value = e.target.value.replace(/[^ก-๙\s]/g, "");
-                      setStudentLastName(value);
+                      setStudentLastName(e.target.value);
                       if (studentErrors.last_name)
                         setStudentErrors((p) => ({ ...p, last_name: undefined }));
                     }}
@@ -1769,11 +1797,30 @@ export default function ManageUserPage() {
 
         {/* Create Staff Modal */}
         {showCreateModal && (
-          <div className={modalBackdropClass}>
-            <div className={modalPanelClass}>
-              <h2 className="text-xl font-bold text-gray-800 mb-6">
-                เพิ่ม{createRole === "INSTRUCTOR" ? "อาจารย์" : "ผู้ดูแลระบบ"}
-              </h2>
+          <div className={modalBackdropClass} onClick={() => setShowCreateModal(false)}>
+            <div className={modalPanelClass} onClick={(e) => e.stopPropagation()}>
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(false)}
+                disabled={isCreating}
+                className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="ปิดหน้าต่างเพิ่มผู้ใช้"
+                title="ปิด"
+              >
+                <X size={18} />
+              </button>
+
+              <div className="mb-5 pr-10">
+                <h2 className="text-xl font-bold text-gray-800">
+                  เพิ่ม{createRole === "INSTRUCTOR" ? "อาจารย์" : "ผู้ดูแลระบบ"}
+                </h2>
+              </div>
+
+              {createErrors.general && (
+                <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  {createErrors.general}
+                </div>
+              )}
 
               {/* Email Field */}
               <div className={fieldGroupClass}>
@@ -1846,8 +1893,7 @@ export default function ManageUserPage() {
                     type="text"
                     value={createFirstName}
                     onChange={(e) => {
-                      const value = e.target.value.replace(/[^ก-๙\s]/g, "");
-                      setCreateFirstName(value);
+                      setCreateFirstName(e.target.value);
                       if (createErrors.first_name)
                         setCreateErrors((p) => ({ ...p, first_name: undefined }));
                     }}
@@ -1877,8 +1923,7 @@ export default function ManageUserPage() {
                     type="text"
                     value={createLastName}
                     onChange={(e) => {
-                      const value = e.target.value.replace(/[^ก-๙\s]/g, "");
-                      setCreateLastName(value);
+                      setCreateLastName(e.target.value);
                       if (createErrors.last_name)
                         setCreateErrors((p) => ({ ...p, last_name: undefined }));
                     }}
