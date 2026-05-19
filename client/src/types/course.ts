@@ -22,6 +22,8 @@ export interface CourseOffering {
   is_active: boolean;
   courses: CourseInfo;
   course_instructors: CourseInstructor[];
+  completed_exam_count?: number;
+  member_delete_locked?: boolean;
   _count?: {
     course_exams: number;
   };
