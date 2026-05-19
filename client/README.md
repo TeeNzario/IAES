@@ -87,7 +87,7 @@ npm run lint
 - `clearAuth()` calls `POST /auth/logout` and clears legacy client-written cookies.
 - Middleware protects authenticated routes and checks role access from the auth cookies.
 - ADMIN users visiting `/` are redirected to `/admin/manage-users`.
-- INSTRUCTOR users can access `/course`, `/course/[offeringId]`, course members, and `/exam-bank`.
+- INSTRUCTOR users can access `/course`, `/course/[offeringId]` (including `/members` and `/history` sub-routes), and `/exam-bank`.
 - STUDENT users can access `/` and enrolled course detail pages under `/course/[offeringId]`.
 - Mistyped or unknown paths are handled by `src/app/not-found.tsx`, which offers a role-aware home action and a back action when browser history is available.
 - `src/hooks/useHomeRoute.ts` and `src/utils/homeRoute.ts` centralize the role-aware home route used by `/results` and the custom 404 page.
@@ -103,6 +103,7 @@ src/app/admin/manage-users/page.tsx           Admin staff/student management wit
 src/app/course/page.tsx                       Instructor course catalog
 src/app/course/[offeringId]/page.tsx          Course dashboard
 src/app/course/[offeringId]/members/page.tsx  Course members and CSV import
+src/app/course/[offeringId]/history/page.tsx  Exam history (student own attempts, staff aggregates)
 src/app/course/[offeringId]/exam/create       Open an exam from an exam set
 src/app/exam-bank/page.tsx                    Course picker for exam bank
 src/app/exam-bank/[offeringId]/page.tsx       Exam bank entry page
@@ -143,6 +144,7 @@ public/IAES_logo.png     Login/logo asset
 - Admin user management uses role tabs and client-side filters for faculty, curriculum, and student cohort. Student cohort options are generated from the first two digits of loaded student codes.
 - Course cards are shown in three columns on wide screens and collapse responsively.
 - Course dashboards fetch exam management data only for staff users with exam-management access.
+- The course exam history page shows per-exam attempt cards for students and a summary table with aggregate stats (attempts started, submitted, average score) for instructors.
 - The sidebar keeps "ผลสรุปการสอบ" as the final menu item.
 - `/results` intentionally shows an in-progress report dashboard state until the full summary feature is implemented.
 - Invalid routes render the custom 404 page with consistent IAES card styling and role-aware navigation.

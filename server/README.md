@@ -75,20 +75,20 @@ The Prisma client is generated to `src/generated/prisma`.
 The seed script is idempotent and creates:
 
 - 2 admin staff accounts
-- 7 instructor staff accounts, including one inactive instructor
-- 25 students, including inactive demo students
-- 13 courses and 12 course offerings
-- 20 knowledge categories mapped across courses
-- 10 question collections and 33 seeded questions
-- 10 exam sets with linked exam questions
-- Demo exam attempts and answers for result/history data
+- 17 instructor staff accounts
+- 37 students (35 active, 2 inactive)
+- 19 courses and 20 course offerings
+- 32 knowledge categories mapped across courses
+- 20 question collections and 59 seeded questions
+- 21 exam sets with linked exam questions
+- 59 demo exam attempts with 199 behavior events
 
 Demo login accounts use password `1234`:
 
 ```text
-Admin:      admin@iaes.local / 1234
-Instructor: instructor@iaes.local / 1234
-Student:    66131319 / 1234
+Admin:      admin@wu.ac.th / 1234
+Instructor: instructor@wu.ac.th / 1234
+Student:    63131101 / 1234
 ```
 
 ### Existing Database With New Migrations
@@ -165,6 +165,7 @@ http://localhost:3002
 - `BCRYPT_COST` is read from environment by `src/lib/password.ts`.
 - `@Auth()` protects authenticated routes. `@Roles('INSTRUCTOR')` and `@Roles('ADMIN')` apply to staff-only routes.
 - Course exam management under `course-offerings/:offeringId/exams` is limited to INSTRUCTOR and ADMIN staff.
+- View endpoints (course detail, exam list, exam history) use course-level authorization: INSTRUCTOR must teach any offering of the course, ADMIN bypasses. Mutation endpoints (add/remove students and instructors) use stricter offering-level authorization.
 - Sensitive actions are recorded through `AuditService` into the `audit_logs` table.
 - Student list/detail service methods use explicit selects that exclude `password_hash`.
 
@@ -253,6 +254,8 @@ src/modules/course-offerings/ Course offerings, enrollments, CSV preview
 src/modules/knowledge-categories/ Knowledge category lookup and links
 src/modules/question-bank/    Question bank years, collections, choices, tags, CSV import preview
 src/modules/course-exams/     Course exam set management
+src/modules/exam-attempts/    Exam attempts, summaries, behavior logs, IRT theta tracking
+src/modules/academic-settings/ Academic year/semester configuration
 src/prisma/                   Prisma service module
 src/generated/prisma/         Generated Prisma client
 prisma/schema.prisma          Database schema

@@ -7,9 +7,10 @@ IAES (Intelligent Adaptive Examination System) is a web application for adaptive
 - Role-aware course home for instructors and students
 - Manage staff users, students, courses, course offerings, and enrollments
 - Admin user management supports role tabs plus faculty, curriculum, and student cohort filtering; student cohorts are derived from the first two digits of student codes.
-- Import students through CSV preview and confirm workflow
+- Import students through CSV preview and confirm workflow with password support for new accounts
 - Manage course members, instructors, question banks, knowledge categories, exam sets, and attempts
 - Import question bank data through CSV preview, row review/edit, and confirm workflow
+- Exam history page: students review their own attempts and scores; instructors see aggregate class summaries
 - JWT authentication with httpOnly cookies
 - Role-based access for ADMIN, INSTRUCTOR, and STUDENT users
 - Shared navigation includes a profile menu with an initials-based avatar fallback for accounts without profile images.
@@ -82,7 +83,7 @@ cd server
 npm run seed
 ```
 
-The seed is idempotent. It currently creates 2 admin accounts, 7 instructor accounts, 25 students, 13 courses, 12 course offerings, 20 knowledge categories, 10 question collections, 33 questions, 10 exam sets, and demo exam attempts.
+The seed is idempotent. It currently creates 2 admin accounts, 17 instructor accounts, 37 students, 19 courses, 20 course offerings, 32 knowledge categories, 20 question collections, 59 questions, 21 exam sets, and 59 demo exam attempts with 199 behavior events.
 
 6. Run backend and frontend together from the repository root.
 
@@ -102,9 +103,9 @@ Backend:  http://localhost:3002
 The seed script creates these demo accounts with password `1234`:
 
 ```text
-Admin:      admin@iaes.local / 1234
-Instructor: instructor@iaes.local / 1234
-Student:    66131319 / 1234
+Admin:      admin@wu.ac.th / 1234
+Instructor: instructor@wu.ac.th / 1234
+Student:    63131101 / 1234
 ```
 
 Use the unified login page at `http://localhost:3000/login`. The form accepts either an 8-digit student code or a staff email.
@@ -118,6 +119,7 @@ Use the unified login page at `http://localhost:3000/login`. The form accepts ei
 /course                        Instructor course catalog and course setup
 /course/[offeringId]           Course dashboard
 /course/[offeringId]/members   Course member and CSV enrollment management
+/course/[offeringId]/history   Exam history (student: own attempts; instructor: class aggregate)
 /course/[offeringId]/exam/create
                                Open an exam from an existing exam set
 /exam-bank                     Instructor course picker for question bank work
@@ -187,8 +189,11 @@ Important Prisma areas include:
 - `question_bank_years` and `question_collections` for organizing question sets by academic year and collection
 - `course_exams` and `exam_questions` for reusable exam sets
 - `exam_attempts`, `attempt_items`, and `attempt_answers` for exam history and result data
+- `exam_behavior_logs` for proctoring event tracking
+- `exam_theta_tracking` for IRT ability estimate snapshots
 - `import_preview_sessions` and `import_preview_rows` for student CSV enrollment preview
-- `question_import_sessions` and `question_import_rows` for question bank CSV preview
+- `question_import_sessions` and `question_import_rows` for question bank CSV import preview
+- `academic_settings` for configurable academic year and semester
 
 ## Security And Auth Notes
 
@@ -199,6 +204,7 @@ Important Prisma areas include:
 - Next.js middleware reads `access_token` and `user` cookies to protect routes and enforce role access.
 - ADMIN users can access admin pages. INSTRUCTOR users can access course management, course dashboards, course members, and exam bank pages. STUDENT users can access the role-aware home and enrolled course dashboards.
 - Course exam management endpoints are staff-only; the course dashboard avoids calling them for students.
+- View endpoints (course detail, exam list, exam history) use course-level staff authorization. Mutation endpoints use offering-level authorization.
 - Password changes update `password_changed_at`; older JWTs are rejected after a password change.
 - Student API responses use explicit selects so `password_hash` is not returned by list/detail endpoints.
 - Audit logs are written to `audit_logs` for sensitive user and enrollment actions.

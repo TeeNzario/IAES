@@ -118,6 +118,8 @@ The server is a modular NestJS 11 application wired through `server/src/app.modu
 - `server/src/modules/knowledge-categories/` - knowledge category links
 - `server/src/modules/question-bank/` - question bank years, collections, choices, knowledge tagging, CSV import preview
 - `server/src/modules/course-exams/` - exam set creation and management
+- `server/src/modules/exam-attempts/` - exam attempts, attempt items, summaries, behavior logging, IRT theta tracking
+- `server/src/modules/academic-settings/` - academic year/semester configuration
 - `server/src/prisma/` - global Prisma service provider
 - `server/src/lib/password.ts` - bcrypt hashing, verification, and `BCRYPT_COST`
 
@@ -129,6 +131,7 @@ Key backend patterns:
 - `POST /auth/login` is the unified login endpoint and accepts a staff email or an 8-digit student code through `identifier`.
 - JWTs are accepted from Bearer tokens or the httpOnly `access_token` cookie.
 - `course-offerings/:offeringId/exams` routes are staff-only and require INSTRUCTOR or ADMIN.
+- View endpoints (course detail, exam list, exam history) use course-level authorization: INSTRUCTOR must teach any offering of the course; ADMIN bypasses. Mutation endpoints (add/remove students and instructors) use offering-level authorization.
 - Password changes update `password_changed_at`; tokens issued before that timestamp are rejected.
 - Sensitive changes write audit records through `AuditService`.
 - Student list/detail responses must keep using explicit selects that exclude `password_hash`.
@@ -147,6 +150,7 @@ Key backend patterns:
 - `/admin/manage-users` is ADMIN-only and manages students, instructors, and admins. The list uses role tabs and client-side filters for faculty, curriculum, and student cohort; cohort options are derived from the first two digits of loaded student codes.
 - `/course` is the instructor course catalog/management page.
 - `/course/[offeringId]` and `/course/[offeringId]/members` are course dashboard/member pages.
+- `/course/[offeringId]/history` is the exam history page; students see their own attempts with scores, instructors see aggregate summaries per exam.
 - `/course/[offeringId]/exam/create` opens an exam from an existing exam set.
 - `/exam-bank` and nested exam-bank pages are instructor workflows for questions and exam sets.
 - `/results` is intentionally an in-progress report dashboard placeholder until full result summaries are implemented.
@@ -157,12 +161,15 @@ Key backend patterns:
 Important Prisma models include:
 
 - `audit_logs` - audit trail for sensitive actions
+- `academic_settings` - academic year and semester configuration
 - `staff_users` - staff accounts with ADMIN or INSTRUCTOR role
 - `students` and `student_directory` - student auth records and directory records
 - `courses`, `course_offerings`, `course_enrollments`, `course_instructors` - course management
 - `question_bank`, `question_choices`, `knowledge_categories`, `question_knowledge`, `course_knowledge` - question bank and tagging
 - `course_exams`, `exam_questions`, `exam_attempts`, `attempt_items`, `attempt_answers` - exam and attempt tracking
-- `import_preview_sessions`, `import_preview_rows` - CSV import preview workflow
+- `exam_behavior_logs` - browser tab switches, fullscreen exits, and other proctoring events
+- `exam_theta_tracking` - IRT ability estimate snapshots during adaptive exams
+- `import_preview_sessions`, `import_preview_rows` - CSV import preview workflow (rows now include `password_hash` for student account creation)
 - `question_import_sessions`, `question_import_rows` - question bank CSV import preview workflow
 - `question_bank_years`, `question_collections` - question collection organization
 
@@ -172,7 +179,12 @@ Curriculum IDs are defined in `client/src/config/curriculums.ts`. When inserting
 
 ## Seed Data Notes
 
-`server/prisma/seed.ts` delegates to modular seed files under `server/prisma/seed/`. The seed is idempotent and currently creates 2 admin accounts, 7 instructor accounts, 25 students, 13 courses, 12 course offerings, 20 knowledge categories, 10 question collections, 33 questions, 10 exam sets, and demo attempts. Demo accounts use password `1234`.
+`server/prisma/seed.ts` delegates to modular seed files under `server/prisma/seed/`. The seed is idempotent and currently creates 2 admin accounts, 17 instructor accounts, 37 students, 19 courses, 20 course offerings, 32 knowledge categories, 20 question collections, 59 questions, 21 exam sets, and 59 demo attempts with 199 behavior events. Demo accounts use password `1234`.
+
+Demo accounts:
+- Admin: `admin@wu.ac.th` / `1234`
+- Instructor: `instructor@wu.ac.th` / `1234`
+- Student: `63131101` / `1234`
 
 ## Setup Flow After Pulling Latest `master`
 
@@ -212,7 +224,7 @@ npm run build --prefix client
 - Frontend default port is `3000`.
 - Auth token storage is cookie-based. Do not reintroduce access tokens in `localStorage`.
 - Keep `.env` and `.env.local` out of commits.
-- The CSV bulk enrollment flow uses preview, edit/delete rows, and confirm.
+- The CSV bulk enrollment flow uses preview, edit/delete rows, and confirm. Students being imported require a password; for new students without an existing account the password is mandatory.
 - The question bank CSV import flow uses preview, edit/delete rows, and confirm.
 - Keep role-aware home navigation centralized in `client/src/utils/homeRoute.ts` when adding pages that need a "back to home" action.
 - Generated Prisma client (`server/src/generated/prisma`) is gitignored. It is regenerated automatically by the `postinstall` hook on `npm install`. Re-run `npx prisma generate` after editing `schema.prisma`.
