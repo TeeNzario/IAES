@@ -336,7 +336,7 @@ function StaffResults({ rows }: { rows: ResultRow[] }) {
                     : row.summary.summary.average_score.toFixed(2)}
                 </div>
                 <div className="text-center">
-                  {row.summary?.summary.behavior_events ?? 0} events
+                  {row.summary?.summary.behavior_events ?? 0} ครั้ง
                 </div>
               </li>
             ))}

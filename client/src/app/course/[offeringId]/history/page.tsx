@@ -115,16 +115,21 @@ export default function CourseExamHistoryPage() {
             (a, b) =>
               new Date(b.end_time).getTime() - new Date(a.end_time).getTime(),
           );
-        const historyRows = await Promise.all(
-          endedExams.map(async (exam) => ({
-            exam,
-            summary: canLoadSummary
-              ? await apiFetch<ExamAttemptSummary>(
-                  `/course-offerings/${offeringId}/exams/${exam.course_exams_id}/attempts/summary`,
-                ).catch(() => undefined)
-              : undefined,
-          })),
+        let summaries: ExamAttemptSummary[] = [];
+        if (canLoadSummary && endedExams.length > 0) {
+          const examIds = endedExams.map((e) => e.course_exams_id).join(",");
+          summaries = await apiFetch<ExamAttemptSummary[]>(
+            `/course-offerings/${offeringId}/exams/attempts-summaries?exam_ids=${examIds}`,
+          ).catch(() => []);
+        }
+
+        const summaryMap = new Map(
+          summaries.map((s) => [s.exam.course_exams_id, s]),
         );
+        const historyRows = endedExams.map((exam) => ({
+          exam,
+          summary: summaryMap.get(exam.course_exams_id),
+        }));
 
         if (!isMounted) return;
         setUser(freshUser);
@@ -147,8 +152,14 @@ export default function CourseExamHistoryPage() {
 
   const userType = getUserType(user);
   const staffRole = getStaffRole(user);
-  const isStaffView =
-    userType === "STAFF" && (staffRole === "INSTRUCTOR" || staffRole === "ADMIN");
+  const isStaffView = useMemo(() => {
+    if (userType !== "STAFF") return false;
+    if (staffRole === "ADMIN") return true;
+    if (!course || !user) return false;
+    return (course.course_instructors ?? []).some(
+      (ci) => String(ci.staff_users_id) === String(user.id),
+    );
+  }, [userType, staffRole, course, user]);
   const thaiCourseName = course ? getThaiCourseName(course.courses) : "";
   const englishCourseName = course ? getEnglishCourseName(course.courses) : "";
 

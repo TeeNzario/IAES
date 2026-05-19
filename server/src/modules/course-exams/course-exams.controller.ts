@@ -18,6 +18,7 @@ import type {
 import { CourseExamsService } from './course-exams.service';
 import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
+import { ExamAttemptsService } from '../exam-attempts/exam-attempts.service';
 
 function staffActor(req: AuthenticatedRequest) {
   if (req.user.type !== 'staff') {
@@ -30,7 +31,10 @@ function staffActor(req: AuthenticatedRequest) {
 @Controller('course-offerings/:offeringId/exams')
 @Auth()
 export class CourseExamsController {
-  constructor(private readonly service: CourseExamsService) {}
+  constructor(
+    private readonly service: CourseExamsService,
+    private readonly examAttemptsService: ExamAttemptsService,
+  ) {}
 
   /** Create an exam with an ordered question list. */
   @Post()
@@ -55,6 +59,26 @@ export class CourseExamsController {
     @Query('draft') draft?: string,
   ) {
     return this.service.listByOffering(offeringId, req.user, draft === 'true');
+  }
+
+  /**
+   * Fetch attempt summaries for multiple exams in a single request.
+   * Accepts comma-separated exam IDs: ?exam_ids=1,2,3
+   */
+  @Get('attempts-summaries')
+  @Roles('INSTRUCTOR', 'ADMIN')
+  getAttemptsSummaries(
+    @Req() req: AuthenticatedRequest,
+    @Param('offeringId') offeringId: string,
+    @Query('exam_ids') examIds: string,
+  ) {
+    const ids = (examIds ?? '').split(',').map((id) => id.trim()).filter(Boolean);
+    if (ids.length === 0) return [];
+    return this.examAttemptsService.getSummariesForOffering(
+      offeringId,
+      ids,
+      staffActor(req),
+    );
   }
 
   /** Full exam detail including its ordered questions. */

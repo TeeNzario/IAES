@@ -168,8 +168,9 @@ function getStudentCohort(user: User) {
   return user.id.match(/^\d{2}/)?.[0] ?? "";
 }
 
-// Email validation regex
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Email validation regex — domain depends on user type
+const STUDENT_EMAIL_REGEX = /^[^\s@]+@mail\.wu\.ac\.th$/;
+const STAFF_EMAIL_REGEX = /^[^\s@]+@wu\.ac\.th$/;
 const THAI_NAME_REGEX = /^[ก-๙\s]+$/;
 
 
@@ -437,8 +438,13 @@ export default function ManageUserPage() {
       errors.email = ERROR_MESSAGES.email.required;
     } else if (normalizedEmail.length > USER_VALIDATION_CONFIG.email.max) {
       errors.email = ERROR_MESSAGES.email.maxLength;
-    } else if (!EMAIL_REGEX.test(normalizedEmail)) {
-      errors.email = ERROR_MESSAGES.email.invalid;
+    } else {
+      const emailRegex = editingUser?.role === "STUDENT" ? STUDENT_EMAIL_REGEX : STAFF_EMAIL_REGEX;
+      if (!emailRegex.test(normalizedEmail)) {
+        errors.email = editingUser?.role === "STUDENT"
+          ? "อีเมลต้องเป็น @mail.wu.ac.th เท่านั้น"
+          : "อีเมลต้องเป็น @wu.ac.th เท่านั้น";
+      }
     }
 
     if (!editFirstName.trim()) {
@@ -607,13 +613,13 @@ export default function ManageUserPage() {
     }
 
 
-    // Email
+    // Email (staff: @wu.ac.th)
     if (!createEmail.trim()) {
       errors.email = ERROR_MESSAGES.email.required;
     } else if (createEmail.length > USER_VALIDATION_CONFIG.email.max) {
       errors.email = ERROR_MESSAGES.email.maxLength;
-    } else if (!EMAIL_REGEX.test(createEmail.trim())) {
-      errors.email = ERROR_MESSAGES.email.invalid;
+    } else if (!STAFF_EMAIL_REGEX.test(createEmail.trim())) {
+      errors.email = "อีเมลต้องเป็น @wu.ac.th เท่านั้น";
     }
 
     // Password
@@ -736,8 +742,8 @@ export default function ManageUserPage() {
       errors.email = ERROR_MESSAGES.email.required;
     } else if (studentEmail.length > USER_VALIDATION_CONFIG.email.max) {
       errors.email = ERROR_MESSAGES.email.maxLength;
-    } else if (!EMAIL_REGEX.test(studentEmail.trim())) {
-      errors.email = ERROR_MESSAGES.email.invalid;
+    } else if (!STUDENT_EMAIL_REGEX.test(studentEmail.trim())) {
+      errors.email = "อีเมลต้องเป็น @mail.wu.ac.th เท่านั้น";
     }
 
     setStudentErrors(errors);

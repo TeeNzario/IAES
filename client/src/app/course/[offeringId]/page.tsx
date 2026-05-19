@@ -515,6 +515,14 @@ function ExamStudentActionButton({
     );
   }
 
+  if (exam.status === "ENDED") {
+    return (
+      <span className="inline-flex h-9 items-center justify-center rounded-xl bg-gray-100 px-3 text-sm font-semibold text-gray-500 ring-1 ring-gray-200">
+        ไม่ได้เข้าสอบ
+      </span>
+    );
+  }
+
   return null;
 }
 
