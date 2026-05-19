@@ -4,6 +4,7 @@ import {
   ConflictException,
   InternalServerErrorException,
   ForbiddenException,
+  NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
@@ -23,7 +24,7 @@ import {
 } from './dto/bulk-enroll-student.dto';
 import { Prisma } from 'src/generated/prisma/client';
 import { hashPassword } from '../../lib/password';
-import type { RequestUser } from 'src/auth/types/jwt-payload.type';
+import type { RequestUser, StaffJwtPayload } from 'src/auth/types/jwt-payload.type';
 import { AuditActor, AuditService } from '../audit/audit.service';
 import { AcademicSettingsService } from '../academic-settings/academic-settings.service';
 
@@ -112,13 +113,43 @@ export class CourseOfferingsService {
     }
   }
 
+  /**
+   * Check that staff is an instructor of any offering of the course
+   * (course-level authorization, consistent with exam endpoints).
+   * ADMIN bypasses; INSTRUCTOR must teach any offering of this course.
+   */
+  private async assertInstructorForCourse(
+    offeringId: bigint,
+    user: StaffJwtPayload,
+    client: PrismaService | Prisma.TransactionClient = this.prisma,
+  ) {
+    if (user.role === 'ADMIN') return;
+
+    const offering = await client.course_offerings.findUnique({
+      where: { course_offerings_id: offeringId },
+      select: { courses_id: true },
+    });
+    if (!offering) throw new NotFoundException('Course offering not found');
+
+    const link = await client.course_instructors.findFirst({
+      where: {
+        staff_users_id: BigInt(user.sub),
+        course_offerings: { courses_id: offering.courses_id },
+      },
+      select: { staff_users_id: true },
+    });
+    if (!link) {
+      throw new ForbiddenException('You are not an instructor of this course');
+    }
+  }
+
   private async assertCanViewOffering(
     offeringId: bigint,
     user: RequestUser,
     client: PrismaService | Prisma.TransactionClient = this.prisma,
   ) {
     if (user.type === 'staff') {
-      await this.assertInstructorForOffering(offeringId, user.sub, client);
+      await this.assertInstructorForCourse(offeringId, user, client);
       return;
     }
 
