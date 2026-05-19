@@ -36,7 +36,9 @@ const VALID_FACULTY_CODES = new Set(Object.keys(FACULTY_MAP).map(Number));
 const MEMBER_DELETE_BLOCKED_MESSAGE =
   'มีการสร้างชุดข้อสอบหรือมีการจัดสอบในรายวิชานี้แล้ว ระบบไม่อนุญาตให้ลบอาจารย์หรือนักศึกษาออกจากรายวิชา';
 const COURSE_DELETE_BLOCKED_MESSAGE =
-  'ไม่สามารถลบได้ เนื่องจากรายวิชานี้มีการสร้างชุดข้อสอบหรือการสอบแล้ว';
+  'มีการสร้างชุดข้อสอบหรือมีการจัดสอบในรายวิชานี้แล้ว ระบบไม่อนุญาตให้ลบรายวิชา';
+const COURSE_DELETE_HAS_ENROLLMENTS_MESSAGE =
+  'ไม่สามารถลบรายวิชานี้ได้ เนื่องจากมีนักศึกษาลงทะเบียนอยู่';
 
 const courseOfferingSelect = {
   course_offerings_id: true,
@@ -1074,9 +1076,7 @@ export class CourseOfferingsService {
     });
 
     if (enrollmentsCount > 0) {
-      throw new ConflictException(
-        'Cannot delete this course offering because students are already enrolled.',
-      );
+      throw new ConflictException(COURSE_DELETE_HAS_ENROLLMENTS_MESSAGE);
     }
 
     await this.prisma.course_offerings.delete({

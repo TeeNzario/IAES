@@ -23,6 +23,25 @@ interface EditCourseOfferingModalProps {
   onSuccess?: () => void;
 }
 
+function getApiErrorMessage(error: unknown): string | null {
+  if (!axios.isAxiosError(error)) return null;
+
+  const responseData = error.response?.data as
+    | { message?: unknown }
+    | undefined;
+  const { message } = responseData ?? {};
+
+  if (Array.isArray(message) && typeof message[0] === "string") {
+    return message[0];
+  }
+
+  if (typeof message === "string" && message.trim()) {
+    return message;
+  }
+
+  return null;
+}
+
 export default function EditCourseOfferingModal({
   isOpen,
   onClose,
@@ -65,7 +84,7 @@ export default function EditCourseOfferingModal({
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const hasCourseExams = (courseOffering._count?.course_exams ?? 0) > 0;
   const examDeleteBlockedMessage =
-    "ไม่สามารถลบรายวิชานี้ได้ เนื่องจากมีการสร้างชุดสอบหรือการสอบแล้ว";
+    "มีการสร้างชุดข้อสอบหรือมีการจัดสอบในรายวิชานี้แล้ว ระบบไม่อนุญาตให้ลบรายวิชา";
 
   // Reset form when course offering changes
   useEffect(() => {
@@ -201,9 +220,7 @@ export default function EditCourseOfferingModal({
       onClose();
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 409) {
-        setDeleteError(
-          "ไม่สามารถลบรายวิชานี้ได้ เนื่องจากมีนักศึกษาลงทะเบียนหรือมีการสร้างชุดสอบ/การสอบแล้ว",
-        );
+        setDeleteError(getApiErrorMessage(err) ?? examDeleteBlockedMessage);
       } else {
         setDeleteError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
       }
@@ -220,34 +237,34 @@ export default function EditCourseOfferingModal({
       onClick={(e) => e.stopPropagation()}
     >
       <div
-        className="relative w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl sm:p-6 max-h-[calc(100vh-3rem)] overflow-y-auto"
+        className="relative max-h-[calc(100vh-3rem)] w-full max-w-[34rem] overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Course Name */}
-        <h2 className="text-xl font-bold text-gray-900 mb-1">
+        <h2 className="mb-1 text-lg font-bold leading-7 text-gray-900 sm:text-xl">
           แก้ไขรายวิชา
         </h2>
-        <p className="text-sm text-gray-500 mb-5">
+        <p className="mb-5 text-sm leading-6 text-gray-500">
           {formatCourseName(courseOffering.courses)}
         </p>
 
         {/* Error Message */}
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">
             {error}
           </div>
         )}
 
         {/* Academic Year Dropdown */}
         <div className="mb-4">
-          <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+          <label className="mb-1.5 block text-[13px] font-semibold leading-5 text-gray-800">
             ปีการศึกษา
           </label>
           <div className="relative">
             <select
               value={academicYear}
               onChange={(e) => setAcademicYear(e.target.value)}
-              className="w-full rounded-xl border-2 border-[#9264F5] px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none focus:border-[#B7A3E3] appearance-none bg-white pr-10 cursor-pointer"
+              className="h-11 w-full cursor-pointer appearance-none rounded-xl border-2 border-[#9264F5] bg-white px-3.5 pr-10 text-sm text-gray-900 shadow-sm transition-colors focus:border-[#B7A3E3] focus:outline-none"
             >
               {academicYears.map((year) => (
                 <option key={year} value={year}>
@@ -264,14 +281,14 @@ export default function EditCourseOfferingModal({
 
         {/* Semester Dropdown */}
         <div className="mb-4">
-          <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+          <label className="mb-1.5 block text-[13px] font-semibold leading-5 text-gray-800">
             ภาคการศึกษา
           </label>
           <div className="relative">
             <select
               value={semester}
               onChange={(e) => setSemester(e.target.value)}
-              className="w-full rounded-xl border-2 border-[#9264F5] px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none focus:border-[#B7A3E3] appearance-none bg-white pr-10 cursor-pointer"
+              className="h-11 w-full cursor-pointer appearance-none rounded-xl border-2 border-[#9264F5] bg-white px-3.5 pr-10 text-sm text-gray-900 shadow-sm transition-colors focus:border-[#B7A3E3] focus:outline-none"
             >
               {semesters.map((sem) => (
                 <option key={sem} value={sem}>
@@ -288,14 +305,14 @@ export default function EditCourseOfferingModal({
 
         {/* Status Toggle Buttons */}
         <div className="mb-4">
-          <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+          <label className="mb-1.5 block text-[13px] font-semibold leading-5 text-gray-800">
             สถานะ
           </label>
           <div className="flex gap-6">
             {statuses.map((stat) => (
               <label
                 key={stat}
-                className="flex items-center gap-2 cursor-pointer"
+                className="flex cursor-pointer items-center gap-2"
               >
                 <input
                   type="radio"
@@ -303,9 +320,9 @@ export default function EditCourseOfferingModal({
                   value={stat}
                   checked={status === stat}
                   onChange={() => setStatus(stat)}
-                  className="w-4 h-4 accent-[#B7A3E3] cursor-pointer"
+                  className="h-4 w-4 cursor-pointer accent-[#B7A3E3]"
                 />
-                <span className="text-sm text-gray-700">
+                <span className="text-sm leading-5 text-gray-700">
                   {stat === "Active" ? "เปิดใช้งาน" : "ปิดใช้งาน"}
                 </span>
               </label>
@@ -315,13 +332,13 @@ export default function EditCourseOfferingModal({
 
         {/* Instructor Selection */}
         <div className="mb-6">
-          <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+          <label className="mb-1.5 block text-[13px] font-semibold leading-5 text-gray-800">
             อาจารย์ผู้สอน
           </label>
 
           {isLoading ? (
             <div className="flex items-center justify-center py-4">
-              <div className="w-6 h-6 border-2 border-[#B7A3E3] border-t-transparent rounded-full animate-spin" />
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#B7A3E3] border-t-transparent" />
             </div>
           ) : (
             <div className="max-h-48 overflow-y-auto space-y-3 pr-1">
@@ -331,7 +348,7 @@ export default function EditCourseOfferingModal({
                   <select
                     disabled
                     value={creatorInstructor?.staff_users_id || ""}
-                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-500 appearance-none cursor-not-allowed text-[15px]"
+                    className="h-11 w-full cursor-not-allowed appearance-none rounded-xl border-2 border-gray-200 bg-gray-50 px-3.5 pr-10 text-sm text-gray-500"
                   >
                     <option value={creatorInstructor?.staff_users_id || ""}>
                       {creatorInstructor
@@ -356,7 +373,7 @@ export default function EditCourseOfferingModal({
                       onChange={(e) =>
                         handleInstructorChange(index, e.target.value)
                       }
-                      className="w-full rounded-xl border-2 border-[#9264F5] px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none focus:border-[#B7A3E3] appearance-none bg-white pr-10 cursor-pointer"
+                      className="h-11 w-full cursor-pointer appearance-none rounded-xl border-2 border-[#9264F5] bg-white px-3.5 pr-10 text-sm text-gray-900 shadow-sm transition-colors focus:border-[#B7A3E3] focus:outline-none"
                     >
                       <option value="">เลือกอาจารย์</option>
                       {getAvailableInstructors(slotValue).map((instructor) => (
@@ -388,7 +405,7 @@ export default function EditCourseOfferingModal({
                   <button
                     type="button"
                     onClick={() => handleRemoveSlot(index)}
-                    className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="rounded-lg p-2 text-red-400 transition-colors hover:bg-red-50 hover:text-red-600"
                   >
                     <X size={18} />
                   </button>
@@ -401,7 +418,7 @@ export default function EditCourseOfferingModal({
             <button
               type="button"
               onClick={handleAddSlot}
-              className="w-full mt-3 py-2.5 border-2 border-dashed border-[#B7A3E3] rounded-xl bg-white text-[#7C5BD9] hover:bg-[#F4EFFF] transition-colors flex items-center justify-center gap-1.5 text-sm font-medium"
+              className="mt-3 flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-[#B7A3E3] bg-white text-sm font-medium text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF]"
             >
               <Plus size={18} />
             </button>
@@ -413,7 +430,7 @@ export default function EditCourseOfferingModal({
           <button
             onClick={onClose}
             disabled={isSubmitting || isDeleting}
-            className="flex-1 rounded-xl border-2 border-gray-300 px-6 py-2.5 font-semibold text-gray-900 transition-colors hover:bg-gray-50 disabled:opacity-50"
+            className="h-11 flex-1 rounded-xl border-2 border-gray-300 px-5 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-50 disabled:opacity-50"
           >
             ยกเลิก
           </button>
@@ -423,7 +440,7 @@ export default function EditCourseOfferingModal({
               setShowDeleteConfirm(true);
             }}
             disabled={isSubmitting || isDeleting || isLoading}
-            className="flex items-center justify-center gap-2 rounded-xl bg-red-500 px-5 py-2.5 font-semibold text-white shadow-sm transition-colors hover:bg-red-600 disabled:opacity-50"
+            className="flex h-11 items-center justify-center gap-2 rounded-xl bg-red-500 px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-red-600 disabled:opacity-50"
           >
             <Trash2 size={16} />
             ลบ
@@ -431,10 +448,10 @@ export default function EditCourseOfferingModal({
           <button
             onClick={handleSubmit}
             disabled={isSubmitting || isLoading || isDeleting}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-6 py-2.5 font-semibold text-white shadow-lg transition-colors hover:bg-[#9264F5] disabled:opacity-50"
+            className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-5 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-[#9264F5] disabled:opacity-50"
           >
             {isSubmitting && (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
             )}
             บันทึก
           </button>
