@@ -8,7 +8,17 @@ import { seedAttempts } from './attempts';
 import { DEMO_PASSWORD } from './constants';
 import { prisma } from '../../src/lib/prisma';
 
+async function seedAcademicSettings() {
+  await prisma.academic_settings.upsert({
+    where: { id: 1 },
+    update: { academic_year: 2026, semester: 1 },
+    create: { id: 1, academic_year: 2026, semester: 1 },
+  });
+  console.log('Academic settings: year=2026, semester=1');
+}
+
 async function main() {
+  await seedAcademicSettings();
   const staff = await seedStaff();
   const students = await seedStudents();
   const { offerings } = await seedCourses(staff);

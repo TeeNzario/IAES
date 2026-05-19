@@ -107,6 +107,42 @@ const COURSES: CourseSeed[] = [
     name_en: 'Standard Test (Thai)',
     description: 'ชุดแบบทดสอบมาตรฐานสำหรับประเมินทักษะภาษาไทย',
   },
+  {
+    code: 'AGT64-101',
+    name_th: 'เทคโนโลยีการแปรรูปอาหาร',
+    name_en: 'Food Processing Technology',
+    description: 'หลักการและเทคโนโลยีการแปรรูปอาหาร การถนอมอาหาร และความปลอดภัยทางอาหาร',
+  },
+  {
+    code: 'LAW64-101',
+    name_th: 'กฎหมายธุรกิจเบื้องต้น',
+    name_en: 'Introduction to Business Law',
+    description: 'หลักกฎหมายพื้นฐานที่เกี่ยวข้องกับการประกอบธุรกิจและพาณิชย์',
+  },
+  {
+    code: 'MED64-201',
+    name_th: 'กายวิภาคศาสตร์พื้นฐาน',
+    name_en: 'Basic Anatomy',
+    description: 'โครงสร้างและการทำงานของระบบต่างๆ ในร่างกายมนุษย์',
+  },
+  {
+    code: 'PHE64-101',
+    name_th: 'การจัดการสุขภาพชุมชน',
+    name_en: 'Community Health Management',
+    description: 'แนวคิดและหลักการจัดการสุขภาพชุมชน การส่งเสริมสุขภาพและการป้องกันโรค',
+  },
+  {
+    code: 'EDU64-201',
+    name_th: 'จิตวิทยาการศึกษา',
+    name_en: 'Educational Psychology',
+    description: 'ทฤษฎีพัฒนาการและการเรียนรู้ จิตวิทยาการสอน และการจัดการชั้นเรียน',
+  },
+  {
+    code: 'ARC64-101',
+    name_th: 'การออกแบบสถาปัตยกรรมเบื้องต้น',
+    name_en: 'Introduction to Architectural Design',
+    description: 'หลักการออกแบบสถาปัตยกรรม การจัดองค์ประกอบ และการเขียนแบบ',
+  },
 ];
 
 const OFFERINGS: OfferingSeed[] = [
@@ -264,6 +300,57 @@ const OFFERINGS: OfferingSeed[] = [
     semester: 1,
     instructorEmails: ['pornchai.liberal@wu.ac.th'],
     studentCodes: ['63131102', '66110701', '66131319', '66170201'],
+  },
+  // --- New offerings for expanded courses ---
+  {
+    courseCode: 'AGT64-101',
+    academic_year: 2026,
+    semester: 1,
+    instructorEmails: ['anecha.agri@wu.ac.th', 'suda.science@wu.ac.th'],
+    studentCodes: ['66180101'],
+  },
+  {
+    courseCode: 'LAW64-101',
+    academic_year: 2026,
+    semester: 1,
+    instructorEmails: ['somsak.polisci@wu.ac.th'],
+    studentCodes: ['66140101', '66150101', '65150101'],
+  },
+  {
+    courseCode: 'MED64-201',
+    academic_year: 2026,
+    semester: 1,
+    instructorEmails: ['supoj.med@wu.ac.th', 'patcharee.pharma@wu.ac.th'],
+    studentCodes: ['66190101', '66170201'],
+  },
+  {
+    courseCode: 'PHE64-101',
+    academic_year: 2026,
+    semester: 2,
+    instructorEmails: ['sirirat.publichealth@wu.ac.th'],
+    studentCodes: ['66270101', '66180101'],
+  },
+  {
+    courseCode: 'EDU64-201',
+    academic_year: 2026,
+    semester: 1,
+    instructorEmails: ['preeda.edu@wu.ac.th', 'pornchai.liberal@wu.ac.th'],
+    studentCodes: ['66230101', '66110701'],
+  },
+  {
+    courseCode: 'ARC64-101',
+    academic_year: 2026,
+    semester: 2,
+    instructorEmails: ['natthapong.arch@wu.ac.th'],
+    studentCodes: ['66240101'],
+  },
+  // --- Additional offering for existing course with various states ---
+  {
+    courseCode: 'COE64-371',
+    academic_year: 2025,
+    semester: 2,
+    instructorEmails: ['instructor@wu.ac.th', 'somchai.engineer@wu.ac.th'],
+    studentCodes: ['65220101', '66131319', '66220501'],
   },
 ];
 

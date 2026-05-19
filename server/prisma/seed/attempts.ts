@@ -310,6 +310,99 @@ const PLANS: AttemptPlan[] = [
     mode: { status: 'IN_PROGRESS' },
     seed: 44,
   },
+  // --- Food Processing midterm
+  {
+    examTitle: 'กลางภาค Food Processing',
+    student_code: '66180101',
+    mode: { status: 'SUBMITTED', correctness: 'all' },
+    seed: 46,
+  },
+  // --- Business Law midterm
+  {
+    examTitle: 'กลางภาค กฎหมายธุรกิจ',
+    student_code: '66140101',
+    mode: { status: 'SUBMITTED', correctness: 'most' },
+    seed: 47,
+  },
+  {
+    examTitle: 'กลางภาค กฎหมายธุรกิจ',
+    student_code: '66150101',
+    mode: { status: 'SUBMITTED', correctness: 'mixed' },
+    seed: 48,
+  },
+  {
+    examTitle: 'กลางภาค กฎหมายธุรกิจ',
+    student_code: '65150101',
+    mode: { status: 'CANCELLED' },
+    seed: 49,
+  },
+  // --- Basic Anatomy midterm
+  {
+    examTitle: 'กลางภาค Basic Anatomy',
+    student_code: '66190101',
+    mode: { status: 'SUBMITTED', correctness: 'most' },
+    seed: 50,
+  },
+  {
+    examTitle: 'กลางภาค Basic Anatomy',
+    student_code: '66170201',
+    mode: { status: 'SUBMITTED', correctness: 'mixed' },
+    seed: 51,
+  },
+  // --- Educational Psychology midterm
+  {
+    examTitle: 'กลางภาค Educational Psychology',
+    student_code: '66230101',
+    mode: { status: 'SUBMITTED', correctness: 'all' },
+    seed: 52,
+  },
+  {
+    examTitle: 'กลางภาค Educational Psychology',
+    student_code: '66110701',
+    mode: { status: 'SUBMITTED', correctness: 'most' },
+    seed: 53,
+  },
+  // --- Front End 2025 Final
+  {
+    examTitle: 'ปลายภาค Front End Programming',
+    student_code: '65220101',
+    mode: { status: 'SUBMITTED', correctness: 'most' },
+    seed: 54,
+  },
+  {
+    examTitle: 'ปลายภาค Front End Programming',
+    student_code: '66131319',
+    mode: { status: 'SUBMITTED', correctness: 'all' },
+    seed: 55,
+  },
+  {
+    examTitle: 'ปลายภาค Front End Programming',
+    student_code: '66220501',
+    mode: { status: 'SUBMITTED', correctness: 'mixed' },
+    seed: 56,
+  },
+  // --- More varied attempts for existing exams ---
+  // Standard IT — CANCELLED
+  {
+    examTitle: 'แบบทดสอบมาตรฐาน IT',
+    student_code: '66220502',
+    mode: { status: 'CANCELLED' },
+    seed: 57,
+  },
+  // Standard English — IN_PROGRESS
+  {
+    examTitle: 'แบบทดสอบมาตรฐาน English',
+    student_code: '66220501',
+    mode: { status: 'IN_PROGRESS' },
+    seed: 58,
+  },
+  // Sociology — CANCELLED
+  {
+    examTitle: 'กลางภาค สังคมวิทยาเบื้องต้น',
+    student_code: '63131102',
+    mode: { status: 'CANCELLED' },
+    seed: 59,
+  },
 ];
 
 function mulberry32(a: number) {
@@ -525,5 +618,78 @@ export async function seedAttempts(
     created++;
   }
 
-  console.log(`Attempts: ${created} created, ${skipped} skipped`);
+  // Seed behavior logs for submitted and in-progress attempts
+  const behaviorEvents = await seedBehaviorLogs();
+  console.log(`Attempts: ${created} created, ${skipped} skipped, ${behaviorEvents} behavior events`);
+}
+
+const BEHAVIOR_EVENT_TYPES = [
+  'focus_change',
+  'scroll',
+  'copy',
+  'idle',
+  'resize',
+];
+
+async function seedBehaviorLogs(): Promise<number> {
+  const attempts = await prisma.exam_attempts.findMany({
+    where: { status: { in: ['SUBMITTED', 'IN_PROGRESS'] } },
+    select: {
+      exam_attempts_id: true,
+      status: true,
+      started_at: true,
+      submitted_at: true,
+      attempt_items: {
+        select: {
+          attempt_items_id: true,
+          question_id: true,
+        },
+        orderBy: { sequence_index: 'asc' },
+        take: 1,
+      },
+    },
+  });
+
+  // Skip attempts that already have behavior logs
+  const existingLogCount = await prisma.exam_behavior_logs.count();
+  if (existingLogCount > 0) {
+    console.log(`Behavior logs: ${existingLogCount} already exist, skipping`);
+    return existingLogCount;
+  }
+
+  let created = 0;
+  for (const attempt of attempts) {
+    const item = attempt.attempt_items[0];
+    const endTime = attempt.submitted_at ?? new Date();
+    const startTime = attempt.started_at;
+    const durationMs = endTime.getTime() - startTime.getTime();
+
+    // Generate 1-5 behavior events per attempt (deterministic based on attempt ID)
+    const attemptIdNum = Number(attempt.exam_attempts_id);
+    const eventCount = 1 + Math.floor(Math.abs(Math.sin(attemptIdNum)) * 5);
+
+    for (let i = 0; i < eventCount; i++) {
+      const eventType = BEHAVIOR_EVENT_TYPES[i % BEHAVIOR_EVENT_TYPES.length];
+      const offset = Math.floor((i + 1) / BEHAVIOR_EVENT_TYPES.length * durationMs);
+      const occurredAt = new Date(startTime.getTime() + offset);
+
+      await prisma.exam_behavior_logs.create({
+        data: {
+          exam_attempts_id: attempt.exam_attempts_id,
+          attempt_items_id: item?.attempt_items_id ?? null,
+          question_id: item?.question_id ?? null,
+          event_type: eventType,
+          metadata: eventType === 'focus_change'
+            ? { direction: i % 2 === 0 ? 'out' : 'in' }
+            : eventType === 'idle'
+              ? { duration_seconds: 30 + i * 15 }
+              : undefined,
+          occurred_at: occurredAt,
+        },
+      });
+      created++;
+    }
+  }
+
+  return created;
 }
