@@ -19,7 +19,6 @@ import {
   ClipboardPlus,
   Eye,
   FileText,
-  Lock,
   Pencil,
   PlayCircle,
   UsersRound,
@@ -516,12 +515,7 @@ function ExamStudentActionButton({
     );
   }
 
-  return (
-    <span className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-[#FAF8FF] px-3 text-sm font-semibold text-[#7A7287] ring-1 ring-[#E7DDF8]">
-      <Lock size={14} />
-      {exam.status === "UPCOMING" ? "รอเปิดสอบ" : "สิ้นสุดการสอบ"}
-    </span>
-  );
+  return null;
 }
 
 function ExamDescriptionPreview({

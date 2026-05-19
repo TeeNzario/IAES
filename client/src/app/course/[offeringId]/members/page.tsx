@@ -6,6 +6,8 @@ import {
   UserPlus,
   Upload,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Trash2,
   UsersRound,
   Lock,
@@ -42,6 +44,8 @@ const EMAIL_REGEX = /^[^\s@]+@mail\.wu\.ac\.th$/;
 const NAME_REGEX = /^[ก-๙\s]+$/;
 const STUDENT_TITLES = ["นาย", "นางสาว", "นาง"] as const;
 const DEFAULT_STUDENT_TITLE = STUDENT_TITLES[0];
+const INSTRUCTOR_PAGE_SIZE_OPTIONS = [5, 10, 25] as const;
+const STUDENT_PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 
 function formatCurriculumDisplay(curriculumId: string | null | undefined) {
   return getCurriculumName(
@@ -146,6 +150,10 @@ export default function SimpleShowUsers() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingInstructors, setIsLoadingInstructors] = useState(false);
   const [isAddingInstructor, setIsAddingInstructor] = useState(false);
+  const [instructorPage, setInstructorPage] = useState(1);
+  const [instructorItemsPerPage, setInstructorItemsPerPage] = useState(10);
+  const [studentPage, setStudentPage] = useState(1);
+  const [studentItemsPerPage, setStudentItemsPerPage] = useState(25);
 
   // Unenroll confirmation state
   const [isUnenrollModalOpen, setIsUnenrollModalOpen] = useState(false);
@@ -735,6 +743,60 @@ export default function SimpleShowUsers() {
     [offering?.course_instructors],
   );
   const instructorCountLabel = `${instructorRows.length} คน`;
+  const totalInstructorPages = Math.max(
+    1,
+    Math.ceil(instructorRows.length / instructorItemsPerPage),
+  );
+  const firstVisibleInstructor =
+    instructorRows.length === 0
+      ? 0
+      : (instructorPage - 1) * instructorItemsPerPage + 1;
+  const lastVisibleInstructor = Math.min(
+    instructorPage * instructorItemsPerPage,
+    instructorRows.length,
+  );
+  const instructorSummary =
+    instructorRows.length === 0
+      ? "ยังไม่มีรายการ"
+      : `แสดง ${firstVisibleInstructor}–${lastVisibleInstructor} จาก ${instructorRows.length}`;
+  const paginatedInstructorRows = useMemo(
+    () =>
+      instructorRows.slice(
+        (instructorPage - 1) * instructorItemsPerPage,
+        instructorPage * instructorItemsPerPage,
+      ),
+    [instructorItemsPerPage, instructorPage, instructorRows],
+  );
+  const totalStudentPages = Math.max(
+    1,
+    Math.ceil(students.length / studentItemsPerPage),
+  );
+  const firstVisibleStudent =
+    students.length === 0 ? 0 : (studentPage - 1) * studentItemsPerPage + 1;
+  const lastVisibleStudent = Math.min(
+    studentPage * studentItemsPerPage,
+    students.length,
+  );
+  const studentSummary =
+    students.length === 0
+      ? "ยังไม่มีรายการ"
+      : `แสดง ${firstVisibleStudent}–${lastVisibleStudent} จาก ${students.length}`;
+  const paginatedStudents = useMemo(
+    () =>
+      students.slice(
+        (studentPage - 1) * studentItemsPerPage,
+        studentPage * studentItemsPerPage,
+      ),
+    [studentItemsPerPage, studentPage, students],
+  );
+
+  useEffect(() => {
+    setInstructorPage((page) => Math.min(page, totalInstructorPages));
+  }, [totalInstructorPages]);
+
+  useEffect(() => {
+    setStudentPage((page) => Math.min(page, totalStudentPages));
+  }, [totalStudentPages]);
 
   return (
     <Navbar>
@@ -779,6 +841,16 @@ export default function SimpleShowUsers() {
                     )}
                   </div>
                 </div>
+                <MemberTableControls
+                  summary={instructorSummary}
+                  itemsPerPage={instructorItemsPerPage}
+                  pageSizeOptions={INSTRUCTOR_PAGE_SIZE_OPTIONS}
+                  onItemsPerPageChange={(value) => {
+                    setInstructorItemsPerPage(value);
+                    setInstructorPage(1);
+                  }}
+                  itemLabel="คน"
+                />
                 <div className="hidden border-b border-[#EFE8FB] bg-[#F7F3FF] px-5 py-4 md:grid md:grid-cols-[minmax(10rem,1fr)_minmax(12rem,1.35fr)_minmax(12rem,1.35fr)_2.25rem] md:items-center md:gap-4">
                   <span className="text-[15px] font-medium text-[#5B4A73]">
                     ชื่อ-นามสกุล
@@ -797,7 +869,7 @@ export default function SimpleShowUsers() {
                       ยังไม่มีอาจารย์ในรายวิชานี้
                     </div>
                   ) : (
-                    instructorRows.map((ci) => {
+                    paginatedInstructorRows.map((ci) => {
                     const instructorName = formatInstructorName(ci.staff_users);
                     const isPrimaryInstructor = ci.instructorIndex === 0;
 
@@ -867,6 +939,18 @@ export default function SimpleShowUsers() {
                     );
                   }))}
                 </div>
+                <MemberPagination
+                  currentPage={instructorPage}
+                  totalPages={totalInstructorPages}
+                  onPrevious={() =>
+                    setInstructorPage((page) => Math.max(1, page - 1))
+                  }
+                  onNext={() =>
+                    setInstructorPage((page) =>
+                      Math.min(totalInstructorPages, page + 1),
+                    )
+                  }
+                />
               </div>
               {/* Users List */}
               <div className="overflow-hidden rounded-xl border border-[#EFE8FB]">
@@ -903,6 +987,17 @@ export default function SimpleShowUsers() {
                   </div>
                 </div>
 
+                <MemberTableControls
+                  summary={loadingStudents ? "กำลังโหลดข้อมูล..." : studentSummary}
+                  itemsPerPage={studentItemsPerPage}
+                  pageSizeOptions={STUDENT_PAGE_SIZE_OPTIONS}
+                  onItemsPerPageChange={(value) => {
+                    setStudentItemsPerPage(value);
+                    setStudentPage(1);
+                  }}
+                  itemLabel="คน"
+                />
+
                 {/* Desktop column header */}
                 <div className="hidden border-b border-[#EFE8FB] bg-[#F7F3FF] px-5 py-4 md:grid md:grid-cols-[8.5rem_minmax(10rem,1fr)_minmax(12rem,1.35fr)_minmax(12rem,1.35fr)_2.25rem] md:items-center md:gap-4">
                   <span className="text-[15px] font-medium text-[#5B4A73]">รหัสนักศึกษา</span>
@@ -923,7 +1018,7 @@ export default function SimpleShowUsers() {
                       ยังไม่มีนักศึกษาในรายวิชานี้
                     </div>
                   ) : (
-                    students.map((student) => (
+                    paginatedStudents.map((student) => (
                     <div
                       key={student.student_code}
                       className="group flex items-center gap-3 px-5 py-4 transition-colors hover:bg-[#FAF8FF] md:grid md:grid-cols-[8.5rem_minmax(10rem,1fr)_minmax(12rem,1.35fr)_minmax(12rem,1.35fr)_2.25rem] md:items-start md:gap-4"
@@ -987,6 +1082,18 @@ export default function SimpleShowUsers() {
                     </div>
                   )))}
                 </div>
+                <MemberPagination
+                  currentPage={studentPage}
+                  totalPages={totalStudentPages}
+                  onPrevious={() =>
+                    setStudentPage((page) => Math.max(1, page - 1))
+                  }
+                  onNext={() =>
+                    setStudentPage((page) =>
+                      Math.min(totalStudentPages, page + 1),
+                    )
+                  }
+                />
               </div>
             </div>
 
@@ -1425,5 +1532,92 @@ export default function SimpleShowUsers() {
         />
       </div>
     </Navbar>
+  );
+}
+
+function MemberTableControls({
+  summary,
+  itemsPerPage,
+  pageSizeOptions,
+  onItemsPerPageChange,
+  itemLabel,
+}: {
+  summary: string;
+  itemsPerPage: number;
+  pageSizeOptions: readonly number[];
+  onItemsPerPageChange: (value: number) => void;
+  itemLabel: string;
+}) {
+  return (
+    <div className="flex flex-col gap-2 border-b border-[#EFE8FB] bg-white px-5 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+      <span className="text-sm font-medium text-[#6B617A]">{summary}</span>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <label className="relative block w-full sm:w-36">
+          <span className="sr-only">จำนวนแถวต่อหน้า</span>
+          <select
+            value={itemsPerPage}
+            onChange={(event) =>
+              onItemsPerPageChange(Number(event.target.value))
+            }
+            className="h-9 w-full appearance-none rounded-lg border border-[#E7DDF8] bg-[#FAF8FF] px-3 pr-8 text-sm font-normal text-[#2F2A3A] outline-none transition-colors focus:border-[#B7A3E3] focus:bg-white"
+            title="จำนวนต่อหน้า"
+          >
+            {pageSizeOptions.map((option) => (
+              <option key={option} value={option}>
+                แสดง {option} {itemLabel}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9A90AA]"
+            size={16}
+          />
+        </label>
+
+      </div>
+    </div>
+  );
+}
+
+function MemberPagination({
+  currentPage,
+  totalPages,
+  onPrevious,
+  onNext,
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPrevious: () => void;
+  onNext: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between border-t border-[#EFE8FB] px-5 py-2.5">
+      <span className="text-sm font-medium text-[#7A7287]">
+        หน้า {currentPage}/{totalPages}
+      </span>
+      <div className="flex items-center gap-1">
+        <button
+          className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E5E7EB] text-[#8F98A8] transition-colors hover:bg-[#DDE1E7] disabled:cursor-not-allowed disabled:opacity-70"
+          disabled={currentPage === 1}
+          onClick={onPrevious}
+          title="หน้าก่อนหน้า"
+          aria-label="หน้าก่อนหน้า"
+          type="button"
+        >
+          <ChevronLeft size={17} strokeWidth={2.4} />
+        </button>
+        <button
+          className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E5E7EB] text-[#8F98A8] transition-colors hover:bg-[#DDE1E7] disabled:cursor-not-allowed disabled:opacity-70"
+          disabled={currentPage === totalPages}
+          onClick={onNext}
+          title="หน้าถัดไป"
+          aria-label="หน้าถัดไป"
+          type="button"
+        >
+          <ChevronRight size={17} strokeWidth={2.4} />
+        </button>
+      </div>
+    </div>
   );
 }
