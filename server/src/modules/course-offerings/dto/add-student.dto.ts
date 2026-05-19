@@ -6,6 +6,7 @@ import {
   IsString,
   Matches,
   MaxLength,
+  MinLength,
 } from 'class-validator';
 import { FIELD_LENGTHS, maxLengthMessage } from 'src/lib/field-lengths';
 
@@ -22,6 +23,11 @@ export class AddStudentDto {
     message: maxLengthMessage('อีเมล', FIELD_LENGTHS.email),
   })
   email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(8, { message: 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' })
+  password: string;
 
   @IsInt()
   @IsNotEmpty()

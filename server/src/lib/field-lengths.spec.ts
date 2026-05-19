@@ -13,8 +13,10 @@ import { FIELD_LENGTHS } from './field-lengths';
 
 const repeat = (length: number) => 'ก'.repeat(length);
 const repeatAscii = (length: number) => 'a'.repeat(length);
-const longValidEmail = `${repeatAscii(64)}@${'b'.repeat(63)}.${'c'.repeat(63)}.${'d'.repeat(58)}.io`;
-const overLimitEmail = `${repeatAscii(64)}@${'b'.repeat(63)}.${'c'.repeat(63)}.${'d'.repeat(60)}.io`;
+const validStaffEmail = 'teacher@wu.ac.th';
+const validStudentEmail = '66130001@mail.wu.ac.th';
+const overLimitStaffEmail = `${repeatAscii(FIELD_LENGTHS.email - '@wu.ac.th'.length + 1)}@wu.ac.th`;
+const overLimitStudentEmail = `${repeatAscii(FIELD_LENGTHS.email - '@mail.wu.ac.th'.length + 1)}@mail.wu.ac.th`;
 
 describe('field length validation', () => {
   it('accepts text fields at their configured database-safe limits', async () => {
@@ -26,7 +28,7 @@ describe('field length validation', () => {
     });
 
     const staff = plainToInstance(CreateStaffDto, {
-      email: longValidEmail,
+      email: validStaffEmail,
       password: 'password123',
       facultyCode: 18,
       title: repeat(FIELD_LENGTHS.title),
@@ -38,7 +40,7 @@ describe('field length validation', () => {
 
     const student = plainToInstance(CreateStudentDto, {
       student_code: '66130001',
-      email: longValidEmail,
+      email: validStudentEmail,
       password: 'password123',
       facultyCode: 18,
       title: repeat(FIELD_LENGTHS.title),
@@ -96,7 +98,7 @@ describe('field length validation', () => {
     });
 
     const staff = plainToInstance(CreateStaffDto, {
-      email: overLimitEmail,
+      email: overLimitStaffEmail,
       password: 'password123',
       facultyCode: 18,
       title: repeat(FIELD_LENGTHS.title + 1),
@@ -108,7 +110,7 @@ describe('field length validation', () => {
 
     const student = plainToInstance(CreateStudentDto, {
       student_code: '66130001',
-      email: overLimitEmail,
+      email: overLimitStudentEmail,
       password: 'password123',
       facultyCode: 18,
       title: repeat(FIELD_LENGTHS.title + 1),

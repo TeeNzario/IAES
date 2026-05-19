@@ -409,6 +409,8 @@ export class CourseOfferingsService {
       );
     }
 
+    const passwordHash = await hashPassword(dto.password);
+
     return this.prisma.$transaction(async (tx) => {
       await this.assertInstructorForOffering(offeringBigInt, staffUserId, tx);
 
@@ -469,7 +471,7 @@ export class CourseOfferingsService {
         create: {
           student_code: dto.student_code,
           email: dto.email,
-          password_hash: await hashPassword(INVITE_PLACEHOLDER_PASSWORD),
+          password_hash: passwordHash,
           facultyCode: dto.facultyCode,
           title: dto.title ?? DEFAULT_TITLE,
           curriculumId,
@@ -555,7 +557,6 @@ export class CourseOfferingsService {
   ): Promise<BulkEnrollResponse> {
     const offeringBigInt = BigInt(offeringId);
     const results: BulkEnrollRowResult[] = [];
-    const placeholderHash = await hashPassword(INVITE_PLACEHOLDER_PASSWORD);
 
     await this.assertInstructorForOffering(offeringBigInt, staffUserId);
 
@@ -564,7 +565,6 @@ export class CourseOfferingsService {
         const result = await this.processStudentRow(
           offeringBigInt,
           row,
-          placeholderHash,
         );
         results.push(result);
       } catch (error) {
@@ -608,8 +608,13 @@ export class CourseOfferingsService {
   private async processStudentRow(
     offeringBigInt: bigint,
     row: BulkEnrollStudentRowDto,
-    placeholderHash: string,
   ): Promise<BulkEnrollRowResult> {
+    const passwordToHash =
+      row.password && row.password.length >= 8
+        ? row.password
+        : INVITE_PLACEHOLDER_PASSWORD;
+    const passwordHash = await hashPassword(passwordToHash);
+
     return this.prisma.$transaction(async (tx) => {
       let directoryAction: 'created' | 'updated' | 'unchanged' = 'unchanged';
       const curriculumId = row.curriculumId ?? DEFAULT_CURRICULUM_ID;
@@ -671,7 +676,7 @@ export class CourseOfferingsService {
         create: {
           student_code: row.student_code,
           email: row.email,
-          password_hash: placeholderHash,
+          password_hash: passwordHash,
           facultyCode: row.facultyCode,
           title: row.title ?? DEFAULT_TITLE,
           curriculumId,

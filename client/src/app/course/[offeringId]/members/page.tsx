@@ -38,6 +38,7 @@ const STUDENT_CODE_REGEX = /^\d{8}$/;
 const EMAIL_MAX_LENGTH = FIELD_LIMITS.email;
 const FIRST_NAME_MAX_LENGTH = FIELD_LIMITS.firstName;
 const LAST_NAME_MAX_LENGTH = FIELD_LIMITS.lastName;
+const PASSWORD_MIN_LENGTH = 8;
 
 // Email and Name validation regex pattern
 const EMAIL_REGEX = /^[^\s@]+@mail\.wu\.ac\.th$/;
@@ -77,6 +78,11 @@ const ERROR_MESSAGES = {
     required: "กรุณากรอกนามสกุล",
     maxLength: `นามสกุลไม่เกิน ${LAST_NAME_MAX_LENGTH} ตัวอักษร`,
   },
+  password: {
+    required: "กรุณากรอกรหัสผ่าน",
+    minLength: `รหัสผ่านต้องมีอย่างน้อย ${PASSWORD_MIN_LENGTH} ตัวอักษร`,
+    mismatch: "รหัสผ่านไม่ตรงกัน",
+  },
 };
 
 // ============================================================
@@ -88,6 +94,8 @@ interface FormErrors {
   title?: string;
   first_name?: string;
   last_name?: string;
+  password?: string;
+  confirmPassword?: string;
 }
 
 interface DuplicateCheckResponse {
@@ -130,6 +138,8 @@ export default function SimpleShowUsers() {
   const [title, setTitle] = useState<string>(DEFAULT_STUDENT_TITLE);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [studentPassword, setStudentPassword] = useState("");
+  const [studentConfirmPassword, setStudentConfirmPassword] = useState("");
   const [addFacultyCode, setAddFacultyCode] = useState<number>(DEFAULT_FACULTY_CODE);
   const [addCurriculumId, setAddCurriculumId] = useState<string>(DEFAULT_CURRICULUM_ID);
   const [allInstructors, setAllInstructors] = useState<Instructor[]>([]);
@@ -321,6 +331,14 @@ export default function SimpleShowUsers() {
     if (!title.trim()) newErrors.title = "กรุณาเลือกคำนำหน้า";
     if (firstNameError) newErrors.first_name = firstNameError;
     if (lastNameError) newErrors.last_name = lastNameError;
+    if (!studentPassword) {
+      newErrors.password = ERROR_MESSAGES.password.required;
+    } else if (studentPassword.length < PASSWORD_MIN_LENGTH) {
+      newErrors.password = ERROR_MESSAGES.password.minLength;
+    }
+    if (studentPassword !== studentConfirmPassword) {
+      newErrors.confirmPassword = ERROR_MESSAGES.password.mismatch;
+    }
 
     // If sync validation failed, don't check duplicates
     if (Object.keys(newErrors).length > 0) {
@@ -395,6 +413,36 @@ export default function SimpleShowUsers() {
     }));
   };
 
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setStudentPassword(value);
+    setErrors((prev) => ({
+      ...prev,
+      password:
+        value.length === 0
+          ? ERROR_MESSAGES.password.required
+          : value.length < PASSWORD_MIN_LENGTH
+            ? ERROR_MESSAGES.password.minLength
+            : undefined,
+      confirmPassword:
+        studentConfirmPassword && value !== studentConfirmPassword
+          ? ERROR_MESSAGES.password.mismatch
+          : undefined,
+    }));
+  };
+
+  const handleConfirmPasswordChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const value = e.target.value;
+    setStudentConfirmPassword(value);
+    setErrors((prev) => ({
+      ...prev,
+      confirmPassword:
+        studentPassword !== value ? ERROR_MESSAGES.password.mismatch : undefined,
+    }));
+  };
+
   const handleCancelAddStudent = () => {
     setShowAddStudentModal(false);
     setStudentId("");
@@ -402,6 +450,8 @@ export default function SimpleShowUsers() {
     setTitle(DEFAULT_STUDENT_TITLE);
     setFirstName("");
     setLastName("");
+    setStudentPassword("");
+    setStudentConfirmPassword("");
     setAddFacultyCode(DEFAULT_FACULTY_CODE);
     setAddCurriculumId(DEFAULT_CURRICULUM_ID);
     setErrors({}); // Clear errors when closing modal
@@ -423,6 +473,7 @@ export default function SimpleShowUsers() {
         data: {
           student_code: studentId.trim(),
           email: email.trim(),
+          password: studentPassword,
           facultyCode: addFacultyCode,
           curriculumId: addCurriculumId,
           title,
@@ -722,7 +773,12 @@ export default function SimpleShowUsers() {
   // Check if any field has errors or is empty
   const hasErrors = Object.values(errors).some((error) => !!error);
   const isFormEmpty =
-    !studentId.trim() || !email.trim() || !firstName.trim() || !lastName.trim();
+    !studentId.trim() ||
+    !email.trim() ||
+    !firstName.trim() ||
+    !lastName.trim() ||
+    !studentPassword ||
+    !studentConfirmPassword;
   const isSubmitDisabled =
     hasErrors ||
     isFormEmpty ||
@@ -1288,6 +1344,51 @@ export default function SimpleShowUsers() {
                     ))}
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+                <div className="mb-4">
+                  <label className="block text-[15px] font-semibold text-gray-800 mb-1.5">
+                    รหัสผ่าน <span className="text-red-500">*</span>{" "}
+                    <span className="text-xs font-medium text-gray-500">
+                      (อย่างน้อย {PASSWORD_MIN_LENGTH} ตัวอักษร)
+                    </span>
+                  </label>
+                  <input
+                    type="password"
+                    value={studentPassword}
+                    onChange={handlePasswordChange}
+                    className={`w-full rounded-xl border-2 px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none ${
+                      errors.password
+                        ? "border-red-500 focus:border-red-500"
+                        : "border-[#9264F5] focus:border-[#B7A3E3]"
+                    }`}
+                  />
+                  {errors.password && (
+                    <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+                  )}
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-[15px] font-semibold text-gray-800 mb-1.5">
+                    ยืนยันรหัสผ่าน <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    value={studentConfirmPassword}
+                    onChange={handleConfirmPasswordChange}
+                    className={`w-full rounded-xl border-2 px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none ${
+                      errors.confirmPassword
+                        ? "border-red-500 focus:border-red-500"
+                        : "border-[#9264F5] focus:border-[#B7A3E3]"
+                    }`}
+                  />
+                  {errors.confirmPassword && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.confirmPassword}
+                    </p>
+                  )}
                 </div>
               </div>
 

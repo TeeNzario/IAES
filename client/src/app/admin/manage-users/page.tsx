@@ -39,7 +39,7 @@ import { FIELD_LIMITS } from "@/config/fieldLimits";
 const USER_VALIDATION_CONFIG = {
   firstName: { min: 1, max: FIELD_LIMITS.firstName },
   lastName: { min: 1, max: FIELD_LIMITS.lastName },
-  email: { max: 100 },
+  email: { max: FIELD_LIMITS.email },
   password: { min: 8 },
 };
 
@@ -189,6 +189,14 @@ function getStudentCohort(user: User) {
 const STUDENT_EMAIL_REGEX = /^[^\s@]+@mail\.wu\.ac\.th$/;
 const STAFF_EMAIL_REGEX = /^[^\s@]+@wu\.ac\.th$/;
 const THAI_NAME_REGEX = /^[ก-๙\s]+$/;
+
+function getEmailDomainForRole(role: RoleFilter) {
+  return role === "STUDENT" ? "@mail.wu.ac.th" : "@wu.ac.th";
+}
+
+function getEmailPlaceholderForRole(role: RoleFilter) {
+  return role === "STUDENT" ? "student@mail.wu.ac.th" : "staff@wu.ac.th";
+}
 
 
 export default function ManageUserPage() {
@@ -1390,6 +1398,9 @@ export default function ManageUserPage() {
                 <label className={labelClass}>
                   อีเมล <span className="text-red-500">*</span>{" "}
                   <span className="text-xs font-medium text-gray-500">
+                    {getEmailDomainForRole(editingUser.role)}
+                  </span>
+                  <span className="ml-1 text-xs font-medium text-gray-500">
                     ({editEmail.length}/{USER_VALIDATION_CONFIG.email.max})
                   </span>
                 </label>
@@ -1402,6 +1413,7 @@ export default function ManageUserPage() {
                       setEditErrors((p) => ({ ...p, email: undefined }));
                   }}
                   maxLength={USER_VALIDATION_CONFIG.email.max}
+                  placeholder={getEmailPlaceholderForRole(editingUser.role)}
                   className={`${baseFieldClass} ${
                     editErrors.email ? errorFieldClass : validFieldClass
                   }`}
@@ -1464,6 +1476,7 @@ export default function ManageUserPage() {
                         setEditErrors((p) => ({ ...p, first_name: undefined }));
                     }}
                     maxLength={USER_VALIDATION_CONFIG.firstName.max}
+                    placeholder="ภาษาไทยเท่านั้น"
                     className={`${baseFieldClass} ${editErrors.first_name
                       ? errorFieldClass
                       : validFieldClass
@@ -1493,6 +1506,7 @@ export default function ManageUserPage() {
                         setEditErrors((p) => ({ ...p, last_name: undefined }));
                     }}
                     maxLength={USER_VALIDATION_CONFIG.lastName.max}
+                    placeholder="ภาษาไทยเท่านั้น"
                     className={`${baseFieldClass} ${editErrors.last_name
                       ? errorFieldClass
                       : validFieldClass
@@ -1563,6 +1577,7 @@ export default function ManageUserPage() {
                           confirmPassword: undefined,
                         }));
                     }}
+                    placeholder="อย่างน้อย 8 ตัวอักษร"
                     className={`${baseFieldClass} ${
                       editErrors.password ? errorFieldClass : validFieldClass
                     }`}
@@ -1589,6 +1604,7 @@ export default function ManageUserPage() {
                           confirmPassword: undefined,
                         }));
                     }}
+                    placeholder="ยืนยันรหัสผ่านใหม่"
                     className={`${baseFieldClass} ${
                       editErrors.confirmPassword
                         ? errorFieldClass
@@ -1715,6 +1731,7 @@ export default function ManageUserPage() {
                       setStudentErrors((p) => ({ ...p, student_code: undefined }));
                   }}
                   maxLength={8}
+                  placeholder="12345678"
                   className={`${baseFieldClass} ${
                     studentErrors.student_code
                       ? errorFieldClass
@@ -1733,6 +1750,9 @@ export default function ManageUserPage() {
                 <label className={labelClass}>
                   อีเมล <span className="text-red-500">*</span>{" "}
                   <span className="text-xs font-medium text-gray-500">
+                    {getEmailDomainForRole("STUDENT")}
+                  </span>
+                  <span className="ml-1 text-xs font-medium text-gray-500">
                     ({studentEmail.length}/{USER_VALIDATION_CONFIG.email.max})
                   </span>
                 </label>
@@ -1745,6 +1765,7 @@ export default function ManageUserPage() {
                       setStudentErrors((p) => ({ ...p, email: undefined }));
                   }}
                   maxLength={USER_VALIDATION_CONFIG.email.max}
+                  placeholder={getEmailPlaceholderForRole("STUDENT")}
                   className={`${baseFieldClass} ${
                     studentErrors.email
                       ? errorFieldClass
@@ -1809,6 +1830,7 @@ export default function ManageUserPage() {
                         setStudentErrors((p) => ({ ...p, first_name: undefined }));
                     }}
                     maxLength={USER_VALIDATION_CONFIG.firstName.max}
+                    placeholder="ภาษาไทยเท่านั้น"
                     className={`${baseFieldClass} ${
                       studentErrors.first_name
                         ? errorFieldClass
@@ -1840,6 +1862,7 @@ export default function ManageUserPage() {
                         setStudentErrors((p) => ({ ...p, last_name: undefined }));
                     }}
                     maxLength={USER_VALIDATION_CONFIG.lastName.max}
+                    placeholder="ภาษาไทยเท่านั้น"
                     className={`${baseFieldClass} ${
                       studentErrors.last_name
                         ? errorFieldClass
@@ -1918,6 +1941,7 @@ export default function ManageUserPage() {
                         }));
                       }
                     }}
+                    placeholder="อย่างน้อย 8 ตัวอักษร"
                     className={`${baseFieldClass} ${
                       studentErrors.password
                         ? errorFieldClass
@@ -1947,6 +1971,7 @@ export default function ManageUserPage() {
                           confirmPassword: undefined,
                         }));
                     }}
+                    placeholder="ยืนยันรหัสผ่าน"
                     className={`${baseFieldClass} ${
                       studentErrors.confirmPassword
                         ? errorFieldClass
@@ -2015,6 +2040,9 @@ export default function ManageUserPage() {
                 <label className={labelClass}>
                   อีเมล <span className="text-red-500">*</span>{" "}
                   <span className="text-xs font-medium text-gray-500">
+                    {getEmailDomainForRole("INSTRUCTOR")}
+                  </span>
+                  <span className="ml-1 text-xs font-medium text-gray-500">
                     ({createEmail.length}/{USER_VALIDATION_CONFIG.email.max})
                   </span>
                 </label>
@@ -2027,6 +2055,7 @@ export default function ManageUserPage() {
                       setCreateErrors((p) => ({ ...p, email: undefined }));
                   }}
                   maxLength={USER_VALIDATION_CONFIG.email.max}
+                  placeholder={getEmailPlaceholderForRole("INSTRUCTOR")}
                   className={`${baseFieldClass} ${createErrors.email
                     ? errorFieldClass
                     : validFieldClass
@@ -2086,6 +2115,7 @@ export default function ManageUserPage() {
                         setCreateErrors((p) => ({ ...p, first_name: undefined }));
                     }}
                     maxLength={USER_VALIDATION_CONFIG.firstName.max}
+                    placeholder="ภาษาไทยเท่านั้น"
                     className={`${baseFieldClass} ${createErrors.first_name
                       ? errorFieldClass
                       : validFieldClass
@@ -2116,6 +2146,7 @@ export default function ManageUserPage() {
                         setCreateErrors((p) => ({ ...p, last_name: undefined }));
                     }}
                     maxLength={USER_VALIDATION_CONFIG.lastName.max}
+                    placeholder="ภาษาไทยเท่านั้น"
                     className={`${baseFieldClass} ${createErrors.last_name
                       ? errorFieldClass
                       : validFieldClass
@@ -2188,6 +2219,7 @@ export default function ManageUserPage() {
                       if (createErrors.password)
                         setCreateErrors((p) => ({ ...p, password: undefined }));
                     }}
+                    placeholder="อย่างน้อย 8 ตัวอักษร"
                     className={`${baseFieldClass} ${createErrors.password
                       ? errorFieldClass
                       : validFieldClass
@@ -2216,6 +2248,7 @@ export default function ManageUserPage() {
                           confirmPassword: undefined,
                         }));
                     }}
+                    placeholder="ยืนยันรหัสผ่าน"
                     className={`${baseFieldClass} ${createErrors.confirmPassword
                       ? errorFieldClass
                       : validFieldClass

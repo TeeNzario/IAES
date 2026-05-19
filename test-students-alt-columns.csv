@@ -1,7 +1,7 @@
-studentCode,email,faculty_code,prefix,curriculumCode,firstName,lastName,expected,note
-66130031,alt.col1@mail.wu.ac.th,18,นาย,CUR067,นักศึกษา,อัลเทอร์เนทหนึ่ง,NEW,ทดสอบ camelCase + snake_case column names
-66130032,alt.col2@mail.wu.ac.th,1,นางสาว,CUR003,สมปอง,อัลเทอร์เนทสอง,NEW,camelCase columns ถูกต้อง
-66130033,alt.col3@mail.wu.ac.th,12,นาย,CUR042,นักศึกษา,อัลเทอร์เนทสาม,NEW,camelCase columns คนที่ 3
-,alt.missing@mail.wu.ac.th,1,นาย,CUR067,,นามสกุลเดียว,MISSING,studentCode ว่าง + ไม่มีชื่อ
-66130034,alt.bad.email@mail.wu.ac.th,1,นาย,CUR067,ชื่อดี,,MISSING,ไม่มีนามสกุล
-66130035,not.wu.ac.th@gmail.com,1,นาย,CUR067,ผิด,โดเมน,MISSING,อีเมล gmail.com
+student_id,email,password,title,first_name,last_name,school_code,curriculum_id,expected,note
+66130031,alt.col1@mail.wu.ac.th,password123,นาย,นักศึกษา,อัลเทอร์เนทหนึ่ง,18,CUR067,NEW,ทดสอบหัวคอลัมน์ปัจจุบัน
+66130032,alt.col2@mail.wu.ac.th,password123,นางสาว,สมปอง,อัลเทอร์เนทสอง,1,CUR003,NEW,หัวคอลัมน์ปัจจุบันครบถ้วน
+66130033,alt.col3@mail.wu.ac.th,password123,นาย,นักศึกษา,อัลเทอร์เนทสาม,12,CUR042,NEW,หัวคอลัมน์ปัจจุบันคนที่ 3
+,alt.missing@mail.wu.ac.th,password123,นาย,,นามสกุลเดียว,1,CUR067,MISSING,student_id ว่าง + ไม่มีชื่อ
+66130034,alt.bad.email@mail.wu.ac.th,password123,นาย,ชื่อดี,,1,CUR067,MISSING,ไม่มีนามสกุล
+66130035,not.wu.ac.th@gmail.com,password123,นาย,ผิด,โดเมน,1,CUR067,MISSING,อีเมล gmail.com

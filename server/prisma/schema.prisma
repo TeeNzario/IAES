@@ -312,6 +312,7 @@ model import_preview_rows {
   row_index    Int // 0-indexed row from CSV
   student_code String
   email        String
+  password_hash String?  @db.VarChar(255)
   facultyCode  Int?
   title        String?  @db.VarChar(50)
   curriculumId String?  @map("curriculum_id") @db.VarChar(20)
