@@ -30,7 +30,7 @@ import {
   checkEmailExists,
 } from "@/features/staff/staff.api";
 import { apiFetch } from "@/lib/api";
-import { AuthUser } from "@/lib/auth";
+import { AuthUser } from "@/types/auth";
 import { FIELD_LIMITS } from "@/config/fieldLimits";
 
 // ============================================================
@@ -39,7 +39,7 @@ import { FIELD_LIMITS } from "@/config/fieldLimits";
 const USER_VALIDATION_CONFIG = {
   firstName: { min: 1, max: FIELD_LIMITS.firstName },
   lastName: { min: 1, max: FIELD_LIMITS.lastName },
-  email: { max: FIELD_LIMITS.email },
+  email: { max: 100 },
   password: { min: 8 },
 };
 
@@ -68,6 +68,23 @@ const ERROR_MESSAGES = {
 };
 
 type RoleFilter = "STUDENT" | "INSTRUCTOR" | "ADMINISTRATOR";
+
+const STUDENT_TITLE_OPTIONS = ["นาย", "นางสาว", "นาง"] as const;
+
+function getTitleOptions(role: RoleFilter) {
+  return role === "STUDENT" ? STUDENT_TITLE_OPTIONS : THAI_TITLES;
+}
+
+function normalizeTitleForRole(
+  title: string | null | undefined,
+  role: RoleFilter,
+) {
+  const options = getTitleOptions(role);
+  const normalized = title ?? "";
+  return (options as readonly string[]).includes(normalized)
+    ? normalized
+    : options[0];
+}
 
 interface User {
   id: string;
@@ -223,6 +240,8 @@ export default function ManageUserPage() {
   const [showCreateStudentModal, setShowCreateStudentModal] = useState(false);
   const [studentCode, setStudentCode] = useState("");
   const [studentEmail, setStudentEmail] = useState("");
+  const [studentPassword, setStudentPassword] = useState("");
+  const [studentConfirmPassword, setStudentConfirmPassword] = useState("");
   const [studentTitle, setStudentTitle] = useState(DEFAULT_TITLE);
   const [studentFirstName, setStudentFirstName] = useState("");
   const [studentLastName, setStudentLastName] = useState("");
@@ -233,8 +252,9 @@ export default function ManageUserPage() {
 
   const [refreshKey, setRefreshKey] = useState(0);
   const [fetching, setFetching] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
 
-  const [, setAuthError] = useState(false);
+  const [authError, setAuthError] = useState(false);
 
   // Fetch current user on mount
   useEffect(() => {
@@ -258,6 +278,7 @@ export default function ManageUserPage() {
     let cancelled = false;
     async function fetchUsers() {
       setFetching(true);
+      setFetchError(false);
       try {
         if (roleFilter === "STUDENT") {
           const res = await getUsers({ role: "" });
@@ -278,6 +299,7 @@ export default function ManageUserPage() {
       } catch (err) {
         if (cancelled) return;
         console.error("fetch users error:", err);
+        setFetchError(true);
       } finally {
         if (!cancelled) setFetching(false);
       }
@@ -415,7 +437,7 @@ export default function ManageUserPage() {
     setEditingUser(user);
     setEditId(user.id);
     setEditEmail(user.email ?? "");
-    setEditTitle(user.title || DEFAULT_TITLE);
+    setEditTitle(normalizeTitleForRole(user.title || DEFAULT_TITLE, user.role));
     setEditFirstName(user.first_name);
     setEditLastName(user.last_name);
     setEditFacultyCode(user.facultyCode ?? DEFAULT_FACULTY_CODE);
@@ -482,13 +504,18 @@ export default function ManageUserPage() {
 
     const emailChanged = normalizedEmail !== (editingUser?.email ?? "");
     if (editingUser && emailChanged) {
-      const emailExists =
-        editingUser.role === "STUDENT"
-          ? await checkStudentEmailExists(normalizedEmail, editingUser.id)
-          : await checkEmailExists(normalizedEmail, editingUser.id);
+      try {
+        const emailExists =
+          editingUser.role === "STUDENT"
+            ? await checkStudentEmailExists(normalizedEmail, editingUser.id)
+            : await checkEmailExists(normalizedEmail, editingUser.id);
 
-      if (emailExists) {
-        setEditErrors((p) => ({ ...p, email: ERROR_MESSAGES.email.duplicate }));
+        if (emailExists) {
+          setEditErrors((p) => ({ ...p, email: ERROR_MESSAGES.email.duplicate }));
+          return false;
+        }
+      } catch {
+        setEditErrors((p) => ({ ...p, general: "ไม่สามารถตรวจสอบอีเมลได้ กรุณาลองใหม่" }));
         return false;
       }
     }
@@ -589,6 +616,7 @@ export default function ManageUserPage() {
 
   async function validateCreateForm(): Promise<boolean> {
     const errors: FormErrors = {};
+    const normalizedEmail = createEmail.trim();
 
     if (!createTitle.trim()) {
       errors.title = "กรุณาเลือกคำนำหน้า";
@@ -614,11 +642,11 @@ export default function ManageUserPage() {
 
 
     // Email (staff: @wu.ac.th)
-    if (!createEmail.trim()) {
+    if (!normalizedEmail) {
       errors.email = ERROR_MESSAGES.email.required;
-    } else if (createEmail.length > USER_VALIDATION_CONFIG.email.max) {
+    } else if (normalizedEmail.length > USER_VALIDATION_CONFIG.email.max) {
       errors.email = ERROR_MESSAGES.email.maxLength;
-    } else if (!STAFF_EMAIL_REGEX.test(createEmail.trim())) {
+    } else if (!STAFF_EMAIL_REGEX.test(normalizedEmail)) {
       errors.email = "อีเมลต้องเป็น @wu.ac.th เท่านั้น";
     }
 
@@ -638,9 +666,14 @@ export default function ManageUserPage() {
 
     // If basic validation passes, check email duplicate
     if (Object.keys(errors).length === 0) {
-      const emailExists = await checkEmailExists(createEmail.trim());
-      if (emailExists) {
-        setCreateErrors((p) => ({ ...p, email: ERROR_MESSAGES.email.duplicate }));
+      try {
+        const emailExists = await checkEmailExists(normalizedEmail);
+        if (emailExists) {
+          setCreateErrors((p) => ({ ...p, email: ERROR_MESSAGES.email.duplicate }));
+          return false;
+        }
+      } catch {
+        setCreateErrors((p) => ({ ...p, general: "ไม่สามารถตรวจสอบอีเมลได้ กรุณาลองใหม่" }));
         return false;
       }
     }
@@ -697,7 +730,9 @@ export default function ManageUserPage() {
   function openCreateStudentModal() {
     setStudentCode("");
     setStudentEmail("");
-    setStudentTitle(DEFAULT_TITLE);
+    setStudentPassword("");
+    setStudentConfirmPassword("");
+    setStudentTitle(STUDENT_TITLE_OPTIONS[0]);
     setStudentFirstName("");
     setStudentLastName("");
     setStudentFacultyCode(DEFAULT_FACULTY_CODE);
@@ -709,10 +744,12 @@ export default function ManageUserPage() {
   async function validateCreateStudentForm(): Promise<boolean> {
     const errors: FormErrors & { student_code?: string; facultyCode?: string } =
       {};
+    const normalizedStudentCode = studentCode.trim();
+    const normalizedEmail = studentEmail.trim();
 
-    if (!studentCode.trim()) {
+    if (!normalizedStudentCode) {
       errors.student_code = "กรุณาระบุรหัสนักศึกษา";
-    } else if (!/^\d{8}$/.test(studentCode.trim())) {
+    } else if (!/^\d{8}$/.test(normalizedStudentCode)) {
       errors.student_code = "รหัสนักศึกษาต้องเป็นตัวเลข 8 หลัก";
     }
 
@@ -738,26 +775,41 @@ export default function ManageUserPage() {
       errors.last_name = ERROR_MESSAGES.lastName.invalidLanguage;
     }
 
-    if (!studentEmail.trim()) {
+    if (!normalizedEmail) {
       errors.email = ERROR_MESSAGES.email.required;
-    } else if (studentEmail.length > USER_VALIDATION_CONFIG.email.max) {
+    } else if (normalizedEmail.length > USER_VALIDATION_CONFIG.email.max) {
       errors.email = ERROR_MESSAGES.email.maxLength;
-    } else if (!STUDENT_EMAIL_REGEX.test(studentEmail.trim())) {
+    } else if (!STUDENT_EMAIL_REGEX.test(normalizedEmail)) {
       errors.email = "อีเมลต้องเป็น @mail.wu.ac.th เท่านั้น";
+    }
+
+    if (!studentPassword) {
+      errors.password = ERROR_MESSAGES.password.required;
+    } else if (studentPassword.length < USER_VALIDATION_CONFIG.password.min) {
+      errors.password = ERROR_MESSAGES.password.minLength;
+    }
+
+    if (studentPassword !== studentConfirmPassword) {
+      errors.confirmPassword = ERROR_MESSAGES.password.mismatch;
     }
 
     setStudentErrors(errors);
 
     if (Object.keys(errors).length === 0) {
-      const codeExists = await checkStudentCodeExists(studentCode);
-      if (codeExists) {
-        setStudentErrors((p) => ({ ...p, student_code: "รหัสนักศึกษานี้ถูกใช้งานแล้ว" }));
-        return false;
-      }
+      try {
+        const codeExists = await checkStudentCodeExists(normalizedStudentCode);
+        if (codeExists) {
+          setStudentErrors((p) => ({ ...p, student_code: "รหัสนักศึกษานี้ถูกใช้งานแล้ว" }));
+          return false;
+        }
 
-      const emailExists = await checkStudentEmailExists(studentEmail.trim());
-      if (emailExists) {
-        setStudentErrors((p) => ({ ...p, email: ERROR_MESSAGES.email.duplicate }));
+        const emailExists = await checkStudentEmailExists(normalizedEmail);
+        if (emailExists) {
+          setStudentErrors((p) => ({ ...p, email: ERROR_MESSAGES.email.duplicate }));
+          return false;
+        }
+      } catch {
+        setStudentErrors((p) => ({ ...p, general: "ไม่สามารถตรวจสอบข้อมูลได้ กรุณาลองใหม่" }));
         return false;
       }
     }
@@ -775,6 +827,7 @@ export default function ManageUserPage() {
       await apiCreateStudent({
         student_code: studentCode.trim(),
         email: studentEmail.trim(),
+        password: studentPassword,
         facultyCode: studentFacultyCode,
         curriculumId: studentCurriculumId,
         title: studentTitle,
@@ -887,6 +940,24 @@ export default function ManageUserPage() {
             </div>
           </div>
         </section>
+
+        {authError && (
+          <div
+            role="alert"
+            className="mb-6 rounded-xl border border-red-100 bg-white px-5 py-4 text-sm text-red-600"
+          >
+            ไม่สามารถโหลดข้อมูลผู้ใช้ได้ กรุณาลองใหม่
+          </div>
+        )}
+
+        {fetchError && !fetching && (
+          <div
+            role="alert"
+            className="mb-6 rounded-xl border border-red-100 bg-white px-5 py-4 text-sm text-red-600"
+          >
+            ไม่สามารถโหลดข้อมูลรายการได้ กรุณาลองใหม่
+          </div>
+        )}
 
         {/* Filter and Search */}
         <div className="mb-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-[#E7DDF8] sm:p-5">
@@ -1246,7 +1317,10 @@ export default function ManageUserPage() {
 
         {/* Pagination */}
         {filteredUsers.length > 0 && (
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="inline-flex h-9 w-fit items-center rounded-lg bg-white px-3 text-sm font-semibold text-[#514667] shadow-sm ring-1 ring-[#E7DDF8]">
+              หน้า {currentPage}/{totalPages}
+            </div>
             <div className="flex items-center gap-1.5">
               <button
                 className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E5E7EB] text-[#8F98A8] shadow-sm transition-colors hover:bg-[#DDE1E7] disabled:cursor-not-allowed disabled:opacity-80"
@@ -1358,7 +1432,7 @@ export default function ManageUserPage() {
                         : validFieldClass
                     }`}
                   >
-                    {THAI_TITLES.map((title) => (
+                    {getTitleOptions(editingUser.role).map((title) => (
                       <option key={title} value={title}>
                         {title}
                       </option>
@@ -1625,7 +1699,10 @@ export default function ManageUserPage() {
               {/* Student Code Field */}
               <div className={fieldGroupClass}>
                 <label className={labelClass}>
-                  รหัสนักศึกษา <span className="text-red-500">*</span>
+                  รหัสนักศึกษา <span className="text-red-500">*</span>{" "}
+                  <span className="text-xs font-medium text-gray-500">
+                    ({studentCode.length}/8)
+                  </span>
                 </label>
                 <input
                   type="text"
@@ -1651,6 +1728,36 @@ export default function ManageUserPage() {
                 )}
               </div>
 
+              {/* Email Field */}
+              <div className={fieldGroupClass}>
+                <label className={labelClass}>
+                  อีเมล <span className="text-red-500">*</span>{" "}
+                  <span className="text-xs font-medium text-gray-500">
+                    ({studentEmail.length}/{USER_VALIDATION_CONFIG.email.max})
+                  </span>
+                </label>
+                <input
+                  type="email"
+                  value={studentEmail}
+                  onChange={(e) => {
+                    setStudentEmail(e.target.value);
+                    if (studentErrors.email)
+                      setStudentErrors((p) => ({ ...p, email: undefined }));
+                  }}
+                  maxLength={USER_VALIDATION_CONFIG.email.max}
+                  className={`${baseFieldClass} ${
+                    studentErrors.email
+                      ? errorFieldClass
+                      : validFieldClass
+                  }`}
+                />
+                {studentErrors.email && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {studentErrors.email}
+                  </p>
+                )}
+              </div>
+
               {/* Title Field */}
               <div className={fieldGroupClass}>
                 <label className={labelClass}>
@@ -1670,7 +1777,7 @@ export default function ManageUserPage() {
                         : validFieldClass
                     }`}
                   >
-                    {THAI_TITLES.map((title) => (
+                    {STUDENT_TITLE_OPTIONS.map((title) => (
                       <option key={title} value={title}>
                         {title}
                       </option>
@@ -1686,7 +1793,13 @@ export default function ManageUserPage() {
               <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
                 {/* First Name Field */}
                 <div className={fieldGroupClass}>
-                  <label className={labelClass}>ชื่อ <span className="text-red-500">*</span></label>
+                  <label className={labelClass}>
+                    ชื่อ <span className="text-red-500">*</span>{" "}
+                    <span className="text-xs font-medium text-gray-500">
+                      ({studentFirstName.length}/
+                      {USER_VALIDATION_CONFIG.firstName.max})
+                    </span>
+                  </label>
                   <input
                     type="text"
                     value={studentFirstName}
@@ -1711,7 +1824,13 @@ export default function ManageUserPage() {
 
                 {/* Last Name Field */}
                 <div className={fieldGroupClass}>
-                  <label className={labelClass}>นามสกุล <span className="text-red-500">*</span></label>
+                  <label className={labelClass}>
+                    นามสกุล <span className="text-red-500">*</span>{" "}
+                    <span className="text-xs font-medium text-gray-500">
+                      ({studentLastName.length}/
+                      {USER_VALIDATION_CONFIG.lastName.max})
+                    </span>
+                  </label>
                   <input
                     type="text"
                     value={studentLastName}
@@ -1777,31 +1896,69 @@ export default function ManageUserPage() {
                 </div>
               </div>
 
-              {/* Email Field */}
-              <div className={fieldGroupClass}>
-                <label className={labelClass}>
-                  อีเมล <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  value={studentEmail}
-                  onChange={(e) => {
-                    setStudentEmail(e.target.value);
-                    if (studentErrors.email)
-                      setStudentErrors((p) => ({ ...p, email: undefined }));
-                  }}
-                  maxLength={USER_VALIDATION_CONFIG.email.max}
-                  className={`${baseFieldClass} ${
-                    studentErrors.email
-                      ? errorFieldClass
-                      : validFieldClass
-                  }`}
-                />
-                {studentErrors.email && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {studentErrors.email}
-                  </p>
-                )}
+              <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+                {/* Password Field */}
+                <div className={fieldGroupClass}>
+                  <label className={labelClass}>
+                    รหัสผ่าน <span className="text-red-500">*</span>{" "}
+                    <span className="text-xs font-medium text-gray-500">
+                      (อย่างน้อย {USER_VALIDATION_CONFIG.password.min} ตัวอักษร)
+                    </span>
+                  </label>
+                  <input
+                    type="password"
+                    value={studentPassword}
+                    onChange={(e) => {
+                      setStudentPassword(e.target.value);
+                      if (studentErrors.password || studentErrors.confirmPassword) {
+                        setStudentErrors((p) => ({
+                          ...p,
+                          password: undefined,
+                          confirmPassword: undefined,
+                        }));
+                      }
+                    }}
+                    className={`${baseFieldClass} ${
+                      studentErrors.password
+                        ? errorFieldClass
+                        : validFieldClass
+                    }`}
+                  />
+                  {studentErrors.password && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {studentErrors.password}
+                    </p>
+                  )}
+                </div>
+
+                {/* Confirm Password Field */}
+                <div className={fieldGroupClass}>
+                  <label className={labelClass}>
+                    ยืนยันรหัสผ่าน <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    value={studentConfirmPassword}
+                    onChange={(e) => {
+                      setStudentConfirmPassword(e.target.value);
+                      if (studentErrors.confirmPassword)
+                        setStudentErrors((p) => ({
+                          ...p,
+                          confirmPassword: undefined,
+                        }));
+                    }}
+                    className={`${baseFieldClass} ${
+                      studentErrors.confirmPassword
+                        ? errorFieldClass
+                        : validFieldClass
+                    }`}
+                  />
+                  {studentErrors.confirmPassword && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {studentErrors.confirmPassword}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Action Buttons */}

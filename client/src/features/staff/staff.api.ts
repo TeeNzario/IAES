@@ -1,7 +1,5 @@
 import { api } from "@/lib/api";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
-
 export type StaffRole = "STUDENT" | "INSTRUCTOR" | "ADMINISTRATOR";
 
 export interface Staff {
@@ -34,20 +32,17 @@ export interface GetStaffsResponse {
 export const getStaffs = async (
   params: GetStaffsParams = {},
 ): Promise<GetStaffsResponse> => {
-  try {
-    const response = await api.get(`/staff`, {
-      params: {
-        page: params.page || 1,
-        limit: params.limit || 9,
-        search: params.search || "",
-        role: params.role || "",
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching staffs:", error);
-    throw error;
+  const paramsObj: Record<string, unknown> = {
+    page: params.page || 1,
+    search: params.search || "",
+    role: params.role || "",
+  };
+  if (params.limit != null) {
+    paramsObj.limit = params.limit;
   }
+
+  const response = await api.get(`/staff`, { params: paramsObj });
+  return response.data;
 };
 
 export const getStaffById = async (id: string): Promise<Staff> => {
@@ -129,16 +124,9 @@ export const checkEmailExists = async (
   email: string,
   excludeId?: string,
 ): Promise<boolean> => {
-  try {
-    const params: any = { email };
-    if (excludeId) params.excludeId = excludeId;
+  const params: Record<string, string> = { email };
+  if (excludeId) params.excludeId = excludeId;
 
-    const response = await api.get(`/staff/check-email`, {
-      params,
-    });
-    return response.data.exists;
-  } catch (error) {
-    console.error("Error checking email:", error);
-    return false;
-  }
+  const response = await api.get(`/staff/check-email`, { params });
+  return response.data.exists;
 };

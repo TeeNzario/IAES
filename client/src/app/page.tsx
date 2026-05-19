@@ -9,7 +9,6 @@ import { CourseOffering } from "@/types/course";
 import { formatInstructorName } from "@/utils/formatName";
 import EditCourseOfferingModal from "@/components/courseOffering/EditCourseOfferingModal";
 import { AuthUser } from "@/types/auth";
-import { getUser } from "@/lib/auth";
 import { toBuddhistYear } from "@/utils/academicYear";
 import {
   getEnglishCourseName,
@@ -38,7 +37,6 @@ function getHeaderContent(userType: NormalizedUserType) {
       title: "รายวิชาที่ลงทะเบียน",
       description: "เลือกวิชาที่ต้องการเข้าเรียน ดูรายละเอียด หรือเข้าทำข้อสอบ",
       totalLabel: "รายวิชาที่ลงทะเบียน",
-      activeLabel: "พร้อมเข้าเรียน",
     };
   }
 
@@ -48,7 +46,6 @@ function getHeaderContent(userType: NormalizedUserType) {
       title: "รายวิชาที่รับผิดชอบ",
       description: "เลือกวิชาเพื่อจัดการสมาชิก สร้างการสอบ และติดตามข้อมูลรายวิชา",
       totalLabel: "รายวิชาที่รับผิดชอบ",
-      activeLabel: "กำลังเปิดสอน",
     };
   }
 
@@ -57,7 +54,6 @@ function getHeaderContent(userType: NormalizedUserType) {
     title: "รายวิชา",
     description: "กำลังเตรียมรายการรายวิชาสำหรับบัญชีของคุณ",
     totalLabel: "รายวิชาทั้งหมด",
-    activeLabel: "กำลังใช้งาน",
   };
 }
 
@@ -67,16 +63,15 @@ export default function CourseHomePage() {
   const [error, setError] = useState<string | null>(null);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedOffering, setSelectedOffering] = useState<CourseOffering | null>(
-    null,
-  );
+  const [selectedOffering, setSelectedOffering] =
+    useState<CourseOffering | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
 
   const fetchCourseOfferings = useCallback(async () => {
     try {
-      setError(null);
       const data = await apiFetch<CourseOffering[]>("/course-offerings");
       setCourses(data);
+      setError(null);
     } catch {
       setError("ไม่สามารถโหลดข้อมูลรายวิชาได้");
     }
@@ -84,19 +79,18 @@ export default function CourseHomePage() {
 
   useEffect(() => {
     let isMounted = true;
-    setLoading(true);
+
     fetchCourseOfferings().finally(() => {
       if (isMounted) setLoading(false);
     });
-    return () => { isMounted = false; };
+
+    return () => {
+      isMounted = false;
+    };
   }, [fetchCourseOfferings]);
 
   useEffect(() => {
     let isMounted = true;
-    const storedUser = getUser<AuthUser>();
-    if (storedUser) {
-      setUser(storedUser);
-    }
 
     apiFetch<AuthUser>("/auth/me")
       .then((fetchedUser) => {
@@ -106,24 +100,27 @@ export default function CourseHomePage() {
         if (isMounted) setUser(null);
       });
 
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const userType = getUserType(user);
   const canManageOfferings =
     userType === "STAFF" && getStaffRole(user) === "INSTRUCTOR";
-  const activeCourseCount = courses.filter((course) => course.is_active).length;
   const headerContent = getHeaderContent(userType);
 
-  const handleEditClick = (
-    courseOffering: CourseOffering,
-  ) => {
+  const handleEditClick = (courseOffering: CourseOffering) => {
     setSelectedOffering(courseOffering);
     setIsEditModalOpen(true);
   };
 
   const handleEditSuccess = () => {
-    fetchCourseOfferings();
+    setLoading(true);
+    setError(null);
+    fetchCourseOfferings().finally(() => {
+      setLoading(false);
+    });
   };
 
   return (
@@ -135,7 +132,7 @@ export default function CourseHomePage() {
               <p className="text-sm font-medium text-[#7C5BD9]">
                 {headerContent.eyebrow}
               </p>
-              <h1 className="mt-1 text-2xl font-semibold text-[#2F2A3A] sm:text-3xl">
+              <h1 className="mt-1 text-[1.7rem] font-semibold leading-tight text-[#2F2A3A] sm:text-[2rem]">
                 {headerContent.title}
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-[#575757] sm:text-base">
@@ -143,34 +140,33 @@ export default function CourseHomePage() {
               </p>
             </div>
 
-            <div className="mt-5 grid grid-cols-2 gap-3 sm:max-w-sm lg:mt-0 lg:w-80">
-              <div className="rounded-xl bg-[#F7F3FF] px-4 py-3">
-                <p className="text-sm font-semibold text-[#7C5BD9]">
+            <div className="mx-auto mt-5 w-full sm:max-w-[12rem] lg:mx-0 lg:mt-0 lg:w-48">
+              <div className="rounded-xl bg-[#F7F3FF] px-4 py-3 text-center">
+                <p className="text-[15px] font-semibold leading-5 text-[#7C5BD9]">
                   {headerContent.totalLabel}
                 </p>
                 <p className="mt-1 text-2xl font-semibold leading-none text-[#2F2A3A]">
                   {loading ? "-" : courses.length}
                 </p>
               </div>
-              <div className="rounded-xl bg-[#F7F3FF] px-4 py-3">
-                <p className="text-sm font-semibold text-[#7C5BD9]">
-                  {headerContent.activeLabel}
-                </p>
-                <p className="mt-1 text-2xl font-semibold leading-none text-[#2F2A3A]">
-                  {loading ? "-" : activeCourseCount}
-                </p>
-              </div>
             </div>
           </section>
 
           {error && (
-            <div role="alert" className="rounded-xl border border-red-100 bg-white px-5 py-4 text-sm text-red-600">
+            <div
+              role="alert"
+              className="rounded-xl border border-red-100 bg-white px-5 py-4 text-sm text-red-600"
+            >
               {error}
             </div>
           )}
 
           {loading ? (
-            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3" role="status" aria-label="กำลังโหลดรายวิชา">
+            <div
+              className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3"
+              role="status"
+              aria-label="กำลังโหลดรายวิชา"
+            >
               {Array.from({ length: 6 }).map((_, index) => (
                 <div
                   key={index}

@@ -25,20 +25,17 @@ export interface GetUsersResponse {
 export const getUsers = async (
   params: GetUsersParams,
 ): Promise<GetUsersResponse> => {
-  try {
-    const response = await api.get(`/students`, {
-      params: {
-        page: params.page || 1,
-        limit: params.limit || 9,
-        search: params.search || "",
-        role: params.role || "",
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    throw error;
+  const paramsObj: Record<string, unknown> = {
+    page: params.page || 1,
+    search: params.search || "",
+    role: params.role || "",
+  };
+  if (params.limit != null) {
+    paramsObj.limit = params.limit;
   }
+
+  const response = await api.get(`/students`, { params: paramsObj });
+  return response.data;
 };
 
 // Get user by ID
@@ -55,6 +52,7 @@ export const getUserById = async (id: string): Promise<User> => {
 export interface CreateStudentPayload {
   student_code: string;
   email: string;
+  password: string;
   facultyCode: number;
   title: string;
   first_name: string;
@@ -86,17 +84,6 @@ export const createStudent = async (
       response?: { status?: number; data?: unknown };
     };
     console.error("Error creating student:", e.response?.status, e.response?.data);
-    throw error;
-  }
-};
-
-// Create new user
-export const createUser = async (userData: Omit<User, "id">): Promise<User> => {
-  try {
-    const response = await api.post(`/students`, userData);
-    return response.data;
-  } catch (error) {
-    console.error("Error creating user:", error);
     throw error;
   }
 };
@@ -161,20 +148,13 @@ export const checkStudentCodeExists = async (
   studentCode: string,
   excludeCode?: string,
 ): Promise<boolean> => {
-  try {
-    const params: { student_code: string; excludeCode?: string } = {
-      student_code: studentCode,
-    };
-    if (excludeCode) params.excludeCode = excludeCode;
+  const params: { student_code: string; excludeCode?: string } = {
+    student_code: studentCode,
+  };
+  if (excludeCode) params.excludeCode = excludeCode;
 
-    const response = await api.get(`/students/check-code`, {
-      params,
-    });
-    return response.data.exists;
-  } catch (error) {
-    console.error("Error checking student code:", error);
-    return false;
-  }
+  const response = await api.get(`/students/check-code`, { params });
+  return response.data.exists;
 };
 
 /**
@@ -185,16 +165,9 @@ export const checkStudentEmailExists = async (
   email: string,
   excludeCode?: string,
 ): Promise<boolean> => {
-  try {
-    const params: { email: string; excludeCode?: string } = { email };
-    if (excludeCode) params.excludeCode = excludeCode;
+  const params: { email: string; excludeCode?: string } = { email };
+  if (excludeCode) params.excludeCode = excludeCode;
 
-    const response = await api.get(`/students/check-email`, {
-      params,
-    });
-    return response.data.exists;
-  } catch (error) {
-    console.error("Error checking student email:", error);
-    return false;
-  }
+  const response = await api.get(`/students/check-email`, { params });
+  return response.data.exists;
 };
