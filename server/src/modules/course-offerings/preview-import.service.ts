@@ -9,7 +9,6 @@ import { Prisma } from 'src/generated/prisma/client';
 import {
   DEFAULT_FACULTY_CODE,
   DEFAULT_TITLE,
-  INVITE_PLACEHOLDER_PASSWORD,
 } from 'src/lib/academic-defaults';
 import { FACULTY_MAP } from 'src/lib/faculty-map';
 import {
@@ -28,6 +27,7 @@ import { FIELD_LENGTHS, maxLengthMessage } from 'src/lib/field-lengths';
 const THAI_NAME_REGEX = /^[ก-๙\s]+$/;
 const STUDENT_CODE_REGEX = /^\d{8}$/;
 const EMAIL_DOMAIN = '@mail.wu.ac.th';
+const PASSWORD_MIN_LENGTH = 8;
 const CANONICAL_CURRICULUM_ID_REGEX = /^CUR(00[1-9]|0[1-6][0-9])$/;
 const VALID_FACULTY_CODES = new Set(Object.keys(FACULTY_MAP).map(Number));
 
@@ -118,6 +118,11 @@ export class PreviewImportService {
           })();
           const studentCode = String(row.student_code ?? '').trim();
           const email = String(row.email ?? '').trim();
+          const password = String(row.password ?? '').trim();
+          const passwordHash =
+            password.length >= PASSWORD_MIN_LENGTH
+              ? await hashPassword(password)
+              : null;
           const title = String(row.title ?? '').trim();
           const curriculumId = String(row.curriculumId ?? '').trim();
           const firstName = String(row.first_name ?? '').trim();
@@ -129,6 +134,8 @@ export class PreviewImportService {
             studentCode,
             email,
             facultyCodeNum,
+            password,
+            passwordHash,
             title,
             curriculumId,
             firstName,
@@ -140,6 +147,7 @@ export class PreviewImportService {
             row_index: index,
             student_code: studentCode,
             email,
+            password_hash: passwordHash,
             facultyCode: facultyCodeNum,
             title: previewStorageValue(title, FIELD_LENGTHS.title),
             curriculumId: previewStorageValue(
@@ -199,10 +207,18 @@ export class PreviewImportService {
       throw new BadRequestException('Preview session has expired');
     }
 
+    const editedPassword =
+      dto.password == null ? undefined : String(dto.password).trim();
+    const nextPasswordHash =
+      editedPassword && editedPassword.length >= PASSWORD_MIN_LENGTH
+        ? await hashPassword(editedPassword)
+        : row.password_hash;
+
     // Merge edits
     const updatedData = {
       student_code: String(dto.student_code ?? row.student_code).trim(),
       email: String(dto.email ?? row.email).trim(),
+      password_hash: nextPasswordHash,
       facultyCode: dto.facultyCode ?? row.facultyCode,
       title: String(dto.title ?? row.title ?? '').trim(),
       curriculumId: String(dto.curriculumId ?? row.curriculumId ?? '').trim(),
@@ -217,6 +233,8 @@ export class PreviewImportService {
       updatedData.student_code,
       updatedData.email,
       updatedData.facultyCode ?? undefined,
+      editedPassword,
+      updatedData.password_hash,
       updatedData.title,
       updatedData.curriculumId,
       updatedData.first_name,
@@ -318,7 +336,6 @@ export class PreviewImportService {
     }
 
     const results: ConfirmResult[] = [];
-    const placeholderHash = await hashPassword(INVITE_PLACEHOLDER_PASSWORD);
 
     for (const row of session.rows) {
       // Skip rows with missing data
@@ -327,6 +344,7 @@ export class PreviewImportService {
           student_code: row.student_code,
           email: row.email,
           status: 'skipped',
+          has_password: Boolean(row.password_hash),
           note: 'ข้อมูลที่จำเป็นไม่ครบ',
         });
         continue;
@@ -338,6 +356,7 @@ export class PreviewImportService {
           student_code: row.student_code,
           email: row.email,
           status: 'skipped',
+          has_password: Boolean(row.password_hash),
           note: row.note || 'ข้อมูลซ้ำ/ขัดแย้ง',
         });
         continue;
@@ -349,6 +368,7 @@ export class PreviewImportService {
           student_code: row.student_code,
           email: row.email,
           status: 'already_enrolled',
+          has_password: Boolean(row.password_hash),
         });
         continue;
       }
@@ -358,6 +378,7 @@ export class PreviewImportService {
           student_code: row.student_code,
           email: row.email,
           status: 'skipped',
+          has_password: Boolean(row.password_hash),
           note: 'รหัสสำนักวิชาไม่ถูกต้อง กรุณาแก้ไขแถวก่อนยืนยันการนำเข้า',
         });
         continue;
@@ -369,6 +390,7 @@ export class PreviewImportService {
           student_code: row.student_code,
           email: row.email,
           status: 'skipped',
+          has_password: Boolean(row.password_hash),
           note: 'รหัสหลักสูตรไม่ถูกต้อง กรุณาแก้ไขแถวก่อนยืนยันการนำเข้า',
         });
         continue;
@@ -392,6 +414,13 @@ export class PreviewImportService {
             where: { student_code: row.student_code },
             select: { email: true },
           });
+
+          const passwordHash = row.password_hash;
+          if (!existingStudent && !passwordHash) {
+            throw new BadRequestException(
+              'จำเป็นต้องระบุรหัสผ่านสำหรับนักศึกษาที่ยังไม่มีบัญชีในระบบ',
+            );
+          }
 
           // Step 1: Upsert student_directory for the new email
           await tx.student_directory.upsert({
@@ -430,7 +459,7 @@ export class PreviewImportService {
             create: {
               student_code: row.student_code,
               email: row.email,
-              password_hash: placeholderHash,
+              password_hash: passwordHash!,
               facultyCode: row.facultyCode ?? DEFAULT_FACULTY_CODE,
               title: row.title || DEFAULT_TITLE,
               curriculumId,
@@ -463,12 +492,14 @@ export class PreviewImportService {
           student_code: row.student_code,
           email: row.email,
           status: 'enrolled',
+          has_password: Boolean(row.password_hash),
         });
       } catch (error) {
         results.push({
           student_code: row.student_code,
           email: row.email,
           status: 'failed',
+          has_password: Boolean(row.password_hash),
           note:
             error instanceof Error
               ? error.message
@@ -517,6 +548,8 @@ export class PreviewImportService {
     studentCode: string,
     email: string,
     facultyCode: number | string | undefined,
+    password: string | undefined,
+    passwordHash: string | null | undefined,
     title: string,
     curriculumId: string,
     firstName: string,
@@ -634,7 +667,19 @@ export class PreviewImportService {
       return { status: 'ALREADY_ENROLLED' };
     }
 
-    // 3. Check student_directory for identity conflicts
+    const providedPassword = String(password ?? '').trim();
+    if (providedPassword && providedPassword.length < PASSWORD_MIN_LENGTH) {
+      return {
+        status: 'MISSING',
+        note: `รหัสผ่านต้องมีอย่างน้อย ${PASSWORD_MIN_LENGTH} ตัวอักษร`,
+      };
+    }
+
+    // 3. Check students and student_directory for identity conflicts
+    const student = await tx.students.findUnique({
+      where: { student_code: studentCode },
+    });
+
     const directoryByCode = await tx.student_directory.findFirst({
       where: { student_code: studentCode },
     });
@@ -660,11 +705,26 @@ export class PreviewImportService {
         directoryByCode.first_name !== firstName ||
         directoryByCode.last_name !== lastName
       ) {
+        if (!student && !passwordHash) {
+          return {
+            status: 'MISSING',
+            note: 'จำเป็นต้องระบุรหัสผ่านสำหรับนักศึกษาที่ยังไม่มีบัญชีในระบบ',
+          };
+        }
+
         return {
           status: 'EXISTS_NOT_ENROLLED',
           note: `ชื่อ-นามสกุลไม่ตรงกับข้อมูลเดิม: ${directoryByCode.first_name} ${directoryByCode.last_name}`,
         };
       }
+
+      if (!student && !passwordHash) {
+        return {
+          status: 'MISSING',
+          note: 'จำเป็นต้องระบุรหัสผ่านสำหรับนักศึกษาที่ยังไม่มีบัญชีในระบบ',
+        };
+      }
+
       return { status: 'EXISTS_NOT_ENROLLED' };
     }
 
@@ -688,10 +748,12 @@ export class PreviewImportService {
       }
     }
 
-    // 4. Check students table
-    const student = await tx.students.findUnique({
-      where: { student_code: studentCode },
-    });
+    if (!student && !passwordHash) {
+      return {
+        status: 'MISSING',
+        note: 'จำเป็นต้องระบุรหัสผ่านสำหรับนักศึกษาที่ยังไม่มีบัญชีในระบบ',
+      };
+    }
 
     if (student) {
       if (student.email !== email) {
@@ -703,7 +765,12 @@ export class PreviewImportService {
       return { status: 'EXISTS_NOT_ENROLLED' };
     }
 
-    // 5. No match anywhere - new student
+    // 5. Directory-only identity can be enrolled after creating auth record.
+    if (directoryByCode || directoryByEmail) {
+      return { status: 'EXISTS_NOT_ENROLLED' };
+    }
+
+    // 6. No match anywhere - new student
     return { status: 'NEW' };
   }
 
@@ -759,6 +826,7 @@ export class PreviewImportService {
       row_index: row.row_index,
       student_code: row.student_code,
       email: row.email,
+      has_password: Boolean(row.password_hash),
       facultyCode: row.facultyCode,
       title: row.title,
       curriculumId: row.curriculumId,

@@ -26,6 +26,9 @@ export class CreateStudentDto {
 
   @IsEmail({}, { message: 'รูปแบบอีเมลไม่ถูกต้อง' })
   @IsNotEmpty()
+  @Matches(/^[^\s@]+@mail\.wu\.ac\.th$/, {
+    message: 'อีเมลต้องเป็น @mail.wu.ac.th เท่านั้น',
+  })
   @MaxLength(FIELD_LENGTHS.email, {
     message: maxLengthMessage('อีเมล', FIELD_LENGTHS.email),
   })

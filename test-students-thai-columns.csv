@@ -1,9 +1,9 @@
-รหัสนักศึกษา,อีเมล,สำนักวิชา,คำนำหน้า,หลักสูตร,ชื่อ,นามสกุล,สถานะที่คาดหวัง,หมายเหตุ
-66130021,thai.col1@mail.wu.ac.th,18,นาย,CUR067,นักศึกษา,ทดสอบไทยหนึ่ง,NEW,ทดสอบ CSV คอลัมน์ภาษาไทยล้วน
-66130022,thai.col2@mail.wu.ac.th,12,นางสาว,CUR042,สมศรี,เรียนเยี่ยม,NEW,นักศึกษาใหม่คอลัมน์ไทย
-66130023,thai.col3@mail.wu.ac.th,1,นาย,CUR003,ประเสริฐ,การดี,NEW,นักศึกษาใหม่คอลัมน์ไทยคนที่ 3
-,thai.missing.code@mail.wu.ac.th,1,นาย,CUR067,นักศึกษา,รหัสหาย,MISSING,ไม่มีรหัสนักศึกษา (คอลัมน์ไทย)
-66130024,,1,นาย,CUR067,นักศึกษา,อีเมลหาย,MISSING,ไม่มีอีเมล (คอลัมน์ไทย)
-66130025,no.name.thai@mail.wu.ac.th,1,นาย,CUR067,John,Smith,MISSING,ชื่อภาษาอังกฤษ (คอลัมน์ไทย)
-66130026,thai.wrong.email@gmail.com,1,นาย,CUR067,นักศึกษา,อีเมลผิด,MISSING,อีเมลไม่ใช่ @mail.wu.ac.th
-66130027,thai.short.code@mail.wu.ac.th,1,นาย,CUR067,รหัส,สั้น,MISSING,รหัส 7 หลัก (ต้อง 8 หลัก)
+student_id,email,password,title,first_name,last_name,school_code,curriculum_id,expected_status,note
+66130021,thai.col1@mail.wu.ac.th,password123,นาย,นักศึกษา,ทดสอบไทยหนึ่ง,18,CUR067,NEW,ทดสอบข้อมูลภาษาไทยด้วยหัวคอลัมน์ปัจจุบัน
+66130022,thai.col2@mail.wu.ac.th,password123,นางสาว,สมศรี,เรียนเยี่ยม,12,CUR042,NEW,นักศึกษาใหม่
+66130023,thai.col3@mail.wu.ac.th,password123,นาย,ประเสริฐ,การดี,1,CUR003,NEW,นักศึกษาใหม่คนที่ 3
+,thai.missing.code@mail.wu.ac.th,password123,นาย,นักศึกษา,รหัสหาย,1,CUR067,MISSING,ไม่มีรหัสนักศึกษา
+66130024,,password123,นาย,นักศึกษา,อีเมลหาย,1,CUR067,MISSING,ไม่มีอีเมล
+66130025,no.name.thai@mail.wu.ac.th,password123,นาย,John,Smith,1,CUR067,MISSING,ชื่อภาษาอังกฤษ
+66130026,thai.wrong.email@gmail.com,password123,นาย,นักศึกษา,อีเมลผิด,1,CUR067,MISSING,อีเมลไม่ใช่ @mail.wu.ac.th
+6613002,thai.short.code@mail.wu.ac.th,password123,นาย,รหัส,สั้น,1,CUR067,MISSING,รหัส 7 หลัก (ต้อง 8 หลัก)

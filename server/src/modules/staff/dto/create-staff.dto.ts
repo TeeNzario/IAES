@@ -24,6 +24,9 @@ export enum StaffRole {
 export class CreateStaffDto {
   @IsEmail()
   @IsNotEmpty()
+  @Matches(/^[^\s@]+@wu\.ac\.th$/, {
+    message: 'อีเมลต้องเป็น @wu.ac.th เท่านั้น',
+  })
   @MaxLength(FIELD_LENGTHS.email, {
     message: maxLengthMessage('อีเมล', FIELD_LENGTHS.email),
   })

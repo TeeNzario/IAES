@@ -7,6 +7,7 @@ import {
   Matches,
   MaxLength,
   MinLength,
+  ValidateIf,
 } from 'class-validator';
 import { FIELD_LENGTHS, maxLengthMessage } from 'src/lib/field-lengths';
 import {
@@ -15,8 +16,11 @@ import {
 } from 'src/lib/academic-program-validation';
 
 export class UpdateStudentDto {
+  @ValidateIf((o) => o.email != null && o.email !== '')
   @IsEmail()
-  @IsOptional()
+  @Matches(/^[^\s@]+@mail\.wu\.ac\.th$/, {
+    message: 'อีเมลต้องเป็น @mail.wu.ac.th เท่านั้น',
+  })
   @MaxLength(FIELD_LENGTHS.email, {
     message: maxLengthMessage('อีเมล', FIELD_LENGTHS.email),
   })

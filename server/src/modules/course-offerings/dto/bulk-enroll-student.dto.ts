@@ -8,6 +8,7 @@ import {
   IsString,
   Matches,
   MaxLength,
+  MinLength,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -25,6 +26,11 @@ export class BulkEnrollStudentRowDto {
     message: maxLengthMessage('อีเมล', FIELD_LENGTHS.email),
   })
   email: string;
+
+  @IsString()
+  @IsOptional()
+  @MinLength(8, { message: 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' })
+  password?: string;
 
   @IsInt()
   @IsNotEmpty()

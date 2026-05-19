@@ -8,7 +8,7 @@ export const FIELD_LIMITS = {
   choiceText: 2000,
   collectionTitle: 255,
   collectionDescription: 2000,
-  email: 255,
+  email: 100,
   studentCode: 50,
   title: 50,
   firstName: 100,

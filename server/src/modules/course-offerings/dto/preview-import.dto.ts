@@ -21,6 +21,10 @@ export class PreviewRowDto {
   email?: string;
 
   @IsOptional()
+  @IsString()
+  password?: string;
+
+  @IsOptional()
   facultyCode?: number | string;
 
   @IsOptional()
@@ -58,6 +62,10 @@ export class EditPreviewRowDto {
   @IsOptional()
   email?: string;
 
+  @IsString()
+  @IsOptional()
+  password?: string;
+
   @IsOptional()
   @IsInt()
   facultyCode?: number;
@@ -92,6 +100,7 @@ export interface PreviewRowResponse {
   row_index: number;
   student_code: string;
   email: string;
+  has_password: boolean;
   facultyCode: number | null;
   title: string;
   curriculumId?: string | null;
@@ -120,6 +129,7 @@ export interface ConfirmResult {
   student_code: string;
   email: string;
   status: 'enrolled' | 'already_enrolled' | 'failed' | 'skipped';
+  has_password: boolean;
   note?: string;
 }
 
