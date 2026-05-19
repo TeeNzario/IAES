@@ -228,6 +228,7 @@ export class CourseExamsService {
             user.type === 'student'
               ? { student_code: user.sub }
               : { student_code: '__staff_no_student_attempt__' },
+          orderBy: { started_at: 'desc' },
           take: 1,
           select: {
             exam_attempts_id: true,
