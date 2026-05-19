@@ -16,6 +16,7 @@ import { CreateCourseOfferingDto } from './dto/create-course-offerings.dto';
 import { UpdateCourseOfferingDto } from './dto/update-course-offering.dto';
 import { Auth, Roles } from 'src/auth/guards';
 import { AddStudentDto } from './dto/add-student.dto';
+import { AddInstructorDto } from './dto/add-instructor.dto';
 import { BulkEnrollStudentDto } from './dto/bulk-enroll-student.dto';
 import {
   CreatePreviewSessionDto,
@@ -219,6 +220,21 @@ export class CourseOfferingsController {
     return this.courseOfferingsService.removeInstructorFromOffering(
       offeringId,
       staffUserId,
+      req.user.sub,
+    );
+  }
+
+  @Post(':offeringId/instructors')
+  @Auth()
+  @Roles('INSTRUCTOR')
+  addInstructor(
+    @Param('offeringId') offeringId: string,
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: AddInstructorDto,
+  ) {
+    return this.courseOfferingsService.addInstructorToOffering(
+      offeringId,
+      dto.staff_users_id,
       req.user.sub,
     );
   }

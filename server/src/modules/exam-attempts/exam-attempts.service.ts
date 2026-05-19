@@ -1024,44 +1024,80 @@ export class ExamAttemptsService {
       this.prisma.course_enrollments.count({
         where: { course_offerings_id: offeringBigInt },
       }),
-      this.prisma.exam_attempts.findMany({
-        where: { course_exams_id: examBigInt },
-        orderBy: { started_at: 'asc' },
-        select: {
-          exam_attempts_id: true,
-          student_code: true,
-          status: true,
-          started_at: true,
-          submitted_at: true,
-          total_score: true,
-          passed: true,
-          time_per_exam: true,
-          students: {
-            select: {
-              title: true,
-              first_name: true,
-              last_name: true,
-              email: true,
-            },
-          },
-          _count: {
-            select: {
-              attempt_items: true,
-              exam_behavior_logs: true,
-            },
-          },
-          exam_behavior_logs: {
-            orderBy: { occurred_at: 'desc' },
-            take: 1,
-            select: {
-              event_type: true,
-              occurred_at: true,
-            },
-          },
-        },
-      }),
+      this.fetchAttempts(examBigInt),
     ]);
 
+    return serializeBigInt(this.buildSummaryResponse(exam, totalEnrolled, attempts));
+  }
+
+  async getSummariesForOffering(
+    offeringId: string,
+    examIds: string[],
+    actor: StaffActor,
+  ) {
+    await this.resolveCourseAndAuthorize(offeringId, actor);
+    const offeringBigInt = parseBigIntId(offeringId, 'offeringId');
+
+    const totalEnrolled = await this.prisma.course_enrollments.count({
+      where: { course_offerings_id: offeringBigInt },
+    });
+
+    const summaries = await Promise.all(
+      examIds.map(async (examId) => {
+        const exam = await this.loadExam(offeringId, examId);
+        const examBigInt = parseBigIntId(examId, 'examId');
+        const attempts = await this.fetchAttempts(examBigInt);
+        return this.buildSummaryResponse(exam, totalEnrolled, attempts);
+      }),
+    );
+
+    return serializeBigInt(summaries);
+  }
+
+  private async fetchAttempts(examBigInt: bigint) {
+    return this.prisma.exam_attempts.findMany({
+      where: { course_exams_id: examBigInt },
+      orderBy: { started_at: 'asc' },
+      select: {
+        exam_attempts_id: true,
+        student_code: true,
+        status: true,
+        started_at: true,
+        submitted_at: true,
+        total_score: true,
+        passed: true,
+        time_per_exam: true,
+        students: {
+          select: {
+            title: true,
+            first_name: true,
+            last_name: true,
+            email: true,
+          },
+        },
+        _count: {
+          select: {
+            attempt_items: true,
+            exam_behavior_logs: true,
+          },
+        },
+        exam_behavior_logs: {
+          orderBy: { occurred_at: 'desc' },
+          take: 1,
+          select: {
+            event_type: true,
+            occurred_at: true,
+          },
+        },
+      },
+    });
+  }
+
+  private buildSummaryResponse(
+    exam: Awaited<ReturnType<typeof this.loadExam>>,
+    totalEnrolled: number,
+    attempts: Awaited<ReturnType<typeof this.fetchAttempts>>,
+  ) {
     const submitted = attempts.filter(
       (attempt) => attempt.status === 'SUBMITTED',
     );
@@ -1079,7 +1115,7 @@ export class ExamAttemptsService {
           )
         : null;
 
-    return serializeBigInt({
+    return {
       exam: {
         course_exams_id: exam.course_exams_id,
         title: exam.title,
@@ -1118,6 +1154,6 @@ export class ExamAttemptsService {
         behavior_event_count: attempt._count.exam_behavior_logs,
         last_behavior_event: attempt.exam_behavior_logs[0] ?? null,
       })),
-    });
+    };
   }
 }

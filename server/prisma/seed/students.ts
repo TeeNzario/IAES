@@ -241,6 +241,127 @@ const STUDENT_ROWS: StudentSeed[] = [
     last_name: 'พักการเรียน',
     is_active: false,
   },
+  // --- Additional students for broader faculty coverage ---
+  // Agri-Food
+  {
+    student_code: '66180101',
+    email: 'winai.food@mail.wu.ac.th',
+    facultyCode: FACULTY.AGRI_FOOD,
+    curriculumId: CURRICULUM.FOOD_SCIENCE_INNOVATION,
+    title: 'นาย',
+    first_name: 'วินัย',
+    last_name: 'อาหารปลอดภัย',
+  },
+  // Accounting-Finance — add more
+  {
+    student_code: '66112234',
+    email: 'saranya.econ@mail.wu.ac.th',
+    facultyCode: FACULTY.ACCOUNTING_FINANCE,
+    curriculumId: CURRICULUM.ECONOMICS,
+    title: 'นางสาว',
+    first_name: 'ศรัณยา',
+    last_name: 'เศรษฐศาสตร์',
+  },
+  // Medicine
+  {
+    student_code: '66190101',
+    email: 'kittisak.med@mail.wu.ac.th',
+    facultyCode: FACULTY.MEDICINE,
+    curriculumId: CURRICULUM.MEDICAL_SCIENCE,
+    title: 'นาย',
+    first_name: 'กิตติศักดิ์',
+    last_name: 'เมดิคอล',
+  },
+  // Pharmacy
+  {
+    student_code: '66200101',
+    email: 'nattaya.pharma@mail.wu.ac.th',
+    facultyCode: FACULTY.PHARMACY,
+    curriculumId: CURRICULUM.PHARMACY,
+    title: 'นางสาว',
+    first_name: 'ณัฐยา',
+    last_name: 'เภสัชกร',
+  },
+  // Political Science
+  {
+    student_code: '66150101',
+    email: 'boonchuay.polisci@mail.wu.ac.th',
+    facultyCode: FACULTY.POLITICAL_SCIENCE,
+    curriculumId: CURRICULUM.LAW,
+    title: 'นาย',
+    first_name: 'บุญช่วย',
+    last_name: 'นักปกครอง',
+  },
+  // Dentistry
+  {
+    student_code: '66210101',
+    email: 'rattana.dent@mail.wu.ac.th',
+    facultyCode: FACULTY.DENTISTRY,
+    curriculumId: CURRICULUM.DENTISTRY,
+    title: 'นางสาว',
+    first_name: 'รัตนา',
+    last_name: 'ทันตกรรม',
+  },
+  // Veterinary
+  {
+    student_code: '66220101',
+    email: 'somphong.vet@mail.wu.ac.th',
+    facultyCode: FACULTY.VETERINARY,
+    curriculumId: CURRICULUM.VETERINARY,
+    title: 'นาย',
+    first_name: 'สมพงษ์',
+    last_name: 'สัตว์แพทย์',
+  },
+  // Education
+  {
+    student_code: '66230101',
+    email: 'chanakan.edu@mail.wu.ac.th',
+    facultyCode: FACULTY.EDUCATION,
+    curriculumId: CURRICULUM.EDUCATION_ENGLISH,
+    title: 'นางสาว',
+    first_name: 'ชนากานต์',
+    last_name: 'ครูศาสตร์',
+  },
+  // Architecture
+  {
+    student_code: '66240101',
+    email: 'theerapong.arch@mail.wu.ac.th',
+    facultyCode: FACULTY.ARCHITECTURE,
+    curriculumId: CURRICULUM.ARCHITECTURE,
+    title: 'นาย',
+    first_name: 'ธีรพงศ์',
+    last_name: 'สถาปนิก',
+  },
+  // Allied Health
+  {
+    student_code: '66260101',
+    email: 'wipha.allied@mail.wu.ac.th',
+    facultyCode: FACULTY.ALLIED_HEALTH,
+    curriculumId: CURRICULUM.ALLIED_HEALTH_TECH,
+    title: 'นางสาว',
+    first_name: 'วิภา',
+    last_name: 'เทคนิคการแพทย์',
+  },
+  // Public Health
+  {
+    student_code: '66270101',
+    email: 'chaiwat.publichealth@mail.wu.ac.th',
+    facultyCode: FACULTY.PUBLIC_HEALTH,
+    curriculumId: CURRICULUM.PUBLIC_HEALTH_COMMUNITY,
+    title: 'นาย',
+    first_name: 'ชัยวัฒน์',
+    last_name: 'อนามัยชุมชน',
+  },
+  // Hospitality
+  {
+    student_code: '66280101',
+    email: 'sasithorn.hosp@mail.wu.ac.th',
+    facultyCode: FACULTY.MANAGEMENT,
+    curriculumId: CURRICULUM.HOSPITALITY,
+    title: 'นางสาว',
+    first_name: 'ศศิธร',
+    last_name: 'บริการดี',
+  },
 ];
 
 export async function seedStudents(): Promise<students[]> {

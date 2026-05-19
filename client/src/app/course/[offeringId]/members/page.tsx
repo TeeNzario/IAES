@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import Navbar from "@/components/layout/NavBar";
-import { useRouter } from "next/navigation";
 import {
   UserPlus,
   Upload,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Trash2,
   UsersRound,
   Lock,
@@ -18,14 +19,15 @@ import { apiFetch } from "@/lib/api";
 import { useParams } from "next/navigation";
 import { Student } from "@/types/student";
 import { CourseOffering } from "@/types/course";
+import { Instructor } from "@/types/staff";
 import { formatInstructorName } from "@/utils/formatName";
 import BulkUploadModal from "@/features/courseOffering/components/BulkUploadStudent";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import AlertModal from "@/components/ui/AlertModal";
+import CourseTabs from "@/components/course/CourseTabs";
 import { AuthUser } from "@/types/auth";
 import { DEFAULT_FACULTY_CODE, FACULTY_MAP, getFacultyName } from "@/lib/faculty-map";
 import { CURRICULUMS, DEFAULT_CURRICULUM_ID, getCurriculumName } from "@/config/curriculums";
-import { DEFAULT_TITLE, THAI_TITLES } from "@/config/titles";
 import { FIELD_LIMITS } from "@/config/fieldLimits";
 
 // ============================================================
@@ -40,6 +42,10 @@ const LAST_NAME_MAX_LENGTH = FIELD_LIMITS.lastName;
 // Email and Name validation regex pattern
 const EMAIL_REGEX = /^[^\s@]+@mail\.wu\.ac\.th$/;
 const NAME_REGEX = /^[ก-๙\s]+$/;
+const STUDENT_TITLES = ["นาย", "นางสาว", "นาง"] as const;
+const DEFAULT_STUDENT_TITLE = STUDENT_TITLES[0];
+const INSTRUCTOR_PAGE_SIZE_OPTIONS = [5, 10, 25] as const;
+const STUDENT_PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 
 function formatCurriculumDisplay(curriculumId: string | null | undefined) {
   return getCurriculumName(
@@ -113,19 +119,25 @@ function getErrorMessage(error: unknown, fallback: string): string {
 }
 
 export default function SimpleShowUsers() {
-  const [activeTopTab, setActiveTopTab] = useState("student");
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+  const [showAddInstructorModal, setShowAddInstructorModal] = useState(false);
 
   const [showUploadModal, setShowUploadModal] = useState(false);
 
   // Form state
   const [studentId, setStudentId] = useState("");
   const [email, setEmail] = useState("");
-  const [title, setTitle] = useState(DEFAULT_TITLE);
+  const [title, setTitle] = useState<string>(DEFAULT_STUDENT_TITLE);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [addFacultyCode, setAddFacultyCode] = useState<number>(DEFAULT_FACULTY_CODE);
   const [addCurriculumId, setAddCurriculumId] = useState<string>(DEFAULT_CURRICULUM_ID);
+  const [allInstructors, setAllInstructors] = useState<Instructor[]>([]);
+  const [selectedInstructorId, setSelectedInstructorId] = useState("");
+  const [modalInstructorFacultyFilter, setModalInstructorFacultyFilter] =
+    useState("ALL");
+  const [modalInstructorCurriculumFilter, setModalInstructorCurriculumFilter] =
+    useState("ALL");
 
   // Validation errors state
   const [errors, setErrors] = useState<FormErrors>({});
@@ -136,6 +148,12 @@ export default function SimpleShowUsers() {
   const [isCheckingCode, setIsCheckingCode] = useState(false);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingInstructors, setIsLoadingInstructors] = useState(false);
+  const [isAddingInstructor, setIsAddingInstructor] = useState(false);
+  const [instructorPage, setInstructorPage] = useState(1);
+  const [instructorItemsPerPage, setInstructorItemsPerPage] = useState(10);
+  const [studentPage, setStudentPage] = useState(1);
+  const [studentItemsPerPage, setStudentItemsPerPage] = useState(25);
 
   // Unenroll confirmation state
   const [isUnenrollModalOpen, setIsUnenrollModalOpen] = useState(false);
@@ -160,11 +178,9 @@ export default function SimpleShowUsers() {
   const [offering, setOffering] = useState<CourseOffering | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(true);
-  const hasCourseExams = (offering?._count?.course_exams ?? 0) > 0;
+  const isMemberDeleteLocked = offering?.member_delete_locked ?? false;
   const deleteBlockedMessage =
-    "มีการสร้างชุดสอบหรือการสอบในรายวิชานี้แล้ว ระบบไม่อนุญาตให้ลบอาจารย์หรือนักศึกษาออกจากรายวิชา";
-
-  const router = useRouter();
+    "มีการสร้างชุดข้อสอบหรือมีการจัดสอบในรายวิชานี้แล้ว ระบบไม่อนุญาตให้ลบอาจารย์หรือนักศึกษาออกจากรายวิชา";
 
   const { offeringId } = useParams<{ offeringId: string }>();
 
@@ -379,16 +395,11 @@ export default function SimpleShowUsers() {
     }));
   };
 
-  // ฟังก์ชันกลับไปหน้า Course
-  const handleBackToCourse = () => {
-    router.back();
-  };
-
   const handleCancelAddStudent = () => {
-    setShowAddModal(false);
+    setShowAddStudentModal(false);
     setStudentId("");
     setEmail("");
-    setTitle(DEFAULT_TITLE);
+    setTitle(DEFAULT_STUDENT_TITLE);
     setFirstName("");
     setLastName("");
     setAddFacultyCode(DEFAULT_FACULTY_CODE);
@@ -442,7 +453,7 @@ export default function SimpleShowUsers() {
     studentCode: string,
     studentName: string,
   ) => {
-    if (hasCourseExams) {
+    if (isMemberDeleteLocked) {
       setAlertState({
         isOpen: true,
         title: "ไม่สามารถลบได้",
@@ -484,7 +495,7 @@ export default function SimpleShowUsers() {
   };
 
   const handleRemoveInstructor = (staffUserId: string, instructorName: string) => {
-    if (hasCourseExams) {
+    if (isMemberDeleteLocked) {
       setAlertState({
         isOpen: true,
         title: "ไม่สามารถลบได้",
@@ -540,23 +551,169 @@ export default function SimpleShowUsers() {
     }
   }, [offeringId]);
 
+  const fetchInstructors = useCallback(async () => {
+    try {
+      setIsLoadingInstructors(true);
+      const data = await apiFetch<Instructor[]>("/staff/instructors");
+      setAllInstructors(data);
+    } catch (err: unknown) {
+      console.error("Failed to fetch instructors:", err);
+      setAllInstructors([]);
+      setAlertState({
+        isOpen: true,
+        title: "เกิดข้อผิดพลาด",
+        message: getErrorMessage(
+          err,
+          "ไม่สามารถโหลดรายชื่ออาจารย์ได้ กรุณาลองใหม่อีกครั้ง",
+        ),
+        variant: "error",
+      });
+    } finally {
+      setIsLoadingInstructors(false);
+    }
+  }, []);
+
+  const handleCancelAddInstructor = () => {
+    setShowAddInstructorModal(false);
+    setSelectedInstructorId("");
+    setModalInstructorFacultyFilter("ALL");
+    setModalInstructorCurriculumFilter("ALL");
+  };
+
+  const handleAddInstructor = async () => {
+    if (!selectedInstructorId) {
+      setAlertState({
+        isOpen: true,
+        title: "กรุณาเลือกอาจารย์",
+        message: "เลือกอาจารย์ที่ต้องการเพิ่มเข้ารายวิชา",
+        variant: "warning",
+      });
+      return;
+    }
+
+    setIsAddingInstructor(true);
+    try {
+      await apiFetch(`course-offerings/${offeringId}/instructors`, {
+        method: "POST",
+        data: { staff_users_id: selectedInstructorId },
+      });
+      await fetchOffering();
+      handleCancelAddInstructor();
+    } catch (err: unknown) {
+      console.error("Failed to add instructor:", err);
+      setAlertState({
+        isOpen: true,
+        title: "เกิดข้อผิดพลาด",
+        message: getErrorMessage(
+          err,
+          "ไม่สามารถเพิ่มอาจารย์ได้ กรุณาลองใหม่อีกครั้ง",
+        ),
+        variant: "error",
+      });
+    } finally {
+      setIsAddingInstructor(false);
+    }
+  };
+
   //fetch instructors name
   useEffect(() => {
     fetchOffering();
   }, [fetchOffering]);
 
-   useEffect(() => {
-  apiFetch<AuthUser>("/auth/me")
-    .then((user) => {
-      setUser(user);
-    })
-    .catch((err) => {
-      console.error("Failed to fetch user", err);
-    });
-}, []);
+  useEffect(() => {
+    apiFetch<AuthUser>("/auth/me")
+      .then((user) => {
+        setUser(user);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch user", err);
+      });
+  }, []);
 
-const isStudent =
-  String(user?.type ?? user?.userType ?? "").toUpperCase() === "STUDENT";
+  useEffect(() => {
+    if (showAddInstructorModal) {
+      fetchInstructors();
+    }
+  }, [fetchInstructors, showAddInstructorModal]);
+
+  const isStudent =
+    String(user?.type ?? user?.userType ?? "").toUpperCase() === "STUDENT";
+
+  const assignedInstructorIds = useMemo(
+    () =>
+      new Set(
+        (offering?.course_instructors ?? []).map((ci) =>
+          String(ci.staff_users_id),
+        ),
+      ),
+    [offering?.course_instructors],
+  );
+
+  const availableInstructors = useMemo(
+    () =>
+      allInstructors.filter(
+        (instructor) =>
+          !assignedInstructorIds.has(String(instructor.staff_users_id)),
+      ),
+    [allInstructors, assignedInstructorIds],
+  );
+
+  const modalInstructorFacultyOptions = useMemo(() => {
+    return Object.keys(FACULTY_MAP)
+      .map(Number)
+      .sort((a, b) => a - b);
+  }, []);
+
+  const modalInstructorCurriculumOptions = useMemo(() => {
+    return CURRICULUMS.filter(
+      (curriculum) =>
+        modalInstructorFacultyFilter === "ALL" ||
+        curriculum.facultyCode === Number(modalInstructorFacultyFilter),
+    );
+  }, [modalInstructorFacultyFilter]);
+
+  const filteredAvailableInstructors = useMemo(
+    () =>
+      availableInstructors.filter((instructor) => {
+        const facultyCode = instructor.facultyCode ?? DEFAULT_FACULTY_CODE;
+        const facultyMatches =
+          modalInstructorFacultyFilter === "ALL" ||
+          facultyCode === Number(modalInstructorFacultyFilter);
+        const curriculumMatches =
+          modalInstructorCurriculumFilter === "ALL" ||
+          instructor.curriculumId === modalInstructorCurriculumFilter;
+
+        return facultyMatches && curriculumMatches;
+      }),
+    [
+      availableInstructors,
+      modalInstructorCurriculumFilter,
+      modalInstructorFacultyFilter,
+    ],
+  );
+
+  const selectedInstructor = filteredAvailableInstructors.find(
+    (instructor) => String(instructor.staff_users_id) === selectedInstructorId,
+  );
+
+  useEffect(() => {
+    if (!showAddInstructorModal) return;
+
+    const stillAvailable = filteredAvailableInstructors.some(
+      (instructor) => String(instructor.staff_users_id) === selectedInstructorId,
+    );
+    if (!stillAvailable) {
+      setSelectedInstructorId(
+        filteredAvailableInstructors[0]
+          ? String(filteredAvailableInstructors[0].staff_users_id)
+          : "",
+      );
+    }
+  }, [
+    filteredAvailableInstructors,
+    selectedInstructorId,
+    showAddInstructorModal,
+  ]);
 
   // ============================================================
   // COMPUTED VALUES
@@ -572,47 +729,84 @@ const isStudent =
     isSubmitting ||
     isCheckingCode ||
     isCheckingEmail;
+  const isAddInstructorDisabled =
+    isAddingInstructor ||
+    isLoadingInstructors ||
+    filteredAvailableInstructors.length === 0 ||
+    !selectedInstructorId;
+  const instructorRows = useMemo(
+    () =>
+      (offering?.course_instructors ?? []).map((ci, instructorIndex) => ({
+        ...ci,
+        instructorIndex,
+      })),
+    [offering?.course_instructors],
+  );
+  const instructorCountLabel = `${instructorRows.length} คน`;
+  const totalInstructorPages = Math.max(
+    1,
+    Math.ceil(instructorRows.length / instructorItemsPerPage),
+  );
+  const firstVisibleInstructor =
+    instructorRows.length === 0
+      ? 0
+      : (instructorPage - 1) * instructorItemsPerPage + 1;
+  const lastVisibleInstructor = Math.min(
+    instructorPage * instructorItemsPerPage,
+    instructorRows.length,
+  );
+  const instructorSummary =
+    instructorRows.length === 0
+      ? "ยังไม่มีรายการ"
+      : `แสดง ${firstVisibleInstructor}–${lastVisibleInstructor} จาก ${instructorRows.length}`;
+  const paginatedInstructorRows = useMemo(
+    () =>
+      instructorRows.slice(
+        (instructorPage - 1) * instructorItemsPerPage,
+        instructorPage * instructorItemsPerPage,
+      ),
+    [instructorItemsPerPage, instructorPage, instructorRows],
+  );
+  const totalStudentPages = Math.max(
+    1,
+    Math.ceil(students.length / studentItemsPerPage),
+  );
+  const firstVisibleStudent =
+    students.length === 0 ? 0 : (studentPage - 1) * studentItemsPerPage + 1;
+  const lastVisibleStudent = Math.min(
+    studentPage * studentItemsPerPage,
+    students.length,
+  );
+  const studentSummary =
+    students.length === 0
+      ? "ยังไม่มีรายการ"
+      : `แสดง ${firstVisibleStudent}–${lastVisibleStudent} จาก ${students.length}`;
+  const paginatedStudents = useMemo(
+    () =>
+      students.slice(
+        (studentPage - 1) * studentItemsPerPage,
+        studentPage * studentItemsPerPage,
+      ),
+    [studentItemsPerPage, studentPage, students],
+  );
+
+  useEffect(() => {
+    setInstructorPage((page) => Math.min(page, totalInstructorPages));
+  }, [totalInstructorPages]);
+
+  useEffect(() => {
+    setStudentPage((page) => Math.min(page, totalStudentPages));
+  }, [totalStudentPages]);
 
   return (
     <Navbar>
       <div className="min-h-screen bg-[#F4EFFF] px-4 py-6 sm:px-8 lg:px-10">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-5 border-b border-[#DDD1F6] pb-3">
-            <div className="flex items-center gap-6 pb-3">
-              <button
-                onClick={() => {
-                  setActiveTopTab("home");
-                  handleBackToCourse();
-                }}
-                className={`text-base font-medium transition-colors cursor-pointer ${
-                  activeTopTab === "home"
-                    ? "text-[#7C5BD9]"
-                    : "text-[#7A7287] hover:text-[#7C5BD9]"
-                }`}
-              >
-                หน้าหลัก
-              </button>
-              <div className="h-4 w-px bg-[#D4C7ED]"></div>
-              <button
-                onClick={() => {
-                  setActiveTopTab("student");
-                }}
-                className={`text-base font-medium transition-colors cursor-pointer ${
-                  activeTopTab === "student"
-                    ? "text-[#7C5BD9]"
-                    : "text-[#7A7287] hover:text-[#7C5BD9]"
-                }`}
-              >
-                สมาชิก
-              </button>
-            </div>
-          </div>
+          <CourseTabs offeringId={offeringId} active="members" />
 
-          {/* Main Flex Container */}
-          <div className="flex flex-col gap-4 lg:flex-row">
-            {/* Left Section - Lists */}
-            <div className="min-w-0 flex-1 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6 lg:p-8">
-              {hasCourseExams && !isStudent && (
+          <div className="space-y-4">
+            <div className="min-w-0 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#E7DDF8] sm:p-6 lg:p-8">
+              {isMemberDeleteLocked && !isStudent && (
                 <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800">
                   <AlertTriangle size={20} className="mt-0.5 shrink-0" />
                   <div>
@@ -626,31 +820,58 @@ const isStudent =
 
               {/* Header Card */}
               <div className="mb-6 rounded-xl border border-[#EFE8FB]">
-                <div className="flex items-center justify-between border-b border-[#EFE8FB] px-5 py-4">
-                  <h3 className="flex items-center gap-2 text-base font-semibold text-[#2F2A3A]">
+                <div className="flex flex-col gap-3 border-b border-[#EFE8FB] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                  <h3 className="flex items-center gap-2 text-[17px] font-semibold text-[#2F2A3A]">
                     <UsersRound size={18} className="text-[#B7A3E3]" />
-                    อาจารย์
+                    <span>อาจารย์</span>
+                    <span className="rounded-full bg-[#F4EFFF] px-2.5 py-0.5 text-[13px] font-medium tabular-nums text-[#7455C9] ring-1 ring-[#D9CCF2]">
+                      {instructorCountLabel}
+                    </span>
                   </h3>
-                  <span className="text-base font-semibold tabular-nums text-[#514667]">
-                    {offering?.course_instructors.length ?? 0} คน
-                  </span>
+                  <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                    {!isStudent && (
+                      <button
+                        onClick={() => setShowAddInstructorModal(true)}
+                        className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-[#F4EFFF] px-3.5 text-[15px] font-medium text-[#7455C9] ring-1 ring-[#D9CCF2] transition-colors hover:bg-white hover:ring-[#CDBCF2]"
+                        title="เพิ่มอาจารย์"
+                      >
+                        <UsersRound size={16} />
+                        เพิ่มอาจารย์
+                      </button>
+                    )}
+                  </div>
                 </div>
+                <MemberTableControls
+                  summary={instructorSummary}
+                  itemsPerPage={instructorItemsPerPage}
+                  pageSizeOptions={INSTRUCTOR_PAGE_SIZE_OPTIONS}
+                  onItemsPerPageChange={(value) => {
+                    setInstructorItemsPerPage(value);
+                    setInstructorPage(1);
+                  }}
+                  itemLabel="คน"
+                />
                 <div className="hidden border-b border-[#EFE8FB] bg-[#F7F3FF] px-5 py-4 md:grid md:grid-cols-[minmax(10rem,1fr)_minmax(12rem,1.35fr)_minmax(12rem,1.35fr)_2.25rem] md:items-center md:gap-4">
-                  <span className="text-[15px] font-semibold text-[#5B4A73]">
+                  <span className="text-[15px] font-medium text-[#5B4A73]">
                     ชื่อ-นามสกุล
                   </span>
-                  <span className="text-[15px] font-semibold text-[#5B4A73]">
+                  <span className="text-[15px] font-medium text-[#5B4A73]">
                     สำนักวิชา
                   </span>
-                  <span className="text-[15px] font-semibold text-[#5B4A73]">
+                  <span className="text-[15px] font-medium text-[#5B4A73]">
                     หลักสูตร
                   </span>
                   <span aria-hidden />
                 </div>
-                <div>
-                  {offering?.course_instructors.map((ci, instructorIndex) => {
+                <div className="divide-y divide-[#EFE8FB]">
+                  {instructorRows.length === 0 ? (
+                    <div className="px-5 py-8 text-center text-[15px] font-medium text-[#7A7287]">
+                      ยังไม่มีอาจารย์ในรายวิชานี้
+                    </div>
+                  ) : (
+                    paginatedInstructorRows.map((ci) => {
                     const instructorName = formatInstructorName(ci.staff_users);
-                    const isPrimaryInstructor = instructorIndex === 0;
+                    const isPrimaryInstructor = ci.instructorIndex === 0;
 
                     return (
                     <div
@@ -661,7 +882,7 @@ const isStudent =
                         <span className="truncate text-[15px] font-normal leading-6 text-[#2F2A3A] md:min-w-0 md:overflow-visible md:whitespace-normal md:text-clip md:wrap-break-word">
                           {instructorName}
                         </span>
-                        <span className="truncate text-sm leading-5 text-[#7A7287] md:hidden">
+                        <span className="truncate text-[15px] leading-6 text-[#7A7287] md:hidden">
                           {getFacultyName(ci.staff_users.facultyCode ?? 1)}
                           {" · "}
                           {getCurriculumName(ci.staff_users.curriculumId)}
@@ -682,7 +903,7 @@ const isStudent =
                           >
                             <Lock size={18} />
                           </span>
-                        ) : hasCourseExams ? (
+                        ) : isMemberDeleteLocked ? (
                           <button
                             onClick={() =>
                               setAlertState({
@@ -716,30 +937,73 @@ const isStudent =
                       )}
                     </div>
                     );
-                  })}
+                  }))}
                 </div>
+                <MemberPagination
+                  currentPage={instructorPage}
+                  totalPages={totalInstructorPages}
+                  onPrevious={() =>
+                    setInstructorPage((page) => Math.max(1, page - 1))
+                  }
+                  onNext={() =>
+                    setInstructorPage((page) =>
+                      Math.min(totalInstructorPages, page + 1),
+                    )
+                  }
+                />
               </div>
               {/* Users List */}
               <div className="overflow-hidden rounded-xl border border-[#EFE8FB]">
                 {/* Title */}
-                <div className="flex items-center justify-between border-b border-[#EFE8FB] px-5 py-4">
-                  <div className="flex w-full items-center justify-between gap-4">
-                    <h3 className="flex items-center gap-2 text-base font-semibold text-[#2F2A3A]">
-                      <UsersRound size={18} className="text-[#B7A3E3]" />
-                      นักศึกษา
-                    </h3>
-                    <span className="text-base font-semibold tabular-nums text-[#514667]">
+                <div className="flex flex-col gap-3 border-b border-[#EFE8FB] px-5 py-4 md:flex-row md:items-center md:justify-between">
+                  <h3 className="flex items-center gap-2 text-[17px] font-semibold text-[#2F2A3A]">
+                    <UsersRound size={18} className="text-[#B7A3E3]" />
+                    <span>นักศึกษา</span>
+                    <span className="rounded-full bg-[#F4EFFF] px-2.5 py-0.5 text-[13px] font-medium tabular-nums text-[#7455C9] ring-1 ring-[#D9CCF2]">
                       {students.length} คน
                     </span>
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-2 md:justify-end">
+                    {!isStudent && (
+                      <>
+                        <button
+                          onClick={() => setShowAddStudentModal(true)}
+                          className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-[#F4EFFF] px-3.5 text-[15px] font-medium text-[#7455C9] ring-1 ring-[#D9CCF2] transition-colors hover:bg-white hover:ring-[#CDBCF2]"
+                          title="เพิ่มนักศึกษา"
+                        >
+                          <UserPlus size={16} />
+                          เพิ่มนักศึกษา
+                        </button>
+                        <button
+                          onClick={() => setShowUploadModal(true)}
+                          className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-[#F4EFFF] px-3.5 text-[15px] font-medium text-[#7455C9] ring-1 ring-[#D9CCF2] transition-colors hover:bg-white hover:ring-[#CDBCF2]"
+                          title="อัปโหลด CSV"
+                        >
+                          <Upload size={16} />
+                          อัปโหลด CSV
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
 
+                <MemberTableControls
+                  summary={loadingStudents ? "กำลังโหลดข้อมูล..." : studentSummary}
+                  itemsPerPage={studentItemsPerPage}
+                  pageSizeOptions={STUDENT_PAGE_SIZE_OPTIONS}
+                  onItemsPerPageChange={(value) => {
+                    setStudentItemsPerPage(value);
+                    setStudentPage(1);
+                  }}
+                  itemLabel="คน"
+                />
+
                 {/* Desktop column header */}
                 <div className="hidden border-b border-[#EFE8FB] bg-[#F7F3FF] px-5 py-4 md:grid md:grid-cols-[8.5rem_minmax(10rem,1fr)_minmax(12rem,1.35fr)_minmax(12rem,1.35fr)_2.25rem] md:items-center md:gap-4">
-                  <span className="text-[15px] font-semibold text-[#5B4A73]">รหัสนักศึกษา</span>
-                  <span className="text-[15px] font-semibold text-[#5B4A73]">ชื่อ-นามสกุล</span>
-                  <span className="text-[15px] font-semibold text-[#5B4A73]">สำนักวิชา</span>
-                  <span className="text-[15px] font-semibold text-[#5B4A73]">หลักสูตร</span>
+                  <span className="text-[15px] font-medium text-[#5B4A73]">รหัสนักศึกษา</span>
+                  <span className="text-[15px] font-medium text-[#5B4A73]">ชื่อ-นามสกุล</span>
+                  <span className="text-[15px] font-medium text-[#5B4A73]">สำนักวิชา</span>
+                  <span className="text-[15px] font-medium text-[#5B4A73]">หลักสูตร</span>
                   <span aria-hidden />
                 </div>
 
@@ -754,7 +1018,7 @@ const isStudent =
                       ยังไม่มีนักศึกษาในรายวิชานี้
                     </div>
                   ) : (
-                    students.map((student) => (
+                    paginatedStudents.map((student) => (
                     <div
                       key={student.student_code}
                       className="group flex items-center gap-3 px-5 py-4 transition-colors hover:bg-[#FAF8FF] md:grid md:grid-cols-[8.5rem_minmax(10rem,1fr)_minmax(12rem,1.35fr)_minmax(12rem,1.35fr)_2.25rem] md:items-start md:gap-4"
@@ -768,7 +1032,7 @@ const isStudent =
                             {student.title} {student.first_name} {student.last_name}
                           </span>
                         </div>
-                        <span className="mt-0.5 truncate text-sm leading-5 text-[#7A7287] md:hidden">
+                        <span className="mt-0.5 truncate text-[15px] leading-6 text-[#7A7287] md:hidden">
                           {getFacultyName(student.facultyCode ?? 1)}
                           {" · "}
                           {formatCurriculumDisplay(student.curriculumId)}
@@ -782,7 +1046,7 @@ const isStudent =
                       </div>
                       {/* Delete button - visible on hover */}
                       {!isStudent ? (
-                        hasCourseExams ? (
+                        isMemberDeleteLocked ? (
                           <button
                             onClick={() =>
                               setAlertState({
@@ -818,40 +1082,26 @@ const isStudent =
                     </div>
                   )))}
                 </div>
+                <MemberPagination
+                  currentPage={studentPage}
+                  totalPages={totalStudentPages}
+                  onPrevious={() =>
+                    setStudentPage((page) => Math.max(1, page - 1))
+                  }
+                  onNext={() =>
+                    setStudentPage((page) =>
+                      Math.min(totalStudentPages, page + 1),
+                    )
+                  }
+                />
               </div>
             </div>
 
-            {/* Right Section - Action Buttons */}
-            {!isStudent && (
-            <div className="flex flex-row gap-3 lg:flex-col">
-              {/* Add Student Button */}
-              <div className="flex flex-row rounded-2xl bg-white p-1 shadow-sm ring-1 ring-[#E7DDF8] lg:flex-col">
-                <button
-                  onClick={() => setShowAddModal(true)}
-                  className="flex h-12 w-12 items-center justify-center rounded-xl text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer"
-                  title="เพิ่มนักศึกษา"
-                >
-                  <UserPlus className="h-[22px] w-[22px]" />
-                </button>
-
-                {/* CSV Upload Button */}
-                <button
-                  onClick={() => setShowUploadModal(true)}
-                  className="cursor-pointer"
-                  title="อัพโหลด CSV"
-                >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF] cursor-pointer">
-                    <Upload className="h-[22px] w-[22px]" />
-                  </div>
-                </button>
-              </div>
-            </div>
-            )}
           </div>
         </div>
 
         {/* Add Student Modal */}
-        {showAddModal && (
+        {showAddStudentModal && (
           <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/45 p-4 py-6 sm:p-6">
             <div className="relative w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl sm:p-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
               {/* Close button */}
@@ -875,7 +1125,7 @@ const isStudent =
 
               {/* Student Code */}
               <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                <label className="block text-[15px] font-semibold text-gray-800 mb-1.5">
                   รหัสนักศึกษา <span className="text-red-500">*</span>{" "}
                   <span className="text-xs font-medium text-gray-500">
                     ({studentId.length}/{STUDENT_CODE_LENGTH})
@@ -902,7 +1152,7 @@ const isStudent =
 
               {/* Email */}
               <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                <label className="block text-[15px] font-semibold text-gray-800 mb-1.5">
                   อีเมล <span className="text-red-500">*</span>{" "}
                   <span className="text-xs font-medium text-gray-500">@mail.wu.ac.th</span>
                   <span className="ml-1 text-xs font-medium text-gray-500">
@@ -928,7 +1178,7 @@ const isStudent =
 
               {/* Title */}
               <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                <label className="block text-[15px] font-semibold text-gray-800 mb-1.5">
                   คำนำหน้า <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -941,7 +1191,7 @@ const isStudent =
                         : "border-[#9264F5] focus:border-[#B7A3E3]"
                     }`}
                   >
-                    {THAI_TITLES.map((option) => (
+                    {STUDENT_TITLES.map((option) => (
                       <option key={option} value={option}>{option}</option>
                     ))}
                   </select>
@@ -955,7 +1205,7 @@ const isStudent =
               {/* First Name + Last Name */}
               <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
                 <div className="mb-4">
-                  <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                  <label className="block text-[15px] font-semibold text-gray-800 mb-1.5">
                     ชื่อ <span className="text-red-500">*</span>{" "}
                     <span className="text-xs font-medium text-gray-500">
                       ({firstName.length}/{FIRST_NAME_MAX_LENGTH})
@@ -979,7 +1229,7 @@ const isStudent =
                 </div>
 
                 <div className="mb-4">
-                  <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                  <label className="block text-[15px] font-semibold text-gray-800 mb-1.5">
                     นามสกุล <span className="text-red-500">*</span>{" "}
                     <span className="text-xs font-medium text-gray-500">
                       ({lastName.length}/{LAST_NAME_MAX_LENGTH})
@@ -1005,7 +1255,7 @@ const isStudent =
 
               {/* Faculty */}
               <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                <label className="block text-[15px] font-semibold text-gray-800 mb-1.5">
                   สำนักวิชา <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -1024,7 +1274,7 @@ const isStudent =
 
               {/* Curriculum */}
               <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                <label className="block text-[15px] font-semibold text-gray-800 mb-1.5">
                   หลักสูตร <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -1056,6 +1306,172 @@ const isStudent =
                   className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-6 py-2.5 font-semibold text-white shadow-lg transition-colors hover:bg-[#9264F5] disabled:opacity-50"
                 >
                   {(isSubmitting || isCheckingCode || isCheckingEmail) && (
+                    <Loader2 size={18} className="animate-spin" />
+                  )}
+                  บันทึก
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Instructor Modal */}
+        {showAddInstructorModal && (
+          <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/45 p-4 py-6 sm:p-6">
+            <div className="relative w-full max-w-xl rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
+              <button
+                type="button"
+                onClick={handleCancelAddInstructor}
+                disabled={isAddingInstructor}
+                className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="ปิดหน้าต่างเพิ่มอาจารย์"
+                title="ปิด"
+              >
+                <X size={18} />
+              </button>
+
+              <div className="mb-5 pr-10">
+                <h2 className="text-xl font-bold text-gray-900">
+                  เพิ่มอาจารย์
+                </h2>
+              </div>
+
+              <div className="mb-4 grid gap-3 rounded-xl bg-[#FAF8FF] p-4 ring-1 ring-[#EFE8FB] sm:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-[15px] font-medium text-[#6B617A]">
+                    สำนักวิชา
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={modalInstructorFacultyFilter}
+                      onChange={(event) => {
+                        setModalInstructorFacultyFilter(event.target.value);
+                        setModalInstructorCurriculumFilter("ALL");
+                      }}
+                      disabled={isLoadingInstructors || availableInstructors.length === 0}
+                      className="h-11 w-full appearance-none rounded-xl border border-[#E7DDF8] bg-white px-3.5 pr-9 text-[15px] font-normal text-[#2F2A3A] outline-none transition-colors focus:border-[#B7A3E3] disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                    >
+                      <option value="ALL">ทุกสำนักวิชา</option>
+                      {modalInstructorFacultyOptions.map((facultyCode) => (
+                        <option key={facultyCode} value={facultyCode}>
+                          {getFacultyName(facultyCode)}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#9A90AA]"
+                      size={16}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-[15px] font-medium text-[#6B617A]">
+                    หลักสูตร
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={modalInstructorCurriculumFilter}
+                      onChange={(event) =>
+                        setModalInstructorCurriculumFilter(event.target.value)
+                      }
+                      disabled={
+                        isLoadingInstructors ||
+                        modalInstructorCurriculumOptions.length === 0
+                      }
+                      className="h-11 w-full appearance-none rounded-xl border border-[#E7DDF8] bg-white px-3.5 pr-9 text-[15px] font-normal text-[#2F2A3A] outline-none transition-colors focus:border-[#B7A3E3] disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                    >
+                      <option value="ALL">ทุกหลักสูตร</option>
+                      {modalInstructorCurriculumOptions.map((curriculum) => (
+                        <option key={curriculum.id} value={curriculum.id}>
+                          {curriculum.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#9A90AA]"
+                      size={16}
+                    />
+                  </div>
+                </div>
+
+                {(modalInstructorFacultyFilter !== "ALL" ||
+                  modalInstructorCurriculumFilter !== "ALL") && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setModalInstructorFacultyFilter("ALL");
+                      setModalInstructorCurriculumFilter("ALL");
+                    }}
+                    className="h-10 rounded-xl bg-white px-4 text-[15px] font-medium text-[#7455C9] ring-1 ring-[#D9CCF2] transition-colors hover:bg-[#F4EFFF] sm:col-span-2"
+                  >
+                    ล้างตัวกรอง
+                  </button>
+                )}
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-[15px] font-semibold text-gray-800 mb-1.5">
+                  อาจารย์ <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedInstructorId}
+                    onChange={(e) => setSelectedInstructorId(e.target.value)}
+                    disabled={
+                      isLoadingInstructors ||
+                      filteredAvailableInstructors.length === 0
+                    }
+                    className="w-full appearance-none rounded-xl border border-[#B7A3E3] bg-white px-4 py-2.5 pr-10 text-[15px] text-gray-900 shadow-sm transition-colors focus:border-[#9264F5] focus:outline-none disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500"
+                  >
+                    {isLoadingInstructors ? (
+                      <option value="">กำลังโหลดรายชื่ออาจารย์...</option>
+                    ) : availableInstructors.length === 0 ? (
+                      <option value="">ไม่มีอาจารย์ที่สามารถเพิ่มได้</option>
+                    ) : filteredAvailableInstructors.length === 0 ? (
+                      <option value="">ไม่พบอาจารย์ตามตัวกรองที่เลือก</option>
+                    ) : (
+                      filteredAvailableInstructors.map((instructor) => (
+                        <option
+                          key={instructor.staff_users_id}
+                          value={String(instructor.staff_users_id)}
+                        >
+                          {formatInstructorName(instructor)}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                </div>
+              </div>
+
+              {selectedInstructor && (
+                <div className="mb-5 rounded-xl bg-[#FAF8FF] p-4 ring-1 ring-[#EFE8FB]">
+                  <p className="text-[15px] font-semibold text-[#2F2A3A]">
+                    {formatInstructorName(selectedInstructor)}
+                  </p>
+                  <p className="mt-1 text-[15px] font-normal leading-6 text-[#7A7287]">
+                    {getFacultyName(selectedInstructor.facultyCode ?? 1)}
+                    {" · "}
+                    {getCurriculumName(selectedInstructor.curriculumId)}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCancelAddInstructor}
+                  disabled={isAddingInstructor}
+                  className="flex-1 rounded-xl border-2 border-gray-300 px-6 py-2.5 font-semibold text-gray-900 transition-colors hover:bg-gray-50 disabled:opacity-50"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  onClick={handleAddInstructor}
+                  disabled={isAddInstructorDisabled}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-6 py-2.5 font-semibold text-white shadow-lg transition-colors hover:bg-[#9264F5] disabled:opacity-50"
+                >
+                  {isAddingInstructor && (
                     <Loader2 size={18} className="animate-spin" />
                   )}
                   บันทึก
@@ -1116,5 +1532,92 @@ const isStudent =
         />
       </div>
     </Navbar>
+  );
+}
+
+function MemberTableControls({
+  summary,
+  itemsPerPage,
+  pageSizeOptions,
+  onItemsPerPageChange,
+  itemLabel,
+}: {
+  summary: string;
+  itemsPerPage: number;
+  pageSizeOptions: readonly number[];
+  onItemsPerPageChange: (value: number) => void;
+  itemLabel: string;
+}) {
+  return (
+    <div className="flex flex-col gap-2 border-b border-[#EFE8FB] bg-white px-5 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+      <span className="text-sm font-medium text-[#6B617A]">{summary}</span>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <label className="relative block w-full sm:w-36">
+          <span className="sr-only">จำนวนแถวต่อหน้า</span>
+          <select
+            value={itemsPerPage}
+            onChange={(event) =>
+              onItemsPerPageChange(Number(event.target.value))
+            }
+            className="h-9 w-full appearance-none rounded-lg border border-[#E7DDF8] bg-[#FAF8FF] px-3 pr-8 text-sm font-normal text-[#2F2A3A] outline-none transition-colors focus:border-[#B7A3E3] focus:bg-white"
+            title="จำนวนต่อหน้า"
+          >
+            {pageSizeOptions.map((option) => (
+              <option key={option} value={option}>
+                แสดง {option} {itemLabel}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9A90AA]"
+            size={16}
+          />
+        </label>
+
+      </div>
+    </div>
+  );
+}
+
+function MemberPagination({
+  currentPage,
+  totalPages,
+  onPrevious,
+  onNext,
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPrevious: () => void;
+  onNext: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between border-t border-[#EFE8FB] px-5 py-2.5">
+      <span className="text-sm font-medium text-[#7A7287]">
+        หน้า {currentPage}/{totalPages}
+      </span>
+      <div className="flex items-center gap-1">
+        <button
+          className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E5E7EB] text-[#8F98A8] transition-colors hover:bg-[#DDE1E7] disabled:cursor-not-allowed disabled:opacity-70"
+          disabled={currentPage === 1}
+          onClick={onPrevious}
+          title="หน้าก่อนหน้า"
+          aria-label="หน้าก่อนหน้า"
+          type="button"
+        >
+          <ChevronLeft size={17} strokeWidth={2.4} />
+        </button>
+        <button
+          className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E5E7EB] text-[#8F98A8] transition-colors hover:bg-[#DDE1E7] disabled:cursor-not-allowed disabled:opacity-70"
+          disabled={currentPage === totalPages}
+          onClick={onNext}
+          title="หน้าถัดไป"
+          aria-label="หน้าถัดไป"
+          type="button"
+        >
+          <ChevronRight size={17} strokeWidth={2.4} />
+        </button>
+      </div>
+    </div>
   );
 }
