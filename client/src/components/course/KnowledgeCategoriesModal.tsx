@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import {
+  AlertTriangle,
   BookOpenText,
   Hash,
   Loader2,
@@ -13,6 +14,7 @@ import {
 import { apiFetch } from "@/lib/api";
 import AlertModal from "@/components/ui/AlertModal";
 import { FIELD_LIMITS } from "@/config/fieldLimits";
+import axios from "axios";
 
 const MAX_KNOWLEDGE_LENGTH = FIELD_LIMITS.knowledgeCategoryName;
 const MAX_CODE_LENGTH = FIELD_LIMITS.knowledgeCategoryCode;
@@ -110,6 +112,7 @@ export default function KnowledgeCategoriesModal({
   const [showAddInput, setShowAddInput] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
   const [alertState, setAlertState] = useState<{
     isOpen: boolean;
@@ -224,6 +227,7 @@ export default function KnowledgeCategoriesModal({
       } catch {
         setCategories([]);
         setCodeInput(formatKnowledgeCode(course.course_code, "K001"));
+        setLoadError(true);
       } finally {
         setIsLoading(false);
       }
@@ -234,6 +238,7 @@ export default function KnowledgeCategoriesModal({
     setSuggestions([]);
     setShowDropdown(false);
     setShowAddInput(false);
+    setLoadError(false);
   }, [isOpen, course.courses_id, course.course_code]);
 
   const addCategory = (name: string) => {
@@ -293,13 +298,18 @@ export default function KnowledgeCategoriesModal({
       onClose();
     } catch (err: unknown) {
       console.error(err);
+      const serverMessage =
+        axios.isAxiosError(err) && err.response?.data?.message
+          ? (Array.isArray(err.response.data.message)
+              ? err.response.data.message[0]
+              : err.response.data.message)
+          : null;
       setAlertState({
         isOpen: true,
         title: "เกิดข้อผิดพลาด",
         message:
-          err instanceof Error
-            ? err.message
-            : "ไม่สามารถบันทึกหมวดหมู่ความรู้ได้ กรุณาลองใหม่อีกครั้ง",
+          (typeof serverMessage === "string" && serverMessage.trim()) ||
+          "ไม่สามารถบันทึกหมวดหมู่ความรู้ได้ กรุณาลองใหม่อีกครั้ง",
         variant: "error",
       });
     } finally {
@@ -399,6 +409,18 @@ export default function KnowledgeCategoriesModal({
               <Loader2 className="h-8 w-8 animate-spin" />
               <p className="mt-3 text-sm font-semibold text-[#7A7287]">
                 กำลังโหลดหมวดหมู่
+              </p>
+            </div>
+          ) : loadError ? (
+            <div className="flex flex-col items-center justify-center py-14">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-red-500">
+                <AlertTriangle size={28} />
+              </div>
+              <p className="mt-4 text-sm font-semibold text-red-600">
+                ไม่สามารถโหลดหมวดหมู่ความรู้ได้
+              </p>
+              <p className="mt-2 text-sm text-[#7A7287]">
+                กรุณาปิดหน้าต่างและลองใหม่อีกครั้ง
               </p>
             </div>
           ) : (
@@ -563,7 +585,7 @@ export default function KnowledgeCategoriesModal({
           </button>
           <button
             onClick={handleSave}
-            disabled={isSubmitting || isLoading}
+            disabled={isSubmitting || isLoading || loadError}
             className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-6 text-sm font-bold text-white shadow-lg shadow-[#B7A3E3]/30 transition-colors hover:bg-[#9264F5] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
           >
             {isSubmitting ? (
