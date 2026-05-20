@@ -71,7 +71,7 @@ export class CoursesService {
     const prefix = knowledgeCodePrefix(courseCode);
 
     for (const input of inputs) {
-      const name = (typeof input === 'string' ? input : input.name).trim();
+      const name = (typeof input === 'string' ? input : input.name ?? '').trim();
       const rawCode =
         typeof input === 'string' ? undefined : input.code?.trim();
 

@@ -92,8 +92,8 @@ export default function FlatQuestionBankPage() {
         `/course-offerings/${offeringId}/knowledge-categories`,
       );
       setTags(t);
-    } catch {
-      // non-fatal
+    } catch (err) {
+      console.error("Failed to load knowledge tags:", err);
     }
   }, [offeringId]);
 

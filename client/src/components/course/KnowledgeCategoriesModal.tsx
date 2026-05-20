@@ -224,7 +224,8 @@ export default function KnowledgeCategoriesModal({
         }));
         setCategories(loaded);
         setCodeInput(generateNextCode(loaded, course.course_code));
-      } catch {
+      } catch (err) {
+        console.error("Failed to load knowledge categories:", err);
         setCategories([]);
         setCodeInput(formatKnowledgeCode(course.course_code, "K001"));
         setLoadError(true);
