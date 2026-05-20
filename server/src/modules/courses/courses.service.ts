@@ -71,7 +71,9 @@ export class CoursesService {
     const prefix = knowledgeCodePrefix(courseCode);
 
     for (const input of inputs) {
-      const name = (typeof input === 'string' ? input : input.name ?? '').trim();
+      const name = (
+        typeof input === 'string' ? input : (input.name ?? '')
+      ).trim();
       const rawCode =
         typeof input === 'string' ? undefined : input.code?.trim();
 
@@ -126,14 +128,14 @@ export class CoursesService {
     instructorId: string,
   ) {
     const categories = this.normalizeKnowledgeInputs(inputs, courseCode);
-
-    await tx.course_knowledge.deleteMany({
-      where: { courses_id: courseId },
-    });
+    const categoryEntries: Array<
+      NormalizedKnowledgeCategoryInput & { knowledgeCategoryId: bigint }
+    > = [];
 
     for (const input of categories) {
       let category = await tx.knowledge_categories.findFirst({
         where: { name: input.name },
+        select: { knowledge_category_id: true },
       });
 
       if (!category) {
@@ -142,13 +144,63 @@ export class CoursesService {
             name: input.name,
             created_by_staff_id: BigInt(instructorId),
           },
+          select: { knowledge_category_id: true },
         });
       }
 
+      categoryEntries.push({
+        ...input,
+        knowledgeCategoryId: category.knowledge_category_id,
+      });
+    }
+
+    const existingLinks = await tx.course_knowledge.findMany({
+      where: { courses_id: courseId },
+      select: {
+        knowledge_category_id: true,
+      },
+    });
+
+    const nextCategoryIds = new Set(
+      categoryEntries.map((entry) => entry.knowledgeCategoryId.toString()),
+    );
+    const removedLinks = existingLinks.filter(
+      (link) => !nextCategoryIds.has(link.knowledge_category_id.toString()),
+    );
+
+    if (removedLinks.length > 0) {
+      const usageCounts = await tx.question_knowledge.groupBy({
+        by: ['knowledge_category_id'],
+        where: {
+          courses_id: courseId,
+          knowledge_category_id: {
+            in: removedLinks.map((link) => link.knowledge_category_id),
+          },
+        },
+        _count: { question_id: true },
+      });
+      const usedCategoryIds = new Set(
+        usageCounts
+          .filter((row) => row._count.question_id > 0)
+          .map((row) => row.knowledge_category_id.toString()),
+      );
+
+      if (usedCategoryIds.size > 0) {
+        throw new ConflictException(
+          'ไม่สามารถลบหมวดหมู่ความรู้นี้ได้ เนื่องจากยังมีข้อสอบในรายวิชานี้ใช้งานอยู่ กรุณาเปลี่ยนหมวดหมู่ของข้อสอบที่เกี่ยวข้องก่อน แล้วจึงลบอีกครั้ง',
+        );
+      }
+    }
+
+    await tx.course_knowledge.deleteMany({
+      where: { courses_id: courseId },
+    });
+
+    for (const input of categoryEntries) {
       await tx.course_knowledge.create({
         data: {
           courses_id: courseId,
-          knowledge_category_id: category.knowledge_category_id,
+          knowledge_category_id: input.knowledgeCategoryId,
           code: input.code,
         },
       });
@@ -193,7 +245,8 @@ export class CoursesService {
 
     let collisionCounter = links.length;
     for (const [index, link] of links.entries()) {
-      let suffix = extractKnowledgeSuffix(link.code) ?? defaultKnowledgeSuffix(index);
+      let suffix =
+        extractKnowledgeSuffix(link.code) ?? defaultKnowledgeSuffix(index);
       let nextCode = formatKnowledgeCode(courseCode, suffix);
 
       while (usedCodes.has(nextCode)) {
@@ -412,7 +465,8 @@ export class CoursesService {
 
       // 1. Update basic course info
       // For backward compatibility: course_name mirrors course_name_th
-      const nextCourseNameTh = dto.course_name_th?.trim() || dto.course_name?.trim();
+      const nextCourseNameTh =
+        dto.course_name_th?.trim() || dto.course_name?.trim();
       const courseCodeChanged =
         dto.course_code !== undefined &&
         dto.course_code !== null &&
@@ -425,8 +479,11 @@ export class CoursesService {
             course_name: nextCourseNameTh,
             course_name_th: nextCourseNameTh,
           }),
-          ...(dto.course_name_en?.trim() && { course_name_en: dto.course_name_en.trim() }),
-          ...(dto.course_code !== undefined && dto.course_code !== null && { course_code: nextCourseCode }),
+          ...(dto.course_name_en?.trim() && {
+            course_name_en: dto.course_name_en.trim(),
+          }),
+          ...(dto.course_code !== undefined &&
+            dto.course_code !== null && { course_code: nextCourseCode }),
         },
       });
 
@@ -557,8 +614,35 @@ export class CoursesService {
 
     if (!course) return [];
 
+    const knowledgeCategoryIds = course.course_knowledge.map(
+      (link) => link.knowledge_categories.knowledge_category_id,
+    );
+    const usageCounts =
+      knowledgeCategoryIds.length > 0
+        ? await this.prisma.question_knowledge.groupBy({
+            by: ['knowledge_category_id'],
+            where: {
+              courses_id: BigInt(courseId),
+              knowledge_category_id: { in: knowledgeCategoryIds },
+            },
+            _count: { question_id: true },
+          })
+        : [];
+    const questionCountByCategoryId = new Map(
+      usageCounts.map((row) => [
+        row.knowledge_category_id.toString(),
+        row._count.question_id,
+      ]),
+    );
     const serialized = serializeBigInt(course);
-    return serialized.course_knowledge.map(serializeCourseKnowledge);
+
+    return serialized.course_knowledge.map((row: any) => ({
+      ...serializeCourseKnowledge(row),
+      questionCount:
+        questionCountByCategoryId.get(
+          String(row.knowledge_categories.knowledge_category_id),
+        ) ?? 0,
+    }));
   }
 
   async updateKnowledgeCategories(

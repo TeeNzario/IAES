@@ -7,6 +7,8 @@ import { formatInstructorName } from "@/utils/formatName";
 import { Instructor } from "@/types/staff";
 import { useRouter } from "next/navigation";
 import { toBuddhistYear } from "@/utils/academicYear";
+import InstructorFilterControls from "@/components/courseOffering/InstructorFilterControls";
+import { DEFAULT_FACULTY_CODE } from "@/lib/faculty-map";
 import {
   AcademicSettings,
   buildAcademicYearOptions,
@@ -34,7 +36,9 @@ export default function CourseOfferingModal({
   onSuccess,
 }: CourseOfferingModalProps) {
   // Form state
-  const [academicYear, setAcademicYear] = useState(String(new Date().getFullYear()));
+  const [academicYear, setAcademicYear] = useState(
+    String(new Date().getFullYear()),
+  );
   const [semester, setSemester] = useState("1");
   const [status, setStatus] = useState("เปิดใช้งาน");
   const [academicSettings, setAcademicSettings] =
@@ -46,6 +50,9 @@ export default function CourseOfferingModal({
   );
   const [allInstructors, setAllInstructors] = useState<Instructor[]>([]);
   const [additionalSlots, setAdditionalSlots] = useState<string[]>([]);
+  const [instructorFacultyFilter, setInstructorFacultyFilter] = useState("ALL");
+  const [instructorCurriculumFilter, setInstructorCurriculumFilter] =
+    useState("ALL");
 
   // Loading states
   const [isLoading, setIsLoading] = useState(true);
@@ -94,7 +101,9 @@ export default function CourseOfferingModal({
       }
     }
     fetchData();
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, [isOpen]);
 
   // Get available instructors for a slot (exclude creator + already selected)
@@ -105,10 +114,65 @@ export default function CourseOfferingModal({
     );
 
     // Filter out creator and already selected instructors
-    return allInstructors.filter(
+    const selectableInstructors = allInstructors.filter(
       (inst) =>
         inst.staff_users_id !== creatorInstructor?.staff_users_id &&
         !selectedIds.includes(inst.staff_users_id),
+    );
+
+    const filteredInstructors = selectableInstructors.filter((instructor) => {
+      const facultyCode = instructor.facultyCode ?? DEFAULT_FACULTY_CODE;
+      const facultyMatches =
+        instructorFacultyFilter === "ALL" ||
+        facultyCode === Number(instructorFacultyFilter);
+      const curriculumMatches =
+        instructorCurriculumFilter === "ALL" ||
+        instructor.curriculumId === instructorCurriculumFilter;
+
+      return facultyMatches && curriculumMatches;
+    });
+
+    const currentInstructor = selectableInstructors.find(
+      (instructor) => instructor.staff_users_id === currentSlotValue,
+    );
+
+    if (
+      currentInstructor &&
+      !filteredInstructors.some(
+        (instructor) =>
+          instructor.staff_users_id === currentInstructor.staff_users_id,
+      )
+    ) {
+      return [currentInstructor, ...filteredInstructors];
+    }
+
+    return filteredInstructors;
+  };
+
+  const hasAdditionalInstructorOptions = allInstructors.some(
+    (instructor) =>
+      instructor.staff_users_id !== creatorInstructor?.staff_users_id,
+  );
+
+  const renderInstructorOptions = (slotValue: string) => {
+    const availableInstructors = getAvailableInstructors(slotValue);
+
+    return (
+      <>
+        <option value="">
+          {availableInstructors.length === 0
+            ? "ไม่พบอาจารย์ตามตัวกรอง"
+            : "เลือกอาจารย์"}
+        </option>
+        {availableInstructors.map((instructor) => (
+          <option
+            key={instructor.staff_users_id}
+            value={instructor.staff_users_id}
+          >
+            {formatInstructorName(instructor)}
+          </option>
+        ))}
+      </>
     );
   };
 
@@ -139,6 +203,8 @@ export default function CourseOfferingModal({
     setSemester(String(academicSettings?.semester ?? 1));
     setStatus("เปิดใช้งาน");
     setAdditionalSlots([]);
+    setInstructorFacultyFilter("ALL");
+    setInstructorCurriculumFilter("ALL");
     setError(null);
   };
 
@@ -185,8 +251,7 @@ export default function CourseOfferingModal({
       if (status === 409) {
         setError({
           title: "ไม่สามารถเปิดรายวิชาได้",
-          message:
-            "เนื่องจากมีการเปิดรายวิชานี้ในภาคเรียนและปีการศึกษานี้แล้ว",
+          message: "เนื่องจากมีการเปิดรายวิชานี้ในภาคเรียนและปีการศึกษานี้แล้ว",
         });
       } else {
         console.error("Failed to create course offering:", err);
@@ -209,22 +274,22 @@ export default function CourseOfferingModal({
 
   return (
     <div className="fixed inset-0 bg-black/45 z-50 flex items-start justify-center overflow-y-auto p-4 py-6 sm:p-6">
-      <div className="relative w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl sm:p-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
+      <div className="relative max-h-[calc(100vh-3rem)] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
         {/* Course Name */}
-        <h2 className="text-xl font-bold text-gray-900 mb-5">
+        <h2 className="mb-5 text-xl font-bold leading-7 text-gray-900">
           {courseName}
         </h2>
 
         {/* Academic Year Dropdown */}
         <div className="mb-4">
-          <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+          <label className="mb-1.5 block text-sm font-semibold leading-5 text-gray-800">
             ปีการศึกษา
           </label>
           <div className="relative">
             <select
               value={academicYear}
               onChange={(e) => setAcademicYear(e.target.value)}
-              className="w-full rounded-xl border-2 border-[#9264F5] px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none focus:border-[#B7A3E3] appearance-none bg-white pr-10 cursor-pointer"
+              className="h-11 w-full cursor-pointer appearance-none rounded-xl border-2 border-[#9264F5] bg-white px-3.5 pr-10 text-sm text-gray-900 shadow-sm transition-colors focus:border-[#B7A3E3] focus:outline-none"
             >
               {academicYears.map((year) => (
                 <option key={year} value={year}>
@@ -241,14 +306,14 @@ export default function CourseOfferingModal({
 
         {/* Semester Dropdown */}
         <div className="mb-4">
-          <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+          <label className="mb-1.5 block text-sm font-semibold leading-5 text-gray-800">
             ภาคการศึกษา
           </label>
           <div className="relative">
             <select
               value={semester}
               onChange={(e) => setSemester(e.target.value)}
-              className="w-full rounded-xl border-2 border-[#9264F5] px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none focus:border-[#B7A3E3] appearance-none bg-white pr-10 cursor-pointer"
+              className="h-11 w-full cursor-pointer appearance-none rounded-xl border-2 border-[#9264F5] bg-white px-3.5 pr-10 text-sm text-gray-900 shadow-sm transition-colors focus:border-[#B7A3E3] focus:outline-none"
             >
               {semesters.map((sem) => (
                 <option key={sem} value={sem}>
@@ -265,14 +330,14 @@ export default function CourseOfferingModal({
 
         {/* Status Toggle Buttons */}
         <div className="mb-4">
-          <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+          <label className="mb-1.5 block text-sm font-semibold leading-5 text-gray-800">
             สถานะ
           </label>
           <div className="flex gap-6">
             {statuses.map((stat) => (
               <label
                 key={stat}
-                className="flex items-center gap-2 cursor-pointer"
+                className="flex cursor-pointer items-center gap-2"
               >
                 <input
                   type="radio"
@@ -280,9 +345,9 @@ export default function CourseOfferingModal({
                   value={stat}
                   checked={status === stat}
                   onChange={() => setStatus(stat)}
-                  className="w-4 h-4 accent-[#B7A3E3] cursor-pointer"
+                  className="h-4 w-4 cursor-pointer accent-[#B7A3E3]"
                 />
-                <span className="text-sm text-gray-700">{stat}</span>
+                <span className="text-sm leading-5 text-gray-700">{stat}</span>
               </label>
             ))}
           </div>
@@ -290,7 +355,7 @@ export default function CourseOfferingModal({
 
         {/* Instructor Selection */}
         <div className="mb-6">
-          <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+          <label className="mb-1.5 block text-sm font-semibold leading-5 text-gray-800">
             อาจารย์ผู้สอน
           </label>
 
@@ -299,84 +364,77 @@ export default function CourseOfferingModal({
               <div className="w-6 h-6 border-2 border-[#B7A3E3] border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
-            <div className="max-h-48 overflow-y-auto space-y-3 pr-1">
-              {/* Slot 0: Creator (LOCKED) */}
-              <div className="relative flex items-center gap-2">
-                <div className="relative flex-1">
-                  <select
-                    disabled
-                    value={creatorInstructor?.staff_users_id || ""}
-                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-500 appearance-none cursor-not-allowed text-[15px]"
-                  >
-                    <option value={creatorInstructor?.staff_users_id || ""}>
-                      {creatorInstructor
-                        ? formatInstructorName(creatorInstructor)
-                        : ""}{" "}
-                      (คุณ)
-                    </option>
-                  </select>
-                  <Lock
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-                    size={18}
-                  />
-                </div>
-              </div>
+            <>
+              {hasAdditionalInstructorOptions && (
+                <InstructorFilterControls
+                  facultyFilter={instructorFacultyFilter}
+                  curriculumFilter={instructorCurriculumFilter}
+                  onFacultyFilterChange={setInstructorFacultyFilter}
+                  onCurriculumFilterChange={setInstructorCurriculumFilter}
+                  disabled={isSubmitting}
+                  className="mb-3"
+                />
+              )}
 
-              {/* Additional instructor slots (editable) */}
-              {additionalSlots.map((slotValue, index) => (
-                <div key={index} className="relative flex items-center gap-2">
+              <div className="max-h-52 space-y-3 overflow-y-auto pr-1">
+                {/* Slot 0: Creator (LOCKED) */}
+                <div className="relative flex items-center gap-2">
                   <div className="relative flex-1">
                     <select
-                      value={slotValue}
-                      onChange={(e) =>
-                        handleInstructorChange(index, e.target.value)
-                      }
-                      className="w-full rounded-xl border-2 border-[#9264F5] px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none focus:border-[#B7A3E3] appearance-none bg-white pr-10 cursor-pointer"
+                      disabled
+                      value={creatorInstructor?.staff_users_id || ""}
+                      className="h-11 w-full cursor-not-allowed appearance-none rounded-xl border-2 border-gray-200 bg-gray-50 px-3.5 pr-10 text-sm text-gray-500"
                     >
-                      <option value="">เลือกอาจารย์</option>
-                      {getAvailableInstructors(slotValue).map((instructor) => (
-                        <option
-                          key={instructor.staff_users_id}
-                          value={instructor.staff_users_id}
-                        >
-                          {formatInstructorName(instructor)}
-                        </option>
-                      ))}
-                      {slotValue &&
-                        !getAvailableInstructors(slotValue).find(
-                          (i) => i.staff_users_id === slotValue,
-                        ) && (
-                          <option value={slotValue}>
-                            {formatInstructorName(
-                              allInstructors.find(
-                                (i) => i.staff_users_id === slotValue,
-                              )!,
-                            )}
-                          </option>
-                        )}
+                      <option value={creatorInstructor?.staff_users_id || ""}>
+                        {creatorInstructor
+                          ? formatInstructorName(creatorInstructor)
+                          : ""}{" "}
+                        (คุณ)
+                      </option>
                     </select>
-                    <ChevronDown
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                    <Lock
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
                       size={18}
                     />
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveSlot(index)}
-                    className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    <X size={18} />
-                  </button>
                 </div>
-              ))}
-            </div>
+
+                {/* Additional instructor slots (editable) */}
+                {additionalSlots.map((slotValue, index) => (
+                  <div key={index} className="relative flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <select
+                        value={slotValue}
+                        onChange={(e) =>
+                          handleInstructorChange(index, e.target.value)
+                        }
+                        className="h-11 w-full cursor-pointer appearance-none rounded-xl border-2 border-[#9264F5] bg-white px-3.5 pr-10 text-sm text-gray-900 shadow-sm transition-colors focus:border-[#B7A3E3] focus:outline-none"
+                      >
+                        {renderInstructorOptions(slotValue)}
+                      </select>
+                      <ChevronDown
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                        size={18}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSlot(index)}
+                      className="rounded-lg p-2 text-red-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
 
           {!isLoading && (
             <button
               type="button"
               onClick={handleAddSlot}
-              className="w-full mt-3 py-2.5 border-2 border-dashed border-[#B7A3E3] rounded-xl bg-white text-[#7C5BD9] hover:bg-[#F4EFFF] transition-colors flex items-center justify-center gap-1.5 text-sm font-medium"
+              className="mt-3 flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-[#B7A3E3] bg-white text-sm font-medium text-[#7C5BD9] transition-colors hover:bg-[#F4EFFF]"
             >
               <Plus size={18} />
             </button>
