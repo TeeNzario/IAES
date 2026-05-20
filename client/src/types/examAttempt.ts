@@ -36,6 +36,10 @@ export interface ExamAttemptState {
   passed: boolean | null;
   total_level: number;
   theta_estimate: number;
+  standard_error: number | null;
+  test_information: number | null;
+  adaptive_stop_reason: string | null;
+  adaptive_completed_at: string | null;
   time_per_exam: number | null;
   can_view_result: boolean;
   result_hidden: string | null;
@@ -52,7 +56,10 @@ export interface ExamAttemptState {
     answered_count: number;
     shown_count: number;
     total_questions: number;
+    min_questions: number;
+    max_questions: number;
     remaining_seconds: number;
+    adaptive_complete: boolean;
     can_submit: boolean;
   };
   current_item: CurrentAttemptItem | null;
@@ -95,6 +102,10 @@ export interface ExamAttemptSummary {
     submitted_at: string | null;
     total_score: string | number | null;
     passed: boolean | null;
+    theta_estimate: number | null;
+    standard_error: number | null;
+    test_information: number | null;
+    adaptive_stop_reason: string | null;
     time_per_exam: number | null;
     answered_count: number;
     behavior_event_count: number;

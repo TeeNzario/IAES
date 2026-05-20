@@ -10,7 +10,11 @@ import {
 import { Type } from 'class-transformer';
 
 const DIFFICULTY_LABELS = ['ง่าย', 'กลาง', 'ยาก'] as const;
-const DIFFICULTY_VALUES: Record<string, number> = { 'ง่าย': -1, 'กลาง': 0, 'ยาก': 1 };
+const DIFFICULTY_VALUES: Record<string, number> = {
+  ง่าย: -1.8,
+  กลาง: 0,
+  ยาก: 1.8,
+};
 
 export function mapDifficultyLabel(label: string): number | null {
   return DIFFICULTY_VALUES[label] ?? null;

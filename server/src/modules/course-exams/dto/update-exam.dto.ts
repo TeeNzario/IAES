@@ -10,6 +10,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { FIELD_LENGTHS, maxLengthMessage } from 'src/lib/field-lengths';
+import { MIN_ADAPTIVE_ITEM_BANK_SIZE } from 'src/modules/exam-attempts/adaptive/adaptive-selector';
 
 /**
  * Full-replace update payload. Same shape as CreateExamDto — the UI always
@@ -27,7 +28,10 @@ export class UpdateExamDto {
   @IsOptional()
   @IsString()
   @MaxLength(FIELD_LENGTHS.examDescription, {
-    message: maxLengthMessage('คำอธิบายชุดข้อสอบ', FIELD_LENGTHS.examDescription),
+    message: maxLengthMessage(
+      'คำอธิบายชุดข้อสอบ',
+      FIELD_LENGTHS.examDescription,
+    ),
   })
   description?: string;
 
@@ -47,7 +51,7 @@ export class UpdateExamDto {
 
   @IsArray()
   @ArrayNotEmpty()
-  @ArrayMinSize(1)
+  @ArrayMinSize(MIN_ADAPTIVE_ITEM_BANK_SIZE)
   @IsString({ each: true })
   question_ids!: string[];
 }

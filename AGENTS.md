@@ -173,7 +173,7 @@ Curriculum IDs are defined in `client/src/config/curriculums.ts`. When inserting
 
 ## Seed Data Notes
 
-`server/prisma/seed.ts` delegates to modular seed files under `server/prisma/seed/`. The seed is idempotent and currently creates 2 admin accounts, 17 instructor accounts, 37 students, 19 courses, 20 course offerings, 32 knowledge categories, 20 question collections, 59 questions, 21 exam sets, and 59 demo attempts with 199 behavior events. Demo accounts use password `1234`.
+`server/prisma/seed.ts` delegates to modular seed files under `server/prisma/seed/`. The seed is idempotent and currently creates 2 admin accounts, 17 instructor accounts, 37 students, 19 courses, 20 course offerings, 32 knowledge categories, 20 question collections, 160 adaptive-ready questions, 21 exam sets, and 59 demo attempts with 199 behavior events. Demo accounts use password `1234`.
 
 Demo accounts:
 - Admin: `admin@wu.ac.th` / `1234`

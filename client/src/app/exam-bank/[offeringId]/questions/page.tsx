@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   CheckCircle2,
@@ -32,6 +38,7 @@ import {
 } from "@/components/questionBank/questionEditorConfig";
 import type { KnowledgeTag } from "@/components/questionBank/TagSelect";
 import BulkUploadQuestion from "@/features/questionBank/components/BulkUploadQuestion";
+import { FIXED_GUESSING_PARAM } from "@/config/questionParamLimits";
 
 interface ListResponse {
   data: Question[];
@@ -65,9 +72,10 @@ export default function FlatQuestionBankPage() {
     useState<DifficultyFilter>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<
-    { id: string; mode: "view" | "edit" } | null
-  >(null);
+  const [expanded, setExpanded] = useState<{
+    id: string;
+    mode: "view" | "edit";
+  } | null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -172,7 +180,9 @@ export default function FlatQuestionBankPage() {
     if (tags.length === 0) return;
 
     setCategoryFilter((prev) => {
-      const availableIds = new Set(tags.map((tag) => tag.knowledge_category_id));
+      const availableIds = new Set(
+        tags.map((tag) => tag.knowledge_category_id),
+      );
       const next = prev.filter((id) => availableIds.has(id));
       return next.length === prev.length ? prev : next;
     });
@@ -340,9 +350,7 @@ export default function FlatQuestionBankPage() {
                 <div ref={categoryDropdownRef} className="relative max-w-xl">
                   <button
                     type="button"
-                    onClick={() =>
-                      setIsCategoryDropdownOpen((open) => !open)
-                    }
+                    onClick={() => setIsCategoryDropdownOpen((open) => !open)}
                     className="flex h-11 w-full items-center justify-between gap-3 rounded-xl bg-[#FAF8FF] px-4 text-left text-sm font-semibold text-[#2F2A3A] ring-1 ring-[#E7DDF8] transition hover:bg-[#F4EFFF] focus:outline-none focus:ring-2 focus:ring-[#B7A3E3] cursor-pointer"
                     aria-expanded={isCategoryDropdownOpen}
                   >
@@ -437,7 +445,9 @@ export default function FlatQuestionBankPage() {
                                     ? "bg-[#F4EFFF] text-[#7C5BD9]"
                                     : "text-[#2F2A3A] hover:bg-[#FAF8FF]"
                                 }`}
-                                title={t.code ? `${t.code} - ${t.name}` : t.name}
+                                title={
+                                  t.code ? `${t.code} - ${t.name}` : t.name
+                                }
                               >
                                 <span
                                   className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
@@ -507,11 +517,17 @@ export default function FlatQuestionBankPage() {
             </div>
 
             {loading ? (
-              <p className="px-6 py-6 text-sm font-medium text-[#7A7287]">กำลังโหลด...</p>
+              <p className="px-6 py-6 text-sm font-medium text-[#7A7287]">
+                กำลังโหลด...
+              </p>
             ) : error ? (
-              <p className="px-6 py-6 text-sm font-medium text-red-500">{error}</p>
+              <p className="px-6 py-6 text-sm font-medium text-red-500">
+                {error}
+              </p>
             ) : questions.length === 0 ? (
-              <p className="px-6 py-6 text-sm font-medium text-[#7A7287]">ไม่มีคำถาม</p>
+              <p className="px-6 py-6 text-sm font-medium text-[#7A7287]">
+                ไม่มีคำถาม
+              </p>
             ) : (
               <ul className="divide-y divide-[#EFE8FB]">
                 {questions.map((q, idx) => {
@@ -523,7 +539,9 @@ export default function FlatQuestionBankPage() {
                     <li key={q.question_id}>
                       <div className="grid grid-cols-[60px_1fr_200px_140px_132px] items-center px-6 py-4 text-[15px] font-medium text-[#514667] hover:bg-[#FAF8FF]">
                         <div>{startIndex + idx + 1}</div>
-                        <div className="truncate pr-3 font-semibold text-[#2F2A3A]">{q.question_text}</div>
+                        <div className="truncate pr-3 font-semibold text-[#2F2A3A]">
+                          {q.question_text}
+                        </div>
                         <div className="flex justify-center">
                           <KnowledgeCategoriesCell
                             categories={q.knowledge_categories}
@@ -616,31 +634,29 @@ export default function FlatQuestionBankPage() {
           {totalItems > 0 && (
             <div className="mt-4 flex justify-end">
               <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E5E7EB] text-[#8F98A8] shadow-sm transition-colors hover:bg-[#DDE1E7] disabled:cursor-not-allowed disabled:opacity-80"
-                    aria-label="หน้าก่อนหน้า"
-                    title="หน้าก่อนหน้า"
-                  >
-                    <ChevronLeft size={18} strokeWidth={2.4} />
-                  </button>
-                  <span className="flex h-9 min-w-9 items-center justify-center rounded-lg bg-[#B7A3E3] px-3 text-sm font-semibold text-white shadow-sm">
-                    {page}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setPage((p) => Math.min(totalPages, p + 1))
-                    }
-                    disabled={page === totalPages}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E5E7EB] text-[#8F98A8] shadow-sm transition-colors hover:bg-[#DDE1E7] disabled:cursor-not-allowed disabled:opacity-80"
-                    aria-label="หน้าถัดไป"
-                    title="หน้าถัดไป"
-                  >
-                    <ChevronRight size={18} strokeWidth={2.4} />
-                  </button>
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E5E7EB] text-[#8F98A8] shadow-sm transition-colors hover:bg-[#DDE1E7] disabled:cursor-not-allowed disabled:opacity-80"
+                  aria-label="หน้าก่อนหน้า"
+                  title="หน้าก่อนหน้า"
+                >
+                  <ChevronLeft size={18} strokeWidth={2.4} />
+                </button>
+                <span className="flex h-9 min-w-9 items-center justify-center rounded-lg bg-[#B7A3E3] px-3 text-sm font-semibold text-white shadow-sm">
+                  {page}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E5E7EB] text-[#8F98A8] shadow-sm transition-colors hover:bg-[#DDE1E7] disabled:cursor-not-allowed disabled:opacity-80"
+                  aria-label="หน้าถัดไป"
+                  title="หน้าถัดไป"
+                >
+                  <ChevronRight size={18} strokeWidth={2.4} />
+                </button>
               </div>
             </div>
           )}
@@ -866,7 +882,7 @@ function EditQuestionRow({
             })),
             difficulty_param: Number(d.difficulty_param),
             discrimination_param: Number(d.discrimination_param),
-            guessing_param: Number(d.guessing_param),
+            guessing_param: FIXED_GUESSING_PARAM,
             knowledge_category_ids: d.knowledge_category_ids,
           },
         },

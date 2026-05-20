@@ -1,4 +1,10 @@
 import { exam_attempt_status } from '../../src/generated/prisma/client';
+import {
+  AnsweredQuestionCandidate,
+  ExamQuestionCandidate,
+  pickNextQuestion,
+  updateTheta,
+} from '../../src/modules/exam-attempts/adaptive/adaptive-selector';
 import { prisma } from '../../src/lib/prisma';
 import { SeededExam } from './exams';
 
@@ -421,13 +427,17 @@ function pickCorrectness(
   rand: () => number,
 ): boolean {
   const threshold =
-    mode === 'all' ? 1.0 : mode === 'most' ? 0.8 : mode === 'mixed' ? 0.5 : 0.25;
+    mode === 'all'
+      ? 1.0
+      : mode === 'most'
+        ? 0.8
+        : mode === 'mixed'
+          ? 0.5
+          : 0.25;
   return rand() < threshold;
 }
 
-export async function seedAttempts(
-  exams: SeededExam[],
-): Promise<void> {
+export async function seedAttempts(exams: SeededExam[]): Promise<void> {
   const examByTitle = new Map(exams.map((e) => [e.exam.title, e]));
 
   let created = 0;
@@ -472,14 +482,28 @@ export async function seedAttempts(
         ? 600 + Math.floor(rand() * 900)
         : null;
 
-    const answeredCount = isSubmitted
+    const plannedItemCount = isSubmitted
       ? totalQuestions
       : isInProgress
         ? Math.max(1, Math.floor(totalQuestions * (0.3 + rand() * 0.4)))
         : Math.max(1, Math.floor(totalQuestions * 0.2));
 
-    const items = exam.questions.slice(0, answeredCount);
+    const questionCandidates: ExamQuestionCandidate[] = exam.questions.map(
+      (question, index) => ({
+        question_id: question.question_id,
+        sequence_index: index,
+        difficulty_param: question.difficulty_param,
+        discrimination_param: question.discrimination_param,
+        guessing_param: question.guessing_param,
+      }),
+    );
+    const shownQuestionIds = new Set<string>();
+    let administeredCount = 0;
     let correctCount = 0;
+    const answeredIrtItems: AnsweredQuestionCandidate[] = [];
+    let thetaEstimate = 0;
+    let standardError: number | null = null;
+    let testInformation: number | null = null;
 
     const attempt = await prisma.exam_attempts.create({
       data: {
@@ -494,8 +518,20 @@ export async function seedAttempts(
       },
     });
 
-    for (let i = 0; i < items.length; i++) {
-      const question = items[i];
+    for (let i = 0; i < plannedItemCount; i++) {
+      const nextQuestion = pickNextQuestion(
+        questionCandidates,
+        shownQuestionIds,
+        thetaEstimate,
+      );
+      if (!nextQuestion) break;
+      shownQuestionIds.add(nextQuestion.question_id.toString());
+
+      const question = exam.questions.find(
+        (q) => q.question_id === nextQuestion.question_id,
+      );
+      if (!question) continue;
+
       const choices = await prisma.question_choices.findMany({
         where: { question_id: question.question_id },
         orderBy: { display_order: 'asc' },
@@ -505,6 +541,7 @@ export async function seedAttempts(
       const correctChoices = choices.filter((c) => c.is_correct);
       const wrongChoices = choices.filter((c) => !c.is_correct);
       if (correctChoices.length === 0) continue;
+      administeredCount++;
 
       const shouldBeCorrect =
         isSubmitted && 'correctness' in plan.mode
@@ -516,7 +553,7 @@ export async function seedAttempts(
       const shownAt = new Date(startedAt.getTime() + i * 45_000);
       const answeredAt = isSubmitted
         ? new Date(shownAt.getTime() + (20 + Math.floor(rand() * 60)) * 1000)
-        : isInProgress && i === items.length - 1
+        : isInProgress && i === plannedItemCount - 1
           ? null
           : new Date(shownAt.getTime() + (25 + Math.floor(rand() * 80)) * 1000);
 
@@ -529,7 +566,7 @@ export async function seedAttempts(
           sequence_index: i,
           shown_at: shownAt,
           answered_at: answeredAt,
-          theta_at_selection: 0,
+          theta_at_selection: thetaEstimate,
           time_per_item: answeredAt
             ? Math.floor((answeredAt.getTime() - shownAt.getTime()) / 1000)
             : null,
@@ -549,7 +586,10 @@ export async function seedAttempts(
             correctChoices.length - 1,
             Math.max(0, Math.floor(rand() * correctChoices.length)),
           );
-          const pickWrong = Math.min(wrongChoices.length, 1 + Math.floor(rand() * 2));
+          const pickWrong = Math.min(
+            wrongChoices.length,
+            1 + Math.floor(rand() * 2),
+          );
           selectedChoices = [
             ...correctChoices.slice(0, pickCorrect),
             ...wrongChoices.slice(0, pickWrong),
@@ -583,14 +623,25 @@ export async function seedAttempts(
         [...correctIds].every((id) => selectedIds.has(id));
       if (itemCorrect) correctCount++;
 
+      answeredIrtItems.push({
+        question_id: question.question_id,
+        sequence_index: i,
+        difficulty_param: question.difficulty_param,
+        discrimination_param: question.discrimination_param,
+        guessing_param: question.guessing_param,
+        is_correct: itemCorrect,
+      });
+      const thetaUpdate = updateTheta(thetaEstimate, answeredIrtItems);
+      thetaEstimate = thetaUpdate.theta;
+      standardError = thetaUpdate.standardError;
+      testInformation = thetaUpdate.testInformation;
+
       for (const choice of selectedChoices) {
         await prisma.attempt_answers.create({
           data: {
             attempt_items_id: attemptItem.attempt_items_id,
             selected_choice_id: choice.choice_id,
-            is_correct: isMulti
-              ? itemCorrect
-              : choice.is_correct,
+            is_correct: isMulti ? itemCorrect : choice.is_correct,
             saved_at: answeredAt,
           },
         });
@@ -598,19 +649,31 @@ export async function seedAttempts(
     }
 
     if (isSubmitted) {
-      const rawScore = items.length > 0 ? (correctCount / items.length) * 100 : 0;
+      const rawScore =
+        administeredCount > 0 ? (correctCount / administeredCount) * 100 : 0;
       const passed = rawScore >= 50;
-      const level =
-        items.reduce((sum, q) => sum + (q.difficulty_param ?? 0), 0) /
-        Math.max(1, items.length);
 
       await prisma.exam_attempts.update({
         where: { exam_attempts_id: attempt.exam_attempts_id },
         data: {
           total_score: rawScore.toFixed(2),
           passed,
-          total_level: level,
-          theta_estimate: level,
+          total_level: thetaEstimate,
+          theta_estimate: thetaEstimate,
+          standard_error: standardError,
+          test_information: testInformation,
+          adaptive_completed_at: submittedAt,
+          adaptive_stop_reason: 'seeded_demo',
+        },
+      });
+    } else if (answeredIrtItems.length > 0) {
+      await prisma.exam_attempts.update({
+        where: { exam_attempts_id: attempt.exam_attempts_id },
+        data: {
+          total_level: thetaEstimate,
+          theta_estimate: thetaEstimate,
+          standard_error: standardError,
+          test_information: testInformation,
         },
       });
     }
@@ -620,7 +683,9 @@ export async function seedAttempts(
 
   // Seed behavior logs for submitted and in-progress attempts
   const behaviorEvents = await seedBehaviorLogs();
-  console.log(`Attempts: ${created} created, ${skipped} skipped, ${behaviorEvents} behavior events`);
+  console.log(
+    `Attempts: ${created} created, ${skipped} skipped, ${behaviorEvents} behavior events`,
+  );
 }
 
 const BEHAVIOR_EVENT_TYPES = [
@@ -670,7 +735,9 @@ async function seedBehaviorLogs(): Promise<number> {
 
     for (let i = 0; i < eventCount; i++) {
       const eventType = BEHAVIOR_EVENT_TYPES[i % BEHAVIOR_EVENT_TYPES.length];
-      const offset = Math.floor((i + 1) / BEHAVIOR_EVENT_TYPES.length * durationMs);
+      const offset = Math.floor(
+        ((i + 1) / BEHAVIOR_EVENT_TYPES.length) * durationMs,
+      );
       const occurredAt = new Date(startTime.getTime() + offset);
 
       await prisma.exam_behavior_logs.create({
@@ -679,11 +746,12 @@ async function seedBehaviorLogs(): Promise<number> {
           attempt_items_id: item?.attempt_items_id ?? null,
           question_id: item?.question_id ?? null,
           event_type: eventType,
-          metadata: eventType === 'focus_change'
-            ? { direction: i % 2 === 0 ? 'out' : 'in' }
-            : eventType === 'idle'
-              ? { duration_seconds: 30 + i * 15 }
-              : undefined,
+          metadata:
+            eventType === 'focus_change'
+              ? { direction: i % 2 === 0 ? 'out' : 'in' }
+              : eventType === 'idle'
+                ? { duration_seconds: 30 + i * 15 }
+                : undefined,
           occurred_at: occurredAt,
         },
       });

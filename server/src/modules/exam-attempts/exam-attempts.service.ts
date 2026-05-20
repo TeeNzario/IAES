@@ -14,16 +14,23 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { SaveAnswerDto } from './dto/save-answer.dto';
 import { BehaviorEventDto } from './dto/behavior-event.dto';
 import {
-  clampTheta,
-  correctnessDelta,
+  adaptiveRules,
+  evaluateStopRule,
   ExamQuestionCandidate,
+  itemInformation,
+  MIN_ADAPTIVE_ITEM_BANK_SIZE,
   pickNextQuestion,
+  updateTheta,
 } from './adaptive/adaptive-selector';
 import {
   computePercentScore,
   didPass,
   isExactChoiceSelectionCorrect,
 } from './scoring/scoring-engine';
+import {
+  FIXED_GUESSING_PARAM,
+  QUESTION_PARAM_LIMITS,
+} from 'src/lib/question-param-limits';
 
 type DbClient = PrismaService | Prisma.TransactionClient;
 
@@ -42,6 +49,13 @@ function serializeBigInt<T>(data: T): T {
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
+}
+
+function isFixedGuessingParam(value: number | null) {
+  return (
+    isFiniteNumber(value) &&
+    Math.abs(value - FIXED_GUESSING_PARAM) <= Number.EPSILON
+  );
 }
 
 function parseBigIntId(value: string, label: string) {
@@ -183,8 +197,10 @@ export class ExamAttemptsService {
   private validateExamReadiness(
     exam: Awaited<ReturnType<ExamAttemptsService['loadExam']>>,
   ) {
-    if (exam.exam_questions.length === 0) {
-      throw new BadRequestException('Exam has no questions');
+    if (exam.exam_questions.length < MIN_ADAPTIVE_ITEM_BANK_SIZE) {
+      throw new BadRequestException(
+        `Adaptive IRT exams require at least ${MIN_ADAPTIVE_ITEM_BANK_SIZE} questions`,
+      );
     }
 
     const inactive = exam.exam_questions.find(
@@ -196,13 +212,18 @@ export class ExamAttemptsService {
 
     for (const item of exam.exam_questions) {
       const question = item.question_bank;
+      const { difficulty, discrimination } = QUESTION_PARAM_LIMITS;
       if (
         !isFiniteNumber(question.difficulty_param) ||
+        question.difficulty_param < difficulty.min ||
+        question.difficulty_param > difficulty.max ||
         !isFiniteNumber(question.discrimination_param) ||
-        !isFiniteNumber(question.guessing_param)
+        question.discrimination_param < discrimination.min ||
+        question.discrimination_param > discrimination.max ||
+        !isFixedGuessingParam(question.guessing_param)
       ) {
         throw new BadRequestException(
-          'Every exam question must have difficulty, discrimination, and guessing parameters',
+          'Every exam question must have valid IRT parameters',
         );
       }
 
@@ -288,6 +309,10 @@ export class ExamAttemptsService {
         passed: true,
         total_level: true,
         theta_estimate: true,
+        standard_error: true,
+        test_information: true,
+        adaptive_stop_reason: true,
+        adaptive_completed_at: true,
         time_per_exam: true,
         attempt_items: {
           orderBy: { sequence_index: 'asc' },
@@ -304,6 +329,9 @@ export class ExamAttemptsService {
                 question_id: true,
                 question_text: true,
                 question_type: true,
+                difficulty_param: true,
+                discrimination_param: true,
+                guessing_param: true,
                 choices: {
                   orderBy: { display_order: 'asc' },
                   select: {
@@ -346,6 +374,7 @@ export class ExamAttemptsService {
     >,
   ) {
     const totalQuestions = exam.exam_questions.length;
+    const rules = adaptiveRules(totalQuestions);
     const answeredItems = attempt.attempt_items.filter(
       (item) => item.answered_at,
     );
@@ -353,6 +382,14 @@ export class ExamAttemptsService {
       attempt.status === 'IN_PROGRESS'
         ? (attempt.attempt_items.find((item) => !item.answered_at) ?? null)
         : null;
+    const adaptiveComplete =
+      Boolean(attempt.adaptive_completed_at) ||
+      (attempt.status === 'IN_PROGRESS' &&
+        currentItem === null &&
+        answeredItems.length >= rules.minItems);
+    const progressTotalQuestions = adaptiveComplete
+      ? answeredItems.length
+      : rules.maxItems;
     const now = new Date();
     const remainingSeconds =
       attempt.status === 'IN_PROGRESS'
@@ -377,6 +414,10 @@ export class ExamAttemptsService {
       passed: canViewResult ? attempt.passed : null,
       total_level: thetaEstimate,
       theta_estimate: thetaEstimate,
+      standard_error: attempt.standard_error,
+      test_information: attempt.test_information,
+      adaptive_stop_reason: attempt.adaptive_stop_reason,
+      adaptive_completed_at: attempt.adaptive_completed_at,
       time_per_exam: attempt.time_per_exam,
       can_view_result: canViewResult,
       result_hidden:
@@ -395,11 +436,15 @@ export class ExamAttemptsService {
       progress: {
         answered_count: answeredItems.length,
         shown_count: attempt.attempt_items.length,
-        total_questions: totalQuestions,
+        total_questions: progressTotalQuestions,
+        min_questions: rules.minItems,
+        max_questions: rules.maxItems,
         remaining_seconds: remainingSeconds,
+        adaptive_complete: adaptiveComplete,
         can_submit:
           attempt.status === 'IN_PROGRESS' &&
-          answeredItems.length === totalQuestions,
+          currentItem === null &&
+          answeredItems.length >= rules.minItems,
       },
       current_item: currentItem
         ? {
@@ -434,6 +479,75 @@ export class ExamAttemptsService {
     });
   }
 
+  private async loadAnsweredIrtItems(
+    tx: Prisma.TransactionClient,
+    attemptId: bigint,
+  ) {
+    const items = await tx.attempt_items.findMany({
+      where: {
+        exam_attempts_id: attemptId,
+        answered_at: { not: null },
+      },
+      orderBy: { sequence_index: 'asc' },
+      select: {
+        question_id: true,
+        sequence_index: true,
+        question_bank: {
+          select: {
+            difficulty_param: true,
+            discrimination_param: true,
+            guessing_param: true,
+          },
+        },
+        attempt_answers: {
+          orderBy: { saved_at: 'desc' },
+          take: 1,
+          select: { is_correct: true },
+        },
+      },
+    });
+
+    return items.map((item) => ({
+      question_id: item.question_id,
+      sequence_index: item.sequence_index,
+      difficulty_param: item.question_bank.difficulty_param,
+      discrimination_param: item.question_bank.discrimination_param,
+      guessing_param: item.question_bank.guessing_param,
+      is_correct: item.attempt_answers[0]?.is_correct === true,
+    }));
+  }
+
+  private async getStandardErrorWorseningStreak(
+    tx: Prisma.TransactionClient,
+    attemptId: bigint,
+    currentStandardError: number | null,
+  ) {
+    if (currentStandardError === null) return 0;
+
+    const rows = await tx.exam_theta_tracking.findMany({
+      where: {
+        exam_attempts_id: attemptId,
+        standard_error: { not: null },
+      },
+      orderBy: { sequence_index: 'desc' },
+      take: 3,
+      select: { standard_error: true },
+    });
+
+    let streak = 0;
+    let cursor = currentStandardError;
+    for (const row of rows) {
+      if (row.standard_error !== null && cursor > row.standard_error) {
+        streak++;
+        cursor = row.standard_error;
+      } else {
+        break;
+      }
+    }
+
+    return streak;
+  }
+
   private async createNextAttemptItem(
     tx: Prisma.TransactionClient,
     exam: Awaited<ReturnType<ExamAttemptsService['loadExam']>>,
@@ -453,7 +567,7 @@ export class ExamAttemptsService {
       shownQuestionIds,
       theta,
     );
-    if (!nextQuestion) return;
+    if (!nextQuestion) return false;
 
     const created = await tx.attempt_items.create({
       data: {
@@ -472,13 +586,17 @@ export class ExamAttemptsService {
         event_type: 'adaptive_question_selected',
         metadata: {
           theta,
+          item_information: itemInformation(theta, nextQuestion),
           difficulty_param: nextQuestion.difficulty_param,
           discrimination_param: nextQuestion.discrimination_param,
+          guessing_param: nextQuestion.guessing_param,
           sequence_index: shownItems.length,
           shown_question_count: shownItems.length,
         } as Prisma.InputJsonValue,
       },
     });
+
+    return true;
   }
 
   private async finalizeAttempt(
@@ -495,35 +613,11 @@ export class ExamAttemptsService {
           started_at: true,
           total_level: true,
           theta_estimate: true,
+          adaptive_stop_reason: true,
+          adaptive_completed_at: true,
         },
       });
       if (!attempt || attempt.status !== 'IN_PROGRESS') return;
-
-      const existingItems = await tx.attempt_items.findMany({
-        where: { exam_attempts_id: attemptId },
-        orderBy: { sequence_index: 'asc' },
-        select: { question_id: true },
-      });
-      const existingQuestionIds = new Set(
-        existingItems.map((item) => item.question_id.toString()),
-      );
-      const missingQuestions = this.examQuestionCandidates(exam).filter(
-        (question) => !existingQuestionIds.has(question.question_id.toString()),
-      );
-
-      if (missingQuestions.length > 0) {
-        const thetaAtSelection =
-          attempt.theta_estimate ?? attempt.total_level ?? 0;
-        await tx.attempt_items.createMany({
-          data: missingQuestions.map((question, index) => ({
-            exam_attempts_id: attemptId,
-            question_id: question.question_id,
-            sequence_index: existingItems.length + index,
-            theta_at_selection: thetaAtSelection,
-          })),
-          skipDuplicates: true,
-        });
-      }
 
       const items = await tx.attempt_items.findMany({
         where: { exam_attempts_id: attemptId },
@@ -538,8 +632,7 @@ export class ExamAttemptsService {
       const correctCount = items.filter(
         (item) => item.attempt_answers[0]?.is_correct === true,
       ).length;
-      const totalQuestions = this.examQuestionCandidates(exam).length;
-      const rawScore = computePercentScore(correctCount, totalQuestions);
+      const rawScore = computePercentScore(correctCount, items.length);
       const elapsedSeconds = Math.max(
         0,
         Math.floor(
@@ -554,6 +647,8 @@ export class ExamAttemptsService {
           submitted_at: submittedAt,
           total_score: rawScore.toFixed(2),
           passed: didPass(rawScore),
+          adaptive_completed_at: attempt.adaptive_completed_at ?? new Date(),
+          adaptive_stop_reason: attempt.adaptive_stop_reason ?? 'submitted',
           time_per_exam: elapsedSeconds,
           updated_at: new Date(),
         },
@@ -628,8 +723,10 @@ export class ExamAttemptsService {
           event_type: 'adaptive_question_selected',
           metadata: {
             theta: 0,
+            item_information: itemInformation(0, firstQuestion),
             difficulty_param: firstQuestion.difficulty_param,
             discrimination_param: firstQuestion.discrimination_param,
+            guessing_param: firstQuestion.guessing_param,
             sequence_index: 0,
             shown_question_count: 0,
           } as Prisma.InputJsonValue,
@@ -732,12 +829,16 @@ export class ExamAttemptsService {
           attempt_items_id: true,
           exam_attempts_id: true,
           question_id: true,
+          sequence_index: true,
           shown_at: true,
           answered_at: true,
           choice_selection_log: true,
           question_bank: {
             select: {
               question_type: true,
+              difficulty_param: true,
+              discrimination_param: true,
+              guessing_param: true,
               choices: {
                 select: {
                   choice_id: true,
@@ -811,14 +912,7 @@ export class ExamAttemptsService {
               selectedChoiceIds,
             )
           : false;
-      const previousCorrectness = item.attempt_answers[0]?.is_correct;
-      const previousDelta =
-        typeof previousCorrectness === 'boolean'
-          ? correctnessDelta(previousCorrectness)
-          : 0;
-      const nextDelta = correctnessDelta(isCorrect);
       const currentTheta = attempt.theta_estimate ?? attempt.total_level ?? 0;
-      const nextTheta = clampTheta(currentTheta - previousDelta + nextDelta);
       const savedAt = new Date();
       const existingLog = Array.isArray(item.choice_selection_log)
         ? item.choice_selection_log
@@ -868,23 +962,88 @@ export class ExamAttemptsService {
           choice_selection_log: nextLog,
         },
       });
+
+      const answeredIrtItems = await this.loadAnsweredIrtItems(
+        tx,
+        attempt.exam_attempts_id,
+      );
+      const thetaUpdate = updateTheta(currentTheta, answeredIrtItems);
+      const thetaChange = Math.abs(thetaUpdate.theta - currentTheta);
+      const worseningStreak = await this.getStandardErrorWorseningStreak(
+        tx,
+        attempt.exam_attempts_id,
+        thetaUpdate.standardError,
+      );
+      const stopResult = evaluateStopRule({
+        answeredCount: answeredIrtItems.length,
+        totalItems: this.examQuestionCandidates(exam).length,
+        theta: thetaUpdate.theta,
+        standardError: thetaUpdate.standardError,
+        thetaChange,
+        worseningStreak,
+      });
+      let stopReason = stopResult.reason;
+      const currentQuestion = {
+        question_id: item.question_id,
+        sequence_index: item.sequence_index,
+        difficulty_param: item.question_bank.difficulty_param,
+        discrimination_param: item.question_bank.discrimination_param,
+        guessing_param: item.question_bank.guessing_param,
+      };
+
       await tx.exam_attempts.update({
         where: { exam_attempts_id: attempt.exam_attempts_id },
         data: {
-          total_level: nextTheta,
-          theta_estimate: nextTheta,
+          total_level: thetaUpdate.theta,
+          theta_estimate: thetaUpdate.theta,
+          standard_error: thetaUpdate.standardError,
+          test_information: thetaUpdate.testInformation,
+          ...(stopResult.shouldStop
+            ? {
+                adaptive_completed_at: savedAt,
+                adaptive_stop_reason: stopResult.reason,
+              }
+            : {}),
           updated_at: savedAt,
         },
       });
 
-      if (typeof previousCorrectness !== 'boolean') {
-        await this.createNextAttemptItem(
+      if (!stopResult.shouldStop) {
+        const createdNext = await this.createNextAttemptItem(
           tx,
           exam,
           attempt.exam_attempts_id,
-          nextTheta,
+          thetaUpdate.theta,
         );
+        if (!createdNext) {
+          stopReason = 'item_bank_exhausted';
+          await tx.exam_attempts.update({
+            where: { exam_attempts_id: attempt.exam_attempts_id },
+            data: {
+              adaptive_completed_at: savedAt,
+              adaptive_stop_reason: stopReason,
+              updated_at: savedAt,
+            },
+          });
+        }
       }
+
+      await tx.exam_theta_tracking.create({
+        data: {
+          exam_attempts_id: attempt.exam_attempts_id,
+          attempt_items_id: item.attempt_items_id,
+          question_id: item.question_id,
+          sequence_index: item.sequence_index,
+          theta_before: thetaUpdate.previousTheta,
+          theta_after: thetaUpdate.theta,
+          standard_error: thetaUpdate.standardError,
+          test_information: thetaUpdate.testInformation,
+          item_information: itemInformation(thetaUpdate.theta, currentQuestion),
+          score_function: thetaUpdate.score,
+          response_correct: isCorrect,
+          stop_reason: stopReason,
+        },
+      });
     });
 
     return this.getAttempt(offeringId, examId, user);
@@ -912,6 +1071,15 @@ export class ExamAttemptsService {
       }
       if (now <= exam.end_time) {
         this.validateExamReadiness(exam);
+        const rules = adaptiveRules(exam.exam_questions.length);
+        const answeredItems = attempt.attempt_items.filter(
+          (item) => item.answered_at,
+        );
+        const currentItem =
+          attempt.attempt_items.find((item) => !item.answered_at) ?? null;
+        if (currentItem || answeredItems.length < rules.minItems) {
+          throw new BadRequestException('Adaptive exam is not complete yet');
+        }
       }
       await this.finalizeAttempt(
         attempt.exam_attempts_id,
@@ -1027,7 +1195,9 @@ export class ExamAttemptsService {
       this.fetchAttempts(examBigInt),
     ]);
 
-    return serializeBigInt(this.buildSummaryResponse(exam, totalEnrolled, attempts));
+    return serializeBigInt(
+      this.buildSummaryResponse(exam, totalEnrolled, attempts),
+    );
   }
 
   async getSummariesForOffering(
@@ -1066,6 +1236,10 @@ export class ExamAttemptsService {
         submitted_at: true,
         total_score: true,
         passed: true,
+        theta_estimate: true,
+        standard_error: true,
+        test_information: true,
+        adaptive_stop_reason: true,
         time_per_exam: true,
         students: {
           select: {
@@ -1149,6 +1323,10 @@ export class ExamAttemptsService {
         submitted_at: attempt.submitted_at,
         total_score: attempt.total_score,
         passed: attempt.passed,
+        theta_estimate: attempt.theta_estimate,
+        standard_error: attempt.standard_error,
+        test_information: attempt.test_information,
+        adaptive_stop_reason: attempt.adaptive_stop_reason,
         time_per_exam: attempt.time_per_exam,
         answered_count: attempt._count.attempt_items,
         behavior_event_count: attempt._count.exam_behavior_logs,

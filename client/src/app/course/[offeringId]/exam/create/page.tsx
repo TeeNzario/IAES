@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -24,6 +30,10 @@ import {
   parseDateInput,
   parseTimeInput,
 } from "@/lib/examScheduleValidation";
+import {
+  FIXED_GUESSING_PARAM,
+  QUESTION_PARAM_LIMITS,
+} from "@/config/questionParamLimits";
 
 interface ExamListItem {
   course_exams_id: string;
@@ -50,6 +60,7 @@ interface ExamDetail extends ExamListItem {
 }
 
 const PICKER_PAGE_SIZE_OPTIONS = [9, 18, 27];
+const MIN_ADAPTIVE_QUESTIONS = 8;
 
 const statusLabel: Record<ExamListItem["status"], string> = {
   UPCOMING: "ยังไม่เริ่ม",
@@ -61,8 +72,25 @@ const statusClass = (s: ExamListItem["status"]) =>
   s === "UPCOMING"
     ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
     : s === "ONGOING"
-    ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-    : "bg-gray-200 text-gray-600 ring-1 ring-gray-300";
+      ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+      : "bg-gray-200 text-gray-600 ring-1 ring-gray-300";
+
+function hasValidIrtParams(question: ExamDetailQuestion): boolean {
+  const { difficulty, discrimination } = QUESTION_PARAM_LIMITS;
+  return (
+    typeof question.difficulty_param === "number" &&
+    Number.isFinite(question.difficulty_param) &&
+    question.difficulty_param >= difficulty.min &&
+    question.difficulty_param <= difficulty.max &&
+    typeof question.discrimination_param === "number" &&
+    Number.isFinite(question.discrimination_param) &&
+    question.discrimination_param >= discrimination.min &&
+    question.discrimination_param <= discrimination.max &&
+    typeof question.guessing_param === "number" &&
+    Number.isFinite(question.guessing_param) &&
+    Math.abs(question.guessing_param - FIXED_GUESSING_PARAM) <= Number.EPSILON
+  );
+}
 
 const formatThaiDate = (iso: string) => {
   const d = new Date(iso);
@@ -148,11 +176,12 @@ export default function CreateExamSchedulePage() {
     let arr = exams.filter(
       (e) =>
         !q ||
-          e.title.toLowerCase().includes(q) ||
-          (e.description ?? "").toLowerCase().includes(q),
+        e.title.toLowerCase().includes(q) ||
+        (e.description ?? "").toLowerCase().includes(q),
     );
     arr = [...arr].sort(
-      (a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime(),
+      (a, b) =>
+        new Date(b.start_time).getTime() - new Date(a.start_time).getTime(),
     );
     return arr;
   }, [exams, search]);
@@ -248,6 +277,22 @@ export default function CreateExamSchedulePage() {
       endTime?: string;
     } = {};
     if (!selectedId) out.exam = "กรุณาเลือกชุดข้อสอบ";
+    const selectedExam = selectedId
+      ? exams.find((exam) => exam.course_exams_id === selectedId)
+      : null;
+    if (selectedExam && selectedExam.question_count < MIN_ADAPTIVE_QUESTIONS) {
+      out.exam = `ชุดข้อสอบต้องมีอย่างน้อย ${MIN_ADAPTIVE_QUESTIONS} ข้อสำหรับ adaptive IRT`;
+    }
+    const selectedDetail = selectedId ? examDetails[selectedId] : null;
+    if (
+      selectedDetail?.questions.some(
+        (question) =>
+          !hasValidIrtParams(question) ||
+          (question.knowledge_categories ?? []).length < 1,
+      )
+    ) {
+      out.exam = "ชุดข้อสอบนี้มีคำถามที่ค่า IRT หรือหมวดหมู่ความรู้ไม่ครบ";
+    }
     if (!startDate) out.startDate = "กรุณาเลือกวันเปิดสอบ";
     if (!startTime) out.startTime = "กรุณาเลือกเวลาเปิดสอบ";
     if (!endDate) out.endDate = "กรุณาเลือกวันปิดสอบ";
@@ -304,7 +349,7 @@ export default function CreateExamSchedulePage() {
       }
     }
     return out;
-  }, [selectedId, startDate, startTime, endDate, endTime]);
+  }, [selectedId, exams, examDetails, startDate, startTime, endDate, endTime]);
 
   const isValid = Object.keys(errors).length === 0;
   const selected = exams.find((e) => e.course_exams_id === selectedId) ?? null;
@@ -481,7 +526,9 @@ export default function CreateExamSchedulePage() {
               </div>
             )}
             {loadingList ? (
-              <p className="text-[13px] font-medium text-[#7A7287] sm:text-sm">กำลังโหลด...</p>
+              <p className="text-[13px] font-medium text-[#7A7287] sm:text-sm">
+                กำลังโหลด...
+              </p>
             ) : filtered.length === 0 ? (
               <div className="rounded-2xl bg-[#FAF8FF] p-8 text-center ring-1 ring-[#EFE8FB]">
                 <p className="text-[13px] font-medium text-[#7A7287] sm:text-sm">
@@ -510,9 +557,7 @@ export default function CreateExamSchedulePage() {
                         ? { ...exam, questions: exam.questions }
                         : examDetails[exam.course_exams_id]
                     }
-                    loadingDetail={detailsLoadingIds.has(
-                      exam.course_exams_id,
-                    )}
+                    loadingDetail={detailsLoadingIds.has(exam.course_exams_id)}
                     selected={selectedId === exam.course_exams_id}
                     onSelect={() =>
                       setSelectedId((current) =>
@@ -532,9 +577,7 @@ export default function CreateExamSchedulePage() {
                 <div className="flex items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() =>
-                      setPickerPage((p) => Math.max(1, p - 1))
-                    }
+                    onClick={() => setPickerPage((p) => Math.max(1, p - 1))}
                     disabled={currentPickerPage === 1}
                     className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E5E7EB] text-[#8F98A8] shadow-sm transition-colors hover:bg-[#DDE1E7] disabled:cursor-not-allowed disabled:opacity-80"
                     aria-label="หน้าก่อนหน้า"
@@ -781,7 +824,8 @@ function ExamSetOptionCard({
                 ช่วงเวลาเดิม
               </p>
               <p className="mt-1 text-[13px] font-medium leading-5 text-[#514667] sm:text-sm sm:leading-6">
-                {formatThaiDate(exam.start_time)} ถึง {formatThaiDate(exam.end_time)}
+                {formatThaiDate(exam.start_time)} ถึง{" "}
+                {formatThaiDate(exam.end_time)}
               </p>
             </div>
           </div>
@@ -889,9 +933,7 @@ function ExamDescription({
       onClick={(event) => event.stopPropagation()}
     >
       <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-        <span className="text-sm font-semibold text-[#7C5BD9]">
-          คำอธิบาย
-        </span>
+        <span className="text-sm font-semibold text-[#7C5BD9]">คำอธิบาย</span>
         {shouldTruncate && (
           <button
             type="button"
@@ -1164,7 +1206,10 @@ function buildExamDetailSummary(
   let discriminationCount = 0;
   let guessingSum = 0;
   let guessingCount = 0;
-  const byCategory = new Map<string, { id: string; name: string; count: number }>();
+  const byCategory = new Map<
+    string,
+    { id: string; name: string; count: number }
+  >();
 
   for (const question of questions) {
     const difficulty = question.difficulty_param;
@@ -1179,10 +1224,7 @@ function buildExamDetailSummary(
     }
 
     const discrimination = question.discrimination_param;
-    if (
-      typeof discrimination === "number" &&
-      Number.isFinite(discrimination)
-    ) {
+    if (typeof discrimination === "number" && Number.isFinite(discrimination)) {
       discriminationSum += discrimination;
       discriminationCount += 1;
     }
@@ -1213,8 +1255,7 @@ function buildExamDetailSummary(
     medium,
     hard,
     untagged,
-    avgDifficulty:
-      difficultyCount > 0 ? difficultySum / difficultyCount : null,
+    avgDifficulty: difficultyCount > 0 ? difficultySum / difficultyCount : null,
     avgDiscrimination:
       discriminationCount > 0 ? discriminationSum / discriminationCount : null,
     avgGuessing: guessingCount > 0 ? guessingSum / guessingCount : null,

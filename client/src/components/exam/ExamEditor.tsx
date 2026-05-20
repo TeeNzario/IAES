@@ -21,10 +21,11 @@ import {
   parseDateTimeLocalInput,
 } from "@/lib/examScheduleValidation";
 import { FIELD_LIMITS, maxLengthMessage } from "@/config/fieldLimits";
+import { difficultyLabel, Question } from "@/components/questionBank/types";
 import {
-  difficultyLabel,
-  Question,
-} from "@/components/questionBank/types";
+  FIXED_GUESSING_PARAM,
+  QUESTION_PARAM_LIMITS,
+} from "@/config/questionParamLimits";
 
 /** Local-only shape for the datetime-local inputs. */
 export interface ExamConfigDraft {
@@ -67,6 +68,7 @@ const dateTimeLocalToIso = (value: string) => {
 
 const EXAM_TITLE_MAX_LENGTH = FIELD_LIMITS.examTitle;
 const EXAM_DESCRIPTION_MAX_LENGTH = FIELD_LIMITS.examDescription;
+const MIN_ADAPTIVE_QUESTIONS = 8;
 type QuestionDifficultyFilter = "easy" | "medium" | "hard";
 
 const QUESTION_DIFFICULTY_LABELS: Record<QuestionDifficultyFilter, string> = {
@@ -74,6 +76,24 @@ const QUESTION_DIFFICULTY_LABELS: Record<QuestionDifficultyFilter, string> = {
   medium: "กลาง",
   hard: "ยาก",
 };
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function hasValidAdaptiveIrtParams(question: Question): boolean {
+  const { difficulty, discrimination } = QUESTION_PARAM_LIMITS;
+  return (
+    isFiniteNumber(question.difficulty_param) &&
+    question.difficulty_param >= difficulty.min &&
+    question.difficulty_param <= difficulty.max &&
+    isFiniteNumber(question.discrimination_param) &&
+    question.discrimination_param >= discrimination.min &&
+    question.discrimination_param <= discrimination.max &&
+    isFiniteNumber(question.guessing_param) &&
+    Math.abs(question.guessing_param - FIXED_GUESSING_PARAM) <= Number.EPSILON
+  );
+}
 
 /**
  * Validation rules — mirror of the server-side rules so the bottom-right save
@@ -121,7 +141,33 @@ export function validate(
       return "เวลาเริ่มสอบต้องไม่ใช่เวลาในอดีต";
     }
   }
-  if (questions.length < 1) return "ต้องเลือกคำถามอย่างน้อย 1 ข้อ";
+  if (questions.length < MIN_ADAPTIVE_QUESTIONS) {
+    return `ต้องเลือกคำถามอย่างน้อย ${MIN_ADAPTIVE_QUESTIONS} ข้อสำหรับ adaptive IRT`;
+  }
+  const invalidIrtQuestionIndex = questions.findIndex(
+    (question) => !hasValidAdaptiveIrtParams(question),
+  );
+  if (invalidIrtQuestionIndex !== -1) {
+    return `คำถามข้อ ${invalidIrtQuestionIndex + 1} มีค่า IRT ไม่ครบหรือไม่ตรงสูตร`;
+  }
+  const untaggedQuestionIndex = questions.findIndex(
+    (question) => (question.knowledge_categories ?? []).length < 1,
+  );
+  if (untaggedQuestionIndex !== -1) {
+    return `คำถามข้อ ${untaggedQuestionIndex + 1} ต้องมีหมวดหมู่ความรู้`;
+  }
+  const invalidChoicesQuestionIndex = questions.findIndex((question) => {
+    const choices = question.choices ?? [];
+    const correctCount = choices.filter((choice) => choice.is_correct).length;
+    const correctEnough =
+      question.question_type === "MCQ_MULTI"
+        ? correctCount >= 1
+        : correctCount === 1;
+    return choices.length < 2 || !correctEnough;
+  });
+  if (invalidChoicesQuestionIndex !== -1) {
+    return `คำถามข้อ ${invalidChoicesQuestionIndex + 1} ต้องมีตัวเลือกอย่างน้อย 2 ข้อและคำตอบถูกตามชนิดคำถาม`;
+  }
   return null;
 }
 
@@ -597,7 +643,6 @@ export default function ExamEditor({
             </div>
           )}
         </section>
-
       </main>
 
       {pickerOpen && (
@@ -638,9 +683,9 @@ function getQuestionDifficultyFilter(
   if (typeof difficulty !== "number" || !Number.isFinite(difficulty)) {
     return null;
   }
-  if (difficulty < 0) return "easy";
-  if (difficulty === 0) return "medium";
-  return "hard";
+  if (difficulty <= -0.5) return "easy";
+  if (difficulty >= 0.5) return "hard";
+  return "medium";
 }
 
 function buildExamStats(questions: Question[]): ExamStats {
@@ -670,10 +715,7 @@ function buildExamStats(questions: Question[]): ExamStats {
     }
 
     const discrimination = question.discrimination_param;
-    if (
-      typeof discrimination === "number" &&
-      Number.isFinite(discrimination)
-    ) {
+    if (typeof discrimination === "number" && Number.isFinite(discrimination)) {
       discriminationSum += discrimination;
       discriminationCount += 1;
     }
@@ -826,12 +868,16 @@ function QuestionPreviewCard({
                     className="inline-flex max-w-full items-center rounded-xl bg-white px-3 py-1.5 text-sm font-semibold leading-relaxed text-[#514667] ring-1 ring-[#E7DDF8]"
                     title={t.name}
                   >
-                    <span className="whitespace-normal break-words">{t.name}</span>
+                    <span className="whitespace-normal break-words">
+                      {t.name}
+                    </span>
                   </span>
                 ))}
               </div>
             ) : (
-              <p className="text-sm font-medium text-[#B7AFC6]">ไม่มีหมวดหมู่</p>
+              <p className="text-sm font-medium text-[#B7AFC6]">
+                ไม่มีหมวดหมู่
+              </p>
             )}
           </div>
         </aside>
@@ -1172,18 +1218,12 @@ function StatCard({
         onClick={onClick}
         aria-pressed={active}
         className={className}
-        title={
-          active
-            ? `ยกเลิกตัวกรองระดับ${label}`
-            : `กรองคำถามระดับ${label}`
-        }
+        title={active ? `ยกเลิกตัวกรองระดับ${label}` : `กรองคำถามระดับ${label}`}
       >
         {content}
       </button>
     );
   }
 
-  return (
-    <div className={className}>{content}</div>
-  );
+  return <div className={className}>{content}</div>;
 }

@@ -502,7 +502,7 @@ export default function ExamAttemptPage() {
                   <button
                     type="button"
                     onClick={() => setConfirmSubmitOpen(true)}
-                    disabled={submitting}
+                    disabled={submitting || !attempt.progress.can_submit}
                     className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#A48FD6] disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Send size={16} />

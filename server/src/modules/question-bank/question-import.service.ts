@@ -18,14 +18,15 @@ import {
 } from './dto/question-import.dto';
 import { FIELD_LENGTHS } from 'src/lib/field-lengths';
 import { AcademicSettingsService } from '../academic-settings/academic-settings.service';
+import { FIXED_GUESSING_PARAM } from 'src/lib/question-param-limits';
 
 const DIFFICULTY_DEFAULTS: Record<
   string,
   { discrimination: number; guessing: number }
 > = {
-  ง่าย: { discrimination: 0, guessing: 0.25 },
-  กลาง: { discrimination: 0, guessing: 0.25 },
-  ยาก: { discrimination: 0, guessing: 0.25 },
+  ง่าย: { discrimination: 1.1, guessing: FIXED_GUESSING_PARAM },
+  กลาง: { discrimination: 2.1, guessing: FIXED_GUESSING_PARAM },
+  ยาก: { discrimination: 1.8, guessing: FIXED_GUESSING_PARAM },
 };
 
 interface StaffActor {
@@ -595,8 +596,8 @@ export class QuestionImportService {
 
         const difficultyParam = mapDifficultyLabel(row.difficulty);
         const defaults = DIFFICULTY_DEFAULTS[row.difficulty] ?? {
-          discrimination: 0,
-          guessing: 0.25,
+          discrimination: 1,
+          guessing: FIXED_GUESSING_PARAM,
         };
 
         await this.prisma.question_bank.create({
