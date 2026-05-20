@@ -13,23 +13,27 @@ import {
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import AlertModal from "@/components/ui/AlertModal";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 import { FIELD_LIMITS } from "@/config/fieldLimits";
 import axios from "axios";
 
 const MAX_KNOWLEDGE_LENGTH = FIELD_LIMITS.knowledgeCategoryName;
 const MAX_CODE_LENGTH = FIELD_LIMITS.knowledgeCategoryCode;
 const KNOWLEDGE_SUFFIX_PATTERN = /^K\d{3,}$/;
+const DELETE_BLOCKED_TITLE = "ไม่สามารถลบหมวดหมู่ความรู้ได้";
 
 interface KnowledgeCategory {
   knowledge_category_id: string;
   name: string;
   code?: string;
+  questionCount?: number;
 }
 
 interface DraftKnowledgeCategory {
   knowledge_category_id?: string;
   name: string;
   code: string;
+  questionCount?: number;
 }
 
 interface KnowledgeCategoriesModalProps {
@@ -53,6 +57,10 @@ function codePrefix(courseCode: string) {
 
 function formatKnowledgeCode(courseCode: string, suffix: string) {
   return `${codePrefix(courseCode)}${normalizeCode(suffix)}`;
+}
+
+function getDeleteBlockedMessage() {
+  return "ไม่สามารถลบหมวดหมู่ความรู้นี้ได้ เนื่องจากยังมีข้อสอบในรายวิชานี้ใช้งานอยู่ กรุณาเปลี่ยนหมวดหมู่ของข้อสอบที่เกี่ยวข้องก่อน แล้วจึงลบอีกครั้ง";
 }
 
 function getKnowledgeSuffix(code: string, courseCode: string) {
@@ -113,6 +121,8 @@ export default function KnowledgeCategoriesModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [deleteCandidate, setDeleteCandidate] =
+    useState<DraftKnowledgeCategory | null>(null);
 
   const [alertState, setAlertState] = useState<{
     isOpen: boolean;
@@ -200,6 +210,7 @@ export default function KnowledgeCategoriesModal({
     return {
       code: normalizedCode,
       name: trimmedName,
+      questionCount: 0,
     };
   };
 
@@ -221,6 +232,7 @@ export default function KnowledgeCategoriesModal({
             course.course_code,
             defaultKnowledgeSuffix(index),
           ),
+          questionCount: category.questionCount ?? 0,
         }));
         setCategories(loaded);
         setCodeInput(generateNextCode(loaded, course.course_code));
@@ -239,6 +251,7 @@ export default function KnowledgeCategoriesModal({
     setSuggestions([]);
     setShowDropdown(false);
     setShowAddInput(false);
+    setDeleteCandidate(null);
     setLoadError(false);
   }, [isOpen, course.courses_id, course.course_code]);
 
@@ -254,10 +267,36 @@ export default function KnowledgeCategoriesModal({
     setCodeInput(generateNextCode(nextCategories, course.course_code));
   };
 
-  const removeCategory = (code: string) => {
-    const nextCategories = categories.filter((category) => category.code !== code);
+  const removeCategoryFromDraft = (code: string) => {
+    const nextCategories = categories.filter(
+      (category) => category.code !== code,
+    );
     setCategories(nextCategories);
     setCodeInput(generateNextCode(nextCategories, course.course_code));
+  };
+
+  const requestRemoveCategory = (code: string) => {
+    const category = categories.find((item) => item.code === code);
+    if (!category) return;
+
+    if ((category.questionCount ?? 0) > 0) {
+      setAlertState({
+        isOpen: true,
+        title: DELETE_BLOCKED_TITLE,
+        message: getDeleteBlockedMessage(),
+        variant: "warning",
+      });
+      return;
+    }
+
+    setDeleteCandidate(category);
+  };
+
+  const confirmRemoveCategory = () => {
+    if (!deleteCandidate) return;
+
+    removeCategoryFromDraft(deleteCandidate.code);
+    setDeleteCandidate(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -299,19 +338,23 @@ export default function KnowledgeCategoriesModal({
       onClose();
     } catch (err: unknown) {
       console.error(err);
+      const isDeleteBlocked =
+        axios.isAxiosError(err) && err.response?.status === 409;
       const serverMessage =
         axios.isAxiosError(err) && err.response?.data?.message
-          ? (Array.isArray(err.response.data.message)
-              ? err.response.data.message[0]
-              : err.response.data.message)
+          ? Array.isArray(err.response.data.message)
+            ? err.response.data.message[0]
+            : err.response.data.message
           : null;
       setAlertState({
         isOpen: true,
-        title: "เกิดข้อผิดพลาด",
+        title: isDeleteBlocked
+          ? DELETE_BLOCKED_TITLE
+          : "เกิดข้อผิดพลาด",
         message:
           (typeof serverMessage === "string" && serverMessage.trim()) ||
           "ไม่สามารถบันทึกหมวดหมู่ความรู้ได้ กรุณาลองใหม่อีกครั้ง",
-        variant: "error",
+        variant: isDeleteBlocked ? "warning" : "error",
       });
     } finally {
       setIsSubmitting(false);
@@ -471,10 +514,18 @@ export default function KnowledgeCategoriesModal({
                         </div>
                         <button
                           type="button"
-                          onClick={() => removeCategory(cat.code)}
-                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-[#A49AAD] transition-colors hover:bg-rose-50 hover:text-rose-500"
+                          onClick={() => requestRemoveCategory(cat.code)}
+                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                            (cat.questionCount ?? 0) > 0
+                              ? "text-amber-500 hover:bg-amber-50"
+                              : "text-[#A49AAD] hover:bg-rose-50 hover:text-rose-500"
+                          }`}
                           aria-label={`ลบ ${cat.name}`}
-                          title="ลบ"
+                          title={
+                            (cat.questionCount ?? 0) > 0
+                              ? DELETE_BLOCKED_TITLE
+                              : "ลบ"
+                          }
                         >
                           <Trash2 size={16} />
                         </button>
@@ -490,7 +541,9 @@ export default function KnowledgeCategoriesModal({
                   <button
                     type="button"
                     onClick={() => {
-                      setCodeInput(generateNextCode(categories, course.course_code));
+                      setCodeInput(
+                        generateNextCode(categories, course.course_code),
+                      );
                       setShowAddInput(true);
                       setTimeout(() => inputRef.current?.focus(), 0);
                     }}
@@ -517,10 +570,9 @@ export default function KnowledgeCategoriesModal({
                           <input
                             value={codeInput}
                             maxLength={MAX_CODE_LENGTH}
-                            onChange={(e) =>
-                              setCodeInput(e.target.value.toUpperCase())
-                            }
-                            className="h-11 w-full rounded-xl border border-[#D9CCF2] bg-[#FAF8FF] pl-9 pr-3 font-mono text-sm font-bold text-[#2F2A3A] shadow-sm transition focus:border-[#B7A3E3] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#E7DDF8]"
+                            readOnly
+                            aria-readonly="true"
+                            className="h-11 w-full cursor-not-allowed rounded-xl border border-[#D9CCF2] bg-[#F3F0F8] pl-9 pr-3 font-mono text-sm font-bold text-[#514667] shadow-sm outline-none"
                             placeholder={`เช่น ${formatKnowledgeCode(course.course_code, "K001")}`}
                           />
                         </div>
@@ -605,6 +657,17 @@ export default function KnowledgeCategoriesModal({
         title={alertState.title}
         message={alertState.message}
         variant={alertState.variant}
+      />
+
+      <ConfirmModal
+        isOpen={deleteCandidate !== null}
+        onClose={() => setDeleteCandidate(null)}
+        onConfirm={confirmRemoveCategory}
+        title="ยืนยันการลบหมวดหมู่ความรู้"
+        message={`ต้องการลบหมวดหมู่ความรู้ "${deleteCandidate?.name ?? ""}" ออกจากรายวิชานี้หรือไม่? การเปลี่ยนแปลงจะมีผลเมื่อกดบันทึก`}
+        confirmText="ลบหมวดหมู่"
+        cancelText="ยกเลิก"
+        variant="danger"
       />
     </div>
   );
