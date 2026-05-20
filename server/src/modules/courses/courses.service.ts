@@ -191,14 +191,14 @@ export class CoursesService {
       return code;
     };
 
+    let collisionCounter = links.length;
     for (const [index, link] of links.entries()) {
       let suffix = extractKnowledgeSuffix(link.code) ?? defaultKnowledgeSuffix(index);
       let nextCode = formatKnowledgeCode(courseCode, suffix);
-      let collisionIndex = 0;
 
       while (usedCodes.has(nextCode)) {
-        suffix = defaultKnowledgeSuffix(collisionIndex);
-        collisionIndex += 1;
+        suffix = defaultKnowledgeSuffix(collisionCounter);
+        collisionCounter += 1;
         nextCode = formatKnowledgeCode(courseCode, suffix);
       }
 
@@ -412,16 +412,21 @@ export class CoursesService {
 
       // 1. Update basic course info
       // For backward compatibility: course_name mirrors course_name_th
+      const nextCourseNameTh = dto.course_name_th?.trim() || dto.course_name?.trim();
+      const courseCodeChanged =
+        dto.course_code !== undefined &&
+        dto.course_code !== null &&
+        normalizeCourseCode(dto.course_code) !== existing?.course_code;
+
       await tx.courses.update({
         where: { courses_id: BigInt(id) },
         data: {
-          ...(dto.course_name && { course_name: dto.course_name }),
-          ...(dto.course_name_th && {
-            course_name: dto.course_name_th,
-            course_name_th: dto.course_name_th,
+          ...(nextCourseNameTh && {
+            course_name: nextCourseNameTh,
+            course_name_th: nextCourseNameTh,
           }),
-          ...(dto.course_name_en && { course_name_en: dto.course_name_en }),
-          ...(dto.course_code && { course_code: nextCourseCode }),
+          ...(dto.course_name_en?.trim() && { course_name_en: dto.course_name_en.trim() }),
+          ...(dto.course_code !== undefined && dto.course_code !== null && { course_code: nextCourseCode }),
         },
       });
 
@@ -434,11 +439,7 @@ export class CoursesService {
           dto.knowledge_categories,
           instructorId,
         );
-      } else if (
-        dto.course_code &&
-        existing?.course_code.trim().toUpperCase() !==
-          nextCourseCode
-      ) {
+      } else if (courseCodeChanged) {
         await this.rewriteKnowledgeCodePrefix(tx, BigInt(id), nextCourseCode);
       }
 

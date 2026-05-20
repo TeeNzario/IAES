@@ -83,12 +83,12 @@ function generateNextCode(
       normalizeKnowledgeCode(category.code, courseCode, "K001"),
     ),
   );
-  let index = categories.length + 1;
-  let code = formatKnowledgeCode(courseCode, defaultKnowledgeSuffix(index - 1));
+  let index = 0;
+  let code = formatKnowledgeCode(courseCode, defaultKnowledgeSuffix(index));
 
   while (used.has(code)) {
     index += 1;
-    code = formatKnowledgeCode(courseCode, defaultKnowledgeSuffix(index - 1));
+    code = formatKnowledgeCode(courseCode, defaultKnowledgeSuffix(index));
   }
 
   return code;

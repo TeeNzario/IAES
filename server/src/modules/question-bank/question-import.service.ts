@@ -100,9 +100,15 @@ export class QuestionImportService {
     for (const ref of refs) {
       const suffix = extractCategoryCodeSuffix(ref.code);
       if (suffix) {
-        lookup.set(categoryLookupKey(suffix), ref);
+        const suffixKey = categoryLookupKey(suffix);
+        if (!lookup.has(suffixKey)) {
+          lookup.set(suffixKey, ref);
+        }
       }
-      lookup.set(categoryLookupKey(ref.code), ref);
+      const codeKey = categoryLookupKey(ref.code);
+      if (!lookup.has(codeKey)) {
+        lookup.set(codeKey, ref);
+      }
     }
 
     return lookup;
