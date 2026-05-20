@@ -31,9 +31,11 @@ const DEFAULT_ITEMS_PER_PAGE = 25;
 interface KnowledgeCategory {
   knowledge_category_id: string;
   name: string;
+  code?: string;
 }
 
 interface CourseKnowledge {
+  code: string;
   knowledge_categories: KnowledgeCategory;
 }
 
@@ -96,6 +98,7 @@ export default function CourseManagement() {
   const [isKnowledgeModalOpen, setIsKnowledgeModalOpen] = useState(false);
   const [knowledgeCourse, setKnowledgeCourse] = useState<{
     courses_id: number;
+    course_code: string;
     name: string;
   } | null>(null);
 
@@ -235,7 +238,7 @@ export default function CourseManagement() {
                   จัดการรายวิชา
                 </h1>
                 <p className="mt-2 text-sm font-normal text-[#7A7287]">
-                  เพิ่ม แก้ไข จัดหมวดหมู่ความรู้ และเปิดสอบจากรายวิชาที่มีในระบบ
+                  เพิ่ม แก้ไข จัดหมวดหมู่ความรู้ และเปิดวิชาจากรายวิชาที่มีในระบบ
                 </p>
               </div>
 
@@ -391,9 +394,10 @@ export default function CourseManagement() {
                         <td className="px-5 py-4 text-center">
                           <KnowledgeCategoriesCell
                             categories={
-                              course.course_knowledge?.map(
-                                (ck) => ck.knowledge_categories,
-                              ) || []
+                              course.course_knowledge?.map((ck) => ({
+                                ...ck.knowledge_categories,
+                                code: ck.code,
+                              })) || []
                             }
                           />
                         </td>
@@ -437,7 +441,7 @@ export default function CourseManagement() {
                               }}
                               className="rounded-xl bg-[#F4EFFF] px-3 py-2 text-sm font-semibold text-[#7C5BD9] ring-1 ring-[#D9CCF2] transition-colors hover:bg-[#EDE3FF] cursor-pointer"
                             >
-                              เปิดสอบ
+                              เปิดวิชา
                             </button>
 
                             <div className="flex items-center rounded-xl border border-[#E7DDF8] bg-[#FAF8FF] p-1">
@@ -445,6 +449,7 @@ export default function CourseManagement() {
                                 onClick={() => {
                                   setKnowledgeCourse({
                                     courses_id: course.courses_id,
+                                    course_code: course.course_code,
                                     name: getThaiCourseName(course),
                                   });
                                   setIsKnowledgeModalOpen(true);

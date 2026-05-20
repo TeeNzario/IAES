@@ -1,7 +1,8 @@
 export const FIELD_LENGTHS = {
-  courseCode: 50,
-  courseName: 255,
+  courseCode: 15,
+  courseName: 150,
   knowledgeCategoryName: 255,
+  knowledgeCategoryCode: 30,
   examTitle: 255,
   examDescription: 5000,
   questionText: 5000,

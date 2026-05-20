@@ -153,6 +153,48 @@ export async function seedKnowledge(
 
   const courses = await prisma.courses.findMany();
   const courseByCode = new Map(courses.map((c) => [c.course_code, c]));
+  const courseById = new Map(courses.map((c) => [c.courses_id.toString(), c]));
+  const existingLinks = await prisma.course_knowledge.findMany({
+    select: {
+      courses_id: true,
+      code: true,
+    },
+  });
+  const usedCodesByCourse = new Map<string, Set<string>>();
+
+  for (const link of existingLinks) {
+    const courseId = link.courses_id.toString();
+    const course = courseById.get(courseId);
+    if (!course) continue;
+    const used = usedCodesByCourse.get(courseId) ?? new Set<string>();
+    const suffix = link.code.toUpperCase().match(/K\d+$/)?.[0] ?? link.code;
+    used.add(`${course.course_code.toUpperCase()}-${suffix}`);
+    usedCodesByCourse.set(courseId, used);
+  }
+
+  const normalizeKnowledgeCode = (course: (typeof courses)[number], code: string) => {
+    const prefix = `${course.course_code.toUpperCase()}-`;
+    const normalized = code.trim().toUpperCase();
+    return normalized.startsWith(prefix)
+      ? normalized
+      : `${prefix}${normalized.match(/K\d+$/)?.[0] ?? normalized}`;
+  };
+
+  const nextCodeForCourse = (course: (typeof courses)[number]) => {
+    const key = course.courses_id.toString();
+    const used = usedCodesByCourse.get(key) ?? new Set<string>();
+    let index = used.size + 1;
+    let code = `${course.course_code.toUpperCase()}-K${String(index).padStart(3, '0')}`;
+
+    while (used.has(code)) {
+      index += 1;
+      code = `${course.course_code.toUpperCase()}-K${String(index).padStart(3, '0')}`;
+    }
+
+    used.add(code);
+    usedCodesByCourse.set(key, used);
+    return code;
+  };
 
   const byCourseCode = new Map<string, knowledge_categories[]>();
   const all: knowledge_categories[] = [];
@@ -177,6 +219,19 @@ export async function seedKnowledge(
       const course = courseByCode.get(code);
       if (!course) continue;
 
+      const existingLink = await prisma.course_knowledge.findUnique({
+        where: {
+          courses_id_knowledge_category_id: {
+            courses_id: course.courses_id,
+            knowledge_category_id: category.knowledge_category_id,
+          },
+        },
+        select: { code: true },
+      });
+      const knowledgeCode = existingLink
+        ? normalizeKnowledgeCode(course, existingLink.code)
+        : nextCodeForCourse(course);
+
       await prisma.course_knowledge.upsert({
         where: {
           courses_id_knowledge_category_id: {
@@ -187,8 +242,9 @@ export async function seedKnowledge(
         create: {
           courses_id: course.courses_id,
           knowledge_category_id: category.knowledge_category_id,
+          code: knowledgeCode,
         },
-        update: {},
+        update: { code: knowledgeCode },
       });
 
       const bucket = byCourseCode.get(code) ?? [];

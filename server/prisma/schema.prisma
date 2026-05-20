@@ -104,10 +104,10 @@ model course_offerings {
 
 model courses {
   courses_id                BigInt                @id @default(autoincrement())
-  course_code               String                @db.VarChar(50)
-  course_name               String                @db.VarChar(255)
-  course_name_th            String                @db.VarChar(255)
-  course_name_en            String                @db.VarChar(255)
+  course_code               String                @db.VarChar(15)
+  course_name               String                @db.VarChar(150)
+  course_name_th            String                @db.VarChar(150)
+  course_name_en            String                @db.VarChar(150)
   description               String?
   course_image              String?
   is_active                 Boolean               @default(true)
@@ -198,12 +198,14 @@ model knowledge_categories {
 model course_knowledge {
   courses_id            BigInt
   knowledge_category_id BigInt
+  code                  String @db.VarChar(30)
 
   courses courses @relation(fields: [courses_id], references: [courses_id], onDelete: Cascade)
 
   knowledge_categories knowledge_categories @relation(fields: [knowledge_category_id], references: [knowledge_category_id], onDelete: Cascade)
 
   @@id([courses_id, knowledge_category_id])
+  @@unique([courses_id, code])
 }
 
 model question_knowledge {

@@ -731,13 +731,20 @@ export class QuestionsService {
 
     const rows = await this.prisma.course_knowledge.findMany({
       where: { courses_id: coursesId },
+      orderBy: { code: 'asc' },
       select: {
+        code: true,
         knowledge_categories: {
           select: { knowledge_category_id: true, name: true },
         },
       },
     });
 
-    return serializeBigInt(rows.map((r) => r.knowledge_categories));
+    return serializeBigInt(
+      rows.map((r) => ({
+        ...r.knowledge_categories,
+        code: r.code,
+      })),
+    );
   }
 }

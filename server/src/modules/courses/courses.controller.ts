@@ -123,7 +123,7 @@ export class CoursesController {
   ) {
     return this.coursesService.updateKnowledgeCategories(
       +id,
-      dto.names,
+      dto.categories ?? dto.names ?? [],
       req.user.sub,
     );
   }

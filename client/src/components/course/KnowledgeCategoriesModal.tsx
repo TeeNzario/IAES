@@ -7,17 +7,83 @@ import AlertModal from "@/components/ui/AlertModal";
 import { FIELD_LIMITS } from "@/config/fieldLimits";
 
 const MAX_KNOWLEDGE_LENGTH = FIELD_LIMITS.knowledgeCategoryName;
+const MAX_CODE_LENGTH = FIELD_LIMITS.knowledgeCategoryCode;
+const KNOWLEDGE_SUFFIX_PATTERN = /^K\d{3,}$/;
 
 interface KnowledgeCategory {
   knowledge_category_id: string;
   name: string;
+  code?: string;
+}
+
+interface DraftKnowledgeCategory {
+  knowledge_category_id?: string;
+  name: string;
+  code: string;
 }
 
 interface KnowledgeCategoriesModalProps {
   isOpen: boolean;
   onClose: () => void;
-  course: { courses_id: number; name: string };
+  course: { courses_id: number; course_code: string; name: string };
   onSuccess?: () => void;
+}
+
+function normalizeCode(value: string) {
+  return value.trim().toUpperCase();
+}
+
+function defaultKnowledgeSuffix(index: number) {
+  return `K${String(index + 1).padStart(3, "0")}`;
+}
+
+function codePrefix(courseCode: string) {
+  return `${normalizeCode(courseCode)}-`;
+}
+
+function formatKnowledgeCode(courseCode: string, suffix: string) {
+  return `${codePrefix(courseCode)}${normalizeCode(suffix)}`;
+}
+
+function getKnowledgeSuffix(code: string, courseCode: string) {
+  const normalizedCode = normalizeCode(code);
+  const prefix = codePrefix(courseCode);
+  return normalizedCode.startsWith(prefix)
+    ? normalizedCode.slice(prefix.length)
+    : normalizedCode;
+}
+
+function normalizeKnowledgeCode(
+  code: string,
+  courseCode: string,
+  fallbackSuffix: string,
+) {
+  const normalizedCode = normalizeCode(code);
+  const suffix = normalizedCode
+    ? getKnowledgeSuffix(normalizedCode, courseCode)
+    : fallbackSuffix;
+
+  return formatKnowledgeCode(courseCode, suffix);
+}
+
+function generateNextCode(
+  categories: DraftKnowledgeCategory[],
+  courseCode: string,
+) {
+  const used = new Set(
+    categories.map((category) =>
+      normalizeKnowledgeCode(category.code, courseCode, "K001"),
+    ),
+  );
+  let index = categories.length + 1;
+  let code = formatKnowledgeCode(courseCode, defaultKnowledgeSuffix(index - 1));
+
+  while (used.has(code)) {
+    index += 1;
+    code = formatKnowledgeCode(courseCode, defaultKnowledgeSuffix(index - 1));
+  }
+
+  return code;
 }
 
 export default function KnowledgeCategoriesModal({
@@ -26,8 +92,11 @@ export default function KnowledgeCategoriesModal({
   course,
   onSuccess,
 }: KnowledgeCategoriesModalProps) {
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<DraftKnowledgeCategory[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [codeInput, setCodeInput] = useState(() =>
+    formatKnowledgeCode(course.course_code, "K001"),
+  );
   const [suggestions, setSuggestions] = useState<KnowledgeCategory[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showAddInput, setShowAddInput] = useState(false);
@@ -44,6 +113,85 @@ export default function KnowledgeCategoriesModal({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  const showValidationAlert = (message: string) => {
+    setAlertState({
+      isOpen: true,
+      title: "ตรวจสอบข้อมูล",
+      message,
+      variant: "warning",
+    });
+  };
+
+  const buildCategory = (
+    name: string,
+    code: string,
+    existingCategories = categories,
+  ): DraftKnowledgeCategory | null => {
+    const trimmedName = name.trim();
+    const normalizedCode = normalizeKnowledgeCode(
+      code,
+      course.course_code,
+      defaultKnowledgeSuffix(existingCategories.length),
+    );
+    const suffix = getKnowledgeSuffix(normalizedCode, course.course_code);
+
+    if (!trimmedName) {
+      showValidationAlert("กรุณากรอกชื่อหมวดหมู่ความรู้");
+      return null;
+    }
+
+    if (trimmedName.length > MAX_KNOWLEDGE_LENGTH) {
+      showValidationAlert(
+        `ชื่อหมวดหมู่ความรู้ไม่เกิน ${MAX_KNOWLEDGE_LENGTH} ตัวอักษร`,
+      );
+      return null;
+    }
+
+    if (!suffix) {
+      showValidationAlert("กรุณากรอกรหัสหมวดหมู่ความรู้");
+      return null;
+    }
+
+    if (normalizedCode.length > MAX_CODE_LENGTH) {
+      showValidationAlert(
+        `รหัสหมวดหมู่ความรู้ไม่เกิน ${MAX_CODE_LENGTH} ตัวอักษร`,
+      );
+      return null;
+    }
+
+    if (!KNOWLEDGE_SUFFIX_PATTERN.test(suffix)) {
+      showValidationAlert(
+        `รหัสหมวดหมู่ความรู้ต้องอยู่ในรูปแบบ ${formatKnowledgeCode(course.course_code, "K001")}`,
+      );
+      return null;
+    }
+
+    if (
+      existingCategories.some(
+        (category) => category.code.toUpperCase() === normalizedCode,
+      )
+    ) {
+      showValidationAlert(`รหัส ${normalizedCode} ซ้ำในรายวิชานี้`);
+      return null;
+    }
+
+    if (
+      existingCategories.some(
+        (category) =>
+          category.name.trim().toLocaleLowerCase("th-TH") ===
+          trimmedName.toLocaleLowerCase("th-TH"),
+      )
+    ) {
+      showValidationAlert(`ชื่อหมวดหมู่ "${trimmedName}" ซ้ำในรายวิชานี้`);
+      return null;
+    }
+
+    return {
+      code: normalizedCode,
+      name: trimmedName,
+    };
+  };
+
   // Load existing categories when modal opens
   useEffect(() => {
     if (!isOpen) return;
@@ -54,9 +202,20 @@ export default function KnowledgeCategoriesModal({
         const data = await apiFetch<KnowledgeCategory[]>(
           `/courses/${course.courses_id}/knowledge-categories`,
         );
-        setCategories(data.map((d) => d.name));
+        const loaded = data.map((category, index) => ({
+          knowledge_category_id: category.knowledge_category_id,
+          name: category.name,
+          code: normalizeKnowledgeCode(
+            category.code || defaultKnowledgeSuffix(index),
+            course.course_code,
+            defaultKnowledgeSuffix(index),
+          ),
+        }));
+        setCategories(loaded);
+        setCodeInput(generateNextCode(loaded, course.course_code));
       } catch {
         setCategories([]);
+        setCodeInput(formatKnowledgeCode(course.course_code, "K001"));
       } finally {
         setIsLoading(false);
       }
@@ -67,24 +226,24 @@ export default function KnowledgeCategoriesModal({
     setSuggestions([]);
     setShowDropdown(false);
     setShowAddInput(false);
-  }, [isOpen, course.courses_id]);
+  }, [isOpen, course.courses_id, course.course_code]);
 
   const addCategory = (name: string) => {
-    const trimmed = name.trim();
-    if (
-      trimmed.length > 0 &&
-      trimmed.length <= MAX_KNOWLEDGE_LENGTH &&
-      !categories.includes(trimmed)
-    ) {
-      setCategories((prev) => [...prev, trimmed]);
-      setSearchQuery("");
-      setSuggestions([]);
-      setShowDropdown(false);
-    }
+    const category = buildCategory(name, codeInput);
+    if (!category) return;
+
+    const nextCategories = [...categories, category];
+    setCategories(nextCategories);
+    setSearchQuery("");
+    setSuggestions([]);
+    setShowDropdown(false);
+    setCodeInput(generateNextCode(nextCategories, course.course_code));
   };
 
-  const removeCategory = (name: string) => {
-    setCategories((prev) => prev.filter((cat) => cat !== name));
+  const removeCategory = (code: string) => {
+    const nextCategories = categories.filter((category) => category.code !== code);
+    setCategories(nextCategories);
+    setCodeInput(generateNextCode(nextCategories, course.course_code));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -101,18 +260,26 @@ export default function KnowledgeCategoriesModal({
 
   const handleSave = async () => {
     const trimmed = searchQuery.trim();
-    const finalCategories =
-      trimmed.length > 0 &&
-      trimmed.length <= MAX_KNOWLEDGE_LENGTH &&
-      !categories.includes(trimmed)
-        ? [...categories, trimmed]
-        : categories;
+    const pendingCategory = trimmed
+      ? buildCategory(trimmed, codeInput, categories)
+      : null;
+
+    if (trimmed && !pendingCategory) return;
+
+    const finalCategories = pendingCategory
+      ? [...categories, pendingCategory]
+      : categories;
 
     setIsSubmitting(true);
     try {
       await apiFetch(`/courses/${course.courses_id}/knowledge-categories`, {
         method: "PUT",
-        data: { names: finalCategories },
+        data: {
+          categories: finalCategories.map((category) => ({
+            code: category.code,
+            name: category.name,
+          })),
+        },
       });
       onSuccess?.();
       onClose();
@@ -146,7 +313,12 @@ export default function KnowledgeCategoriesModal({
           `/knowledge-categories?search=${encodeURIComponent(searchQuery)}`,
         );
         const filtered = results.filter(
-          (cat) => !categories.includes(cat.name),
+          (cat) =>
+            !categories.some(
+              (category) =>
+                category.name.trim().toLocaleLowerCase("th-TH") ===
+                cat.name.trim().toLocaleLowerCase("th-TH"),
+            ),
         );
         setSuggestions(filtered);
         setShowDropdown(filtered.length > 0);
@@ -180,7 +352,7 @@ export default function KnowledgeCategoriesModal({
 
   return (
     <div className="fixed inset-0 bg-black/45 z-50 flex items-start justify-center overflow-y-auto p-4 py-6 sm:p-6">
-      <div className="relative w-full max-w-xl rounded-2xl bg-white p-5 shadow-2xl sm:p-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
+      <div className="relative w-full max-w-2xl rounded-2xl bg-white p-5 shadow-2xl sm:p-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
         {/* Header */}
         <div className="mb-5">
           <h2 className="text-xl font-bold text-gray-900">
@@ -207,20 +379,23 @@ export default function KnowledgeCategoriesModal({
                 <ul className="space-y-2 mb-4">
                   {categories.map((cat, index) => (
                     <li
-                      key={cat}
-                      className="flex items-center gap-3 rounded-xl bg-[#F4EFFF] px-4 py-3"
+                      key={cat.code}
+                      className="flex items-start gap-3 rounded-xl bg-[#F4EFFF] px-4 py-3"
                     >
                       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#B7A3E3] text-xs font-semibold text-white">
                         {index + 1}
                       </span>
-                      <span className="flex-1 text-sm text-[#2F2A3A] font-medium break-all">
-                        {cat}
+                      <span className="mt-0.5 shrink-0 rounded-lg bg-white px-2 py-1 text-xs font-semibold text-[#7C5BD9] ring-1 ring-[#D9CCF2]">
+                        {cat.code}
+                      </span>
+                      <span className="flex-1 text-sm text-[#2F2A3A] font-medium break-words">
+                        {cat.name}
                       </span>
                       <button
                         type="button"
-                        onClick={() => removeCategory(cat)}
+                        onClick={() => removeCategory(cat.code)}
                         className="shrink-0 flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer"
-                        aria-label={`ลบ ${cat}`}
+                        aria-label={`ลบ ${cat.name}`}
                       >
                         <X size={14} />
                       </button>
@@ -235,6 +410,7 @@ export default function KnowledgeCategoriesModal({
                   <button
                     type="button"
                     onClick={() => {
+                      setCodeInput(generateNextCode(categories, course.course_code));
                       setShowAddInput(true);
                       setTimeout(() => inputRef.current?.focus(), 0);
                     }}
@@ -244,27 +420,46 @@ export default function KnowledgeCategoriesModal({
                     เพิ่มหมวดหมู่ความรู้
                   </button>
                 ) : (
-                  <div className="relative">
-                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-                      ชื่อหมวดหมู่{" "}
-                      <span className="text-xs font-normal text-gray-500">
-                        ({searchQuery.length}/{MAX_KNOWLEDGE_LENGTH})
-                      </span>
-                    </label>
-                    <textarea
-                      ref={inputRef}
-                      value={searchQuery}
-                      maxLength={MAX_KNOWLEDGE_LENGTH}
-                      onChange={(e) => {
-                        if (e.target.value.length <= MAX_KNOWLEDGE_LENGTH) {
-                          setSearchQuery(e.target.value);
-                        }
-                      }}
-                      onKeyDown={handleKeyDown}
-                      rows={2}
-                      className="w-full rounded-xl border-2 border-[#9264F5] px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none focus:border-[#B7A3E3] resize-none"
-                      placeholder="พิมพ์ชื่อหมวดหมู่ความรู้ แล้วกด Enter เพื่อเพิ่ม"
-                    />
+                  <div className="relative space-y-3">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                        รหัสหมวดหมู่ความรู้{" "}
+                        <span className="text-xs font-normal text-gray-500">
+                          ({codeInput.length}/{MAX_CODE_LENGTH})
+                        </span>
+                      </label>
+                      <input
+                        value={codeInput}
+                        maxLength={MAX_CODE_LENGTH}
+                        onChange={(e) => setCodeInput(e.target.value.toUpperCase())}
+                        className="h-11 w-full rounded-xl border-2 border-[#9264F5] px-4 text-[15px] font-semibold text-gray-900 shadow-sm transition-colors focus:outline-none focus:border-[#B7A3E3]"
+                        placeholder={`เช่น ${formatKnowledgeCode(course.course_code, "K001")}`}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                        ชื่อหมวดหมู่{" "}
+                        <span className="text-xs font-normal text-gray-500">
+                          ({searchQuery.length}/{MAX_KNOWLEDGE_LENGTH})
+                        </span>
+                      </label>
+                      <textarea
+                        ref={inputRef}
+                        value={searchQuery}
+                        maxLength={MAX_KNOWLEDGE_LENGTH}
+                        onChange={(e) => {
+                          if (e.target.value.length <= MAX_KNOWLEDGE_LENGTH) {
+                            setSearchQuery(e.target.value);
+                          }
+                        }}
+                        onKeyDown={handleKeyDown}
+                        rows={2}
+                        className="w-full rounded-xl border-2 border-[#9264F5] px-4 py-2.5 text-[15px] text-gray-900 shadow-sm transition-colors focus:outline-none focus:border-[#B7A3E3] resize-none"
+                        placeholder="พิมพ์ชื่อหมวดหมู่ความรู้ แล้วกด Enter เพื่อเพิ่ม"
+                      />
+                    </div>
+
                     {showDropdown && suggestions.length > 0 && (
                       <div
                         ref={dropdownRef}
@@ -283,7 +478,7 @@ export default function KnowledgeCategoriesModal({
                       </div>
                     )}
                     <p className="text-xs text-gray-400 mt-1.5">
-                      กด Enter เพื่อเพิ่มหมวดหมู่
+                      กด Enter เพื่อเพิ่มหมวดหมู่ รหัสจะใช้ในไฟล์ CSV นำเข้าข้อสอบ
                     </p>
                   </div>
                 )}

@@ -5,6 +5,7 @@ import React from "react";
 interface KnowledgeCategory {
   knowledge_category_id: string;
   name: string;
+  code?: string;
 }
 
 interface KnowledgeCategoriesCellProps {
@@ -24,8 +25,15 @@ export default function KnowledgeCategoriesCell({
     );
   }
 
+  const title = categories
+    .map((category) => category.name)
+    .join("\n");
+
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
+    <span
+      className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700"
+      title={title}
+    >
       มี {count} หมวดหมู่
     </span>
   );
