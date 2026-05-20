@@ -10,6 +10,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { FIELD_LENGTHS, maxLengthMessage } from 'src/lib/field-lengths';
+import { MIN_ADAPTIVE_ITEM_BANK_SIZE } from 'src/modules/exam-attempts/adaptive/adaptive-selector';
 
 export class CreateExamDto {
   @IsString()
@@ -22,7 +23,10 @@ export class CreateExamDto {
   @IsOptional()
   @IsString()
   @MaxLength(FIELD_LENGTHS.examDescription, {
-    message: maxLengthMessage('คำอธิบายชุดข้อสอบ', FIELD_LENGTHS.examDescription),
+    message: maxLengthMessage(
+      'คำอธิบายชุดข้อสอบ',
+      FIELD_LENGTHS.examDescription,
+    ),
   })
   description?: string;
 
@@ -40,7 +44,7 @@ export class CreateExamDto {
   /** question_bank.question_id values. All must belong to this course. */
   @IsArray()
   @ArrayNotEmpty()
-  @ArrayMinSize(1)
+  @ArrayMinSize(MIN_ADAPTIVE_ITEM_BANK_SIZE)
   @IsString({ each: true })
   question_ids!: string[];
 }

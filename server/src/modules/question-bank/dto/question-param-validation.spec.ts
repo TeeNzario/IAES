@@ -43,8 +43,7 @@ describe('question parameter validation', () => {
     ['difficulty_param', { difficulty_param: 3 }],
     ['discrimination_param', { discrimination_param: 0.5 }],
     ['discrimination_param', { discrimination_param: 2.5 }],
-    ['guessing_param', { guessing_param: 0 }],
-    ['guessing_param', { guessing_param: 0.35 }],
+    ['guessing_param', { guessing_param: 0.25 }],
   ] as const)('accepts %s at allowed range boundary', async (_name, params) => {
     await expect(validate(makeBulkQuestion(params))).resolves.toHaveLength(0);
   });
@@ -54,8 +53,8 @@ describe('question parameter validation', () => {
     ['difficulty_param', { difficulty_param: 3.01 }, 'difficulty'],
     ['discrimination_param', { discrimination_param: 0.49 }, 'discrimination'],
     ['discrimination_param', { discrimination_param: 2.51 }, 'discrimination'],
-    ['guessing_param', { guessing_param: -0.01 }, 'guessing'],
-    ['guessing_param', { guessing_param: 0.36 }, 'guessing'],
+    ['guessing_param', { guessing_param: 0.24 }, 'guessing'],
+    ['guessing_param', { guessing_param: 0.26 }, 'guessing'],
   ] as const)(
     'rejects %s outside the allowed range',
     async (_name, params, messageKey) => {

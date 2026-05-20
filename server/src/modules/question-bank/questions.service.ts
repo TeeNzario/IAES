@@ -9,6 +9,7 @@ import { BulkCreateQuestionsDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
 import type { StaffRole } from 'src/auth/types/jwt-payload.type';
 import {
+  FIXED_GUESSING_PARAM,
   QuestionParamKey,
   QUESTION_PARAM_LIMITS,
   questionParamRangeMessage,
@@ -241,12 +242,10 @@ export class QuestionsService {
 
     const data = items.map((q) => ({
       ...q,
-      knowledge_categories: q.question_knowledge.map(
-        (k) => ({
-          ...k.knowledge_categories,
-          code: k.knowledge_categories.course_knowledge[0]?.code,
-        }),
-      ),
+      knowledge_categories: q.question_knowledge.map((k) => ({
+        ...k.knowledge_categories,
+        code: k.knowledge_categories.course_knowledge[0]?.code,
+      })),
       question_knowledge: undefined,
     }));
 
@@ -398,12 +397,10 @@ export class QuestionsService {
           }
         : null,
       choices: q.choices,
-      knowledge_categories: q.question_knowledge.map(
-        (k) => ({
-          ...k.knowledge_categories,
-          code: k.knowledge_categories.course_knowledge[0]?.code,
-        }),
-      ),
+      knowledge_categories: q.question_knowledge.map((k) => ({
+        ...k.knowledge_categories,
+        code: k.knowledge_categories.course_knowledge[0]?.code,
+      })),
     }));
 
     return serializeBigInt({
@@ -471,7 +468,7 @@ export class QuestionsService {
             question_type: 'MCQ_SINGLE',
             difficulty_param: q.difficulty_param,
             discrimination_param: q.discrimination_param,
-            guessing_param: q.guessing_param,
+            guessing_param: FIXED_GUESSING_PARAM,
             question_collection_id: BigInt(collectionId),
             created_by_staff_id: BigInt(actor.staffUserId),
             choices: {
@@ -599,7 +596,7 @@ export class QuestionsService {
     const mergedGuessing =
       dto.guessing_param !== undefined
         ? dto.guessing_param
-        : existing.guessing_param;
+        : FIXED_GUESSING_PARAM;
     const mergedTagIds =
       dto.knowledge_category_ids ??
       existing.question_knowledge.map((k) =>
@@ -664,9 +661,7 @@ export class QuestionsService {
           ...(dto.discrimination_param !== undefined
             ? { discrimination_param: dto.discrimination_param }
             : {}),
-          ...(dto.guessing_param !== undefined
-            ? { guessing_param: dto.guessing_param }
-            : {}),
+          guessing_param: FIXED_GUESSING_PARAM,
           updated_at: new Date(),
         },
       });

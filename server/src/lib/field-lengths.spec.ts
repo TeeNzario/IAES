@@ -2,7 +2,10 @@ import 'reflect-metadata';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { CreateCourseDto } from '../modules/courses/dto/create-course.dto';
-import { CreateStaffDto, StaffRole } from '../modules/staff/dto/create-staff.dto';
+import {
+  CreateStaffDto,
+  StaffRole,
+} from '../modules/staff/dto/create-staff.dto';
 import { CreateStudentDto } from '../modules/students/dto/create-student.dto';
 import { CreateExamDto } from '../modules/course-exams/dto/create-exam.dto';
 import {
@@ -54,7 +57,7 @@ describe('field length validation', () => {
       description: repeat(FIELD_LENGTHS.examDescription),
       start_time: '2026-05-12T09:00:00.000Z',
       end_time: '2026-05-12T11:00:00.000Z',
-      question_ids: ['1'],
+      question_ids: ['1', '2', '3', '4', '5', '6', '7', '8'],
     });
 
     const questions = plainToInstance(BulkCreateQuestionsDto, {

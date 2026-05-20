@@ -13,6 +13,7 @@ import {
   DIFFICULTY_LEVEL_CONFIG,
   FIXED_CHOICE_COUNT,
 } from "@/components/questionBank/questionEditorConfig";
+import { FIXED_GUESSING_PARAM } from "@/config/questionParamLimits";
 import type { KnowledgeTag } from "@/components/questionBank/TagSelect";
 import { getCurrentAcademicSettings } from "@/features/academicSettings/academicSettings.api";
 
@@ -33,9 +34,7 @@ const DEFAULT_COLLECTION_TITLE = "คำถามทั่วไป";
  * course-offering so the flat "create question" flow doesn't expose the
  * year / collection concept to the user.
  */
-async function resolveDefaultCollectionId(
-  offeringId: string,
-): Promise<string> {
+async function resolveDefaultCollectionId(offeringId: string): Promise<string> {
   const years = await apiFetch<Year[]>(
     `/course-offerings/${offeringId}/question-bank/years`,
   );
@@ -51,7 +50,9 @@ async function resolveDefaultCollectionId(
   const collections = await apiFetch<Collection[]>(
     `/course-offerings/${offeringId}/question-bank/years/${yearRow.academic_year}/collections`,
   );
-  const existing = collections.find((c) => c.title === DEFAULT_COLLECTION_TITLE);
+  const existing = collections.find(
+    (c) => c.title === DEFAULT_COLLECTION_TITLE,
+  );
   if (existing) return existing.question_collection_id;
   if (collections.length > 0) return collections[0].question_collection_id;
   const created = await apiFetch<Collection>(
@@ -113,7 +114,7 @@ export default function CreateFlatQuestionsPage() {
                 discrimination_param: Number(
                   confirmedDraft.discrimination_param,
                 ),
-                guessing_param: Number(confirmedDraft.guessing_param),
+                guessing_param: FIXED_GUESSING_PARAM,
                 knowledge_category_ids: confirmedDraft.knowledge_category_ids,
               },
             ],
@@ -158,12 +159,18 @@ export default function CreateFlatQuestionsPage() {
           </div>
 
           {error && (
-            <p role="alert" className="mb-4 rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 ring-1 ring-rose-200">
+            <p
+              role="alert"
+              className="mb-4 rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 ring-1 ring-rose-200"
+            >
               {error}
             </p>
           )}
           {saved && (
-            <p role="status" className="mb-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 ring-1 ring-emerald-200">
+            <p
+              role="status"
+              className="mb-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 ring-1 ring-emerald-200"
+            >
               บันทึกสำเร็จ
             </p>
           )}

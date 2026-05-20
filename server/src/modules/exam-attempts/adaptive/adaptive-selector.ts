@@ -1,8 +1,11 @@
+import { FIXED_GUESSING_PARAM } from 'src/lib/question-param-limits';
+
 export const THETA_MIN = -4;
 export const THETA_MAX = 4;
 export const TARGET_STANDARD_ERROR = 0.35;
 export const THETA_PLATEAU_THRESHOLD = 0.2;
 export const STANDARD_ERROR_WORSENING_LIMIT = 2;
+export const MIN_ADAPTIVE_ITEM_BANK_SIZE = 8;
 
 const EXPONENT_MIN = -50;
 const EXPONENT_MAX = 50;
@@ -67,7 +70,9 @@ function params(item: ExamQuestionCandidate) {
       ? item.discrimination_param
       : 0,
     b: isFiniteNumber(item.difficulty_param) ? item.difficulty_param : 0,
-    c: isFiniteNumber(item.guessing_param) ? item.guessing_param : 0,
+    c: isFiniteNumber(item.guessing_param)
+      ? item.guessing_param
+      : FIXED_GUESSING_PARAM,
   };
 }
 
@@ -183,7 +188,10 @@ export function adaptiveRules(totalItems: number): AdaptiveRules {
   let minItems: number;
 
   if (totalItems <= 30) {
-    minItems = Math.max(8, Math.floor(totalItems * 0.3));
+    minItems = Math.max(
+      MIN_ADAPTIVE_ITEM_BANK_SIZE,
+      Math.floor(totalItems * 0.3),
+    );
   } else if (totalItems <= 60) {
     minItems = Math.max(12, Math.floor(totalItems * 0.25));
   } else {
@@ -191,7 +199,7 @@ export function adaptiveRules(totalItems: number): AdaptiveRules {
   }
 
   return {
-    minItems: Math.min(totalItems, minItems),
+    minItems,
     maxItems: totalItems,
     targetStandardError: TARGET_STANDARD_ERROR,
     thetaMin: THETA_MIN,

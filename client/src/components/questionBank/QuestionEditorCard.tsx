@@ -6,6 +6,7 @@ import TagSelect, { KnowledgeTag } from "./TagSelect";
 import type { Choice, Question, QuestionType } from "./types";
 import { FIELD_LIMITS, maxLengthMessage } from "@/config/fieldLimits";
 import {
+  FIXED_GUESSING_PARAM,
   QUESTION_PARAM_LIMITS,
   QuestionParamKey,
   questionParamRangeMessage,
@@ -17,8 +18,6 @@ const DIFFICULTY_PARAM_MIN = QUESTION_PARAM_LIMITS.difficulty.min;
 const DIFFICULTY_PARAM_MAX = QUESTION_PARAM_LIMITS.difficulty.max;
 const DISCRIMINATION_PARAM_MIN = QUESTION_PARAM_LIMITS.discrimination.min;
 const DISCRIMINATION_PARAM_MAX = QUESTION_PARAM_LIMITS.discrimination.max;
-const GUESSING_PARAM_MIN = QUESTION_PARAM_LIMITS.guessing.min;
-const GUESSING_PARAM_MAX = QUESTION_PARAM_LIMITS.guessing.max;
 
 export interface DraftQuestion {
   /** Local-only id; not sent to the backend. */
@@ -50,7 +49,7 @@ export function makeEmptyDraft(): DraftQuestion {
     ],
     difficulty_param: "",
     discrimination_param: "",
-    guessing_param: 0.25,
+    guessing_param: FIXED_GUESSING_PARAM,
     knowledge_category_ids: [],
   };
 }
@@ -98,11 +97,8 @@ export function draftFromQuestion(q: Question): DraftQuestion {
     difficulty_param:
       typeof q.difficulty_param === "number" ? q.difficulty_param : "",
     discrimination_param:
-      typeof q.discrimination_param === "number"
-        ? q.discrimination_param
-        : "",
-    guessing_param:
-      typeof q.guessing_param === "number" ? q.guessing_param : "",
+      typeof q.discrimination_param === "number" ? q.discrimination_param : "",
+    guessing_param: FIXED_GUESSING_PARAM,
     knowledge_category_ids: q.knowledge_categories.map(
       (t) => t.knowledge_category_id,
     ),
@@ -236,7 +232,7 @@ export default function QuestionEditorCard({
 
   const update = (patch: Partial<DraftQuestion>) => {
     setDirty(true);
-    onChange({ ...draft, ...patch });
+    onChange({ ...draft, ...patch, guessing_param: FIXED_GUESSING_PARAM });
   };
 
   const setChoice = (i: number, patch: Partial<Choice>) => {
@@ -294,12 +290,17 @@ export default function QuestionEditorCard({
   };
 
   const confirmEdit = async () => {
+    const normalizedDraft = {
+      ...draft,
+      guessing_param: FIXED_GUESSING_PARAM,
+    };
     if (onConfirm) {
       // Caller is responsible for closing/refreshing on success.
-      await onConfirm(draft);
+      await onConfirm(normalizedDraft);
       return;
     }
-    setSnapshot(draft);
+    onChange(normalizedDraft);
+    setSnapshot(normalizedDraft);
     setEditing(false);
   };
 
@@ -380,16 +381,18 @@ export default function QuestionEditorCard({
                 {c.choice_text || `ตัวเลือก ${i + 1}`}
               </span>
             )}
-            {editing && fixedChoiceCount == null && draft.choices.length > 2 && (
-              <button
-                type="button"
-                onClick={() => removeChoice(i)}
-                className="text-[#B7AFC6] transition-colors hover:text-rose-500 cursor-pointer"
-                aria-label="ลบตัวเลือก"
-              >
-                <Trash2 size={18} />
-              </button>
-            )}
+            {editing &&
+              fixedChoiceCount == null &&
+              draft.choices.length > 2 && (
+                <button
+                  type="button"
+                  onClick={() => removeChoice(i)}
+                  className="text-[#B7AFC6] transition-colors hover:text-rose-500 cursor-pointer"
+                  aria-label="ลบตัวเลือก"
+                >
+                  <Trash2 size={18} />
+                </button>
+              )}
           </div>
         ))}
       </div>
@@ -438,16 +441,11 @@ export default function QuestionEditorCard({
           error={currentDiscriminationParamError}
           onChange={(v) => update({ discrimination_param: v })}
         />
-        <NumberField
+        <FixedNumberField
           label="โอกาสการเดา"
-          value={draft.guessing_param}
-          editing={editing}
-          min={GUESSING_PARAM_MIN}
-          max={GUESSING_PARAM_MAX}
-          step={0.01}
-          helpText={`กรอกได้ตั้งแต่ ${GUESSING_PARAM_MIN} ถึง ${GUESSING_PARAM_MAX}`}
+          value={FIXED_GUESSING_PARAM}
+          helpText={`ค่าคงที่ตามสูตร IRT = ${FIXED_GUESSING_PARAM}`}
           error={currentGuessingParamError}
-          onChange={(v) => update({ guessing_param: v })}
         />
       </div>
 
@@ -585,6 +583,47 @@ function DifficultySelectField({
         <div className="w-full rounded-xl bg-[#FAF8FF] px-4 py-3 text-sm font-medium text-[#514667] ring-1 ring-[#EFE8FB]">
           {selected?.label ?? "-"}
         </div>
+      )}
+    </div>
+  );
+}
+
+function FixedNumberField({
+  label,
+  value,
+  helpText,
+  error,
+}: {
+  label: string;
+  value: number;
+  helpText?: string;
+  error?: string | null;
+}) {
+  const hintId = `${label.replace(/\s+/g, "-")}-hint`;
+
+  return (
+    <div>
+      <label className="mb-2 block text-sm font-medium text-[#514667]">
+        {label}
+      </label>
+      <div
+        aria-invalid={Boolean(error)}
+        aria-describedby={error || helpText ? hintId : undefined}
+        className={`w-full rounded-xl bg-[#FAF8FF] px-4 py-3 text-sm font-medium text-[#514667] ring-1 ${
+          error ? "ring-rose-300" : "ring-[#EFE8FB]"
+        }`}
+      >
+        {value}
+      </div>
+      {(error || helpText) && (
+        <p
+          id={hintId}
+          className={`mt-1.5 text-xs font-medium ${
+            error ? "text-rose-500" : "text-[#7A7287]"
+          }`}
+        >
+          {error ?? helpText}
+        </p>
       )}
     </div>
   );

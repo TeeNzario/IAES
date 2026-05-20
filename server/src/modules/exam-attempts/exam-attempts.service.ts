@@ -18,6 +18,7 @@ import {
   evaluateStopRule,
   ExamQuestionCandidate,
   itemInformation,
+  MIN_ADAPTIVE_ITEM_BANK_SIZE,
   pickNextQuestion,
   updateTheta,
 } from './adaptive/adaptive-selector';
@@ -26,6 +27,10 @@ import {
   didPass,
   isExactChoiceSelectionCorrect,
 } from './scoring/scoring-engine';
+import {
+  FIXED_GUESSING_PARAM,
+  QUESTION_PARAM_LIMITS,
+} from 'src/lib/question-param-limits';
 
 type DbClient = PrismaService | Prisma.TransactionClient;
 
@@ -44,6 +49,13 @@ function serializeBigInt<T>(data: T): T {
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
+}
+
+function isFixedGuessingParam(value: number | null) {
+  return (
+    isFiniteNumber(value) &&
+    Math.abs(value - FIXED_GUESSING_PARAM) <= Number.EPSILON
+  );
 }
 
 function parseBigIntId(value: string, label: string) {
@@ -185,8 +197,10 @@ export class ExamAttemptsService {
   private validateExamReadiness(
     exam: Awaited<ReturnType<ExamAttemptsService['loadExam']>>,
   ) {
-    if (exam.exam_questions.length === 0) {
-      throw new BadRequestException('Exam has no questions');
+    if (exam.exam_questions.length < MIN_ADAPTIVE_ITEM_BANK_SIZE) {
+      throw new BadRequestException(
+        `Adaptive IRT exams require at least ${MIN_ADAPTIVE_ITEM_BANK_SIZE} questions`,
+      );
     }
 
     const inactive = exam.exam_questions.find(
@@ -198,13 +212,18 @@ export class ExamAttemptsService {
 
     for (const item of exam.exam_questions) {
       const question = item.question_bank;
+      const { difficulty, discrimination } = QUESTION_PARAM_LIMITS;
       if (
         !isFiniteNumber(question.difficulty_param) ||
+        question.difficulty_param < difficulty.min ||
+        question.difficulty_param > difficulty.max ||
         !isFiniteNumber(question.discrimination_param) ||
-        !isFiniteNumber(question.guessing_param)
+        question.discrimination_param < discrimination.min ||
+        question.discrimination_param > discrimination.max ||
+        !isFixedGuessingParam(question.guessing_param)
       ) {
         throw new BadRequestException(
-          'Every exam question must have difficulty, discrimination, and guessing parameters',
+          'Every exam question must have valid IRT parameters',
         );
       }
 

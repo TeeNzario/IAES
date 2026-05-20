@@ -1,6 +1,8 @@
 import { exam_attempt_status } from '../../src/generated/prisma/client';
 import {
   AnsweredQuestionCandidate,
+  ExamQuestionCandidate,
+  pickNextQuestion,
   updateTheta,
 } from '../../src/modules/exam-attempts/adaptive/adaptive-selector';
 import { prisma } from '../../src/lib/prisma';
@@ -480,13 +482,23 @@ export async function seedAttempts(exams: SeededExam[]): Promise<void> {
         ? 600 + Math.floor(rand() * 900)
         : null;
 
-    const answeredCount = isSubmitted
+    const plannedItemCount = isSubmitted
       ? totalQuestions
       : isInProgress
         ? Math.max(1, Math.floor(totalQuestions * (0.3 + rand() * 0.4)))
         : Math.max(1, Math.floor(totalQuestions * 0.2));
 
-    const items = exam.questions.slice(0, answeredCount);
+    const questionCandidates: ExamQuestionCandidate[] = exam.questions.map(
+      (question, index) => ({
+        question_id: question.question_id,
+        sequence_index: index,
+        difficulty_param: question.difficulty_param,
+        discrimination_param: question.discrimination_param,
+        guessing_param: question.guessing_param,
+      }),
+    );
+    const shownQuestionIds = new Set<string>();
+    let administeredCount = 0;
     let correctCount = 0;
     const answeredIrtItems: AnsweredQuestionCandidate[] = [];
     let thetaEstimate = 0;
@@ -506,8 +518,20 @@ export async function seedAttempts(exams: SeededExam[]): Promise<void> {
       },
     });
 
-    for (let i = 0; i < items.length; i++) {
-      const question = items[i];
+    for (let i = 0; i < plannedItemCount; i++) {
+      const nextQuestion = pickNextQuestion(
+        questionCandidates,
+        shownQuestionIds,
+        thetaEstimate,
+      );
+      if (!nextQuestion) break;
+      shownQuestionIds.add(nextQuestion.question_id.toString());
+
+      const question = exam.questions.find(
+        (q) => q.question_id === nextQuestion.question_id,
+      );
+      if (!question) continue;
+
       const choices = await prisma.question_choices.findMany({
         where: { question_id: question.question_id },
         orderBy: { display_order: 'asc' },
@@ -517,6 +541,7 @@ export async function seedAttempts(exams: SeededExam[]): Promise<void> {
       const correctChoices = choices.filter((c) => c.is_correct);
       const wrongChoices = choices.filter((c) => !c.is_correct);
       if (correctChoices.length === 0) continue;
+      administeredCount++;
 
       const shouldBeCorrect =
         isSubmitted && 'correctness' in plan.mode
@@ -528,7 +553,7 @@ export async function seedAttempts(exams: SeededExam[]): Promise<void> {
       const shownAt = new Date(startedAt.getTime() + i * 45_000);
       const answeredAt = isSubmitted
         ? new Date(shownAt.getTime() + (20 + Math.floor(rand() * 60)) * 1000)
-        : isInProgress && i === items.length - 1
+        : isInProgress && i === plannedItemCount - 1
           ? null
           : new Date(shownAt.getTime() + (25 + Math.floor(rand() * 80)) * 1000);
 
@@ -541,7 +566,7 @@ export async function seedAttempts(exams: SeededExam[]): Promise<void> {
           sequence_index: i,
           shown_at: shownAt,
           answered_at: answeredAt,
-          theta_at_selection: 0,
+          theta_at_selection: thetaEstimate,
           time_per_item: answeredAt
             ? Math.floor((answeredAt.getTime() - shownAt.getTime()) / 1000)
             : null,
@@ -625,7 +650,7 @@ export async function seedAttempts(exams: SeededExam[]): Promise<void> {
 
     if (isSubmitted) {
       const rawScore =
-        items.length > 0 ? (correctCount / items.length) * 100 : 0;
+        administeredCount > 0 ? (correctCount / administeredCount) * 100 : 0;
       const passed = rawScore >= 50;
 
       await prisma.exam_attempts.update({

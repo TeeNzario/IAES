@@ -1,8 +1,8 @@
 /**
- * Only MCQ_SINGLE is supported by the editor. The enum in the DB still allows
- * MCQ_MULTI for legacy data, but new/edited questions are always single-correct.
+ * The editor writes MCQ_SINGLE for new/edited questions. MCQ_MULTI remains
+ * readable for legacy/demo questions and exam preview validation.
  */
-export type QuestionType = "MCQ_SINGLE";
+export type QuestionType = "MCQ_SINGLE" | "MCQ_MULTI";
 
 export interface Choice {
   choice_id?: string;

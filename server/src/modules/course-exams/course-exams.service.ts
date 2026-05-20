@@ -8,6 +8,11 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
 import type { JwtPayload, StaffRole } from 'src/auth/types/jwt-payload.type';
+import { MIN_ADAPTIVE_ITEM_BANK_SIZE } from 'src/modules/exam-attempts/adaptive/adaptive-selector';
+import {
+  FIXED_GUESSING_PARAM,
+  QUESTION_PARAM_LIMITS,
+} from 'src/lib/question-param-limits';
 
 function replaceBigInt(_key: string, value: unknown): unknown {
   return typeof value === 'bigint' ? value.toString() : value;
@@ -15,6 +20,17 @@ function replaceBigInt(_key: string, value: unknown): unknown {
 
 function serializeBigInt<T>(data: T): T {
   return JSON.parse(JSON.stringify(data, replaceBigInt)) as T;
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function isFixedGuessingParam(value: number | null) {
+  return (
+    isFiniteNumber(value) &&
+    Math.abs(value - FIXED_GUESSING_PARAM) <= Number.EPSILON
+  );
 }
 
 interface StaffActor {
@@ -63,6 +79,61 @@ export class CourseExamsService {
     return offering.courses_id;
   }
 
+  private validateAdaptiveQuestionConfig(question: {
+    question_id: bigint;
+    question_type: string;
+    difficulty_param: number | null;
+    discrimination_param: number | null;
+    guessing_param: number | null;
+    choices: { is_correct: boolean }[];
+    question_knowledge: { knowledge_category_id: bigint }[];
+  }) {
+    const label = `Question ${question.question_id.toString()}`;
+    const { difficulty, discrimination } = QUESTION_PARAM_LIMITS;
+
+    if (
+      !isFiniteNumber(question.difficulty_param) ||
+      question.difficulty_param < difficulty.min ||
+      question.difficulty_param > difficulty.max ||
+      !isFiniteNumber(question.discrimination_param) ||
+      question.discrimination_param < discrimination.min ||
+      question.discrimination_param > discrimination.max ||
+      !isFixedGuessingParam(question.guessing_param)
+    ) {
+      throw new BadRequestException(
+        `${label}: invalid IRT parameters for adaptive exam`,
+      );
+    }
+
+    if (question.question_knowledge.length < 1) {
+      throw new BadRequestException(
+        `${label}: at least 1 knowledge tag is required`,
+      );
+    }
+
+    if (question.choices.length < 2) {
+      throw new BadRequestException(`${label}: must have at least 2 choices`);
+    }
+
+    const correctCount = question.choices.filter(
+      (choice) => choice.is_correct,
+    ).length;
+    if (question.question_type === 'MCQ_MULTI') {
+      if (correctCount < 1) {
+        throw new BadRequestException(
+          `${label}: at least 1 choice must be marked correct`,
+        );
+      }
+      return;
+    }
+
+    if (correctCount !== 1) {
+      throw new BadRequestException(
+        `${label}: exactly 1 choice must be marked correct`,
+      );
+    }
+  }
+
   /**
    * Verify every given question id belongs to the given course (via its
    * collection's year folder). Returns the bigint ids in input order.
@@ -71,6 +142,12 @@ export class CourseExamsService {
     questionIds: string[],
     coursesId: bigint,
   ): Promise<bigint[]> {
+    if (questionIds.length < MIN_ADAPTIVE_ITEM_BANK_SIZE) {
+      throw new BadRequestException(
+        `At least ${MIN_ADAPTIVE_ITEM_BANK_SIZE} questions are required for adaptive IRT exams`,
+      );
+    }
+
     const asBig = questionIds.map((id) => BigInt(id));
     const rows = await this.prisma.question_bank.findMany({
       where: {
@@ -83,13 +160,26 @@ export class CourseExamsService {
           },
         },
       },
-      select: { question_id: true },
+      select: {
+        question_id: true,
+        question_type: true,
+        difficulty_param: true,
+        discrimination_param: true,
+        guessing_param: true,
+        choices: {
+          select: { is_correct: true },
+        },
+        question_knowledge: {
+          select: { knowledge_category_id: true },
+        },
+      },
     });
     if (rows.length !== asBig.length) {
       throw new BadRequestException(
         'One or more questions do not belong to this course or are inactive',
       );
     }
+    rows.forEach((question) => this.validateAdaptiveQuestionConfig(question));
     return asBig;
   }
 
@@ -116,8 +206,13 @@ export class CourseExamsService {
       throw new BadRequestException('start_time cannot be in the past');
     }
 
-    if (!Array.isArray(dto.question_ids) || dto.question_ids.length < 1) {
-      throw new BadRequestException('At least 1 question is required');
+    if (
+      !Array.isArray(dto.question_ids) ||
+      dto.question_ids.length < MIN_ADAPTIVE_ITEM_BANK_SIZE
+    ) {
+      throw new BadRequestException(
+        `At least ${MIN_ADAPTIVE_ITEM_BANK_SIZE} questions are required`,
+      );
     }
     // Preserve user-chosen order but drop duplicates.
     const seen = new Set<string>();
@@ -126,6 +221,11 @@ export class CourseExamsService {
       seen.add(id);
       return true;
     });
+    if (uniqueQids.length < MIN_ADAPTIVE_ITEM_BANK_SIZE) {
+      throw new BadRequestException(
+        `At least ${MIN_ADAPTIVE_ITEM_BANK_SIZE} unique questions are required`,
+      );
+    }
     const validatedIds = await this.validateQuestionsInCourse(
       uniqueQids,
       coursesId,
@@ -460,8 +560,13 @@ export class CourseExamsService {
       throw new BadRequestException('start_time cannot be in the past');
     }
 
-    if (!Array.isArray(dto.question_ids) || dto.question_ids.length < 1) {
-      throw new BadRequestException('At least 1 question is required');
+    if (
+      !Array.isArray(dto.question_ids) ||
+      dto.question_ids.length < MIN_ADAPTIVE_ITEM_BANK_SIZE
+    ) {
+      throw new BadRequestException(
+        `At least ${MIN_ADAPTIVE_ITEM_BANK_SIZE} questions are required`,
+      );
     }
     const seen = new Set<string>();
     const uniqueQids = dto.question_ids.filter((id) => {
@@ -469,6 +574,11 @@ export class CourseExamsService {
       seen.add(id);
       return true;
     });
+    if (uniqueQids.length < MIN_ADAPTIVE_ITEM_BANK_SIZE) {
+      throw new BadRequestException(
+        `At least ${MIN_ADAPTIVE_ITEM_BANK_SIZE} unique questions are required`,
+      );
+    }
     const validatedIds = await this.validateQuestionsInCourse(
       uniqueQids,
       coursesId,

@@ -100,7 +100,8 @@ const COLLECTIONS: CollectionSeed[] = [
     courseCode: 'COE64-233',
     academic_year: 2025,
     title: 'ปลายภาค',
-    description: 'แบบทดสอบปลายภาค รายวิชา Mobile Device Application Development ปีการศึกษา 2025',
+    description:
+      'แบบทดสอบปลายภาค รายวิชา Mobile Device Application Development ปีการศึกษา 2025',
   },
   {
     key: 'SIG-2026-MID',
@@ -199,7 +200,7 @@ const QUESTIONS: QuestionSeed[] = [
       'เมตริกใดไม่เหมาะกับการประเมินโมเดลจำแนกประเภทที่ข้อมูลไม่สมดุล (imbalanced classes)',
     difficulty_param: 0.3,
     discrimination_param: 1.3,
-    guessing_param: 0.2,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาสามารถประเมินและเปรียบเทียบประสิทธิภาพของโมเดลด้วยเมตริกที่เหมาะสม',
     ],
@@ -219,7 +220,7 @@ const QUESTIONS: QuestionSeed[] = [
       'ข้อใดเป็นเทคนิคที่ใช้ลดปัญหา Overfitting (เลือกทุกข้อที่ถูก)',
     difficulty_param: 0.8,
     discrimination_param: 1.5,
-    guessing_param: 0.1,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาสามารถประยุกต์ใช้อัลกอริทึมการเรียนรู้แบบมีผู้สอนกับชุดข้อมูลจริง',
     ],
@@ -244,13 +245,22 @@ const QUESTIONS: QuestionSeed[] = [
       'นักศึกษาเข้าใจพื้นฐานการเรียนรู้ของเครื่องและประเภทของอัลกอริทึม',
     ],
     choices: [
-      { text: 'โมเดลมี High Variance (Overfitting) — ควรลดความซับซ้อนของโมเดลหรือเพิ่ม Regularization แทนการเพิ่มฟีเจอร์', is_correct: true },
+      {
+        text: 'โมเดลมี High Variance (Overfitting) — ควรลดความซับซ้อนของโมเดลหรือเพิ่ม Regularization แทนการเพิ่มฟีเจอร์',
+        is_correct: true,
+      },
       {
         text: 'โมเดลมี High Bias (Underfitting) — ควรเพิ่มฟีเจอร์ให้มากขึ้นเพื่อเพิ่มความสามารถในการเรียนรู้',
         is_correct: false,
       },
-      { text: 'โมเดลมีประสิทธิภาพดีแล้ว — ควรใช้เฉพาะ Training Set ในการวัดผล', is_correct: false },
-      { text: 'ปัญหานี้เกิดจากข้อมูลมี Noise มากเกินไป — ควรเปลี่ยนชุดข้อมูลใหม่ทั้งหมด', is_correct: false },
+      {
+        text: 'โมเดลมีประสิทธิภาพดีแล้ว — ควรใช้เฉพาะ Training Set ในการวัดผล',
+        is_correct: false,
+      },
+      {
+        text: 'ปัญหานี้เกิดจากข้อมูลมี Noise มากเกินไป — ควรเปลี่ยนชุดข้อมูลใหม่ทั้งหมด',
+        is_correct: false,
+      },
     ],
   },
   {
@@ -301,7 +311,7 @@ const QUESTIONS: QuestionSeed[] = [
     question_text: 'เมตริกสำหรับปัญหา Regression ได้แก่ข้อใดบ้าง',
     difficulty_param: -0.2,
     discrimination_param: 1.0,
-    guessing_param: 0.2,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาสามารถประเมินและเปรียบเทียบประสิทธิภาพของโมเดลด้วยเมตริกที่เหมาะสม',
     ],
@@ -320,7 +330,7 @@ const QUESTIONS: QuestionSeed[] = [
     question_text: 'Random Forest เป็นการประยุกต์ใช้แนวคิดใด',
     difficulty_param: 0.6,
     discrimination_param: 1.4,
-    guessing_param: 0.2,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาสามารถประยุกต์ใช้อัลกอริทึมการเรียนรู้แบบมีผู้สอนกับชุดข้อมูลจริง',
     ],
@@ -403,7 +413,7 @@ const QUESTIONS: QuestionSeed[] = [
       'ใน JavaScript คำสั่งใดประกาศตัวแปรแบบบล็อกสโคปและไม่สามารถกำหนดค่าใหม่ได้',
     difficulty_param: -0.8,
     discrimination_param: 1.1,
-    guessing_param: 0.2,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาสามารถเขียนโปรแกรมด้วยภาษา JavaScript/TypeScript และจัดการสถานะของแอปพลิเคชันได้อย่างเหมาะสม',
     ],
@@ -423,7 +433,7 @@ const QUESTIONS: QuestionSeed[] = [
       'ข้อใดคือคุณสมบัติของ React Hook useState (เลือกทุกข้อที่ถูก)',
     difficulty_param: 0.4,
     discrimination_param: 1.3,
-    guessing_param: 0.1,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาเข้าใจหลักการออกแบบส่วนติดต่อผู้ใช้งานและการเขียนโปรแกรมบนฝั่งหน้าบ้านด้วยเฟรมเวิร์กสมัยใหม่',
     ],
@@ -450,15 +460,27 @@ const QUESTIONS: QuestionSeed[] = [
       'นักศึกษากำลังพัฒนา Dashboard Component ใน React ที่ต้อง (1) ดึงข้อมูลผู้ใช้จาก REST API `/api/users` ทันทีที่ Component ถูก mount, (2) เปิด WebSocket connection เพื่อรับ real-time notification, และ (3) ปิด WebSocket เมื่อ Component ถูก unmount เพื่อป้องกัน Memory Leak นักศึกษาเขียนโค้ด useEffect ดังนี้:\n\n`useEffect(() => {\n  fetch("/api/users").then(r => r.json()).then(setUsers);\n  const ws = new WebSocket("wss://example.com/ws");\n  ws.onmessage = (e) => addNotification(JSON.parse(e.data));\n}, [])`\n\nโค้ดนี้มีปัญหาใด',
     difficulty_param: 1.2,
     discrimination_param: 1.5,
-    guessing_param: 0.15,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาเข้าใจหลักการออกแบบส่วนติดต่อผู้ใช้งานและการเขียนโปรแกรมบนฝั่งหน้าบ้านด้วยเฟรมเวิร์กสมัยใหม่',
     ],
     choices: [
-      { text: 'ไม่มีการคืนค่า cleanup function เพื่อปิด WebSocket — WebSocket จะคงอยู่แม้ Component ถูก unmount แล้ว ทำให้เกิด Memory Leak', is_correct: true },
-      { text: 'dependency array เป็น [] ทำให้ fetch ถูกเรียกซ้ำทุกครั้งที่ Component re-render', is_correct: false },
-      { text: 'ใช้ fetch() โดยไม่ใส่ credentials: "include" จึงทำให้ Cookie ไม่ถูกส่ง', is_correct: false },
-      { text: 'ควรใช้ async function โดยตรงใน useEffect callback', is_correct: false },
+      {
+        text: 'ไม่มีการคืนค่า cleanup function เพื่อปิด WebSocket — WebSocket จะคงอยู่แม้ Component ถูก unmount แล้ว ทำให้เกิด Memory Leak',
+        is_correct: true,
+      },
+      {
+        text: 'dependency array เป็น [] ทำให้ fetch ถูกเรียกซ้ำทุกครั้งที่ Component re-render',
+        is_correct: false,
+      },
+      {
+        text: 'ใช้ fetch() โดยไม่ใส่ credentials: "include" จึงทำให้ Cookie ไม่ถูกส่ง',
+        is_correct: false,
+      },
+      {
+        text: 'ควรใช้ async function โดยตรงใน useEffect callback',
+        is_correct: false,
+      },
     ],
   },
   {
@@ -470,7 +492,7 @@ const QUESTIONS: QuestionSeed[] = [
       'TypeScript utility type ใดที่ทำให้ทุก property ของ type กลายเป็น optional',
     difficulty_param: 0.7,
     discrimination_param: 1.4,
-    guessing_param: 0.15,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาสามารถเขียนโปรแกรมด้วยภาษา JavaScript/TypeScript และจัดการสถานะของแอปพลิเคชันได้อย่างเหมาะสม',
     ],
@@ -496,7 +518,10 @@ const QUESTIONS: QuestionSeed[] = [
     ],
     choices: [
       { text: 'OK — คำขอสำเร็จทั่วไป', is_correct: false },
-      { text: 'Created — คำขอสำเร็จและมีการสร้างทรัพยากรใหม่', is_correct: true },
+      {
+        text: 'Created — คำขอสำเร็จและมีการสร้างทรัพยากรใหม่',
+        is_correct: true,
+      },
       { text: 'No Content', is_correct: false },
       { text: 'Accepted', is_correct: false },
     ],
@@ -510,13 +535,16 @@ const QUESTIONS: QuestionSeed[] = [
       'ข้อใดคือแนวปฏิบัติที่ดีในการออกแบบ REST API (เลือกทุกข้อที่ถูก)',
     difficulty_param: 0.3,
     discrimination_param: 1.3,
-    guessing_param: 0.15,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาเข้าใจการออกแบบและพัฒนา REST API รวมถึงการรักษาความปลอดภัยของเซิร์ฟเวอร์',
     ],
     choices: [
       { text: 'ใช้คำนาม (noun) เป็นชื่อ resource ใน URL', is_correct: true },
-      { text: 'ใช้ HTTP verb สะท้อนการกระทำ (GET/POST/PUT/DELETE)', is_correct: true },
+      {
+        text: 'ใช้ HTTP verb สะท้อนการกระทำ (GET/POST/PUT/DELETE)',
+        is_correct: true,
+      },
       {
         text: 'ส่งรหัสผ่านเป็น plaintext ผ่าน query string',
         is_correct: false,
@@ -532,11 +560,10 @@ const QUESTIONS: QuestionSeed[] = [
     courseCode: 'COE64-372',
     collectionKey: 'BE-2026-MID',
     question_type: 'MCQ_SINGLE',
-    question_text:
-      'เพื่อป้องกัน SQL Injection แนวทางที่เหมาะสมที่สุดคือข้อใด',
+    question_text: 'เพื่อป้องกัน SQL Injection แนวทางที่เหมาะสมที่สุดคือข้อใด',
     difficulty_param: 0.9,
     discrimination_param: 1.6,
-    guessing_param: 0.1,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาเข้าใจการออกแบบและพัฒนา REST API รวมถึงการรักษาความปลอดภัยของเซิร์ฟเวอร์',
     ],
@@ -545,7 +572,10 @@ const QUESTIONS: QuestionSeed[] = [
         text: 'ต่อสตริงของ query ด้วย input ของผู้ใช้โดยตรง',
         is_correct: false,
       },
-      { text: 'ใช้ parameterized query หรือ ORM ที่ bind parameter', is_correct: true },
+      {
+        text: 'ใช้ parameterized query หรือ ORM ที่ bind parameter',
+        is_correct: true,
+      },
       { text: 'Validate รหัสผ่านด้วย regex เท่านั้น', is_correct: false },
       { text: 'ซ่อน error message โดยไม่ตรวจสอบ input', is_correct: false },
     ],
@@ -598,12 +628,15 @@ const QUESTIONS: QuestionSeed[] = [
       'ข้อใดเป็นความแตกต่างระหว่าง TCP และ UDP (เลือกทุกข้อที่ถูก)',
     difficulty_param: 0.5,
     discrimination_param: 1.4,
-    guessing_param: 0.15,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาสามารถวิเคราะห์และแก้ไขปัญหาเครือข่ายคอมพิวเตอร์เบื้องต้นได้',
     ],
     choices: [
-      { text: 'TCP เป็น connection-oriented, UDP เป็น connectionless', is_correct: true },
+      {
+        text: 'TCP เป็น connection-oriented, UDP เป็น connectionless',
+        is_correct: true,
+      },
       { text: 'TCP มีการตรวจสอบและส่งซ้ำเมื่อข้อมูลสูญหาย', is_correct: true },
       { text: 'UDP เร็วกว่า TCP เพราะมี overhead น้อยกว่า', is_correct: true },
       { text: 'UDP รับประกันลำดับของ packet เสมอ', is_correct: false },
@@ -635,11 +668,10 @@ const QUESTIONS: QuestionSeed[] = [
     courseCode: 'COE64-344',
     collectionKey: 'DW-2026-MID',
     question_type: 'MCQ_SINGLE',
-    question_text:
-      'โครงสร้างข้อมูลแบบ Star Schema ประกอบด้วยตารางใดเป็นหลัก',
+    question_text: 'โครงสร้างข้อมูลแบบ Star Schema ประกอบด้วยตารางใดเป็นหลัก',
     difficulty_param: -0.1,
     discrimination_param: 1.2,
-    guessing_param: 0.2,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาสามารถเชื่อมต่อและออกแบบฐานข้อมูลเชิงสัมพันธ์ได้อย่างมีประสิทธิภาพ',
     ],
@@ -659,15 +691,27 @@ const QUESTIONS: QuestionSeed[] = [
       'บริษัทแห่งหนึ่งมีระบบ OLTP สำหรับบันทึกรายการขายหน้าร้าน (Point of Sale) ที่มีผู้ใช้พร้อมกันจำนวนมากตลอดทั้งวัน ผู้บริหารต้องการ Dashboard ที่แสดงยอดขายรายวัน แนวโน้มรายเดือน และการเปรียบเทียบระหว่างสาขาแบบ Real-time นักวิเคราะห์ข้อมูลเสนอให้สร้าง Data Warehouse โดยแยกจากระบบ OLTP และออกแบบ ETL Process ที่ทำงานทุกคืนเพื่อดึงข้อมูลจากระบบขาย สาเหตุที่ต้องแยก Data Warehouse ออกจาก OLTP คือข้อใด',
     difficulty_param: 0.5,
     discrimination_param: 1.3,
-    guessing_param: 0.2,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาสามารถเชื่อมต่อและออกแบบฐานข้อมูลเชิงสัมพันธ์ได้อย่างมีประสิทธิภาพ',
     ],
     choices: [
-      { text: 'OLTP optimized สำหรับ Transaction speed ส่วน OLAP optimized สำหรับ Complex Query — การรวมกันจะทำให้ทั้งสองอย่างช้าลง', is_correct: true },
-      { text: 'Data Warehouse ใช้แทน OLTP ได้สมบูรณ์แบบในทุกกรณี', is_correct: false },
-      { text: 'OLTP รองรับการทำ ETL โดยตรงอยู่แล้วและไม่จำเป็นต้องแยก', is_correct: false },
-      { text: 'Data Warehouse ถูกกฎหมายให้ต้องใช้เซิร์ฟเวอร์คนละเครื่องกับ OLTP', is_correct: false },
+      {
+        text: 'OLTP optimized สำหรับ Transaction speed ส่วน OLAP optimized สำหรับ Complex Query — การรวมกันจะทำให้ทั้งสองอย่างช้าลง',
+        is_correct: true,
+      },
+      {
+        text: 'Data Warehouse ใช้แทน OLTP ได้สมบูรณ์แบบในทุกกรณี',
+        is_correct: false,
+      },
+      {
+        text: 'OLTP รองรับการทำ ETL โดยตรงอยู่แล้วและไม่จำเป็นต้องแยก',
+        is_correct: false,
+      },
+      {
+        text: 'Data Warehouse ถูกกฎหมายให้ต้องใช้เซิร์ฟเวอร์คนละเครื่องกับ OLTP',
+        is_correct: false,
+      },
     ],
   },
   // ============ Data Viz ============
@@ -700,7 +744,7 @@ const QUESTIONS: QuestionSeed[] = [
       'หลักการออกแบบ Data Visualization ที่ดี ได้แก่ข้อใดบ้าง (เลือกทุกข้อที่ถูก)',
     difficulty_param: 0.2,
     discrimination_param: 1.3,
-    guessing_param: 0.1,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาได้ประยุกต์ใช้หลักการออกแบบและเทคนิคในการสร้างภาพข้อมูล พื้นฐานการสื่อสารและการจัดวางเพื่อสร้างการนำเสนอข้อมูลด้วยกรณีศึกษา',
       'นักศึกษาเข้าใจหลักการออกแบบและเทคนิคในการสร้างภาพข้อมูล พื้นฐานการสื่อสารและการจัดวางเพื่อสร้างการนำเสนอข้อมูลที่มีประสิทธิภาพ',
@@ -772,7 +816,7 @@ const QUESTIONS: QuestionSeed[] = [
     question_text: '1 Kilobyte (KB) มีค่าเท่ากับกี่ bytes',
     difficulty_param: -1.4,
     discrimination_param: 0.8,
-    guessing_param: 0.2,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษามีทักษะพื้นฐานด้านเทคโนโลยีสารสนเทศและสามารถใช้เครื่องมือดิจิทัลเพื่อการเรียนรู้ได้',
     ],
@@ -814,7 +858,7 @@ const QUESTIONS: QuestionSeed[] = [
       'ข้อใดเป็นวิธีรักษาความปลอดภัยของบัญชีออนไลน์ (เลือกทุกข้อที่ถูก)',
     difficulty_param: -0.5,
     discrimination_param: 1.0,
-    guessing_param: 0.1,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษามีทักษะพื้นฐานด้านเทคโนโลยีสารสนเทศและสามารถใช้เครื่องมือดิจิทัลเพื่อการเรียนรู้ได้',
     ],
@@ -835,15 +879,24 @@ const QUESTIONS: QuestionSeed[] = [
       'Read the following passage and answer the question:\n\n"Artificial intelligence has transformed many industries over the past decade. From healthcare to finance, AI-powered systems are now capable of performing tasks that previously required human intelligence. However, experts warn that without proper regulation and ethical guidelines, the rapid advancement of AI could pose significant risks to privacy, employment, and social equality."\n\nAccording to the passage, what is the main concern about AI?',
     difficulty_param: 0.5,
     discrimination_param: 1.3,
-    guessing_param: 0.2,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาสามารถใช้คำศัพท์และโครงสร้างประโยคภาษาอังกฤษในบริบทการสื่อสารทั่วไปได้',
     ],
     choices: [
       { text: 'AI cannot perform complex tasks accurately', is_correct: false },
-      { text: 'Without regulation and ethics, AI may threaten privacy, jobs, and social equality', is_correct: true },
-      { text: 'AI has only been useful in the healthcare industry', is_correct: false },
-      { text: 'AI development has slowed down in recent years', is_correct: false },
+      {
+        text: 'Without regulation and ethics, AI may threaten privacy, jobs, and social equality',
+        is_correct: true,
+      },
+      {
+        text: 'AI has only been useful in the healthcare industry',
+        is_correct: false,
+      },
+      {
+        text: 'AI development has slowed down in recent years',
+        is_correct: false,
+      },
     ],
   },
   {
@@ -851,11 +904,10 @@ const QUESTIONS: QuestionSeed[] = [
     courseCode: 'STD-001',
     collectionKey: 'STD-EN-MAIN',
     question_type: 'MCQ_SINGLE',
-    question_text:
-      'Which word is the antonym of "generous"?',
+    question_text: 'Which word is the antonym of "generous"?',
     difficulty_param: 0.3,
     discrimination_param: 1.1,
-    guessing_param: 0.2,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาสามารถใช้คำศัพท์และโครงสร้างประโยคภาษาอังกฤษในบริบทการสื่อสารทั่วไปได้',
     ],
@@ -871,11 +923,10 @@ const QUESTIONS: QuestionSeed[] = [
     courseCode: 'STD-001',
     collectionKey: 'STD-EN-MAIN',
     question_type: 'MCQ_SINGLE',
-    question_text:
-      'Which sentence uses the present perfect tense correctly?',
+    question_text: 'Which sentence uses the present perfect tense correctly?',
     difficulty_param: 0.9,
     discrimination_param: 1.5,
-    guessing_param: 0.15,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาสามารถใช้คำศัพท์และโครงสร้างประโยคภาษาอังกฤษในบริบทการสื่อสารทั่วไปได้',
     ],
@@ -912,11 +963,10 @@ const QUESTIONS: QuestionSeed[] = [
     courseCode: 'COE64-233',
     collectionKey: 'MOB-2025-FIN',
     question_type: 'MCQ_SINGLE',
-    question_text:
-      'หลัก Responsive Design ใน Mobile App หมายถึงข้อใด',
+    question_text: 'หลัก Responsive Design ใน Mobile App หมายถึงข้อใด',
     difficulty_param: -0.2,
     discrimination_param: 1.1,
-    guessing_param: 0.2,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาสามารถออกแบบและพัฒนาแอปพลิเคชันบนอุปกรณ์เคลื่อนที่ได้อย่างเหมาะสมกับผู้ใช้',
     ],
@@ -936,7 +986,7 @@ const QUESTIONS: QuestionSeed[] = [
       'ข้อใดเป็นข้อดีของการใช้ REST API ใน Mobile App (เลือกทุกข้อที่ถูก)',
     difficulty_param: 0.2,
     discrimination_param: 1.3,
-    guessing_param: 0.1,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาสามารถออกแบบและพัฒนาแอปพลิเคชันบนอุปกรณ์เคลื่อนที่ได้อย่างเหมาะสมกับผู้ใช้',
     ],
@@ -973,11 +1023,10 @@ const QUESTIONS: QuestionSeed[] = [
     courseCode: 'COE64-305',
     collectionKey: 'SIG-2026-MID',
     question_type: 'MCQ_SINGLE',
-    question_text:
-      'การแปลงฟูริเยร์ (Fourier Transform) มีประโยชน์หลักคือข้อใด',
+    question_text: 'การแปลงฟูริเยร์ (Fourier Transform) มีประโยชน์หลักคือข้อใด',
     difficulty_param: 0.3,
     discrimination_param: 1.2,
-    guessing_param: 0.2,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาเข้าใจพื้นฐานของสัญญาณเชิงเวลาต่อเนื่องและเชิงเวลาไม่ต่อเนื่อง',
     ],
@@ -1000,13 +1049,19 @@ const QUESTIONS: QuestionSeed[] = [
       'ข้อใดคือคุณสมบัติของระบบ LTI (Linear Time-Invariant) (เลือกทุกข้อที่ถูก)',
     difficulty_param: 0.7,
     discrimination_param: 1.4,
-    guessing_param: 0.15,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาเข้าใจพื้นฐานของสัญญาณเชิงเวลาต่อเนื่องและเชิงเวลาไม่ต่อเนื่อง',
     ],
     choices: [
-      { text: 'Superposition — ผลรวมของอินพุตให้ผลรวมของเอาต์พุต', is_correct: true },
-      { text: 'Time-invariance — การเลื่อนเวลาอินพุตเลื่อนเอาต์พุตเท่ากัน', is_correct: true },
+      {
+        text: 'Superposition — ผลรวมของอินพุตให้ผลรวมของเอาต์พุต',
+        is_correct: true,
+      },
+      {
+        text: 'Time-invariance — การเลื่อนเวลาอินพุตเลื่อนเอาต์พุตเท่ากัน',
+        is_correct: true,
+      },
       { text: 'ระบบ LTI ทุกระบบต้องเป็น Causal เสมอ', is_correct: false },
       { text: 'ระบบ LTI ทุกระบบต้องเสถียรเสมอ', is_correct: false },
     ],
@@ -1017,8 +1072,7 @@ const QUESTIONS: QuestionSeed[] = [
     courseCode: 'GED65-130',
     collectionKey: 'SOC-2026-MID',
     question_type: 'MCQ_SINGLE',
-    question_text:
-      'สังคมวิทยาคือการศึกษาเกี่ยวกับอะไรเป็นหลัก',
+    question_text: 'สังคมวิทยาคือการศึกษาเกี่ยวกับอะไรเป็นหลัก',
     difficulty_param: -1.0,
     discrimination_param: 0.9,
     guessing_param: 0.25,
@@ -1040,8 +1094,7 @@ const QUESTIONS: QuestionSeed[] = [
     courseCode: 'GED65-130',
     collectionKey: 'SOC-2026-MID',
     question_type: 'MCQ_SINGLE',
-    question_text:
-      'Social Institution คืออะไร',
+    question_text: 'Social Institution คืออะไร',
     difficulty_param: -1.5,
     discrimination_param: 0.6,
     guessing_param: 0.25,
@@ -1049,7 +1102,10 @@ const QUESTIONS: QuestionSeed[] = [
       'นักศึกษาเข้าใจแนวคิดพื้นฐานทางสังคมวิทยาและการวิเคราะห์โครงสร้างทางสังคม',
     ],
     choices: [
-      { text: 'รูปแบบพฤติกรรมและระบบความสัมพันธ์ที่สังคมสร้างขึ้นเพื่อตอบสนองความต้องการพื้นฐานของมนุษย์ เช่น ครอบครัว ศาสนา การศึกษา', is_correct: true },
+      {
+        text: 'รูปแบบพฤติกรรมและระบบความสัมพันธ์ที่สังคมสร้างขึ้นเพื่อตอบสนองความต้องการพื้นฐานของมนุษย์ เช่น ครอบครัว ศาสนา การศึกษา',
+        is_correct: true,
+      },
       { text: 'หน่วยงานราชการทุกประเภท', is_correct: false },
       { text: 'องค์กรเอกชนที่ไม่แสวงหาผลกำไร', is_correct: false },
       { text: 'อาคารสถานที่ของรัฐ', is_correct: false },
@@ -1064,7 +1120,7 @@ const QUESTIONS: QuestionSeed[] = [
       'ข้อใดเป็นปัจจัยที่ส่งผลต่อการเปลี่ยนแปลงทางสังคม (เลือกทุกข้อที่ถูก)',
     difficulty_param: 0.5,
     discrimination_param: 1.5,
-    guessing_param: 0.1,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาเข้าใจแนวคิดพื้นฐานทางสังคมวิทยาและการวิเคราะห์โครงสร้างทางสังคม',
     ],
@@ -1103,7 +1159,7 @@ const QUESTIONS: QuestionSeed[] = [
     question_text: 'ประโยคใดใช้ราชาศัพท์ได้ถูกต้อง',
     difficulty_param: 0.4,
     discrimination_param: 1.2,
-    guessing_param: 0.2,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาสามารถอ่าน เขียน และเข้าใจภาษาไทยในระดับที่ใช้ในการสื่อสารทางวิชาการได้',
     ],
@@ -1142,13 +1198,17 @@ const QUESTIONS: QuestionSeed[] = [
     courseCode: 'AGT64-101',
     collectionKey: 'AGT-2026-MID',
     question_type: 'MCQ_SINGLE',
-    question_text: 'การพาสเจอร์ไรซ์ (Pasteurization) มีวัตถุประสงค์หลักคือข้อใด',
+    question_text:
+      'การพาสเจอร์ไรซ์ (Pasteurization) มีวัตถุประสงค์หลักคือข้อใด',
     difficulty_param: -0.8,
     discrimination_param: 1.0,
     guessing_param: 0.25,
     knowledgeNames: ['นักศึกษาเข้าใจหลักการแปรรูปอาหารและการถนอมอาหาร'],
     choices: [
-      { text: 'ทำลายจุลินทรีย์ก่อโรคโดยใช้ความร้อนที่อุณหภูมิไม่สูงมาก', is_correct: true },
+      {
+        text: 'ทำลายจุลินทรีย์ก่อโรคโดยใช้ความร้อนที่อุณหภูมิไม่สูงมาก',
+        is_correct: true,
+      },
       { text: 'ทำให้อาหารแห้งสนิท', is_correct: false },
       { text: 'หมักดองด้วยเกลือ', is_correct: false },
       { text: 'แช่แข็งอาหารที่อุณหภูมิ -40°C', is_correct: false },
@@ -1163,12 +1223,17 @@ const QUESTIONS: QuestionSeed[] = [
     difficulty_param: -0.2,
     discrimination_param: 0.9,
     guessing_param: 0.25,
-    knowledgeNames: ['นักศึกษาสามารถระบุและอธิบายมาตรฐานความปลอดภัยทางอาหารได้'],
+    knowledgeNames: [
+      'นักศึกษาสามารถระบุและอธิบายมาตรฐานความปลอดภัยทางอาหารได้',
+    ],
     choices: [
       { text: 'Hazard Analysis and Critical Control Points', is_correct: true },
       { text: 'High Accuracy Critical Cooking Process', is_correct: false },
       { text: 'Health And Consumer Care Program', is_correct: false },
-      { text: 'Hazard Assessment and Consumer Control Procedure', is_correct: false },
+      {
+        text: 'Hazard Assessment and Consumer Control Procedure',
+        is_correct: false,
+      },
     ],
   },
   // ============ Business Law (LAW64-101) ============
@@ -1197,7 +1262,7 @@ const QUESTIONS: QuestionSeed[] = [
     question_text: 'ข้อใดเป็นนิติกรรมฝ่ายเดียว',
     difficulty_param: 0.9,
     discrimination_param: 1.4,
-    guessing_param: 0.2,
+    guessing_param: 0.25,
     knowledgeNames: ['นักศึกษาสามารถวิเคราะห์ปัญหากฎหมายธุรกิจเบื้องต้นได้'],
     choices: [
       { text: 'พินัยกรรม', is_correct: true },
@@ -1216,7 +1281,9 @@ const QUESTIONS: QuestionSeed[] = [
     difficulty_param: -1.0,
     discrimination_param: 0.8,
     guessing_param: 0.25,
-    knowledgeNames: ['นักศึกษาเข้าใจโครงสร้างและหน้าที่ของระบบอวัยวะในร่างกายมนุษย์'],
+    knowledgeNames: [
+      'นักศึกษาเข้าใจโครงสร้างและหน้าที่ของระบบอวัยวะในร่างกายมนุษย์',
+    ],
     choices: [
       { text: 'หลอดลม (Trachea)', is_correct: true },
       { text: 'กระเพาะอาหาร (Stomach)', is_correct: false },
@@ -1229,11 +1296,14 @@ const QUESTIONS: QuestionSeed[] = [
     courseCode: 'MED64-201',
     collectionKey: 'MED-2026-MID',
     question_type: 'MCQ_MULTI',
-    question_text: 'ข้อใดคือหน้าที่ของระบบหัวใจและหลอดเลือด (เลือกทุกข้อที่ถูก)',
+    question_text:
+      'ข้อใดคือหน้าที่ของระบบหัวใจและหลอดเลือด (เลือกทุกข้อที่ถูก)',
     difficulty_param: 0.3,
     discrimination_param: 1.3,
-    guessing_param: 0.1,
-    knowledgeNames: ['นักศึกษาสามารถอธิบายกระบวนการทำงานร่วมกันของระบบต่างๆ ในร่างกายได้'],
+    guessing_param: 0.25,
+    knowledgeNames: [
+      'นักศึกษาสามารถอธิบายกระบวนการทำงานร่วมกันของระบบต่างๆ ในร่างกายได้',
+    ],
     choices: [
       { text: 'ขนส่งออกซิเจนไปยังเนื้อเยื่อ', is_correct: true },
       { text: 'ควบคุมอุณหภูมิร่างกาย', is_correct: true },
@@ -1247,10 +1317,11 @@ const QUESTIONS: QuestionSeed[] = [
     courseCode: 'EDU64-201',
     collectionKey: 'EDU-2026-MID',
     question_type: 'MCQ_SINGLE',
-    question_text: 'ทฤษฎีพัฒนาการทางสติปัญญาของ Piaget ในขั้น Concrete Operational Stage เด็กมีอายุประมาณกี่ปี',
+    question_text:
+      'ทฤษฎีพัฒนาการทางสติปัญญาของ Piaget ในขั้น Concrete Operational Stage เด็กมีอายุประมาณกี่ปี',
     difficulty_param: 0.5,
     discrimination_param: 1.2,
-    guessing_param: 0.2,
+    guessing_param: 0.25,
     knowledgeNames: ['นักศึกษาเข้าใจทฤษฎีพัฒนาการทางสติปัญญาและสังคมของมนุษย์'],
     choices: [
       { text: '7-11 ปี', is_correct: true },
@@ -1264,11 +1335,13 @@ const QUESTIONS: QuestionSeed[] = [
     courseCode: 'EDU64-201',
     collectionKey: 'EDU-2026-MID',
     question_type: 'MCQ_SINGLE',
-    question_text: 'Bloom\'s Taxonomy ขั้นใดที่สูงที่สุดใน Cognitive Domain',
+    question_text: "Bloom's Taxonomy ขั้นใดที่สูงที่สุดใน Cognitive Domain",
     difficulty_param: 0.6,
     discrimination_param: 1.5,
-    guessing_param: 0.15,
-    knowledgeNames: ['นักศึกษาสามารถประยุกต์ใช้จิตวิทยาการเรียนรู้ในการออกแบบการสอนได้'],
+    guessing_param: 0.25,
+    knowledgeNames: [
+      'นักศึกษาสามารถประยุกต์ใช้จิตวิทยาการเรียนรู้ในการออกแบบการสอนได้',
+    ],
     choices: [
       { text: 'Creating (สร้างสรรค์)', is_correct: true },
       { text: 'Understanding (เข้าใจ)', is_correct: false },
@@ -1285,8 +1358,10 @@ const QUESTIONS: QuestionSeed[] = [
     question_text: 'Server-Side Rendering (SSR) ใน Next.js มีข้อดีหลักอย่างไร',
     difficulty_param: 0.8,
     discrimination_param: 1.5,
-    guessing_param: 0.15,
-    knowledgeNames: ['นักศึกษาเข้าใจหลักการออกแบบส่วนติดต่อผู้ใช้งานและการเขียนโปรแกรมบนฝั่งหน้าบ้านด้วยเฟรมเวิร์กสมัยใหม่'],
+    guessing_param: 0.25,
+    knowledgeNames: [
+      'นักศึกษาเข้าใจหลักการออกแบบส่วนติดต่อผู้ใช้งานและการเขียนโปรแกรมบนฝั่งหน้าบ้านด้วยเฟรมเวิร์กสมัยใหม่',
+    ],
     choices: [
       { text: 'ปรับปรุง SEO และลด First Contentful Paint', is_correct: true },
       { text: 'ลดขนาด Bundle JavaScript ลง 90%', is_correct: false },
@@ -1299,16 +1374,25 @@ const QUESTIONS: QuestionSeed[] = [
     courseCode: 'COE64-371',
     collectionKey: 'FE-2025-FIN',
     question_type: 'MCQ_MULTI',
-    question_text: 'ข้อใดเป็นข้อดีของ TypeScript เหนือ JavaScript (เลือกทุกข้อที่ถูก)',
+    question_text:
+      'ข้อใดเป็นข้อดีของ TypeScript เหนือ JavaScript (เลือกทุกข้อที่ถูก)',
     difficulty_param: 0.3,
     discrimination_param: 1.3,
-    guessing_param: 0.15,
-    knowledgeNames: ['นักศึกษาสามารถเขียนโปรแกรมด้วยภาษา JavaScript/TypeScript และจัดการสถานะของแอปพลิเคชันได้อย่างเหมาะสม'],
+    guessing_param: 0.25,
+    knowledgeNames: [
+      'นักศึกษาสามารถเขียนโปรแกรมด้วยภาษา JavaScript/TypeScript และจัดการสถานะของแอปพลิเคชันได้อย่างเหมาะสม',
+    ],
     choices: [
-      { text: 'ตรวจสอบชนิดข้อมูลได้ในขณะเขียนโค้ด (compile-time)', is_correct: true },
+      {
+        text: 'ตรวจสอบชนิดข้อมูลได้ในขณะเขียนโค้ด (compile-time)',
+        is_correct: true,
+      },
       { text: 'ช่วยลด runtime error จาก type mismatch', is_correct: true },
       { text: 'เร็วกว่า JavaScript ถึง 10 เท่าในการทำงาน', is_correct: false },
-      { text: 'มีระบบ IntelliSense และ autocomplete ที่ดีกว่า', is_correct: true },
+      {
+        text: 'มีระบบ IntelliSense และ autocomplete ที่ดีกว่า',
+        is_correct: true,
+      },
     ],
   },
   // ============ CNN (COE64-361) ============
@@ -1341,7 +1425,7 @@ const QUESTIONS: QuestionSeed[] = [
       'กำหนดให้ Input Image มีขนาด 64×64×3 (RGB) และใช้ Convolution Layer ที่มี Kernel ขนาด 5×5 จำนวน 16 ตัว โดยใช้ Stride = 2 และ Padding = "same" ตามด้วย Max Pooling ขนาด 2×2 และ Stride = 2 จากนั้นต่อด้วย Fully Connected Layer ที่มี 10 Neurons (สำหรับ Classification 10 คลาส) จงคำนวณว่าจำนวนพารามิเตอร์ทั้งหมดที่ต้องเทรนใน Convolution Layer นี้มีค่าเท่าใด (ไม่นับ Bias)',
     difficulty_param: 1.8,
     discrimination_param: 1.7,
-    guessing_param: 0.1,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาเข้าใจสถาปัตยกรรมของโครงข่ายประสาทเทียมแบบคอนโวลูชันและการประมวลผลภาพ',
     ],
@@ -1361,7 +1445,7 @@ const QUESTIONS: QuestionSeed[] = [
       'ข้อใดคือเทคนิคที่ช่วยลด Overfitting ใน CNN (เลือกทุกข้อที่ถูก)',
     difficulty_param: 0.8,
     discrimination_param: 1.4,
-    guessing_param: 0.1,
+    guessing_param: 0.25,
     knowledgeNames: [
       'นักศึกษาเข้าใจสถาปัตยกรรมของโครงข่ายประสาทเทียมแบบคอนโวลูชันและการประมวลผลภาพ',
     ],
@@ -1373,6 +1457,58 @@ const QUESTIONS: QuestionSeed[] = [
     ],
   },
 ];
+
+const MIN_ADAPTIVE_SEED_QUESTIONS = 8;
+const IRT_BALANCE_PROFILE = [
+  { difficulty_param: -2.5, discrimination_param: 1.0 },
+  { difficulty_param: -1.8, discrimination_param: 1.1 },
+  { difficulty_param: -0.8, discrimination_param: 1.5 },
+  { difficulty_param: 0.0, discrimination_param: 2.1 },
+  { difficulty_param: 0.6, discrimination_param: 2.0 },
+  { difficulty_param: 1.2, discrimination_param: 1.8 },
+  { difficulty_param: 1.8, discrimination_param: 1.7 },
+  { difficulty_param: 2.5, discrimination_param: 1.5 },
+] as const;
+
+function expandAdaptiveQuestionSeeds(seeds: QuestionSeed[]): QuestionSeed[] {
+  const byCollection = new Map<string, QuestionSeed[]>();
+  for (const seed of seeds) {
+    const bucket = byCollection.get(seed.collectionKey) ?? [];
+    bucket.push(seed);
+    byCollection.set(seed.collectionKey, bucket);
+  }
+
+  return Array.from(byCollection.values()).flatMap((group) => {
+    const normalized: QuestionSeed[] = group.map((seed, index) => {
+      const profile = IRT_BALANCE_PROFILE[index % IRT_BALANCE_PROFILE.length];
+      return {
+        ...seed,
+        ...profile,
+        guessing_param: 0.25,
+      };
+    });
+
+    for (
+      let index = normalized.length;
+      index < MIN_ADAPTIVE_SEED_QUESTIONS;
+      index++
+    ) {
+      const base = group[index % group.length];
+      const profile = IRT_BALANCE_PROFILE[index % IRT_BALANCE_PROFILE.length];
+      normalized.push({
+        ...base,
+        ...profile,
+        externalKey: `${base.externalKey}-adaptive-${index + 1}`,
+        question_text: `${base.question_text} [IRT ${index + 1}]`,
+        choices: base.choices.map((choice) => ({ ...choice })),
+        knowledgeNames: [...base.knowledgeNames],
+        guessing_param: 0.25,
+      });
+    }
+
+    return normalized;
+  });
+}
 
 export interface SeededQuestions {
   years: Map<string, question_bank_years>;
@@ -1449,11 +1585,12 @@ export async function seedQuestions(
 
   const questionsByCollection = new Map<string, question_bank[]>();
   const questionsByCourse = new Map<string, question_bank[]>();
+  const expandedQuestions = expandAdaptiveQuestionSeeds(QUESTIONS);
 
   // Tag each seeded question with its external key so we stay idempotent.
   // We use the description slot of the text is NOT available, so instead we
   // look up an existing question by its question_text within the collection.
-  for (const q of QUESTIONS) {
+  for (const q of expandedQuestions) {
     const course = courseByCode.get(q.courseCode);
     const collection = collections.get(q.collectionKey);
     if (!course || !collection) continue;
@@ -1534,7 +1671,7 @@ export async function seedQuestions(
   }
 
   console.log(
-    `Questions: ${QUESTIONS.length} across ${collections.size} collections and ${years.size} year folders`,
+    `Questions: ${expandedQuestions.length} across ${collections.size} collections and ${years.size} year folders`,
   );
 
   return { years, collections, questionsByCollection, questionsByCourse };
