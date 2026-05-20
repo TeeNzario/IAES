@@ -683,9 +683,9 @@ function getQuestionDifficultyFilter(
   if (typeof difficulty !== "number" || !Number.isFinite(difficulty)) {
     return null;
   }
-  if (difficulty < 0) return "easy";
-  if (difficulty === 0) return "medium";
-  return "hard";
+  if (difficulty <= -0.5) return "easy";
+  if (difficulty >= 0.5) return "hard";
+  return "medium";
 }
 
 function buildExamStats(questions: Question[]): ExamStats {

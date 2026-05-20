@@ -318,11 +318,11 @@ export class QuestionsService {
           }
         : {}),
       ...(opts.difficulty === 'easy'
-        ? { difficulty_param: { lt: 0 } }
+        ? { difficulty_param: { lte: -0.5 } }
         : opts.difficulty === 'medium'
-          ? { difficulty_param: { equals: 0 } }
+          ? { difficulty_param: { gt: -0.5, lt: 0.5 } }
           : opts.difficulty === 'hard'
-            ? { difficulty_param: { gt: 0 } }
+            ? { difficulty_param: { gte: 0.5 } }
             : {}),
     };
 

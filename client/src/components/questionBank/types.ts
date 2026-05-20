@@ -28,10 +28,10 @@ export interface Question {
 }
 
 /**
- * Display rule from the spec:
- *   difficulty < 0  → "ง่าย"
- *   difficulty = 0  → "กลาง"
- *   difficulty > 0  → "ยาก"
+ * Display rule:
+ *   difficulty <= -0.5  → "ง่าย"
+ *   difficulty >=  0.5  → "ยาก"
+ *   otherwise           → "กลาง"
  */
 export function difficultyLabel(value: number | null | undefined): {
   label: string;
@@ -40,9 +40,9 @@ export function difficultyLabel(value: number | null | undefined): {
   if (value === null || value === undefined) {
     return { label: "-", className: "bg-gray-200 text-gray-500" };
   }
-  if (value < 0)
+  if (value <= -0.5)
     return { label: "ง่าย", className: "bg-emerald-100 text-emerald-700" };
-  if (value === 0)
-    return { label: "กลาง", className: "bg-amber-100 text-amber-700" };
-  return { label: "ยาก", className: "bg-rose-100 text-rose-700" };
+  if (value >= 0.5)
+    return { label: "ยาก", className: "bg-rose-100 text-rose-700" };
+  return { label: "กลาง", className: "bg-amber-100 text-amber-700" };
 }

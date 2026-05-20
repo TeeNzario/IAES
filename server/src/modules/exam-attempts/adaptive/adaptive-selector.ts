@@ -49,7 +49,8 @@ export type AdaptiveStopReason =
   | 'theta_extreme_low'
   | 'theta_plateau'
   | 'max_items'
-  | 'item_bank_exhausted';
+  | 'item_bank_exhausted'
+  | 'seeded_demo';
 
 export interface AdaptiveStopResult {
   shouldStop: boolean;
@@ -116,9 +117,9 @@ export function scoreFunction(
 ) {
   return answeredItems.reduce((score, item) => {
     const { a, b, c } = params(item);
-    const p = probability3pl(theta, a, b, c);
     const exponent = clamp(-a * (theta - b), EXPONENT_MIN, EXPONENT_MAX);
     const logistic = 1 / (1 + Math.exp(exponent));
+    const p = c + (1 - c) * logistic;
     const pPrime = (1 - c) * a * logistic * (1 - logistic);
     const denominator = p * (1 - p);
 
