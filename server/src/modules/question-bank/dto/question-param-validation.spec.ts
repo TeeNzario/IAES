@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { BulkCreateQuestionsDto, QuestionTypeDto } from './create-question.dto';
+import { questionParamRangeMessage } from 'src/lib/question-param-limits';
 
 function makeBulkQuestion(
   params: Partial<{
@@ -13,7 +14,7 @@ function makeBulkQuestion(
   return plainToInstance(BulkCreateQuestionsDto, {
     questions: [
       {
-        question_text: 'HTTP status code 201 หมายถึงอะไร',
+        question_text: 'What does HTTP status code 201 mean?',
         question_type: QuestionTypeDto.MCQ_SINGLE,
         choices: [
           {
@@ -40,51 +41,29 @@ describe('question parameter validation', () => {
   it.each([
     ['difficulty_param', { difficulty_param: -3 }],
     ['difficulty_param', { difficulty_param: 3 }],
-    ['discrimination_param', { discrimination_param: 0 }],
-    ['discrimination_param', { discrimination_param: 3 }],
+    ['discrimination_param', { discrimination_param: 0.5 }],
+    ['discrimination_param', { discrimination_param: 2.5 }],
     ['guessing_param', { guessing_param: 0 }],
-    ['guessing_param', { guessing_param: 1 }],
+    ['guessing_param', { guessing_param: 0.35 }],
   ] as const)('accepts %s at allowed range boundary', async (_name, params) => {
     await expect(validate(makeBulkQuestion(params))).resolves.toHaveLength(0);
   });
 
   it.each([
-    [
-      'difficulty_param',
-      { difficulty_param: -3.01 },
-      'ความยาก ต้องอยู่ระหว่าง -3 ถึง 3',
-    ],
-    [
-      'difficulty_param',
-      { difficulty_param: 3.01 },
-      'ความยาก ต้องอยู่ระหว่าง -3 ถึง 3',
-    ],
-    [
-      'discrimination_param',
-      { discrimination_param: -0.01 },
-      'อำนาจการจำแนก ต้องอยู่ระหว่าง 0 ถึง 3',
-    ],
-    [
-      'discrimination_param',
-      { discrimination_param: 3.01 },
-      'อำนาจการจำแนก ต้องอยู่ระหว่าง 0 ถึง 3',
-    ],
-    [
-      'guessing_param',
-      { guessing_param: -0.01 },
-      'โอกาสการเดา ต้องอยู่ระหว่าง 0 ถึง 1',
-    ],
-    [
-      'guessing_param',
-      { guessing_param: 1.01 },
-      'โอกาสการเดา ต้องอยู่ระหว่าง 0 ถึง 1',
-    ],
+    ['difficulty_param', { difficulty_param: -3.01 }, 'difficulty'],
+    ['difficulty_param', { difficulty_param: 3.01 }, 'difficulty'],
+    ['discrimination_param', { discrimination_param: 0.49 }, 'discrimination'],
+    ['discrimination_param', { discrimination_param: 2.51 }, 'discrimination'],
+    ['guessing_param', { guessing_param: -0.01 }, 'guessing'],
+    ['guessing_param', { guessing_param: 0.36 }, 'guessing'],
   ] as const)(
     'rejects %s outside the allowed range',
-    async (_name, params, message) => {
+    async (_name, params, messageKey) => {
       const errors = await validate(makeBulkQuestion(params));
 
-      expect(JSON.stringify(errors)).toContain(message);
+      expect(JSON.stringify(errors)).toContain(
+        questionParamRangeMessage(messageKey),
+      );
     },
   );
 });

@@ -4,12 +4,12 @@ export const QUESTION_PARAM_LIMITS = {
     max: 3,
   },
   discrimination: {
-    min: 0,
-    max: 3,
+    min: 0.5,
+    max: 2.5,
   },
   guessing: {
     min: 0,
-    max: 1,
+    max: 0.35,
   },
 } as const;
 

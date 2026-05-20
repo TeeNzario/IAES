@@ -23,9 +23,9 @@ const DIFFICULTY_DEFAULTS: Record<
   string,
   { discrimination: number; guessing: number }
 > = {
-  ง่าย: { discrimination: 0, guessing: 0.25 },
-  กลาง: { discrimination: 0, guessing: 0.25 },
-  ยาก: { discrimination: 0, guessing: 0.25 },
+  ง่าย: { discrimination: 1.1, guessing: 0.25 },
+  กลาง: { discrimination: 2.1, guessing: 0.25 },
+  ยาก: { discrimination: 1.8, guessing: 0.25 },
 };
 
 interface StaffActor {
@@ -595,7 +595,7 @@ export class QuestionImportService {
 
         const difficultyParam = mapDifficultyLabel(row.difficulty);
         const defaults = DIFFICULTY_DEFAULTS[row.difficulty] ?? {
-          discrimination: 0,
+          discrimination: 1,
           guessing: 0.25,
         };
 
