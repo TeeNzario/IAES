@@ -35,7 +35,11 @@ function defaultKnowledgeSuffix(index: number) {
 }
 
 function knowledgeCodePrefix(courseCode: string) {
-  return `${courseCode.trim().toUpperCase()}-`;
+  return `${normalizeCourseCode(courseCode)}-`;
+}
+
+function normalizeCourseCode(courseCode: string) {
+  return courseCode.trim().toUpperCase();
 }
 
 function extractKnowledgeSuffix(code: string) {
@@ -165,36 +169,84 @@ export class CoursesService {
       orderBy: { code: 'asc' },
     });
     const usedCodes = new Set<string>();
+    const existingCodes = new Set(links.map((link) => link.code));
+    const temporaryCodes = new Set<string>();
+    const rewrites: Array<{
+      knowledgeCategoryId: bigint;
+      currentCode: string;
+      temporaryCode: string;
+      nextCode: string;
+    }> = [];
+
+    const makeTemporaryCode = (index: number) => {
+      let attempt = 0;
+      let code = '';
+
+      do {
+        code = `__TMP${String(index).padStart(3, '0')}${attempt ? `_${attempt}` : ''}`;
+        attempt += 1;
+      } while (existingCodes.has(code) || temporaryCodes.has(code));
+
+      temporaryCodes.add(code);
+      return code;
+    };
 
     for (const [index, link] of links.entries()) {
       let suffix = extractKnowledgeSuffix(link.code) ?? defaultKnowledgeSuffix(index);
       let nextCode = formatKnowledgeCode(courseCode, suffix);
-      let collisionIndex = index;
+      let collisionIndex = 0;
 
       while (usedCodes.has(nextCode)) {
-        collisionIndex += 1;
         suffix = defaultKnowledgeSuffix(collisionIndex);
+        collisionIndex += 1;
         nextCode = formatKnowledgeCode(courseCode, suffix);
       }
 
       usedCodes.add(nextCode);
+      rewrites.push({
+        knowledgeCategoryId: link.knowledge_category_id,
+        currentCode: link.code,
+        temporaryCode: makeTemporaryCode(index),
+        nextCode,
+      });
+    }
 
-      if (link.code !== nextCode) {
-        await tx.course_knowledge.update({
-          where: {
-            courses_id_knowledge_category_id: {
-              courses_id: courseId,
-              knowledge_category_id: link.knowledge_category_id,
-            },
+    if (rewrites.every((rewrite) => rewrite.currentCode === rewrite.nextCode)) {
+      return;
+    }
+
+    for (const rewrite of rewrites) {
+      await tx.course_knowledge.update({
+        where: {
+          courses_id_knowledge_category_id: {
+            courses_id: courseId,
+            knowledge_category_id: rewrite.knowledgeCategoryId,
           },
-          data: { code: nextCode },
-        });
-      }
+        },
+        data: { code: rewrite.temporaryCode },
+      });
+    }
+
+    for (const rewrite of rewrites) {
+      await tx.course_knowledge.update({
+        where: {
+          courses_id_knowledge_category_id: {
+            courses_id: courseId,
+            knowledge_category_id: rewrite.knowledgeCategoryId,
+          },
+        },
+        data: { code: rewrite.nextCode },
+      });
     }
   }
 
   async create(dto: CreateCourseDto, instructorId: string) {
     const result = await this.prisma.$transaction(async (tx) => {
+      const courseCode = normalizeCourseCode(dto.course_code);
+      if (!courseCode) {
+        throw new BadRequestException('ต้องระบุรหัสวิชา');
+      }
+
       // 1. Create course
       // course_name is set to course_name_th for backward compatibility
       // (all existing UI code references course_name)
@@ -203,7 +255,7 @@ export class CoursesService {
           course_name: dto.course_name_th,
           course_name_th: dto.course_name_th,
           course_name_en: dto.course_name_en,
-          course_code: dto.course_code,
+          course_code: courseCode,
           created_by_instructors_id: BigInt(instructorId),
         },
       });
@@ -213,7 +265,7 @@ export class CoursesService {
         await this.upsertCourseKnowledge(
           tx,
           course.courses_id,
-          dto.course_code,
+          courseCode,
           dto.knowledge_categories,
           instructorId,
         );
@@ -345,7 +397,9 @@ export class CoursesService {
         where: { courses_id: BigInt(id) },
         select: { course_code: true },
       });
-      const nextCourseCode = dto.course_code?.trim() || existing?.course_code;
+      const nextCourseCode = dto.course_code
+        ? normalizeCourseCode(dto.course_code)
+        : existing?.course_code;
 
       if (!nextCourseCode) {
         throw new BadRequestException('ไม่พบรหัสวิชาสำหรับรายวิชานี้');
@@ -362,7 +416,7 @@ export class CoursesService {
             course_name_th: dto.course_name_th,
           }),
           ...(dto.course_name_en && { course_name_en: dto.course_name_en }),
-          ...(dto.course_code && { course_code: dto.course_code }),
+          ...(dto.course_code && { course_code: nextCourseCode }),
         },
       });
 
@@ -378,7 +432,7 @@ export class CoursesService {
       } else if (
         dto.course_code &&
         existing?.course_code.trim().toUpperCase() !==
-          dto.course_code.trim().toUpperCase()
+          nextCourseCode
       ) {
         await this.rewriteKnowledgeCodePrefix(tx, BigInt(id), nextCourseCode);
       }
@@ -442,7 +496,10 @@ export class CoursesService {
   async checkCodeExists(code: string, excludeId?: number): Promise<boolean> {
     const existing = await this.prisma.courses.findFirst({
       where: {
-        course_code: code.trim(),
+        course_code: {
+          equals: normalizeCourseCode(code),
+          mode: 'insensitive',
+        },
         ...(excludeId ? { NOT: { courses_id: BigInt(excludeId) } } : {}),
       },
       select: { courses_id: true },
