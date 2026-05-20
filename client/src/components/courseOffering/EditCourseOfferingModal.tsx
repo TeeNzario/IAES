@@ -97,20 +97,26 @@ export default function EditCourseOfferingModal({
       setAcademicYear(String(courseOffering.academic_year));
       setSemester(String(courseOffering.semester));
       setStatus(courseOffering.is_active ? "Active" : "Inactive");
-
-      // Set additional instructors (exclude the first one which is the creator)
-      if (courseOffering.course_instructors.length > 1) {
-        const additionalIds = courseOffering.course_instructors
-          .slice(1)
-          .map((ci) => ci.staff_users_id);
-        setAdditionalSlots(additionalIds);
-      } else {
-        setAdditionalSlots([]);
-      }
       setInstructorFacultyFilter("ALL");
       setInstructorCurriculumFilter("ALL");
     }
   }, [isOpen, courseOffering]);
+
+  useEffect(() => {
+    if (!isOpen || !courseOffering) return;
+
+    const lockedInstructorId = creatorInstructor?.staff_users_id;
+    const instructorIds = courseOffering.course_instructors.map(
+      (courseInstructor) => courseInstructor.staff_users_id,
+    );
+    const additionalIds = lockedInstructorId
+      ? instructorIds.filter(
+          (instructorId) => instructorId !== lockedInstructorId,
+        )
+      : instructorIds.slice(1);
+
+    setAdditionalSlots(additionalIds);
+  }, [creatorInstructor?.staff_users_id, isOpen, courseOffering]);
 
   // Fetch creator (me) and all instructors on mount
   useEffect(() => {
@@ -191,6 +197,15 @@ export default function EditCourseOfferingModal({
 
   const renderInstructorOptions = (slotValue: string) => {
     const availableInstructors = getAvailableInstructors(slotValue);
+    const selectedInstructorFallback = courseOffering.course_instructors.find(
+      (courseInstructor) => courseInstructor.staff_users_id === slotValue,
+    )?.staff_users;
+    const shouldRenderFallback =
+      Boolean(slotValue) &&
+      Boolean(selectedInstructorFallback) &&
+      !availableInstructors.some(
+        (instructor) => instructor.staff_users_id === slotValue,
+      );
 
     return (
       <>
@@ -207,6 +222,11 @@ export default function EditCourseOfferingModal({
             {formatInstructorName(instructor)}
           </option>
         ))}
+        {shouldRenderFallback && selectedInstructorFallback && (
+          <option value={slotValue}>
+            {formatInstructorName(selectedInstructorFallback)}
+          </option>
+        )}
       </>
     );
   };
@@ -236,10 +256,14 @@ export default function EditCourseOfferingModal({
     setError(null);
 
     try {
-      // Filter out empty slots and convert to numbers
-      const instructorIds = additionalSlots
-        .filter((id) => id !== "")
-        .map((id) => Number(id));
+      // Filter out empty/duplicate instructor slots and convert to numbers
+      const instructorIds = Array.from(
+        new Set(
+          additionalSlots.filter(
+            (id) => id !== "" && id !== creatorInstructor?.staff_users_id,
+          ),
+        ),
+      ).map((id) => Number(id));
 
       await apiFetch(
         `/course-offerings/${courseOffering.course_offerings_id}`,

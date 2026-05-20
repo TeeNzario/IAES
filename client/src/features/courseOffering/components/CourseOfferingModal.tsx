@@ -222,10 +222,14 @@ export default function CourseOfferingModal({
     }
 
     try {
-      // Filter out empty slots and convert to numbers
-      const instructorIds = additionalSlots
-        .filter((id) => id !== "")
-        .map((id) => Number(id));
+      // Filter out empty/duplicate instructor slots and convert to numbers
+      const instructorIds = Array.from(
+        new Set(
+          additionalSlots.filter(
+            (id) => id !== "" && id !== creatorInstructor?.staff_users_id,
+          ),
+        ),
+      ).map((id) => Number(id));
 
       await apiFetch("/course-offerings", {
         method: "POST",

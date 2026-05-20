@@ -338,6 +338,8 @@ export default function KnowledgeCategoriesModal({
       onClose();
     } catch (err: unknown) {
       console.error(err);
+      const isDeleteBlocked =
+        axios.isAxiosError(err) && err.response?.status === 409;
       const serverMessage =
         axios.isAxiosError(err) && err.response?.data?.message
           ? Array.isArray(err.response.data.message)
@@ -346,11 +348,13 @@ export default function KnowledgeCategoriesModal({
           : null;
       setAlertState({
         isOpen: true,
-        title: "เกิดข้อผิดพลาด",
+        title: isDeleteBlocked
+          ? DELETE_BLOCKED_TITLE
+          : "เกิดข้อผิดพลาด",
         message:
           (typeof serverMessage === "string" && serverMessage.trim()) ||
           "ไม่สามารถบันทึกหมวดหมู่ความรู้ได้ กรุณาลองใหม่อีกครั้ง",
-        variant: "error",
+        variant: isDeleteBlocked ? "warning" : "error",
       });
     } finally {
       setIsSubmitting(false);
