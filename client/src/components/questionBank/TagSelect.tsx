@@ -6,6 +6,7 @@ import { ChevronDown, Search } from "lucide-react";
 export interface KnowledgeTag {
   knowledge_category_id: string;
   name: string;
+  code?: string;
 }
 
 interface TagSelectProps {
@@ -44,15 +45,21 @@ export default function TagSelect({
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return options.filter((o) =>
-      q ? o.name.toLowerCase().includes(q) : true,
+      q
+        ? o.name.toLowerCase().includes(q) ||
+          (o.code?.toLowerCase().includes(q) ?? false)
+        : true,
     );
   }, [options, query]);
+
+  const formatTagLabel = (tag: KnowledgeTag) =>
+    tag.code ? `${tag.code} - ${tag.name}` : tag.name;
 
   const selectedLabel =
     selectedTags.length === 0
       ? placeholder
       : selectedTags.length === 1
-        ? selectedTags[0].name
+        ? formatTagLabel(selectedTags[0])
         : `${selectedTags.length} หมวดหมู่ที่เลือก`;
 
   useEffect(() => {
@@ -182,7 +189,7 @@ export default function TagSelect({
                         ? "bg-[#F4EFFF] text-[#7C5BD9]"
                         : "text-[#2F2A3A] hover:bg-[#FAF8FF]"
                     }`}
-                    title={tag.name}
+                    title={formatTagLabel(tag)}
                   >
                     <span
                       className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
@@ -196,7 +203,7 @@ export default function TagSelect({
                       )}
                     </span>
                     <span className="min-w-0 flex-1 truncate">
-                      {tag.name}
+                      {formatTagLabel(tag)}
                     </span>
                   </button>
                 );

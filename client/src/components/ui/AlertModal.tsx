@@ -81,7 +81,7 @@ export default function AlertModal({
           onClick={onClose}
           className={`w-full px-5 py-2.5 text-white rounded-xl transition-colors font-semibold text-sm ${styles.button}`}
         >
-          ตกลง
+          รับทราบ
         </button>
       </div>
     </div>

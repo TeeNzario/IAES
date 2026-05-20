@@ -26,14 +26,18 @@ import { getThaiCourseName } from "@/utils/formatCourseName";
 // Configuration
 const ITEMS_PER_PAGE_OPTIONS = [25, 50, 100, 200];
 const DEFAULT_ITEMS_PER_PAGE = 25;
+const COURSE_DELETE_BLOCKED_MESSAGE =
+  "รายวิชานี้เคยถูกเปิดสอบแล้ว จึงไม่สามารถลบออกจากระบบได้ หากไม่ต้องการใช้งานต่อ ให้เปลี่ยนสถานะเป็นปิดใช้งานแทน";
 
 // Interfaces
 interface KnowledgeCategory {
   knowledge_category_id: string;
   name: string;
+  code?: string;
 }
 
 interface CourseKnowledge {
+  code: string;
   knowledge_categories: KnowledgeCategory;
 }
 
@@ -46,6 +50,9 @@ interface Course {
   is_active: boolean;
   created_at?: string;
   course_knowledge?: CourseKnowledge[];
+  _count?: {
+    course_offerings: number;
+  };
 }
 
 interface PaginatedResponse {
@@ -96,6 +103,7 @@ export default function CourseManagement() {
   const [isKnowledgeModalOpen, setIsKnowledgeModalOpen] = useState(false);
   const [knowledgeCourse, setKnowledgeCourse] = useState<{
     courses_id: number;
+    course_code: string;
     name: string;
   } | null>(null);
 
@@ -175,7 +183,11 @@ export default function CourseManagement() {
   // Handle delete click
   const handleDeleteClick = (course: Course) => {
     setDeletingCourse(course);
-    setDeleteError(null);
+    setDeleteError(
+      (course._count?.course_offerings ?? 0) > 0
+        ? COURSE_DELETE_BLOCKED_MESSAGE
+        : null,
+    );
     setIsDeleteModalOpen(true);
   };
 
@@ -195,9 +207,7 @@ export default function CourseManagement() {
       fetchCourses(currentPage);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 409) {
-        setDeleteError(
-          "ไม่สามารถลบรายวิชานี้ได้ เนื่องจากมีการเปิดสอนรายวิชานี้อยู่",
-        );
+        setDeleteError(COURSE_DELETE_BLOCKED_MESSAGE);
       } else {
         setDeleteError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
       }
@@ -235,7 +245,7 @@ export default function CourseManagement() {
                   จัดการรายวิชา
                 </h1>
                 <p className="mt-2 text-sm font-normal text-[#7A7287]">
-                  เพิ่ม แก้ไข จัดหมวดหมู่ความรู้ และเปิดสอบจากรายวิชาที่มีในระบบ
+                  เพิ่ม แก้ไข จัดหมวดหมู่ความรู้ และเปิดวิชาจากรายวิชาที่มีในระบบ
                 </p>
               </div>
 
@@ -391,9 +401,10 @@ export default function CourseManagement() {
                         <td className="px-5 py-4 text-center">
                           <KnowledgeCategoriesCell
                             categories={
-                              course.course_knowledge?.map(
-                                (ck) => ck.knowledge_categories,
-                              ) || []
+                              course.course_knowledge?.map((ck) => ({
+                                ...ck.knowledge_categories,
+                                code: ck.code,
+                              })) || []
                             }
                           />
                         </td>
@@ -437,7 +448,7 @@ export default function CourseManagement() {
                               }}
                               className="rounded-xl bg-[#F4EFFF] px-3 py-2 text-sm font-semibold text-[#7C5BD9] ring-1 ring-[#D9CCF2] transition-colors hover:bg-[#EDE3FF] cursor-pointer"
                             >
-                              เปิดสอบ
+                              เปิดวิชา
                             </button>
 
                             <div className="flex items-center rounded-xl border border-[#E7DDF8] bg-[#FAF8FF] p-1">
@@ -445,6 +456,7 @@ export default function CourseManagement() {
                                 onClick={() => {
                                   setKnowledgeCourse({
                                     courses_id: course.courses_id,
+                                    course_code: course.course_code,
                                     name: getThaiCourseName(course),
                                   });
                                   setIsKnowledgeModalOpen(true);
@@ -483,7 +495,10 @@ export default function CourseManagement() {
             </div>
 
             {!isLoading && totalItems > 0 && (
-              <div className="flex justify-end border-t border-[#EFE8FB] px-5 py-4">
+              <div className="flex flex-col gap-3 border-t border-[#EFE8FB] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <span className="inline-flex h-9 w-fit items-center rounded-lg bg-white px-3 text-sm font-semibold text-[#514667] shadow-sm ring-1 ring-[#E7DDF8]">
+                  หน้า {currentPage}/{totalPages}
+                </span>
                 <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
@@ -568,16 +583,25 @@ export default function CourseManagement() {
             setDeleteError(null);
           }
         }}
-        onConfirm={handleDeleteConfirm}
-        title="ลบรายวิชา"
+        onConfirm={
+          deleteError
+            ? () => {
+                setIsDeleteModalOpen(false);
+                setDeletingCourse(null);
+                setDeleteError(null);
+              }
+            : handleDeleteConfirm
+        }
+        title={deleteError ? "ไม่สามารถลบรายวิชาได้" : "ลบรายวิชา"}
         message={
           deleteError ||
           `คุณแน่ใจหรือไม่ว่าต้องการลบรายวิชา "${deletingCourse ? getThaiCourseName(deletingCourse) : ""}"?`
         }
-        confirmText="ลบ"
+        confirmText={deleteError ? "รับทราบ" : "ลบ"}
         cancelText="ยกเลิก"
         isLoading={isDeleting}
         variant={deleteError ? "warning" : "danger"}
+        acknowledgeOnly={Boolean(deleteError)}
       />
 
       <AlertModal

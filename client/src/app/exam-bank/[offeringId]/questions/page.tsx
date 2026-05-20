@@ -92,8 +92,8 @@ export default function FlatQuestionBankPage() {
         `/course-offerings/${offeringId}/knowledge-categories`,
       );
       setTags(t);
-    } catch {
-      // non-fatal
+    } catch (err) {
+      console.error("Failed to load knowledge tags:", err);
     }
   }, [offeringId]);
 
@@ -213,13 +213,17 @@ export default function FlatQuestionBankPage() {
     const selectedIds = new Set(categoryFilter);
     return tags
       .filter((tag) => selectedIds.has(tag.knowledge_category_id))
-      .map((tag) => tag.name);
+      .map((tag) => (tag.code ? `${tag.code} - ${tag.name}` : tag.name));
   }, [categoryFilter, tags]);
 
   const filteredTags = useMemo(() => {
     const query = categorySearch.trim().toLowerCase();
     if (!query) return tags;
-    return tags.filter((tag) => tag.name.toLowerCase().includes(query));
+    return tags.filter(
+      (tag) =>
+        tag.name.toLowerCase().includes(query) ||
+        (tag.code?.toLowerCase().includes(query) ?? false),
+    );
   }, [categorySearch, tags]);
 
   const categoryFilterLabel =
@@ -433,7 +437,7 @@ export default function FlatQuestionBankPage() {
                                     ? "bg-[#F4EFFF] text-[#7C5BD9]"
                                     : "text-[#2F2A3A] hover:bg-[#FAF8FF]"
                                 }`}
-                                title={t.name}
+                                title={t.code ? `${t.code} - ${t.name}` : t.name}
                               >
                                 <span
                                   className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
@@ -447,7 +451,7 @@ export default function FlatQuestionBankPage() {
                                   )}
                                 </span>
                                 <span className="min-w-0 flex-1 truncate">
-                                  {t.name}
+                                  {t.code ? `${t.code} - ${t.name}` : t.name}
                                 </span>
                               </button>
                             );

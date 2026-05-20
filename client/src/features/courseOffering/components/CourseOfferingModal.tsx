@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ChevronDown, Plus, X, Lock } from "lucide-react";
+import { AlertTriangle, ChevronDown, Plus, X, Lock } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { formatInstructorName } from "@/utils/formatName";
 import { Instructor } from "@/types/staff";
@@ -19,6 +19,11 @@ interface CourseOfferingModalProps {
   courseId: string;
   courseName: string;
   onSuccess?: () => void;
+}
+
+interface FormError {
+  title: string;
+  message: string;
 }
 
 export default function CourseOfferingModal({
@@ -45,7 +50,7 @@ export default function CourseOfferingModal({
   // Loading states
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<FormError | null>(null);
 
   const academicYears = buildAcademicYearOptions(
     academicSettings?.academic_year,
@@ -78,7 +83,12 @@ export default function CourseOfferingModal({
           setSemester(String(settings.semester));
         }
       } catch {
-        if (isMounted) setError("ไม่สามารถโหลดข้อมูลอาจารย์ได้");
+        if (isMounted) {
+          setError({
+            title: "ไม่สามารถโหลดข้อมูลอาจารย์ได้",
+            message: "กรุณาลองเปิดหน้าต่างนี้ใหม่อีกครั้ง",
+          });
+        }
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -137,7 +147,10 @@ export default function CourseOfferingModal({
     setIsSubmitting(true);
     setError(null);
     if (!courseId) {
-      setError("ไม่พบรหัสรายวิชา");
+      setError({
+        title: "ไม่พบรหัสรายวิชา",
+        message: "กรุณาปิดหน้าต่างแล้วลองเลือกเปิดวิชาใหม่อีกครั้ง",
+      });
       setIsSubmitting(false);
       return;
     }
@@ -163,14 +176,24 @@ export default function CourseOfferingModal({
       onSuccess?.();
       onClose();
       router.push("/");
-    } catch (err: any) {
-      if (err.response?.status === 409) {
-        setError(
-          "ไม่สามารถเปิดคอร์สได้ เนื่องจากมีการเปิดคอร์สนี้ในภาคเรียนและปีการศึกษานี้แล้ว",
-        );
+    } catch (err: unknown) {
+      const status =
+        typeof err === "object" && err !== null && "response" in err
+          ? (err as { response?: { status?: number } }).response?.status
+          : undefined;
+
+      if (status === 409) {
+        setError({
+          title: "ไม่สามารถเปิดรายวิชาได้",
+          message:
+            "เนื่องจากมีการเปิดรายวิชานี้ในภาคเรียนและปีการศึกษานี้แล้ว",
+        });
       } else {
         console.error("Failed to create course offering:", err);
-        setError("ไม่สามารถเปิดคอร์สได้ กรุณาลองใหม่อีกครั้ง");
+        setError({
+          title: "ไม่สามารถเปิดรายวิชาได้",
+          message: "กรุณาลองใหม่อีกครั้ง",
+        });
       }
     } finally {
       setIsSubmitting(false);
@@ -191,13 +214,6 @@ export default function CourseOfferingModal({
         <h2 className="text-xl font-bold text-gray-900 mb-5">
           {courseName}
         </h2>
-
-        {/* Error Message */}
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
-            {error}
-          </div>
-        )}
 
         {/* Academic Year Dropdown */}
         <div className="mb-4">
@@ -372,22 +388,59 @@ export default function CourseOfferingModal({
           <button
             onClick={handleClose}
             disabled={isSubmitting}
-            className="flex-1 rounded-xl border-2 border-gray-300 px-6 py-2.5 font-semibold text-gray-900 transition-colors hover:bg-gray-50 disabled:opacity-50"
+            className="flex h-11 flex-1 items-center justify-center rounded-xl border-2 border-gray-300 px-5 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-50 disabled:opacity-50"
           >
             ยกเลิก
           </button>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting || isLoading}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-6 py-2.5 font-semibold text-white shadow-lg transition-colors hover:bg-[#9264F5] disabled:opacity-50"
+            className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#B7A3E3] px-5 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-[#9264F5] disabled:opacity-50"
           >
             {isSubmitting && (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             )}
-            เปิดสอบ
+            เปิดวิชา
           </button>
         </div>
       </div>
+
+      {error && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20 px-4 backdrop-blur-[1px]">
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="course-offering-error-title"
+            aria-describedby="course-offering-error-message"
+            className="w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-2xl sm:p-7"
+          >
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF5B8] text-[#E39A00]">
+              <AlertTriangle size={30} strokeWidth={2.2} />
+            </div>
+            <h3
+              id="course-offering-error-title"
+              className="mt-5 text-lg font-bold leading-7 text-[#1F2937]"
+            >
+              {error.title}
+            </h3>
+            <p
+              id="course-offering-error-message"
+              className="mx-auto mt-2 max-w-sm text-sm font-normal leading-6 text-[#6B7280]"
+            >
+              {error.message}
+            </p>
+            <div className="mx-auto mt-6 w-full max-w-48">
+              <button
+                type="button"
+                onClick={() => setError(null)}
+                className="flex h-11 w-full items-center justify-center rounded-xl bg-[#E39500] px-5 text-sm font-bold text-white shadow-lg shadow-[#E39500]/20 transition-colors hover:bg-[#D48800] cursor-pointer"
+              >
+                รับทราบ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

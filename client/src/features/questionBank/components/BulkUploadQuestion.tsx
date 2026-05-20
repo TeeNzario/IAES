@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, DragEvent, ChangeEvent } from "react";
+import { useState, useRef, useEffect, useMemo, DragEvent, ChangeEvent } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -70,34 +70,49 @@ interface BulkUploadQuestionProps {
   onSuccess?: () => void;
 }
 
+interface KnowledgeCategoryOption {
+  knowledge_category_id: string;
+  name: string;
+  code?: string;
+}
+
 type FilterStatus = "all" | "ready" | "error";
 type ImportStep = "upload" | "preview" | "result";
+type CsvValue = string | number | null | undefined;
+type CsvRow = Record<string, CsvValue>;
 
 const DIFFICULTY_LABELS = ["ง่าย", "กลาง", "ยาก"] as const;
 const DIFFICULTY_MAP: Record<string, string> = { easy: "ง่าย", medium: "กลาง", hard: "ยาก" };
 
-const CSV_TEMPLATE_ROWS = [
-  {
-    question_text: "ข้อใดคือเมืองหลวงของประเทศไทย?",
-    choice_1: "เชียงใหม่",
-    choice_2: "กรุงเทพมหานคร",
-    choice_3: "ภูเก็ต",
-    choice_4: "พัทยา",
-    correct: 2,
-    difficulty: "ง่าย",
-    knowledge_categories: "ภูมิศาสตร์",
-  },
-  {
-    question_text: "สูตรเคมีของน้ำคืออะไร?",
-    choice_1: "CO2",
-    choice_2: "H2O",
-    choice_3: "NaCl",
-    choice_4: "O2",
-    correct: 2,
-    difficulty: "ง่าย",
-    knowledge_categories: "เคมี,วิทยาศาสตร์ทั่วไป",
-  },
-];
+const FALLBACK_TEMPLATE_CODES = ["ARC64-101-K001", "ARC64-101-K002"];
+
+function buildTemplateRows(codes: string[]): CsvRow[] {
+  const firstCode = codes[0] || FALLBACK_TEMPLATE_CODES[0];
+  const secondCode = codes[1] || FALLBACK_TEMPLATE_CODES[1];
+
+  return [
+    {
+      question_text: "ข้อใดคือเมืองหลวงของประเทศไทย?",
+      choice_1: "เชียงใหม่",
+      choice_2: "กรุงเทพมหานคร",
+      choice_3: "ภูเก็ต",
+      choice_4: "พัทยา",
+      correct: 2,
+      difficulty: "ง่าย",
+      knowledge_category_codes: firstCode,
+    },
+    {
+      question_text: "สูตรเคมีของน้ำคืออะไร?",
+      choice_1: "CO2",
+      choice_2: "H2O",
+      choice_3: "NaCl",
+      choice_4: "O2",
+      correct: 2,
+      difficulty: "ง่าย",
+      knowledge_category_codes: `${firstCode},${secondCode}`,
+    },
+  ];
+}
 
 const REQUIRED_COLUMNS = [
   "question_text",
@@ -107,13 +122,10 @@ const REQUIRED_COLUMNS = [
   "choice_4",
   "correct",
   "difficulty",
-  "knowledge_categories",
+  "knowledge_category_codes",
 ];
 
 const RESULT_ISSUE_EXPORT_COLUMNS = ["row_index", ...REQUIRED_COLUMNS, "status", "note"];
-
-type CsvValue = string | number | null | undefined;
-type CsvRow = Record<string, CsvValue>;
 
 // ── Helpers ──
 
@@ -165,7 +177,7 @@ function mapPreviewRowToCsv(row: PreviewRow): CsvRow {
     choice_4: row.choice_4,
     correct: row.correct_choice,
     difficulty: row.difficulty,
-    knowledge_categories: row.knowledge_categories,
+    knowledge_category_codes: row.knowledge_categories,
     status: row.status,
     note: row.note,
   };
@@ -194,6 +206,7 @@ export default function BulkUploadQuestion({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  const [categoryOptions, setCategoryOptions] = useState<KnowledgeCategoryOption[]>([]);
 
   // Edit mode
   const [editingRowIndex, setEditingRowIndex] = useState<number | null>(null);
@@ -211,6 +224,49 @@ export default function BulkUploadQuestion({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragDepthRef = useRef(0);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let isMounted = true;
+    setCategoryOptions([]);
+    apiFetch<KnowledgeCategoryOption[]>(
+      `/course-offerings/${offeringId}/knowledge-categories`,
+    )
+      .then((data) => {
+        if (isMounted) setCategoryOptions(data);
+      })
+      .catch(() => {
+        if (isMounted) setCategoryOptions([]);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, offeringId]);
+
+  const categoryOptionsWithCodes = useMemo(
+    () =>
+      categoryOptions.filter(
+        (category): category is KnowledgeCategoryOption & { code: string } =>
+          Boolean(category.code),
+      ),
+    [categoryOptions],
+  );
+
+  const availableCategoryCodes = useMemo(
+    () => categoryOptionsWithCodes.map((category) => category.code),
+    [categoryOptionsWithCodes],
+  );
+
+  const templateRows = useMemo(
+    () => buildTemplateRows(availableCategoryCodes),
+    [availableCategoryCodes],
+  );
+
+  const categoryCodeExample =
+    availableCategoryCodes.slice(0, 2).join(",") ||
+    FALLBACK_TEMPLATE_CODES.join(",");
 
   if (!isOpen) return null;
 
@@ -239,7 +295,7 @@ export default function BulkUploadQuestion({
     if (!DIFFICULTY_LABELS.includes(editForm.difficulty as (typeof DIFFICULTY_LABELS)[number]))
       errs.difficulty = "ระดับความยากต้องเป็น ง่าย, กลาง, หรือ ยาก";
     if (!editForm.knowledge_categories.trim())
-      errs.knowledge_categories = "ต้องระบุหมวดหมู่ความรู้อย่างน้อย 1 รายการ";
+      errs.knowledge_categories = "ต้องระบุรหัสหมวดหมู่ความรู้อย่างน้อย 1 รายการ";
     setEditErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -334,7 +390,15 @@ export default function BulkUploadQuestion({
               choice_4: readCsvCell(row, ["choice_4", "ตัวเลือกที่ 4", "choice4"]),
               correct: parseCorrect(readCsvCell(row, ["correct", "คำตอบที่ถูก", "answer", "correct_choice"])),
               difficulty: parseDifficulty(readCsvCell(row, ["difficulty", "ระดับความยาก", "level"])),
-              knowledge_categories: readCsvCell(row, ["knowledge_categories", "หมวดหมู่ความรู้", "categories", "tags"]),
+              knowledge_categories: readCsvCell(row, [
+                "knowledge_category_codes",
+                "รหัสหมวดหมู่ความรู้",
+                "category_codes",
+                "knowledge_categories",
+                "หมวดหมู่ความรู้",
+                "categories",
+                "tags",
+              ]),
             };
           });
 
@@ -449,7 +513,7 @@ export default function BulkUploadQuestion({
     downloadCsv(
       `iaes-question-import-template-${getCsvDownloadDate()}.csv`,
       REQUIRED_COLUMNS,
-      CSV_TEMPLATE_ROWS,
+      templateRows,
     );
   };
 
@@ -484,7 +548,7 @@ export default function BulkUploadQuestion({
           choice_4: previewRow?.choice_4,
           correct: previewRow?.correct_choice,
           difficulty: previewRow?.difficulty,
-          knowledge_categories: previewRow?.knowledge_categories,
+          knowledge_category_codes: previewRow?.knowledge_categories,
           status: r.status,
           note: r.note,
         };
@@ -501,6 +565,7 @@ export default function BulkUploadQuestion({
     setError(null);
     setEditingRowIndex(null);
     setSelectedFileName(null);
+    setCategoryOptions([]);
     setIsDragging(false);
     setIsLoading(false);
     dragDepthRef.current = 0;
@@ -643,7 +708,7 @@ export default function BulkUploadQuestion({
                     {isDragging ? "วางไฟล์ CSV ที่นี่" : "ลากไฟล์ CSV มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์"}
                   </p>
                   <p className="mt-2 max-w-xl text-sm leading-6 text-[#7A7287]">
-                    รองรับเฉพาะไฟล์ .csv ที่มีหัวคอลัมน์คำถาม ตัวเลือก คำตอบ ความยาก และหมวดหมู่ความรู้
+                    รองรับเฉพาะไฟล์ .csv ที่มีหัวคอลัมน์คำถาม ตัวเลือก คำตอบ ความยาก และรหัสหมวดหมู่ความรู้
                   </p>
                   {selectedFileName && (
                     <span className="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#514667] ring-1 ring-[#E7DDF8]">
@@ -698,15 +763,38 @@ export default function BulkUploadQuestion({
                       </div>
                     </div>
                     <div className="rounded-xl border border-[#EFE8FB] bg-[#FBFAFF] px-4 py-3 lg:col-span-2">
-                      <p className="text-sm font-semibold leading-5 text-[#2F2A3A]">หมวดหมู่ความรู้</p>
+                      <p className="text-sm font-semibold leading-5 text-[#2F2A3A]">รหัสหมวดหมู่ความรู้</p>
                       <div className="mt-2 flex flex-wrap items-center gap-2">
                         <code className="rounded-lg bg-[#F4EFFF] px-2.5 py-1 text-sm font-semibold text-[#7C5BD9]">
-                          knowledge_categories
+                          knowledge_category_codes
                         </code>
-                        <span className="text-sm leading-6 text-[#6A6276]">คั่นหลายหมวดหมู่ด้วยคอมม่า</span>
+                        <span className="text-sm leading-6 text-[#6A6276]">คั่นหลายรหัสด้วยคอมม่า</span>
                       </div>
                     </div>
                   </div>
+                  {categoryOptionsWithCodes.length > 0 && (
+                    <div className="mt-4 rounded-xl border border-[#EFE8FB] bg-[#FBFAFF] px-4 py-3">
+                      <p className="text-sm font-semibold leading-5 text-[#2F2A3A]">
+                        รหัสที่ใช้ได้ในรายวิชานี้
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {categoryOptionsWithCodes.slice(0, 8).map((category) => (
+                          <span
+                            key={category.knowledge_category_id}
+                            className="inline-flex items-center gap-2 rounded-lg bg-[#F4EFFF] px-2.5 py-1 text-xs font-semibold text-[#7C5BD9]"
+                            title={category.name}
+                          >
+                            {category.code}
+                          </span>
+                        ))}
+                        {availableCategoryCodes.length > 8 && (
+                          <span className="inline-flex items-center rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-500">
+                            +{availableCategoryCodes.length - 8}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -794,7 +882,7 @@ export default function BulkUploadQuestion({
                       <th className="w-[520px] px-5 py-3.5 text-left">คำถาม</th>
                       <th className="w-[80px] px-5 py-3.5 text-center">ตอบ</th>
                       <th className="w-[120px] px-5 py-3.5 text-left">ความยาก</th>
-                      <th className="w-[240px] px-5 py-3.5 text-left">หมวดหมู่</th>
+                      <th className="w-[240px] px-5 py-3.5 text-left">รหัสหมวดหมู่</th>
                       <th className="w-[180px] px-5 py-3.5 text-center">สถานะ</th>
                       <th className="w-[260px] px-5 py-3.5 text-left">หมายเหตุ</th>
                       <th className="w-[120px] px-5 py-3.5 text-center">จัดการ</th>
@@ -927,7 +1015,7 @@ export default function BulkUploadQuestion({
                                     setEditForm({ ...editForm, knowledge_categories: e.target.value })
                                   }
                                   className="w-full rounded-lg border border-[#B7A3E3] bg-white px-3 py-2.5 font-sans text-sm outline-none focus:ring-2 focus:ring-purple-300"
-                                  placeholder="คั่นด้วย ,"
+                                  placeholder={`เช่น ${categoryCodeExample}`}
                                 />
                               ) : (
                                 <p className="line-clamp-2 max-w-[250px] text-sm leading-6 text-[#514667]" title={row.knowledge_categories}>
@@ -1121,7 +1209,7 @@ export default function BulkUploadQuestion({
                       <th className="w-[520px] px-5 py-3.5 text-left">คำถาม</th>
                       <th className="w-[80px] px-5 py-3.5 text-center">ตอบ</th>
                       <th className="w-[120px] px-5 py-3.5 text-center">ความยาก</th>
-                      <th className="w-[240px] px-5 py-3.5 text-left">หมวดหมู่</th>
+                      <th className="w-[240px] px-5 py-3.5 text-left">รหัสหมวดหมู่</th>
                       <th className="w-[180px] px-5 py-3.5 text-center">สถานะ</th>
                       <th className="w-[260px] px-5 py-3.5 text-left">หมายเหตุ</th>
                     </tr>

@@ -33,6 +33,12 @@ interface StaffActor {
   role: string;
 }
 
+interface CourseKnowledgeRef {
+  knowledge_category_id: bigint;
+  name: string;
+  code: string;
+}
+
 function serializeBigInt<T>(data: T): T {
   return JSON.parse(
     JSON.stringify(data, (_, value: unknown) =>
@@ -41,12 +47,88 @@ function serializeBigInt<T>(data: T): T {
   ) as T;
 }
 
+function splitCategoryTokens(value: string): string[] {
+  return value
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function categoryLookupKey(value: string): string {
+  return value.trim().toLocaleLowerCase('th-TH');
+}
+
+function extractCategoryCodeSuffix(value: string): string | undefined {
+  return value.trim().toUpperCase().match(/K\d+$/)?.[0];
+}
+
 @Injectable()
 export class QuestionImportService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly academicSettings: AcademicSettingsService,
   ) {}
+
+  private async getCourseCategoryLookup(
+    coursesId: bigint,
+  ): Promise<Map<string, CourseKnowledgeRef>> {
+    const rows = await this.prisma.course_knowledge.findMany({
+      where: { courses_id: coursesId },
+      select: {
+        knowledge_category_id: true,
+        code: true,
+        knowledge_categories: {
+          select: { name: true },
+        },
+      },
+    });
+
+    const lookup = new Map<string, CourseKnowledgeRef>();
+    const refs = rows.map((row) => ({
+      knowledge_category_id: row.knowledge_category_id,
+      name: row.knowledge_categories.name,
+      code: row.code,
+    }));
+
+    for (const ref of refs) {
+      const key = categoryLookupKey(ref.name);
+      if (!lookup.has(key)) {
+        lookup.set(key, ref);
+      }
+    }
+
+    for (const ref of refs) {
+      const suffix = extractCategoryCodeSuffix(ref.code);
+      if (suffix) {
+        const suffixKey = categoryLookupKey(suffix);
+        if (!lookup.has(suffixKey)) {
+          lookup.set(suffixKey, ref);
+        }
+      }
+      const codeKey = categoryLookupKey(ref.code);
+      if (!lookup.has(codeKey)) {
+        lookup.set(codeKey, ref);
+      }
+    }
+
+    return lookup;
+  }
+
+  private resolveCategoryIds(
+    rawCategories: string,
+    categoryLookup: Map<string, CourseKnowledgeRef>,
+  ): bigint[] {
+    return Array.from(
+      new Set(
+        splitCategoryTokens(rawCategories)
+          .map((token) => categoryLookup.get(categoryLookupKey(token)))
+          .filter((category): category is CourseKnowledgeRef =>
+            Boolean(category),
+          )
+          .map((category) => category.knowledge_category_id),
+      ),
+    );
+  }
 
   private async resolveCourseAndAuthorize(
     offeringId: string,
@@ -116,7 +198,7 @@ export class QuestionImportService {
       difficulty?: string;
       knowledge_categories?: string;
     },
-    validCategoryNames: Set<string>,
+    categoryLookup: Map<string, CourseKnowledgeRef>,
   ): { status: QuestionImportRowStatus; note?: string } {
     // question_text
     const qText = row.question_text?.trim() ?? '';
@@ -173,21 +255,20 @@ export class QuestionImportService {
         note: 'ต้องระบุหมวดหมู่ความรู้อย่างน้อย 1 รายการ',
       };
     }
-    const catNames = rawCat
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (catNames.length === 0) {
+    const catTokens = splitCategoryTokens(rawCat);
+    if (catTokens.length === 0) {
       return {
         status: 'ERROR',
         note: 'ต้องระบุหมวดหมู่ความรู้อย่างน้อย 1 รายการ',
       };
     }
-    const unknown = catNames.filter((n) => !validCategoryNames.has(n));
+    const unknown = catTokens.filter(
+      (token) => !categoryLookup.has(categoryLookupKey(token)),
+    );
     if (unknown.length > 0) {
       return {
         status: 'ERROR',
-        note: `ไม่พบหมวดหมู่ความรู้: ${unknown.join(', ')}`,
+        note: `ไม่พบรหัส/ชื่อหมวดหมู่ความรู้: ${unknown.join(', ')}`,
       };
     }
 
@@ -204,14 +285,7 @@ export class QuestionImportService {
   ): Promise<QuestionImportSessionResponse> {
     const coursesId = await this.resolveCourseAndAuthorize(offeringId, actor);
 
-    // Load valid knowledge category names for this course
-    const cats = await this.prisma.knowledge_categories.findMany({
-      where: {
-        course_knowledge: { some: { courses_id: coursesId } },
-      },
-      select: { name: true },
-    });
-    const validCategoryNames = new Set(cats.map((c) => c.name));
+    const categoryLookup = await this.getCourseCategoryLookup(coursesId);
 
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
@@ -240,7 +314,7 @@ export class QuestionImportService {
 
     for (let i = 0; i < dto.rows.length; i++) {
       const r = dto.rows[i];
-      const { status, note } = this.validateRow(r, validCategoryNames);
+      const { status, note } = this.validateRow(r, categoryLookup);
       const correct =
         typeof r.correct === 'string'
           ? parseInt(r.correct, 10)
@@ -351,12 +425,7 @@ export class QuestionImportService {
       throw new NotFoundException('Row not found');
     }
 
-    // Load valid category names
-    const cats = await this.prisma.knowledge_categories.findMany({
-      where: { course_knowledge: { some: { courses_id: coursesId } } },
-      select: { name: true },
-    });
-    const validCategoryNames = new Set(cats.map((c) => c.name));
+    const categoryLookup = await this.getCourseCategoryLookup(coursesId);
 
     // Merge edits with existing
     const merged = {
@@ -371,7 +440,7 @@ export class QuestionImportService {
         dto.knowledge_categories ?? existing.knowledge_categories,
     };
 
-    const { status, note } = this.validateRow(merged, validCategoryNames);
+    const { status, note } = this.validateRow(merged, categoryLookup);
     const correct =
       typeof merged.correct === 'string'
         ? parseInt(merged.correct, 10)
@@ -470,16 +539,9 @@ export class QuestionImportService {
       throw new NotFoundException('Course offering not found');
     }
 
-    const cats = await this.prisma.knowledge_categories.findMany({
-      where: {
-        course_knowledge: { some: { courses_id: offering.courses_id } },
-      },
-      select: { knowledge_category_id: true, name: true },
-    });
-    const nameToId = new Map(
-      cats.map((c) => [c.name, c.knowledge_category_id]),
+    const categoryLookup = await this.getCourseCategoryLookup(
+      offering.courses_id,
     );
-    const validCategoryNames = new Set(cats.map((c) => c.name));
 
     // Resolve default collection
     const collectionId = await this.resolveDefaultCollectionId(
@@ -512,7 +574,7 @@ export class QuestionImportService {
           difficulty: row.difficulty,
           knowledge_categories: row.knowledge_categories,
         },
-        validCategoryNames,
+        categoryLookup,
       );
 
       if (validation.status === 'ERROR') {
@@ -526,15 +588,9 @@ export class QuestionImportService {
       }
 
       try {
-        const catIds = Array.from(
-          new Set(
-            row.knowledge_categories
-              .split(',')
-              .map((s) => s.trim())
-              .filter(Boolean)
-              .map((name) => nameToId.get(name))
-              .filter((id): id is bigint => id != null),
-          ),
+        const catIds = this.resolveCategoryIds(
+          row.knowledge_categories,
+          categoryLookup,
         );
 
         const difficultyParam = mapDifficultyLabel(row.difficulty);

@@ -84,7 +84,7 @@ export default function EditCourseOfferingModal({
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const hasCourseExams = (courseOffering._count?.course_exams ?? 0) > 0;
   const examDeleteBlockedMessage =
-    "มีการสร้างชุดข้อสอบหรือมีการจัดสอบในรายวิชานี้แล้ว ระบบไม่อนุญาตให้ลบรายวิชา";
+    "รอบเปิดสอบนี้มีชุดข้อสอบหรือประวัติการจัดสอบแล้ว เพื่อรักษาข้อมูลการสอบ ระบบจึงไม่อนุญาตให้ลบ";
 
   // Reset form when course offering changes
   useEffect(() => {
@@ -467,15 +467,23 @@ export default function EditCourseOfferingModal({
             setDeleteError(null);
           }
         }}
-        onConfirm={deleteError ? () => setShowDeleteConfirm(false) : handleDelete}
-        title="ลบรายวิชาที่เปิดสอน"
+        onConfirm={
+          deleteError
+            ? () => {
+                setShowDeleteConfirm(false);
+                setDeleteError(null);
+              }
+            : handleDelete
+        }
+        title={deleteError ? "ไม่สามารถลบรอบเปิดสอบได้" : "ลบรายวิชาที่เปิดสอบ"}
         message={
-          deleteError || `คุณแน่ใจหรือไม่ว่าต้องการลบรายวิชาที่เปิดสอนนี้?`
+          deleteError || `คุณแน่ใจหรือไม่ว่าต้องการลบรายวิชาที่เปิดสอบนี้?`
         }
         confirmText={deleteError ? "รับทราบ" : "ลบ"}
         cancelText="ยกเลิก"
         isLoading={isDeleting}
         variant={deleteError ? "warning" : "danger"}
+        acknowledgeOnly={Boolean(deleteError)}
       />
     </div>
   );

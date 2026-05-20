@@ -223,7 +223,14 @@ export class QuestionsService {
           question_knowledge: {
             select: {
               knowledge_categories: {
-                select: { knowledge_category_id: true, name: true },
+                select: {
+                  knowledge_category_id: true,
+                  name: true,
+                  course_knowledge: {
+                    where: { courses_id: coursesId },
+                    select: { code: true },
+                  },
+                },
               },
             },
           },
@@ -235,7 +242,10 @@ export class QuestionsService {
     const data = items.map((q) => ({
       ...q,
       knowledge_categories: q.question_knowledge.map(
-        (k) => k.knowledge_categories,
+        (k) => ({
+          ...k.knowledge_categories,
+          code: k.knowledge_categories.course_knowledge[0]?.code,
+        }),
       ),
       question_knowledge: undefined,
     }));
@@ -353,7 +363,14 @@ export class QuestionsService {
           question_knowledge: {
             select: {
               knowledge_categories: {
-                select: { knowledge_category_id: true, name: true },
+                select: {
+                  knowledge_category_id: true,
+                  name: true,
+                  course_knowledge: {
+                    where: { courses_id: coursesId },
+                    select: { code: true },
+                  },
+                },
               },
             },
           },
@@ -382,7 +399,10 @@ export class QuestionsService {
         : null,
       choices: q.choices,
       knowledge_categories: q.question_knowledge.map(
-        (k) => k.knowledge_categories,
+        (k) => ({
+          ...k.knowledge_categories,
+          code: k.knowledge_categories.course_knowledge[0]?.code,
+        }),
       ),
     }));
 
@@ -731,13 +751,20 @@ export class QuestionsService {
 
     const rows = await this.prisma.course_knowledge.findMany({
       where: { courses_id: coursesId },
+      orderBy: { code: 'asc' },
       select: {
+        code: true,
         knowledge_categories: {
           select: { knowledge_category_id: true, name: true },
         },
       },
     });
 
-    return serializeBigInt(rows.map((r) => r.knowledge_categories));
+    return serializeBigInt(
+      rows.map((r) => ({
+        ...r.knowledge_categories,
+        code: r.code,
+      })),
+    );
   }
 }

@@ -1,4 +1,8 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -12,12 +16,237 @@ function serializeBigInt(data: any) {
   );
 }
 
+type KnowledgeCategoryInput =
+  | string
+  | {
+      name: string;
+      code?: string;
+    };
+
+interface NormalizedKnowledgeCategoryInput {
+  name: string;
+  code: string;
+}
+
+const KNOWLEDGE_SUFFIX_PATTERN = /^K\d{3,}$/;
+
+function defaultKnowledgeSuffix(index: number) {
+  return `K${String(index + 1).padStart(3, '0')}`;
+}
+
+function knowledgeCodePrefix(courseCode: string) {
+  return `${normalizeCourseCode(courseCode)}-`;
+}
+
+function normalizeCourseCode(courseCode: string) {
+  return courseCode.trim().toUpperCase();
+}
+
+function extractKnowledgeSuffix(code: string) {
+  return code.trim().toUpperCase().match(/K\d+$/)?.[0];
+}
+
+function formatKnowledgeCode(courseCode: string, suffix: string) {
+  return `${knowledgeCodePrefix(courseCode)}${suffix}`;
+}
+
+function serializeCourseKnowledge(row: any) {
+  return {
+    ...row.knowledge_categories,
+    code: row.code,
+  };
+}
+
 @Injectable()
 export class CoursesService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private normalizeKnowledgeInputs(
+    inputs: KnowledgeCategoryInput[],
+    courseCode: string,
+  ): NormalizedKnowledgeCategoryInput[] {
+    const seenCodes = new Set<string>();
+    const seenNames = new Set<string>();
+    const normalized: NormalizedKnowledgeCategoryInput[] = [];
+    const prefix = knowledgeCodePrefix(courseCode);
+
+    for (const input of inputs) {
+      const name = (typeof input === 'string' ? input : input.name ?? '').trim();
+      const rawCode =
+        typeof input === 'string' ? undefined : input.code?.trim();
+
+      if (!name) {
+        throw new BadRequestException('ต้องระบุชื่อหมวดหมู่ความรู้');
+      }
+
+      const normalizedRawCode = rawCode?.toUpperCase() ?? '';
+      const suffix =
+        (normalizedRawCode.startsWith(prefix)
+          ? normalizedRawCode.slice(prefix.length)
+          : normalizedRawCode) || defaultKnowledgeSuffix(normalized.length);
+
+      if (!suffix) {
+        throw new BadRequestException('ต้องระบุรหัสหมวดหมู่ความรู้');
+      }
+
+      if (!KNOWLEDGE_SUFFIX_PATTERN.test(suffix)) {
+        throw new BadRequestException(
+          `รหัสหมวดหมู่ความรู้ต้องอยู่ในรูปแบบ ${prefix}K001`,
+        );
+      }
+
+      const code = formatKnowledgeCode(courseCode, suffix);
+
+      if (seenCodes.has(code)) {
+        throw new BadRequestException(
+          `รหัสหมวดหมู่ความรู้ ${code} ซ้ำในรายวิชานี้`,
+        );
+      }
+
+      const nameKey = name.toLocaleLowerCase('th-TH');
+      if (seenNames.has(nameKey)) {
+        throw new BadRequestException(
+          `ชื่อหมวดหมู่ความรู้ "${name}" ซ้ำในรายวิชานี้`,
+        );
+      }
+
+      seenCodes.add(code);
+      seenNames.add(nameKey);
+      normalized.push({ name, code });
+    }
+
+    return normalized;
+  }
+
+  private async upsertCourseKnowledge(
+    tx: Prisma.TransactionClient,
+    courseId: bigint,
+    courseCode: string,
+    inputs: KnowledgeCategoryInput[],
+    instructorId: string,
+  ) {
+    const categories = this.normalizeKnowledgeInputs(inputs, courseCode);
+
+    await tx.course_knowledge.deleteMany({
+      where: { courses_id: courseId },
+    });
+
+    for (const input of categories) {
+      let category = await tx.knowledge_categories.findFirst({
+        where: { name: input.name },
+      });
+
+      if (!category) {
+        category = await tx.knowledge_categories.create({
+          data: {
+            name: input.name,
+            created_by_staff_id: BigInt(instructorId),
+          },
+        });
+      }
+
+      await tx.course_knowledge.create({
+        data: {
+          courses_id: courseId,
+          knowledge_category_id: category.knowledge_category_id,
+          code: input.code,
+        },
+      });
+    }
+  }
+
+  private async rewriteKnowledgeCodePrefix(
+    tx: Prisma.TransactionClient,
+    courseId: bigint,
+    courseCode: string,
+  ) {
+    const links = await tx.course_knowledge.findMany({
+      where: { courses_id: courseId },
+      select: {
+        knowledge_category_id: true,
+        code: true,
+      },
+      orderBy: { code: 'asc' },
+    });
+    const usedCodes = new Set<string>();
+    const existingCodes = new Set(links.map((link) => link.code));
+    const temporaryCodes = new Set<string>();
+    const rewrites: Array<{
+      knowledgeCategoryId: bigint;
+      currentCode: string;
+      temporaryCode: string;
+      nextCode: string;
+    }> = [];
+
+    const makeTemporaryCode = (index: number) => {
+      let attempt = 0;
+      let code = '';
+
+      do {
+        code = `__TMP${String(index).padStart(3, '0')}${attempt ? `_${attempt}` : ''}`;
+        attempt += 1;
+      } while (existingCodes.has(code) || temporaryCodes.has(code));
+
+      temporaryCodes.add(code);
+      return code;
+    };
+
+    let collisionCounter = links.length;
+    for (const [index, link] of links.entries()) {
+      let suffix = extractKnowledgeSuffix(link.code) ?? defaultKnowledgeSuffix(index);
+      let nextCode = formatKnowledgeCode(courseCode, suffix);
+
+      while (usedCodes.has(nextCode)) {
+        suffix = defaultKnowledgeSuffix(collisionCounter);
+        collisionCounter += 1;
+        nextCode = formatKnowledgeCode(courseCode, suffix);
+      }
+
+      usedCodes.add(nextCode);
+      rewrites.push({
+        knowledgeCategoryId: link.knowledge_category_id,
+        currentCode: link.code,
+        temporaryCode: makeTemporaryCode(index),
+        nextCode,
+      });
+    }
+
+    if (rewrites.every((rewrite) => rewrite.currentCode === rewrite.nextCode)) {
+      return;
+    }
+
+    for (const rewrite of rewrites) {
+      await tx.course_knowledge.update({
+        where: {
+          courses_id_knowledge_category_id: {
+            courses_id: courseId,
+            knowledge_category_id: rewrite.knowledgeCategoryId,
+          },
+        },
+        data: { code: rewrite.temporaryCode },
+      });
+    }
+
+    for (const rewrite of rewrites) {
+      await tx.course_knowledge.update({
+        where: {
+          courses_id_knowledge_category_id: {
+            courses_id: courseId,
+            knowledge_category_id: rewrite.knowledgeCategoryId,
+          },
+        },
+        data: { code: rewrite.nextCode },
+      });
+    }
+  }
+
   async create(dto: CreateCourseDto, instructorId: string) {
     const result = await this.prisma.$transaction(async (tx) => {
+      const courseCode = normalizeCourseCode(dto.course_code);
+      if (!courseCode) {
+        throw new BadRequestException('ต้องระบุรหัสวิชา');
+      }
+
       // 1. Create course
       // course_name is set to course_name_th for backward compatibility
       // (all existing UI code references course_name)
@@ -26,36 +255,20 @@ export class CoursesService {
           course_name: dto.course_name_th,
           course_name_th: dto.course_name_th,
           course_name_en: dto.course_name_en,
-          course_code: dto.course_code,
+          course_code: courseCode,
           created_by_instructors_id: BigInt(instructorId),
         },
       });
 
       // 2. Handle knowledge categories
       if (dto.knowledge_categories && dto.knowledge_categories.length > 0) {
-        for (const categoryName of dto.knowledge_categories) {
-          // Find or create category
-          let category = await tx.knowledge_categories.findFirst({
-            where: { name: categoryName },
-          });
-
-          if (!category) {
-            category = await tx.knowledge_categories.create({
-              data: {
-                name: categoryName,
-                created_by_staff_id: BigInt(instructorId),
-              },
-            });
-          }
-
-          // Create relation
-          await tx.course_knowledge.create({
-            data: {
-              courses_id: course.courses_id,
-              knowledge_category_id: category.knowledge_category_id,
-            },
-          });
-        }
+        await this.upsertCourseKnowledge(
+          tx,
+          course.courses_id,
+          courseCode,
+          dto.knowledge_categories,
+          instructorId,
+        );
       }
 
       // 3. Return course with knowledge categories
@@ -63,6 +276,7 @@ export class CoursesService {
         where: { courses_id: course.courses_id },
         include: {
           course_knowledge: {
+            orderBy: { code: 'asc' },
             include: {
               knowledge_categories: true,
             },
@@ -121,13 +335,20 @@ export class CoursesService {
         where,
         include: {
           course_knowledge: {
-            include: {
+            orderBy: { code: 'asc' },
+            select: {
+              code: true,
               knowledge_categories: {
                 select: {
                   knowledge_category_id: true,
                   name: true,
                 },
               },
+            },
+          },
+          _count: {
+            select: {
+              course_offerings: true,
             },
           },
         },
@@ -158,7 +379,9 @@ export class CoursesService {
       where: { courses_id: BigInt(id) },
       include: {
         course_knowledge: {
-          include: {
+          orderBy: { code: 'asc' },
+          select: {
+            code: true,
             knowledge_categories: {
               select: {
                 knowledge_category_id: true,
@@ -175,52 +398,49 @@ export class CoursesService {
 
   async update(id: number, dto: UpdateCourseDto, instructorId: string) {
     const result = await this.prisma.$transaction(async (tx) => {
+      const existing = await tx.courses.findUnique({
+        where: { courses_id: BigInt(id) },
+        select: { course_code: true },
+      });
+      const nextCourseCode = dto.course_code
+        ? normalizeCourseCode(dto.course_code)
+        : existing?.course_code;
+
+      if (!nextCourseCode) {
+        throw new BadRequestException('ไม่พบรหัสวิชาสำหรับรายวิชานี้');
+      }
+
       // 1. Update basic course info
       // For backward compatibility: course_name mirrors course_name_th
+      const nextCourseNameTh = dto.course_name_th?.trim() || dto.course_name?.trim();
+      const courseCodeChanged =
+        dto.course_code !== undefined &&
+        dto.course_code !== null &&
+        normalizeCourseCode(dto.course_code) !== existing?.course_code;
+
       await tx.courses.update({
         where: { courses_id: BigInt(id) },
         data: {
-          ...(dto.course_name && { course_name: dto.course_name }),
-          ...(dto.course_name_th && {
-            course_name: dto.course_name_th,
-            course_name_th: dto.course_name_th,
+          ...(nextCourseNameTh && {
+            course_name: nextCourseNameTh,
+            course_name_th: nextCourseNameTh,
           }),
-          ...(dto.course_name_en && { course_name_en: dto.course_name_en }),
-          ...(dto.course_code && { course_code: dto.course_code }),
+          ...(dto.course_name_en?.trim() && { course_name_en: dto.course_name_en.trim() }),
+          ...(dto.course_code !== undefined && dto.course_code !== null && { course_code: nextCourseCode }),
         },
       });
 
       // 2. Handle knowledge categories if provided
       if (dto.knowledge_categories !== undefined) {
-        // Delete all existing relations
-        await tx.course_knowledge.deleteMany({
-          where: { courses_id: BigInt(id) },
-        });
-
-        // Create new relations
-        for (const categoryName of dto.knowledge_categories) {
-          // Find or create category
-          let category = await tx.knowledge_categories.findFirst({
-            where: { name: categoryName },
-          });
-
-          if (!category) {
-            category = await tx.knowledge_categories.create({
-              data: {
-                name: categoryName,
-                created_by_staff_id: BigInt(instructorId),
-              },
-            });
-          }
-
-          // Create relation
-          await tx.course_knowledge.create({
-            data: {
-              courses_id: BigInt(id),
-              knowledge_category_id: category.knowledge_category_id,
-            },
-          });
-        }
+        await this.upsertCourseKnowledge(
+          tx,
+          BigInt(id),
+          nextCourseCode,
+          dto.knowledge_categories,
+          instructorId,
+        );
+      } else if (courseCodeChanged) {
+        await this.rewriteKnowledgeCodePrefix(tx, BigInt(id), nextCourseCode);
       }
 
       // 3. Return updated course with knowledge categories
@@ -228,8 +448,14 @@ export class CoursesService {
         where: { courses_id: BigInt(id) },
         include: {
           course_knowledge: {
+            orderBy: { code: 'asc' },
             include: {
-              knowledge_categories: true,
+              knowledge_categories: {
+                select: {
+                  knowledge_category_id: true,
+                  name: true,
+                },
+              },
             },
           },
         },
@@ -256,7 +482,7 @@ export class CoursesService {
 
     if (offeringsCount > 0) {
       throw new ConflictException(
-        'Cannot delete this course because course offerings already exist for this course.',
+        'รายวิชานี้เคยถูกเปิดสอบแล้ว จึงไม่สามารถลบออกจากระบบได้ หากไม่ต้องการใช้งานต่อ ให้เปลี่ยนสถานะเป็นปิดใช้งานแทน',
       );
     }
 
@@ -276,7 +502,10 @@ export class CoursesService {
   async checkCodeExists(code: string, excludeId?: number): Promise<boolean> {
     const existing = await this.prisma.courses.findFirst({
       where: {
-        course_code: code.trim(),
+        course_code: {
+          equals: normalizeCourseCode(code),
+          mode: 'insensitive',
+        },
         ...(excludeId ? { NOT: { courses_id: BigInt(excludeId) } } : {}),
       },
       select: { courses_id: true },
@@ -312,7 +541,9 @@ export class CoursesService {
       where: { courses_id: BigInt(courseId) },
       include: {
         course_knowledge: {
-          include: {
+          orderBy: { code: 'asc' },
+          select: {
+            code: true,
             knowledge_categories: {
               select: {
                 knowledge_category_id: true,
@@ -327,50 +558,38 @@ export class CoursesService {
     if (!course) return [];
 
     const serialized = serializeBigInt(course);
-    return serialized.course_knowledge.map(
-      (ck: any) => ck.knowledge_categories,
-    );
+    return serialized.course_knowledge.map(serializeCourseKnowledge);
   }
 
   async updateKnowledgeCategories(
     courseId: number,
-    names: string[],
+    categories: KnowledgeCategoryInput[],
     instructorId: string,
   ) {
     const result = await this.prisma.$transaction(async (tx) => {
-      // Delete all existing relations
-      await tx.course_knowledge.deleteMany({
+      const course = await tx.courses.findUnique({
         where: { courses_id: BigInt(courseId) },
+        select: { course_code: true },
       });
 
-      // Create new relations
-      for (const categoryName of names) {
-        let category = await tx.knowledge_categories.findFirst({
-          where: { name: categoryName },
-        });
-
-        if (!category) {
-          category = await tx.knowledge_categories.create({
-            data: {
-              name: categoryName,
-              created_by_staff_id: BigInt(instructorId),
-            },
-          });
-        }
-
-        await tx.course_knowledge.create({
-          data: {
-            courses_id: BigInt(courseId),
-            knowledge_category_id: category.knowledge_category_id,
-          },
-        });
+      if (!course) {
+        throw new BadRequestException('ไม่พบรายวิชานี้');
       }
+
+      await this.upsertCourseKnowledge(
+        tx,
+        BigInt(courseId),
+        course.course_code,
+        categories,
+        instructorId,
+      );
 
       // Return updated course with knowledge categories
       return tx.courses.findUnique({
         where: { courses_id: BigInt(courseId) },
         include: {
           course_knowledge: {
+            orderBy: { code: 'asc' },
             include: {
               knowledge_categories: true,
             },
