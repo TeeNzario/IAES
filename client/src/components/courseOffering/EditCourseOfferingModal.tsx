@@ -467,7 +467,14 @@ export default function EditCourseOfferingModal({
             setDeleteError(null);
           }
         }}
-        onConfirm={deleteError ? () => setShowDeleteConfirm(false) : handleDelete}
+        onConfirm={
+          deleteError
+            ? () => {
+                setShowDeleteConfirm(false);
+                setDeleteError(null);
+              }
+            : handleDelete
+        }
         title="ลบรายวิชาที่เปิดสอน"
         message={
           deleteError || `คุณแน่ใจหรือไม่ว่าต้องการลบรายวิชาที่เปิดสอนนี้?`
@@ -476,6 +483,7 @@ export default function EditCourseOfferingModal({
         cancelText="ยกเลิก"
         isLoading={isDeleting}
         variant={deleteError ? "warning" : "danger"}
+        acknowledgeOnly={Boolean(deleteError)}
       />
     </div>
   );

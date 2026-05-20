@@ -346,6 +346,11 @@ export class CoursesService {
               },
             },
           },
+          _count: {
+            select: {
+              course_offerings: true,
+            },
+          },
         },
         orderBy: {
           created_at: 'desc',

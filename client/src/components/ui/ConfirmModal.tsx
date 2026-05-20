@@ -13,6 +13,7 @@ interface ConfirmModalProps {
   cancelText?: string;
   isLoading?: boolean;
   variant?: "danger" | "warning";
+  acknowledgeOnly?: boolean;
 }
 
 export default function ConfirmModal({
@@ -25,6 +26,7 @@ export default function ConfirmModal({
   cancelText = "ยกเลิก",
   isLoading = false,
   variant = "danger",
+  acknowledgeOnly = false,
 }: ConfirmModalProps) {
   if (!isOpen) return null;
 
@@ -73,18 +75,20 @@ export default function ConfirmModal({
         <p className="text-gray-600 text-center text-sm mb-6 leading-relaxed">{message}</p>
 
         {/* Buttons */}
-        <div className="flex gap-3">
-          <button
-            onClick={onClose}
-            disabled={isLoading}
-            className="flex-1 rounded-xl border-2 border-gray-300 px-6 py-2.5 font-semibold text-gray-900 hover:bg-gray-50 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {cancelText}
-          </button>
+        <div className={acknowledgeOnly ? "flex justify-center" : "flex gap-3"}>
+          {!acknowledgeOnly && (
+            <button
+              onClick={onClose}
+              disabled={isLoading}
+              className="flex-1 rounded-xl border-2 border-gray-300 px-6 py-2.5 font-semibold text-gray-900 hover:bg-gray-50 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {cancelText}
+            </button>
+          )}
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            className={`flex-1 rounded-xl px-6 py-2.5 text-white transition-colors font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg ${styles.button}`}
+            className={`${acknowledgeOnly ? "w-full max-w-56" : "flex-1"} rounded-xl px-6 py-2.5 text-white transition-colors font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg ${styles.button}`}
           >
             {isLoading && (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

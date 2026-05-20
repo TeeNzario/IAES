@@ -48,6 +48,9 @@ interface Course {
   is_active: boolean;
   created_at?: string;
   course_knowledge?: CourseKnowledge[];
+  _count?: {
+    course_offerings: number;
+  };
 }
 
 interface PaginatedResponse {
@@ -178,7 +181,11 @@ export default function CourseManagement() {
   // Handle delete click
   const handleDeleteClick = (course: Course) => {
     setDeletingCourse(course);
-    setDeleteError(null);
+    setDeleteError(
+      (course._count?.course_offerings ?? 0) > 0
+        ? "ไม่สามารถลบรายวิชานี้ได้ เนื่องจากมีการเปิดสอนรายวิชานี้อยู่"
+        : null,
+    );
     setIsDeleteModalOpen(true);
   };
 
@@ -488,7 +495,10 @@ export default function CourseManagement() {
             </div>
 
             {!isLoading && totalItems > 0 && (
-              <div className="flex justify-end border-t border-[#EFE8FB] px-5 py-4">
+              <div className="flex flex-col gap-3 border-t border-[#EFE8FB] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <span className="inline-flex h-9 w-fit items-center rounded-lg bg-white px-3 text-sm font-semibold text-[#514667] shadow-sm ring-1 ring-[#E7DDF8]">
+                  หน้า {currentPage}/{totalPages}
+                </span>
                 <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
@@ -573,16 +583,25 @@ export default function CourseManagement() {
             setDeleteError(null);
           }
         }}
-        onConfirm={handleDeleteConfirm}
+        onConfirm={
+          deleteError
+            ? () => {
+                setIsDeleteModalOpen(false);
+                setDeletingCourse(null);
+                setDeleteError(null);
+              }
+            : handleDeleteConfirm
+        }
         title="ลบรายวิชา"
         message={
           deleteError ||
           `คุณแน่ใจหรือไม่ว่าต้องการลบรายวิชา "${deletingCourse ? getThaiCourseName(deletingCourse) : ""}"?`
         }
-        confirmText="ลบ"
+        confirmText={deleteError ? "รับทราบ" : "ลบ"}
         cancelText="ยกเลิก"
         isLoading={isDeleting}
         variant={deleteError ? "warning" : "danger"}
+        acknowledgeOnly={Boolean(deleteError)}
       />
 
       <AlertModal
