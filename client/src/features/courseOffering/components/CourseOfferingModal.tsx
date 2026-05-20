@@ -434,7 +434,7 @@ export default function CourseOfferingModal({
             </>
           )}
 
-          {!isLoading && (
+          {!isLoading && hasAdditionalInstructorOptions && (
             <button
               type="button"
               onClick={handleAddSlot}

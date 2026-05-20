@@ -103,20 +103,18 @@ export default function EditCourseOfferingModal({
   }, [isOpen, courseOffering]);
 
   useEffect(() => {
-    if (!isOpen || !courseOffering) return;
+    if (!isOpen || !courseOffering || !creatorInstructor) return;
 
-    const lockedInstructorId = creatorInstructor?.staff_users_id;
+    const lockedInstructorId = creatorInstructor.staff_users_id;
     const instructorIds = courseOffering.course_instructors.map(
       (courseInstructor) => courseInstructor.staff_users_id,
     );
-    const additionalIds = lockedInstructorId
-      ? instructorIds.filter(
-          (instructorId) => instructorId !== lockedInstructorId,
-        )
-      : instructorIds.slice(1);
+    const additionalIds = instructorIds.filter(
+      (instructorId) => instructorId !== lockedInstructorId,
+    );
 
     setAdditionalSlots(additionalIds);
-  }, [creatorInstructor?.staff_users_id, isOpen, courseOffering]);
+  }, [isOpen, courseOffering, creatorInstructor]);
 
   // Fetch creator (me) and all instructors on mount
   useEffect(() => {
@@ -197,15 +195,6 @@ export default function EditCourseOfferingModal({
 
   const renderInstructorOptions = (slotValue: string) => {
     const availableInstructors = getAvailableInstructors(slotValue);
-    const selectedInstructorFallback = courseOffering.course_instructors.find(
-      (courseInstructor) => courseInstructor.staff_users_id === slotValue,
-    )?.staff_users;
-    const shouldRenderFallback =
-      Boolean(slotValue) &&
-      Boolean(selectedInstructorFallback) &&
-      !availableInstructors.some(
-        (instructor) => instructor.staff_users_id === slotValue,
-      );
 
     return (
       <>
@@ -222,11 +211,6 @@ export default function EditCourseOfferingModal({
             {formatInstructorName(instructor)}
           </option>
         ))}
-        {shouldRenderFallback && selectedInstructorFallback && (
-          <option value={slotValue}>
-            {formatInstructorName(selectedInstructorFallback)}
-          </option>
-        )}
       </>
     );
   };
@@ -495,7 +479,7 @@ export default function EditCourseOfferingModal({
             </>
           )}
 
-          {!isLoading && (
+          {!isLoading && hasAdditionalInstructorOptions && (
             <button
               type="button"
               onClick={handleAddSlot}
