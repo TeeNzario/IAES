@@ -26,6 +26,8 @@ import { getThaiCourseName } from "@/utils/formatCourseName";
 // Configuration
 const ITEMS_PER_PAGE_OPTIONS = [25, 50, 100, 200];
 const DEFAULT_ITEMS_PER_PAGE = 25;
+const COURSE_DELETE_BLOCKED_MESSAGE =
+  "รายวิชานี้เคยถูกเปิดสอบแล้ว จึงไม่สามารถลบออกจากระบบได้ หากไม่ต้องการใช้งานต่อ ให้เปลี่ยนสถานะเป็นปิดใช้งานแทน";
 
 // Interfaces
 interface KnowledgeCategory {
@@ -183,7 +185,7 @@ export default function CourseManagement() {
     setDeletingCourse(course);
     setDeleteError(
       (course._count?.course_offerings ?? 0) > 0
-        ? "ไม่สามารถลบรายวิชานี้ได้ เนื่องจากมีการเปิดสอนรายวิชานี้อยู่"
+        ? COURSE_DELETE_BLOCKED_MESSAGE
         : null,
     );
     setIsDeleteModalOpen(true);
@@ -205,9 +207,7 @@ export default function CourseManagement() {
       fetchCourses(currentPage);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 409) {
-        setDeleteError(
-          "ไม่สามารถลบรายวิชานี้ได้ เนื่องจากมีการเปิดสอนรายวิชานี้อยู่",
-        );
+        setDeleteError(COURSE_DELETE_BLOCKED_MESSAGE);
       } else {
         setDeleteError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
       }
@@ -592,7 +592,7 @@ export default function CourseManagement() {
               }
             : handleDeleteConfirm
         }
-        title="ลบรายวิชา"
+        title={deleteError ? "ไม่สามารถลบรายวิชาได้" : "ลบรายวิชา"}
         message={
           deleteError ||
           `คุณแน่ใจหรือไม่ว่าต้องการลบรายวิชา "${deletingCourse ? getThaiCourseName(deletingCourse) : ""}"?`

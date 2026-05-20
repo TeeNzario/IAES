@@ -481,7 +481,7 @@ export class CoursesService {
 
     if (offeringsCount > 0) {
       throw new ConflictException(
-        'Cannot delete this course because course offerings already exist for this course.',
+        'รายวิชานี้เคยถูกเปิดสอบแล้ว จึงไม่สามารถลบออกจากระบบได้ หากไม่ต้องการใช้งานต่อ ให้เปลี่ยนสถานะเป็นปิดใช้งานแทน',
       );
     }
 
